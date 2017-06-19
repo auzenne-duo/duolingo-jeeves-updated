@@ -1,6 +1,26 @@
+import simplejson as json
 
-class SupportTicketDAL(object):
+from jeeves.model.support_ticket import SupportTicket
+
+class AbstractSupportTicketDAL(object):
+    def get_support_tickets(self):
+        pass
+
+class FileSystemSupportTicketDAL(AbstractSupportTicketDAL):
+
+    _file = 'jeeves/data/category_dataset.txt'
 
     def get_support_tickets(self):
-        # TODO(Hideki): I'll work on it next.
-        pass
+        support_tickets = []
+        with open(self._file, 'r') as input_file:
+            for line in input_file:
+                ticket_json = json.loads(line)
+                ticket = SupportTicket(ticket_json['id'],
+                                       ticket_json['subject'],
+                                       ticket_json['description'],
+                                       category_labels=ticket_json['category_labels'])
+                support_tickets.append(ticket)
+        return support_tickets
+
+
+SupportTicketDAL = FileSystemSupportTicketDAL()

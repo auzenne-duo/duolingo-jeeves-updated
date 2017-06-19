@@ -3,6 +3,7 @@ A library for classifying tickets into categories.
 """
 import re
 
+from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.model.categories import CATEGORIES
 from jeeves.model.support_ticket import SupportTicket
 
@@ -34,11 +35,11 @@ class RuleBasedCategoryClassifier(AbstractCategoryClassifier):
         # If this is to be used as a baseline, we'll need to write a bunch of rules which can take
         # a lot of time
         if category == 'inappropriate_ad':
-            return re.search(r'\b(ad)\b', description)
-        elif category == 'feature_request':
+            return re.search(r'\b(inappropriate|unacceptable)\b', description)
+        elif category == 'suggestion':
             return re.search(r'\b(please)\b', description)
         elif category == 'bug':
-            return re.search(r'\b(slow|freeze)\b', description)
+            return re.search(r'\b(slow|freeze|bug)\b', description)
 
 
 class SimpleMachineLearningBasedCategoryClassifier(AbstractCategoryClassifier):
@@ -59,5 +60,7 @@ class SuperCoolMachineLearningBasedCategoryClassifier(AbstractCategoryClassifier
 
 if __name__ == '__main__':
     classifier = RuleBasedCategoryClassifier()
-    ticket = SupportTicket(1, 'Hi', 'I saw a bad ad.')
-    print classifier.get_categories_for_ticket(ticket)
+    for (i, ticket) in enumerate(SupportTicketDAL.get_support_tickets()):
+        print '#### Example %s' % (i+1)
+        print '\tclassification result: %s' % classifier.get_categories_for_ticket(ticket)
+        print '\texpected result: %s' % ticket.category_labels
