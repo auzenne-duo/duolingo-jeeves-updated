@@ -30,11 +30,15 @@ class AbstractCategoryClassifier(object):
 class RuleBasedCategoryClassifier(AbstractCategoryClassifier):
 
     def is_classifiable(self, description, category):
-        # Baseline 1
+        # Baseline 1: This is just to make sure the architecture works.
+        # If this is to be used as a baseline, we'll need to write a bunch of rules which can take
+        # a lot of time
         if category == 'inappropriate_ad':
             return re.search(r'\b(ad)\b', description)
-        elif category == 'streak_issue':
-            return re.search(r'\b(streak)\b', description)
+        elif category == 'feature_request':
+            return re.search(r'\b(please)\b', description)
+        elif category == 'bug':
+            return re.search(r'\b(slow|freeze)\b', description)
 
 
 class SimpleMachineLearningBasedCategoryClassifier(AbstractCategoryClassifier):
