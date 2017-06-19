@@ -9,7 +9,7 @@ class AbstractSupportTicketDAL(object):
 
 class FileSystemSupportTicketDAL(AbstractSupportTicketDAL):
 
-    _file = 'jeeves/data/category_dataset-en.txt'
+    _file = 'data/category_dataset-en.txt'
 
     def get_support_tickets(self):
         with open(self._file, 'r') as input_file:
