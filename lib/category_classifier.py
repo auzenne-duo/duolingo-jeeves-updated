@@ -39,6 +39,9 @@ class RuleBasedCategoryClassifier(AbstractCategoryClassifier):
         elif category == 'suggestion':
             return re.search(r'\b(please)\b', description)
         elif category == 'bug':
+            # Note that this is an extremely low baseline
+            # and this would catch tickets containing `streak freeze`
+            # as a bug because of the keyword match
             return re.search(r'\b(slow|freeze|bug)\b', description)
 
 
