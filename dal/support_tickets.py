@@ -8,7 +8,7 @@ class AbstractSupportTicketDAL(object):
 
 class FileSystemSupportTicketDAL(AbstractSupportTicketDAL):
 
-    _file = 'jeeves/data/category_dataset.txt'
+    _file = 'jeeves/data/category_dataset-en.txt'
 
     def get_support_tickets(self):
         support_tickets = []
