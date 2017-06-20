@@ -3,7 +3,7 @@ Script for training text classifier models.
 """
 
 import argparse
-from user_support.model.supported_languages import SUPPORTED_LANGUAGES
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
 def train(language):
     """
