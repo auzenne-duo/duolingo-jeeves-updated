@@ -1,4 +1,4 @@
-import simplejson as json
+import json
 from itertools import imap
 
 from jeeves.model.support_ticket import SupportTicket

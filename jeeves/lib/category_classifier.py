@@ -5,7 +5,6 @@ import re
 
 from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.model.categories import CATEGORIES
-from jeeves.model.support_ticket import SupportTicket
 
 class AbstractCategoryClassifier(object):
 
