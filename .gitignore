@@ -1,0 +1,8 @@
+*.DS_Store
+*.pem
+*.pyc
+*.pyo
+*~
+.*.swp
+/.duolingo_authtkt
+.terraform

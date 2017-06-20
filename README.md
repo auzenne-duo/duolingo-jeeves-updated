@@ -5,8 +5,13 @@ Technology-driven user support.
 Lawrence Wolf-Sonkin, lawrence@duolingo.com
 
 ## Set up
-- `git clone git@github.com:duolingo/duolingo-forum.git`
+- `git clone git@github.com:duolingo/duolingo-jeeves.git`
 - `cd duolingo-jeeves`
-- ```export PYTHONPATH=`pwd` ```
+- `virtualenv env`
+- `source env/bin/activate`
+- `pip install -r requirements.txt`
+- `uwsgi uwsgi_dev.ini`
+- open `http://localhost:5000/about` and `http://localhost:5000/api/1/hello`
 
-See [Spec](https://docs.google.com/document/d/1QaIR3qbbQh0cT0uwlHrLWeRywRnmXP4NKyK21PUCXnU/edit#).
+## Links
+- [Jeeves Spec](https://docs.google.com/document/d/1QaIR3qbbQh0cT0uwlHrLWeRywRnmXP4NKyK21PUCXnU/edit#).
