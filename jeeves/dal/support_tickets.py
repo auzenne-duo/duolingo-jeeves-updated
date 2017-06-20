@@ -15,9 +15,10 @@ class FileSystemSupportTicketDAL(AbstractSupportTicketDAL):
         with open(self._file, 'r') as input_file:
             return [
                 SupportTicket(
-                    ticket_json['id'],
-                    ticket_json['subject'],
-                    ticket_json['description'],
+                    ticket_id=ticket_json['id'],
+                    date_time=ticket_json['created_at'],
+                    subject=ticket_json['subject'],
+                    description=ticket_json['description'],
                     category_labels=ticket_json['category_labels']
                 )
                 for ticket_json in imap(json.loads, input_file)

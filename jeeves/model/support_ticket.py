@@ -7,7 +7,7 @@ class SupportTicket(object):
 
     classified_categories = {}
 
-    def __init__(self, ticket_id, subject, description, category_labels=None):
+    def __init__(self, ticket_id, date_time, subject, description, category_labels=None):
         """
         Parameters:
             ticket_id<int>: A zendesk ticket ID.
