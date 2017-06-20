@@ -6,7 +6,6 @@
 #
 --index-url https://pypi.duolingo.com/pypi/
 
-blinker==1.4
 boto3==1.4.4              # via duolingo-base
 botocore==1.5.43          # via boto3, s3transfer
 click==6.7                # via flask
@@ -22,7 +21,7 @@ pyjwt==1.5.0              # via duolingo-base
 pymemcache==1.4.3         # via duolingo-base
 python-dateutil==2.6.0    # via botocore
 pyyaml==3.12              # via duolingo-base
-requests==2.13.0
+requests==2.13.0          # via duolingo-base
 s3transfer==0.1.10        # via boto3
 six==1.10.0               # via duolingo-base, pymemcache, python-dateutil
 uwsgi==2.0.15

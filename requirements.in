@@ -1,7 +1,5 @@
 --index-url https://pypi.duolingo.com/pypi/
 
-blinker
 duolingo-base
 Flask
-requests
 uwsgi
