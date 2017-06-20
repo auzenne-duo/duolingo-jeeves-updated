@@ -3,9 +3,9 @@ Script for evaluating text classification accuracy.
 """
 
 import argparse
-from user_support.model.supported_languages import SUPPORTED_LANGUAGES
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
-def evaluate():
+def evaluate(language):
     """
     TODO: Run N-fold cross-validation to evaluate classification accuracy.
     """
