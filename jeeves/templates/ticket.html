@@ -1,0 +1,43 @@
+<html>
+<head>
+<style>
+body {font-family: sans-serif;}
+table {border-collapse: collapse;}
+table, td, th {border: 1px solid black;}
+td {padding: 10px;}
+section {margin-top: 50px;}
+.category_wrapper {margin-right: 30px;}
+.next {width: 200px;}
+</style>
+</head>
+<body>
+<h1>List of tickets</h1>
+
+<section>
+{% for ticket in tickets %}
+<table>
+<tr>
+<td>ID</td>
+<td><a href="#">{{ticket.ticket_id}}</a></td>
+</tr>
+<tr>
+<td>Date</td>
+<td>{{ticket.date_time}}</td>
+</tr>
+<tr>
+<td>Subject</td>
+<td>{{ticket.subject}}</td>
+</tr>
+<tr>
+<td>Description</td>
+<td>
+{{ticket.description}}
+</td>
+</tr>
+</table>
+<br>
+{% endfor %}
+</section>
+
+</body>
+</html>
