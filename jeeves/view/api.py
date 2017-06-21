@@ -1,7 +1,7 @@
 """
 APIs.
 """
-from flask import Blueprint, json, render_template
+from flask import Blueprint, json, render_template, request
 import logging
 
 from jeeves.dal.support_tickets import SupportTicketDAL
@@ -28,4 +28,25 @@ def show_annotation_tool():
 
 @blueprint_api.route('/ticket')
 def show_ticket_list():
-    return render_template('ticket.html', tickets=SupportTicketDAL.get_sample_support_tickets())
+    return render_template('ticket.html')
+
+@blueprint_api.route('/api/1/tickets')
+def get_tickets():
+    # TODO: implement restrictions
+    start_time = request.args.get('start_time')
+    limit = int(request.args.get('limit', '30'))
+    tickets = SupportTicketDAL.get_sample_support_tickets()
+    tickets = sorted(tickets, key=lambda i: i.date_time, reverse=True)
+    tickets = tickets[:limit]
+    category_list = sorted(CATEGORIES)
+    data = [{
+        'ticket_id': ticket.ticket_id,
+        'date_time': ticket.date_time,
+        'subject': ticket.subject,
+        'description': ticket.description,
+        'category_labels': {category: ticket.category_labels and category in ticket.category_labels
+                            for category in category_list},
+        }
+        for ticket in tickets
+    ]
+    return json.jsonify(data)
