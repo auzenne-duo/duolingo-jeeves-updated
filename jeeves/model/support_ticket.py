@@ -17,6 +17,7 @@ class SupportTicket(object):
         """
         # More meta data can be fetched using this ID.
         self.ticket_id = ticket_id
+        self.date_time = date_time
         self.subject = subject
         self.description = description
         self.category_labels = category_labels
