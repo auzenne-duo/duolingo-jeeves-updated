@@ -20,7 +20,7 @@ LOG = logging.getLogger('application')
 
 config = Config.load_config()
 
-application = Flask(__name__)
+application = Flask(__name__, template_folder='jeeves/templates')
 application.after_request(auth_after_request)
 
 # Register blueprints

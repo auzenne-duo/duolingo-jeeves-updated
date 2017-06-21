@@ -1,8 +1,10 @@
 """
 APIs.
 """
-from flask import Blueprint, json
+from flask import Blueprint, json, render_template
 import logging
+
+from jeeves.model.categories import CATEGORIES
 
 # This is being referenced by the application.py
 blueprint_api = Blueprint('api', __name__)
@@ -19,6 +21,6 @@ def show_about():
     return ('<html><body><h1>Hello, I am Jeeves.</h1>'
             'I am a technology-driven user support system who helps millions of Duolingo users.</body></html>')
 
-@blueprint_api.route('/annotate')
+@blueprint_api.route('/annotation')
 def show_annotation_tool():
-    pass
+    return render_template('annotation.html', categories=CATEGORIES)
