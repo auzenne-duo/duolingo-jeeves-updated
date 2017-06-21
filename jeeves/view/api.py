@@ -4,6 +4,7 @@ APIs.
 from flask import Blueprint, json, render_template
 import logging
 
+from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.model.categories import CATEGORIES
 
 # This is being referenced by the application.py
@@ -24,3 +25,7 @@ def show_about():
 @blueprint_api.route('/annotation')
 def show_annotation_tool():
     return render_template('annotation.html', categories=CATEGORIES)
+
+@blueprint_api.route('/ticket')
+def show_ticket_list():
+    return render_template('ticket.html', tickets=SupportTicketDAL.get_sample_support_tickets())

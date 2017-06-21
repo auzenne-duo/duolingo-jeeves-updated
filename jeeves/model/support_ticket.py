@@ -11,12 +11,14 @@ class SupportTicket(object):
         """
         Parameters:
             ticket_id<int>: A zendesk ticket ID.
+            date_time<str>: A timestamp at which the ticket was created (e.g. 2017-05-28T23:20:49Z)
             subject<str>: A subject of the ticket.
             description<str>: A description of the ticket. This may include unstructured meta data.
             category_labels<collection<str>>: Gold standard labeled assinged by human annotator.
         """
         # More meta data can be fetched using this ID.
         self.ticket_id = ticket_id
+        self.date_time = date_time
         self.subject = subject
         self.description = description
         self.category_labels = category_labels

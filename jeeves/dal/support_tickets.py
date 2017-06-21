@@ -4,15 +4,22 @@ from itertools import imap
 from jeeves.model.support_ticket import SupportTicket
 
 class AbstractSupportTicketDAL(object):
-    def get_support_tickets(self):
+    def get_labeled_support_tickets(self, language='en'):
+        """ Get a list of SupportTickets with category_labels annotated. """
         pass
+
+    def get_sample_support_tickets(self):
+        """ Get a list of 1000 sample SupportTickets to be shown for prototyping the system. """
+        pass
+
 
 class FileSystemSupportTicketDAL(AbstractSupportTicketDAL):
 
-    _file = 'data/category_dataset-en.txt'
+    _labeled_ticket_file = 'data/category_dataset-%s.txt'
+    _sample_ticket_file = 'data/sample_tickets.json'
 
-    def get_support_tickets(self):
-        with open(self._file, 'r') as input_file:
+    def get_labeled_support_tickets(self, language='en'):
+        with open(self._labeled_ticket_file % language, 'r') as input_file:
             return [
                 SupportTicket(
                     ticket_id=ticket_json['id'],
@@ -24,5 +31,17 @@ class FileSystemSupportTicketDAL(AbstractSupportTicketDAL):
                 for ticket_json in imap(json.loads, input_file)
             ]
 
+    def get_sample_support_tickets(self):
+        # TODO: remove duplicate code using a helper function
+        with open(self._sample_ticket_file, 'r') as input_file:
+            return [
+                SupportTicket(
+                    ticket_id=ticket_json['id'],
+                    date_time=ticket_json['created_at'],
+                    subject=ticket_json['subject'],
+                    description=ticket_json['description']
+                )
+                for ticket_json in json.load(input_file)['tickets']
+            ]
 
 SupportTicketDAL = FileSystemSupportTicketDAL()

@@ -62,7 +62,7 @@ class SuperCoolMachineLearningBasedCategoryClassifier(AbstractCategoryClassifier
 
 if __name__ == '__main__':
     classifier = RuleBasedCategoryClassifier()
-    for (i, ticket) in enumerate(SupportTicketDAL.get_support_tickets()):
+    for (i, ticket) in enumerate(SupportTicketDAL.get_labeled_support_tickets()):
         print '#### Example %s' % (i+1)
         print '\tclassification result: %s' % classifier.get_categories_for_ticket(ticket)
         print '\texpected result: %s' % ticket.category_labels
