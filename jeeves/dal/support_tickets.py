@@ -18,29 +18,27 @@ class FileSystemSupportTicketDAL(AbstractSupportTicketDAL):
     _labeled_ticket_file = 'data/category_dataset-%s.txt'
     _sample_ticket_file = 'data/sample_tickets.json'
 
-    def get_labeled_support_tickets(self, language='en'):
-        with open(self._labeled_ticket_file % language, 'r') as input_file:
-            return [
-                SupportTicket(
+    @staticmethod
+    def _deserialize_json(ticket_json):
+        return SupportTicket(
                     ticket_id=ticket_json['id'],
                     date_time=ticket_json['created_at'],
                     subject=ticket_json['subject'],
                     description=ticket_json['description'],
-                    category_labels=ticket_json['category_labels']
+                    category_labels=ticket_json.get('category_labels')
                 )
+
+    def get_labeled_support_tickets(self, language='en'):
+        with open(self._labeled_ticket_file % language, 'r') as input_file:
+            return [
+                self._deserialize_json(ticket_json)
                 for ticket_json in imap(json.loads, input_file)
             ]
 
     def get_sample_support_tickets(self):
-        # TODO: remove duplicate code using a helper function
         with open(self._sample_ticket_file, 'r') as input_file:
             return [
-                SupportTicket(
-                    ticket_id=ticket_json['id'],
-                    date_time=ticket_json['created_at'],
-                    subject=ticket_json['subject'],
-                    description=ticket_json['description']
-                )
+                self._deserialize_json(ticket_json)
                 for ticket_json in json.load(input_file)['tickets']
             ]
 
