@@ -59,4 +59,4 @@ def get_time_series_data():
     word = request.args.get('word')
     if not word:
         abort(make_response('Please provide `word` parameter', 500))
-    return get_time_series(word)
+    return json.jsonify(get_time_series(word))
