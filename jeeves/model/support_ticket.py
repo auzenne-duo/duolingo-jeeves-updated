@@ -31,5 +31,5 @@ class SupportTicket(object):
             else:
                 return item
         variables = ', '.join('%s=%s' % summarize(item)
-                              for item in vars(self).iteritems())
+                              for item in vars(self).items())
         return '%s(%s)' % (type(self).__name__, variables)

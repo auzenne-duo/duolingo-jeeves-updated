@@ -8,7 +8,7 @@ Technology-driven user support.
 ## Set up
 - `git clone git@github.com:duolingo/duolingo-jeeves.git`
 - `cd duolingo-jeeves`
-- `virtualenv env`
+- `virtualenv -p python3 env`
 - `export PYTHONPATH=$(pwd)`
 - `source env/bin/activate`
 - `pip install -r requirements.txt`
