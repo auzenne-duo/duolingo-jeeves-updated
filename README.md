@@ -13,6 +13,8 @@ Technology-driven user support.
 - `export PYTHONPATH=$(pwd)`
 - `source env/bin/activate`
 - `pip3 install -r requirements.txt`
+- `pip3 install -r dev-requirements.txt`
+- `pre-commit install`
 - `uwsgi uwsgi_dev.ini`
 - open `http://localhost:5000/about` and `http://localhost:5000/api/1/hello`
 
