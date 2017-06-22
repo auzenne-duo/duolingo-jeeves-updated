@@ -1,6 +1,4 @@
-#!/usr/bin/env python2
 import json
-from itertools import imap
 from glob import glob
 import operator
 
@@ -40,7 +38,7 @@ class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
     def _ticket_generator(self, factory):
         with open(self._file, 'r') as input_file:
-            for ticket_json in imap(json.loads, input_file):
+            for ticket_json in map(json.loads, input_file):
                 yield factory(ticket_json)
 
 class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
