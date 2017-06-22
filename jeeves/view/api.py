@@ -1,10 +1,11 @@
 """
 APIs.
 """
-from flask import Blueprint, json, render_template, request
+from flask import Blueprint, abort, json, make_response, render_template, request
 import logging
 
 from jeeves.dal.support_tickets import SupportTicketDAL
+from jeeves.lib.time_series_generator import get_time_series
 from jeeves.model.categories import CATEGORIES
 
 # This is being referenced by the application.py
@@ -32,7 +33,7 @@ def show_ticket_list():
 
 @blueprint_api.route('/api/1/tickets')
 def get_tickets():
-    # TODO: implement restrictions
+    # TODO: implement `start_time` restriction
     start_time = request.args.get('start_time')
     limit = int(request.args.get('limit', '30'))
     tickets = SupportTicketDAL.get_sample_support_tickets()
@@ -50,3 +51,12 @@ def get_tickets():
         for ticket in tickets
     ]
     return json.jsonify(data)
+
+
+@blueprint_api.route('/api/1/time_series')
+def get_time_series_data():
+    # TODO: support more parameters such as category
+    word = request.args.get('word')
+    if not word:
+        abort(make_response('Please provide `word` parameter', 500))
+    return get_time_series(word)
