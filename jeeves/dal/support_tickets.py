@@ -1,5 +1,4 @@
 import json
-from itertools import imap
 
 from jeeves.model.support_ticket import SupportTicket
 
@@ -32,7 +31,7 @@ class FileSystemSupportTicketDAL(AbstractSupportTicketDAL):
         with open(self._labeled_ticket_file % language, 'r') as input_file:
             return [
                 self._deserialize_json(ticket_json)
-                for ticket_json in imap(json.loads, input_file)
+                for ticket_json in map(json.loads, input_file)
             ]
 
     def get_sample_support_tickets(self):

@@ -6,12 +6,13 @@ Technology-driven user support.
 - Hideki Shima, hideki@duolingo.com
 
 ## Set up
+- `brew install python3`
 - `git clone git@github.com:duolingo/duolingo-jeeves.git`
 - `cd duolingo-jeeves`
 - `virtualenv -p python3 env`
 - `export PYTHONPATH=$(pwd)`
 - `source env/bin/activate`
-- `pip install -r requirements.txt`
+- `pip3 install -r requirements.txt`
 - `uwsgi uwsgi_dev.ini`
 - open `http://localhost:5000/about` and `http://localhost:5000/api/1/hello`
 
