@@ -30,11 +30,6 @@ def show_about():
             'I am a technology-driven user support system who helps millions of Duolingo users.</body></html>')
 
 
-@blueprint_api.route('/annotation')
-def show_annotation_tool():
-    return render_template('annotation.html', categories=CATEGORIES)
-
-
 @blueprint_api.route('/training')
 def show_train_jeeves():
     return render_template('training.html')
@@ -47,23 +42,30 @@ def show_analysis():
 
 @blueprint_api.route('/api/1/tickets')
 def get_tickets():
-    # TODO: implement `start_time` restriction
+    # TODO: implement `start_time` restriction instead of `page`
     # start_time = request.args.get('start_time')
-    limit = int(request.args.get('limit', '30'))
+    limit = int(request.args.get('limit', '5'))
+    page = int(request.args.get('page', '0'))
     tickets = SupportTicketDAL.get_sample_support_tickets()
     tickets = sorted(tickets, key=lambda i: i.date_time, reverse=True)
-    tickets = tickets[:limit]
+    tickets = tickets[page * limit : (page + 1) * limit]
     category_list = sorted(CATEGORIES)
-    data = [{'ticket_id': ticket.ticket_id,
-             'date_time': ticket.date_time,
-             'subject': ticket.subject,
-             'description': ticket.description,
-             'category_labels': {category: ticket.category_labels and
-                                 category in ticket.category_labels
-                                 for category in category_list},
-             } for ticket in tickets
-            ]
-    return json.jsonify(data)
+    # Adding more categories for demo purpose
+    category_list += ['feature_request', 'language_request', 'requesting_reply',
+                      'challenge_feedback', 'schools', 'iap_refunds',
+                      'streak_issue', 'forum_abuse']
+    values = [{'ticket_id': ticket.ticket_id,
+               'date_time': ticket.date_time,
+               'subject': ticket.subject,
+               'description': ticket.description,
+               'category_labels': {category: ticket.category_labels and
+                                   category in ticket.category_labels
+                                   for category in category_list},
+               } for ticket in tickets
+              ]
+    response_data = {'data': values,
+                     'next_url': '/api/1/tickets?limit=%s&page=%s' % (limit, page + 1)}
+    return json.jsonify(response_data)
 
 
 @blueprint_api.route('/api/1/time_series')

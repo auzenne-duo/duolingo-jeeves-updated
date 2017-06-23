@@ -5,6 +5,18 @@
 {% block head %}
   {{ super() }}
   <script src="{{url_for('static', filename='js/ticket.js')}}"></script>
+  <style>
+  .next_wrapper{
+    text-align: center;
+  }
+  </style>
+  <script>
+  $(document).ready(function() {
+    $('.next').click(function() {
+      loadTickets($(this).data('next_page'));
+    });
+  });
+  </script>
 {% endblock %}
 
 {% block body %}
@@ -13,4 +25,8 @@
 </section>
 
 <section id="tickets"></section>
+
+<section class="next_wrapper">
+  <button class="next btn-primary">Next</button>
+</section>
 {% endblock %}
