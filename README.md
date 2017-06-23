@@ -16,7 +16,7 @@ Technology-driven user support.
 - `pip3 install -r dev-requirements.txt`
 - `pre-commit install`
 - `uwsgi uwsgi_dev.ini`
-- Open `http://localhost:5000/`
+- Open [`http://localhost:5000/`](http://localhost:5000/)
 
 ## Links
 - [Jeeves Spec](https://docs.google.com/document/d/1QaIR3qbbQh0cT0uwlHrLWeRywRnmXP4NKyK21PUCXnU/edit#)
