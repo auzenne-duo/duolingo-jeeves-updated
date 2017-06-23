@@ -1,16 +1,31 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    {% block head %}
-    <title>{% block title %}Duolingo Blast{% endblock %}</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
-    <link rel="stylesheet" href="{{url_for('static', filename='css/common.css')}}" type="text/css">
-    {% endblock %}
+{% block head %}
+  <meta charset="UTF-8">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="pragma" content="no-cache">
+  <title>{% block title %}Duolingo Blast{% endblock %}</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="{{url_for('static', filename='css/common.css')}}" type="text/css">
+  <link rel="shortcut icon" href="/static/images/favicon.ico">
+{% endblock %}
 </head>
 <body>
+<header class="header">
+  <div class="header-inner">
+    <div class="container">
+      <a href="/" class="topbar-brand navigate-home white smaller-logo">
+      </a>
+      <span class="lockup">jeeves</span>
+    </div>
+  </div>
+</header>
 
+<main>
 {% block body %}
 {% endblock %}
+</main>
 
 {% block footer %}
 {% endblock %}

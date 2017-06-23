@@ -4,13 +4,33 @@
 
 {% block head %}
   {{ super() }}
+  <style>
+  .description {
+    color: #999;
+  }
+  .item {
+    font-weight: 700;
+    font-size: 20px;
+  }
+  li {
+    margin-bottom: 20px;
+  }
+  </style>
 {% endblock %}
 
 {% block body %}
+<section>
 <ul>
-<li><a href="/analysis">Analyze time series</a> -- Visualize tickets over time
-<li><a href="/training">Train Jeeves</a> -- Annotate tickets here
+<li>
+  <div class="item"><a href="/analysis">Analyze Time Series</a></div>
+  <span class="description">Visualize tickets over time.</span>
+</li>
+<li>
+  <div class="item"><a href="/training">Train Jeeves</a></div>
+  <span class="description">Annotate tickets here.</span>
+</li>
 </ul>
+</section>
 {% endblock %}
 
 {% block footer %}

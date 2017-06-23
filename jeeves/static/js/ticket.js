@@ -9,25 +9,25 @@ $.get('/api/1/tickets').done(function(tickets) {
         }
         ticket.description = ticket.description.replace(/\n/g, '<br>');
         content += `<table><tr>
-        <td width="150">ID</td>
+        <th width="150">ID</td>
         <td><a href="#">${ticket.ticket_id}</a></td>
         </tr>
         <tr>
-        <td>Date</td>
+        <th>Date</td>
         <td>${ticket.date_time}</td>
         </tr>
         <tr>
-        <td>Subject</td>
+        <th>Subject</td>
         <td>${ticket.subject}</td>
         </tr>
         <tr>
-        <td>Description</td>
+        <th>Description</td>
         <td>
         ${ticket.description}
         </td>
         </tr>
         <tr>
-        <td>Category labels</td>
+        <th>Category labels</td>
         <td>${category_html}</td>
         </tr>
         </table>
