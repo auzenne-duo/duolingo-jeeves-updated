@@ -18,38 +18,51 @@ _LOG = logging.getLogger('application')
 def say_hello():
     return json.jsonify({'msg': 'hello'})
 
+
+@blueprint_api.route('/')
+def show_index():
+    return render_template('index.html')
+
+
 @blueprint_api.route('/about')
 def show_about():
     return ('<html><body><h1>Hello, I am Jeeves.</h1>'
             'I am a technology-driven user support system who helps millions of Duolingo users.</body></html>')
 
+
 @blueprint_api.route('/annotation')
 def show_annotation_tool():
     return render_template('annotation.html', categories=CATEGORIES)
 
-@blueprint_api.route('/ticket')
-def show_ticket_list():
-    return render_template('ticket.html')
+
+@blueprint_api.route('/training')
+def show_train_jeeves():
+    return render_template('training.html')
+
+
+@blueprint_api.route('/analysis')
+def show_analysis():
+    return render_template('analysis.html')
+
 
 @blueprint_api.route('/api/1/tickets')
 def get_tickets():
     # TODO: implement `start_time` restriction
-    start_time = request.args.get('start_time')
+    # start_time = request.args.get('start_time')
     limit = int(request.args.get('limit', '30'))
     tickets = SupportTicketDAL.get_sample_support_tickets()
     tickets = sorted(tickets, key=lambda i: i.date_time, reverse=True)
     tickets = tickets[:limit]
     category_list = sorted(CATEGORIES)
-    data = [{
-        'ticket_id': ticket.ticket_id,
-        'date_time': ticket.date_time,
-        'subject': ticket.subject,
-        'description': ticket.description,
-        'category_labels': {category: ticket.category_labels and category in ticket.category_labels
-                            for category in category_list},
-        }
-        for ticket in tickets
-    ]
+    data = [{'ticket_id': ticket.ticket_id,
+             'date_time': ticket.date_time,
+             'subject': ticket.subject,
+             'description': ticket.description,
+             'category_labels': {category: ticket.category_labels and
+                                 category in ticket.category_labels
+                                 for category in category_list},
+             } for ticket in tickets
+            ]
     return json.jsonify(data)
 
 

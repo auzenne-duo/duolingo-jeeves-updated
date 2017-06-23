@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Annotation | Duolingo Jeeves{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <script src="{{url_for('static', filename='js/ticket.js')}}"></script>
+{% endblock %}
+
+{% block body %}
+
+<h1>Train Jeeves</h1>
+
+<section id="tickets"></section>
+
+{% endblock %}

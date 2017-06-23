@@ -2,7 +2,7 @@
 Main entry point for running the service, through command line or mod_wsgi.
 """
 
-from flask import Flask  #, got_request_exception
+from flask import Flask
 import logging
 import os
 # import rollbar
@@ -32,11 +32,6 @@ application.registry = registry.initialize()
 
 config.apply_all(registry=application.registry,
                  flask_app=application)
-
-
-@application.route('/')
-def hello():
-    return 'Hello, this is duolingo-jeeves microservice. :)'
 
 
 @application.route('/error', methods=['GET', 'POST', 'PATCH', 'PUT'])

@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}Home | Duolingo Jeeves{% endblock %}
+
+{% block head %}
+  {{ super() }}
+{% endblock %}
+
+{% block body %}
+<ul>
+<li><a href="/analysis">Analyze time series</a> -- Visualize tickets over time
+<li><a href="/training">Train Jeeves</a> -- Annotate tickets here
+</ul>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
