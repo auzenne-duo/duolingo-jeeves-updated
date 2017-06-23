@@ -8,7 +8,7 @@ function drawChart() {
   data.addColumn('number', 'Zendesk tickets');
   var JAN_FIRST = new Date('2017-01-01');
   var keyword = $('#query').val()
-  $.get('/api/1/time_series', {word: keyword, debug: DEBUG ? '1' : ''}).done(function(response) {
+  $.get('/api/1/time_series', {word: keyword}).done(function(response) {
       var pairs = [];
       for (var dateString in response.values) {
           if (new Date(dateString) < JAN_FIRST) {
@@ -44,7 +44,7 @@ function drawChart() {
 
       var chart = new google.visualization.LineChart(document.getElementById('chart_container'));
       chart.draw(data, options);
-      window.history.pushState(null, null, '/analysis?word=' + keyword + (DEBUG ? '&debug=1' : ''));
+      window.history.pushState(null, null, '/analysis?word=' + keyword);
   });
 
 }

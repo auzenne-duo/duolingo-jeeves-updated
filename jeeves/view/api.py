@@ -39,8 +39,7 @@ def show_train_jeeves():
 def show_analysis():
     word = request.args.get('word')
     assert word
-    debug = bool(request.args.get('debug'))
-    return render_template('analysis.html', word=word, debug=debug)
+    return render_template('analysis.html', word=word)
 
 
 @blueprint_api.route('/api/1/tickets')
@@ -75,7 +74,6 @@ def get_tickets():
 def get_time_series_data():
     # TODO: support more parameters such as category
     word = request.args.get('word')
-    debug = bool(request.args.get('debug'))
     if not word:
         abort(make_response('Please provide `word` parameter', 500))
-    return json.jsonify(get_time_series(word, debug=debug))
+    return json.jsonify(get_time_series(word))
