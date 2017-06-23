@@ -41,6 +41,10 @@ class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
     _labeled_ticket_file = os.path.join(data_directory, 'category_dataset-en.txt')
 
+    def __init__(self, ticket_file=None):
+        if ticket_file is not None:
+            self._labeled_ticket_file = os.path.join(data_directory, ticket_file)
+
     def get_labeled_support_tickets(self, language='en'):
         with open(self._labeled_ticket_file.format(language), 'r') as input_file:
             yield from map(self._deserialize_json, map(json.loads, input_file))

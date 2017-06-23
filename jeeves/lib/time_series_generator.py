@@ -5,13 +5,13 @@ A library for generating ticket volume over time.
 import numpy as np
 import pandas as pd
 
-from jeeves.dal.support_tickets import ZendeskFileSystemSupportTicketDAL
+from jeeves.dal.support_tickets import FileSystemSupportTicketDAL
 
 # TODO: Make this more effective. Currently processing all Zendesk data and putting
 # it into memory at once, which takes about 2~3 minutes (and is clearly
 # problematic), but then all `get_time_series` calls are basically instantaneous
 df = pd.DataFrame()
-df['tickets'] = list(ZendeskFileSystemSupportTicketDAL().get_labeled_support_tickets())
+df['tickets'] = list(FileSystemSupportTicketDAL('englishTicketDump.txt').get_labeled_support_tickets())
 df.index = df['tickets'].apply(lambda tk: pd.Timestamp(tk.date_time))
 df.index.name = 'datetime'
 
