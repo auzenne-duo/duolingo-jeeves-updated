@@ -4,6 +4,7 @@ A library for generating ticket volume over time.
 
 import numpy as np
 import pandas as pd
+import re
 
 from jeeves.dal.support_tickets import FileSystemSupportTicketDAL
 
@@ -20,7 +21,8 @@ def get_time_series(word, debug=False):
         return _DEBUG_DATA
     # TODO: support start_date & end_date arguments
     assert isinstance(word, str) and word
-    counts = df['tickets'].apply(lambda tk: word in tk.description).resample('D').sum().transform(lambda i: 0 if np.isnan(i) else i)
+    match = re.compile(r'\b{0}\b'.format(word), flags=re.I | re.U)
+    counts = df['tickets'].apply(lambda tk: bool(match.search(tk.description))).resample('D').sum().transform(lambda i: 0 if np.isnan(i) else i)
     vals = dict(zip(map(lambda dt: dt.strftime('%Y-%m-%d'), counts.index), counts))
     return {'values': vals}
 
