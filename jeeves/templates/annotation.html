@@ -1,8 +1,13 @@
-<html>
-<head>
-<link rel="stylesheet" href="{{url_for('static', filename='css/common.css')}}" type="text/css">
-</head>
-<body>
+{% extends "layout.html" %}
+
+{% block title %}Annotation | Duolingo Jeeves{% endblock %}
+
+{% block head %}
+  {{ super() }}
+{% endblock %}
+
+{% block body %}
+
 <h1>Ticket Category Annotator (in progress)</h1>
 
 <a href="/ticket">Show list of tickets</a>
@@ -33,5 +38,4 @@ Dear DuoLingo team,\n\nI love you app and having been keeping up on my Spanish w
 <button class="next">Next</button>
 </section>
 
-</body>
-</html>
+{% endblock %}

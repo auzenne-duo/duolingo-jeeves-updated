@@ -1,0 +1,19 @@
+<html>
+<head>
+    {% block head %}
+    <title>{% block title %}Duolingo Blast{% endblock %}</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="{{url_for('static', filename='css/common.css')}}" type="text/css">
+    {% endblock %}
+</head>
+<body>
+
+{% block body %}
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+</body>
+</html>
