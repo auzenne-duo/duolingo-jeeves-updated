@@ -1,5 +1,8 @@
 --index-url https://pypi.duolingo.com/pypi/
 
 duolingo-base
+langid
 Flask
+scikit-learn
+scipy
 uwsgi
