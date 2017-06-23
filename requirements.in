@@ -3,4 +3,6 @@
 duolingo-base
 langid
 Flask
+scikit-learn
+scipy
 uwsgi

@@ -1,6 +1,9 @@
 import json
 from glob import glob
+import os
 
+from jeeves import data_directory
+from jeeves.lib import clean_description
 from jeeves.lib import langClassify
 from jeeves.model.support_ticket import SupportTicket
 
@@ -15,7 +18,7 @@ class AbstractSupportTicketDAL(object):
             ticket_id=ticket_json['id'],
             date_time=ticket_json['created_at'],
             subject=ticket_json['subject'],
-            description=ticket_json['description'],
+            description=clean_description(ticket_json['description']),
             category_labels=ticket_json.get('category_labels', list())
         )
 
@@ -36,18 +39,19 @@ class AbstractFileSystemSupportTicketDAL(AbstractSupportTicketDAL):
 
 class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
-    _file = 'data/category_dataset-en.txt'
-    _labeled_ticket_file = 'data/category_dataset-%s.txt'
+    _labeled_ticket_file = os.path.join(data_directory, 'category_dataset-en.txt')
 
     def get_labeled_support_tickets(self, language='en'):
-        with open(self._labeled_ticket_file % language, 'r') as input_file:
+        with open(self._labeled_ticket_file.format(language), 'r') as input_file:
             yield from map(self._deserialize_json, map(json.loads, input_file))
 
 class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
-    def __init__(self, directory):
+    _zendesk_ticket_dir = os.path.join(data_directory, 'zendesk')
+
+    def __init__(self):
         super(ZendeskFileSystemSupportTicketDAL, self).__init__()
-        self._files = glob(directory + '/tickets_*.json')
+        self._files = glob(os.path.join(self._zendesk_ticket_dir, 'tickets_*.json'))
 
     def get_labeled_support_tickets(self, language='en'):
         for fileName in self._files:
