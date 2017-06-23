@@ -1,13 +1,13 @@
 google.charts.load('current', {packages: ['corechart', 'line']});
-google.charts.setOnLoadCallback(drawTrendlines);
+google.charts.setOnLoadCallback(drawChart);
 
-function drawTrendlines() {
+
+function drawChart() {
   var data = new google.visualization.DataTable();
   data.addColumn('date', 'X');
   data.addColumn('number', 'Zendesk tickets');
-
-  $.get('/api/1/time_series', {word: WORD, debug: DEBUG ? '1' : ''}).done(function(response) {
-      console.log(response.values);
+  var keyword = $('#query').val()
+  $.get('/api/1/time_series', {word: keyword, debug: DEBUG ? '1' : ''}).done(function(response) {
       var pairs = [];
       for (var dateString in response.values) {
           pairs.push([new Date(dateString), response.values[dateString]])
@@ -15,7 +15,7 @@ function drawTrendlines() {
       data.addRows(pairs);
 
       var options = {
-        title: '# of tickets containing "' + WORD + '"',
+        title: '# of tickets containing "' + keyword + '"',
         vAxis: {
           title: '#'
         },
@@ -40,6 +40,7 @@ function drawTrendlines() {
 
       var chart = new google.visualization.LineChart(document.getElementById('chart_container'));
       chart.draw(data, options);
+      window.history.pushState(null, null, '/analysis?word=' + keyword + (DEBUG ? '&debug=1' : ''));
   });
 
 }
