@@ -1,0 +1,7 @@
+body, td, th {font-family: sans-serif;}
+table {border-collapse: collapse; width: 100%}
+table, td, th {border: 1px solid black;}
+td {padding: 10px;}
+section {margin-top: 50px;}
+.category_wrapper {margin-right: 30px;}
+.next {width: 200px;}

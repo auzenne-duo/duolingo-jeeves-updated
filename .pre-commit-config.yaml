@@ -1,0 +1,22 @@
+-   repo: https://github.com/pre-commit/pre-commit.git
+    sha: v0.14.1
+    hooks:
+    -   id: validate_config
+    -   id: validate_manifest
+-   repo: https://github.com/pre-commit/pre-commit-hooks.git
+    sha: v0.8.0
+    hooks:
+    -   id: check-json
+    -   id: check-yaml
+    -   id: detect-private-key
+    -   id: detect-aws-credentials
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: flake8
+-   repo: local
+    hooks:
+    -   id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        files: '\.py$'

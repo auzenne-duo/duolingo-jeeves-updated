@@ -11,6 +11,7 @@ class SupportTicket(object):
         """
         Parameters:
             ticket_id<int>: A zendesk ticket ID.
+            date_time<str>: A timestamp at which the ticket was created (e.g. 2017-05-28T23:20:49Z)
             subject<str>: A subject of the ticket.
             description<str>: A description of the ticket. This may include unstructured meta data.
             category_labels<collection<str>>: Gold standard labeled assinged by human annotator.
@@ -30,5 +31,5 @@ class SupportTicket(object):
             else:
                 return item
         variables = ', '.join('%s=%s' % summarize(item)
-                              for item in vars(self).iteritems())
+                              for item in vars(self).items())
         return '%s(%s)' % (type(self).__name__, variables)
