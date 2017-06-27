@@ -8,9 +8,9 @@ import re
 
 from jeeves.dal.support_tickets import FileSystemSupportTicketDAL
 
-# TODO: Make this more effective. Currently processing all Zendesk data and putting
-# it into memory at once, which takes about 2~3 minutes (and is clearly
-# problematic), but then all `get_time_series` calls are basically instantaneous
+# TODO: Make this more effective. Currently preprocessed all Zendesk data
+# and stored it to disk. Loading it takes about 2~3 seconds, but then all
+# `get_time_series` calls are basically instantaneous
 df = pd.DataFrame()
 df['tickets'] = list(FileSystemSupportTicketDAL('englishTicketDump.txt').get_labeled_support_tickets())
 df.index = df['tickets'].apply(lambda tk: pd.Timestamp(tk.date_time))
