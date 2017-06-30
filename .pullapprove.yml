@@ -1,0 +1,48 @@
+version: 2
+
+group_defaults:
+
+  # Mark PRs as Pending if a PR is closed and then re-opened.
+  reset_on_reopened:
+    enabled: true
+
+  # Any time new commits are pushed, those changes will need to be approved.
+  reset_on_push:
+      enabled: true
+
+  # Approve PRs by leaving a comment on the PR.
+  approve_by_comment:
+    enabled: true
+    approve_regex: "^(LGTM|lgtm|:+1:|[Aa]pproved|[Vv]erified|:shipit:)"
+    reject_regex: "^([Pp]lease fix|:-1:|[Rr]ejected)"
+
+  # Approve PRs by leaving an approved review on GitHub.
+  # This is currently being developed.
+  github_reviews:
+    enabled: true
+
+  # If 1 person rejects it, it is unmergeable until they approve it.
+  reject_value: -99
+
+groups:
+
+  # Only 1 reviewer needs to approve a PR before it is approved.
+  reviewers:
+    required: 1
+    users:
+    - hidekishima
+
+  developers:
+    # The author must approve their own PR.
+    # If you're the author, use 'Verified' instead of the other approval comments.
+    required: 2
+    author_approval:
+      required: true
+
+    users: all
+
+    always_approved:
+      title_regex: 'NO REVIEW'
+      labels:
+        - no-review
+      explanation: 'This PR does not need approval'
