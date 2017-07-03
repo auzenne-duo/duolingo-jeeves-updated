@@ -66,30 +66,61 @@
     text-align: center;
   }
   </style>
+  <script src="{{url_for('static', filename='js/common.js')}}"></script>
+  <script src="{{url_for('static', filename='js/ticket.js')}}"></script>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="{{url_for('static', filename='js/chart.js')}}"></script>
   <script>
-    WORD = '{{word}}';
+    $(document).ready(function() {
+      var page = parseInt(getParameterByName('page', '0'));
+      var word = getParameterByName('word', 'freeze');
+      $('#query').val(word);
+      $('.word_str').html(word);
+
+      google.charts.load('current', {packages: ['corechart', 'line']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      loadTickets(page, word);
+      $('.next').click(function() {
+        loadTickets($(this).data('next_page'), word);
+      });
+    });
+    function update() {
+      var word = $('#query').val();
+      $('.word_str').html(word);
+      drawChart();
+      loadTickets(0, word);
+    }
   </script>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <script type="text/javascript" src="{{url_for('static', filename='js/chart.js')}}"></script>
 {% endblock %}
 
 {% block body %}
+<main>
 <section>
-<h1>Analysis</h1>
+<h1>Time Series Analyzer</h1>
 </section>
 
 <section class="search-box">
-  <form class="search" method="get" action="javascript:drawChart()">
+  <form class="search" method="get" action="javascript:update()">
     <input type="search" name="query" id="query" placeholder="Type keyword here"
-     class="ui-autocomplete-input" autocomplete="off" value="{{word}}">
+     class="ui-autocomplete-input" autocomplete="off">
     <input type="submit" name="commit" value="Search">
   </form>
 </section>
 
+<section class="small-section">
+  <h2>Trend</h2>
+</section>
 <div id="chart_container"></div>
 
-<section class="browse_wrapper">
-  <button class="btn-primary">Browse Tickets</button>
+<section class="small-section">
+  <h2>Tickets containing "<span class="word_str"></span>"</h2>
+</section>
+<section id="tickets"></section>
+
+<section class="next_wrapper">
+  <button class="next btn-primary">Next</button>
 </section>
 
+</main>
 {% endblock %}

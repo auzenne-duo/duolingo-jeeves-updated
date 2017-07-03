@@ -43,6 +43,12 @@ th {
 section {
   margin: 60px;
 }
+section.next_wrapper {
+  text-align: right;
+}
+section.small-section {
+  margin: 0px 60px -40px 60px;
+}
 .category_wrapper {
   margin-right: 30px;
 }
@@ -125,4 +131,8 @@ button {
 }
 label {
   cursor: pointer;
+}
+h2 {
+  margin: 0;
+  font-size: 24px;
 }

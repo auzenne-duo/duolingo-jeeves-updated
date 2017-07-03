@@ -1,13 +1,9 @@
-google.charts.load('current', {packages: ['corechart', 'line']});
-google.charts.setOnLoadCallback(drawChart);
-
-
 function drawChart() {
   var data = new google.visualization.DataTable();
   data.addColumn('date', 'X');
   data.addColumn('number', 'Zendesk tickets');
   var JAN_FIRST = new Date('2017-01-01');
-  var keyword = $('#query').val()
+  var keyword = $('#query').val();
   $.get('/api/1/time_series', {word: keyword}).done(function(response) {
       var pairs = [];
       for (var dateString in response.values) {

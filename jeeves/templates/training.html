@@ -12,6 +12,7 @@
   </style>
   <script>
   $(document).ready(function() {
+    loadTickets(0);
     $('.next').click(function() {
       loadTickets($(this).data('next_page'));
     });
@@ -20,6 +21,7 @@
 {% endblock %}
 
 {% block body %}
+<main>
 <section>
   <h1>Train Jeeves</h1>
 </section>
@@ -29,4 +31,5 @@
 <section class="next_wrapper">
   <button class="next btn-primary">Next</button>
 </section>
+</main>
 {% endblock %}

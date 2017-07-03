@@ -15,22 +15,88 @@
   li {
     margin-bottom: 20px;
   }
+  main.light-gray {
+    background-color: #f7f7f7;
+  }
+  .inner-section {
+    background: white;
+    padding: 40px 40px 20px 60px;
+    border-radius: 10px;
+  }
+  .flag {
+    color: #fff;
+    display: inline-block;
+    font-weight: 700;
+    padding: 15px 50px 15px 90px;
+    position: relative;
+    margin: -10px -10px 40px -90px;
+    height: 20px;
+  }
+  .live .flag {
+    background: #1caff6;
+  }
+  .coming-soon .flag {
+    background: #9b5fca;
+  }
+  .flag::before {
+    border-left: 30px solid transparent;
+    content: " ";
+    height: 0;
+    left: 0;
+    position: absolute;
+    top: 50px;
+    width: 0;
+  }
+  .live .flag::before {
+    border-top: 30px solid #0883be;
+  }
+  .coming-soon .flag::before {
+    border-top: 30px solid #7537a6;
+  }
+  .flag::after {
+    border-bottom: 25px solid transparent;
+    border-right: 10px solid #fff;
+    border-top: 25px solid transparent;
+    content: " ";
+    height: 0;
+    right: 0;
+    position: absolute;
+    top: 0;
+    width: 0;
+  }
   </style>
 {% endblock %}
 
 {% block body %}
-<section>
-<ul>
-<li>
-  <div class="item"><a href="/analysis?word=streak">Analyze Time Series</a></div>
-  <span class="description">Visualize tickets over time.</span>
-</li>
-<li>
-  <div class="item"><a href="/training">Train Jeeves</a></div>
-  <span class="description">Annotate tickets here.</span>
-</li>
-</ul>
-</section>
+<main class="light-gray">
+  <section class="inner-section live">
+    <div class="flag">Live</div>
+    <ul>
+      <li>
+        <div class="item"><a href="/analysis">Time Series Analyzer (alpha)</a></div>
+        <span class="description">Visualize Zendesk tickets over time with a keyword filter.</span>
+      </li>
+    </ul>
+  </section>
+  <section class="inner-section coming-soon">
+    <div class="flag">Coming soon</div>
+    <ul>
+      <li>
+        <div class="item">Spike Detector</div>
+        <span class="description">Find trending topics whose ticket volume spiked, where topics are cluster of
+        relevant words (e.g. freeze, unresponsive, stopped) identified automatically.</span>
+      </li>
+      <li>
+        <div class="item">Auto Reply Logs</div>
+        <span class="description">Monitor how Jeeves automatically responded to FAQs recently.</span>
+      </li>
+      <li>
+        <div class="item"><a href="/training">Jeeves Category Classifier Trainer</a></div>
+        <span class="description">Annotate tickets here.</span>
+      </li>
+    </ul>
+  </section>
+</main>
 {% endblock %}
 
 {% block footer %}

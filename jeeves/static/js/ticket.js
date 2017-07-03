@@ -1,9 +1,9 @@
-$(document).ready(function() {
-    loadTickets(0);
-});
-
-function loadTickets(page) {
-    $.get('/api/1/tickets', {page: page}).done(function(response) {
+function loadTickets(page, word) {
+    var params = {page: page};
+    if (word) {
+        params['word'] = word;
+    }
+    $.get('/api/1/tickets', params).done(function(response) {
         var tickets = response.data;
         var next_url = response.next_url;
         var content = '';
@@ -45,9 +45,10 @@ function loadTickets(page) {
             </table>
             <br>`;
         }
-        window.history.pushState(null, null, '/training/'+(page + 1));
+        var paramString = '?' + (word ? 'word=' + word + '&' : '') + 'page=' + (page + 1);
+        window.history.pushState(null, null, window.location.pathname + paramString);
         $('.next').data('next_page', page + 1);
         $('html, body').animate({ scrollTop: 0 });
         $('#tickets').html(content);
     });
-    }
+}

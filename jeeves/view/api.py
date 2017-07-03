@@ -5,7 +5,7 @@ from flask import Blueprint, abort, json, make_response, render_template, reques
 import logging
 
 from jeeves.dal.support_tickets import SupportTicketDAL
-from jeeves.lib.time_series_generator import get_time_series
+from jeeves.lib.time_series_generator import get_time_series, get_recent_tickets_by_word
 from jeeves.model.categories import CATEGORIES
 
 # This is being referenced by the application.py
@@ -37,36 +37,56 @@ def show_train_jeeves():
 
 @blueprint_api.route('/analysis')
 def show_analysis():
-    word = request.args.get('word')
-    assert word
-    return render_template('analysis.html', word=word)
+    return render_template('analysis.html')
 
 
 @blueprint_api.route('/api/1/tickets')
 def get_tickets():
     # TODO: implement `start_time` restriction instead of `page`
     # start_time = request.args.get('start_time')
-    limit = int(request.args.get('limit', '5'))
     page = int(request.args.get('page', '0'))
-    tickets = SupportTicketDAL.get_sample_support_tickets()
-    tickets = sorted(tickets, key=lambda i: i.date_time, reverse=True)
-    tickets = tickets[page * limit : (page + 1) * limit]
-    category_list = sorted(cat.name for cat in CATEGORIES)
-    # Adding more categories for demo purpose
-    category_list += ['feature_request', 'language_request', 'requesting_reply',
-                      'challenge_feedback', 'schools', 'iap_refunds',
-                      'streak_issue', 'forum_abuse']
-    values = [{'ticket_id': ticket.ticket_id,
-               'date_time': ticket.date_time,
-               'subject': ticket.subject,
-               'description': ticket.description,
-               'category_labels': {category: ticket.category_labels and
-                                   category in ticket.category_labels
-                                   for category in category_list},
-               } for ticket in tickets
-              ]
-    response_data = {'data': values,
-                     'next_url': '/api/1/tickets?limit=%s&page=%s' % (limit, page + 1)}
+    word = request.args.get('word')
+
+    def get_tickets_by_word():
+        limit = int(request.args.get('limit', '10'))
+        tickets = get_recent_tickets_by_word(word)
+        tickets = sorted(tickets, key=lambda tk: tk.date_time, reverse=True)
+        tickets = tickets[page * limit : (page + 1) * limit]
+        values = [{'ticket_id': ticket.ticket_id,
+                   'date_time': ticket.date_time,
+                   'subject': ticket.subject,
+                   'description': ticket.description,
+                   } for ticket in tickets
+                  ]
+        return {'data': values,
+                'next_url': '/api/1/tickets?word=%s&limit=%s&page=%s' % (word, limit, page + 1)}
+
+    def get_tickets_for_annotation():
+        limit = int(request.args.get('limit', '3'))
+        tickets = SupportTicketDAL.get_sample_support_tickets()
+        tickets = sorted(tickets, key=lambda tk: tk.date_time, reverse=True)
+        tickets = tickets[page * limit : (page + 1) * limit]
+        category_list = sorted(cat.name for cat in CATEGORIES)
+        # Adding more categories for demo purpose
+        category_list += ['feature_request', 'language_request', 'requesting_reply',
+                          'challenge_feedback', 'schools', 'iap_refunds',
+                          'streak_issue', 'forum_abuse']
+        values = [{'ticket_id': ticket.ticket_id,
+                   'date_time': ticket.date_time,
+                   'subject': ticket.subject,
+                   'description': ticket.description,
+                   'category_labels': {category: ticket.category_labels and
+                                       category in ticket.category_labels
+                                       for category in category_list},
+                   } for ticket in tickets
+                  ]
+        return {'data': values,
+                'next_url': '/api/1/tickets?limit=%s&page=%s' % (limit, page + 1)}
+
+    if word:
+        response_data = get_tickets_by_word()
+    else:
+        response_data = get_tickets_for_annotation()
     return json.jsonify(response_data)
 
 
