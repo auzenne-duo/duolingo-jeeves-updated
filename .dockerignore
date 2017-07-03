@@ -1,0 +1,41 @@
+# See https://codefresh.io/blog/not-ignore-dockerignore/
+# and https://docs.docker.com/engine/reference/builder/#dockerignore-file
+# for syntax references
+
+# Elastic Beanstalk Files
+.elasticbeanstalk
+
+# compiled python code files and OS/editor temp files
+**/*.DS_Store
+**/*.pyc
+**/*.swp
+*~
+.git
+.gitignore
+
+# python virtualenv
+.pyenv
+env
+
+# test/coverage/style reports
+nosetests.xml
+.coverage
+coverage.xml
+.profile
+pylint.out
+
+# files generated from webpack
+dist/
+
+# dev logs
+logs
+
+# terraform directories
+.terraform
+
+# galaxy directory
+galaxy
+
+# docker files that can change without rebuilding the image
+.dockerignore
+docker-compose.yml

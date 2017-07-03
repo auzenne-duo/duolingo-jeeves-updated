@@ -6,17 +6,12 @@ Technology-driven user support.
 - Hideki Shima, hideki@duolingo.com
 
 ## Set up
-- `brew install python3`
-- `git clone git@github.com:duolingo/duolingo-jeeves.git`
-- `cd duolingo-jeeves`
-- `virtualenv -p python3 env`
-- `export PYTHONPATH=$(pwd)`
-- `source env/bin/activate`
-- `pip3 install -r requirements.txt`
-- `pip3 install -r dev-requirements.txt`
-- `pre-commit install`
-- `uwsgi uwsgi_dev.ini`
+- [Install Docker](https://docs.docker.com/docker-for-mac/install/) on your computer.
+- Run `docker-compose build` in the repo directory.
+- Run `docker-compose up` to start the service with log output streaming to the console.
 - Open [`http://localhost:5000/`](http://localhost:5000/)
+- Press `Ctrl-C` to stop the service. If the service does not stop cleanly (check with
+`docker-compose ps`), you can run `docker-compose down` to forcefully stop it.
 
 ## Links
 - [Jeeves Spec](https://docs.google.com/document/d/1QaIR3qbbQh0cT0uwlHrLWeRywRnmXP4NKyK21PUCXnU/edit#)

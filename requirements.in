@@ -4,6 +4,11 @@ duolingo-base
 langid
 Flask
 pandas
-scikit-learn
-scipy
 uwsgi
+
+
+#### Following are not yet used in this codebase.
+#### Also, `docker-compose build` doesn't pass for them right now.
+
+# scikit-learn
+# scipy

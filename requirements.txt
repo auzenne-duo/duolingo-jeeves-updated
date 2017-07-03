@@ -12,12 +12,13 @@ click==6.7                # via flask
 docutils==0.13.1          # via botocore
 duolingo-base==0.9.35
 flask==0.12.1
+futures==3.1.1            # via s3transfer
 itsdangerous==0.24        # via flask
 jinja2==2.9.6             # via flask
 jmespath==0.9.2           # via boto3, botocore
 langid==1.1.6
 markupsafe==1.0           # via jinja2
-numpy==1.13.0             # via langid, pandas, scipy
+numpy==1.13.0             # via langid, pandas
 pandas==0.20.2
 pyjwt==1.5.0              # via duolingo-base
 pymemcache==1.4.3         # via duolingo-base
@@ -26,8 +27,6 @@ pytz==2017.2              # via pandas
 pyyaml==3.12              # via duolingo-base
 requests==2.13.0          # via duolingo-base
 s3transfer==0.1.10        # via boto3
-scikit-learn==0.18.2
-scipy==0.19.0
 six==1.10.0               # via duolingo-base, pymemcache, python-dateutil
 uwsgi==2.0.15
 werkzeug==0.12.1          # via flask
