@@ -12,7 +12,7 @@ from jeeves.dal.support_tickets import FileSystemSupportTicketDAL
 # and stored it to disk. Loading it takes about 2~3 seconds, but then all
 # `get_time_series` calls are basically instantaneous
 df = pd.DataFrame()
-df['tickets'] = list(FileSystemSupportTicketDAL('englishTicketDump.txt').get_labeled_support_tickets())
+df['tickets'] = list(FileSystemSupportTicketDAL('tickets-{lang}-{prod}.txt').get_labeled_support_tickets())
 df.index = df['tickets'].apply(lambda tk: pd.Timestamp(tk.date_time))
 df.index.name = 'datetime'
 

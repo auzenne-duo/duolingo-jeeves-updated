@@ -51,7 +51,7 @@ def get_tickets():
     tickets = SupportTicketDAL.get_sample_support_tickets()
     tickets = sorted(tickets, key=lambda i: i.date_time, reverse=True)
     tickets = tickets[page * limit : (page + 1) * limit]
-    category_list = sorted(CATEGORIES)
+    category_list = sorted(cat.name for cat in CATEGORIES)
     # Adding more categories for demo purpose
     category_list += ['feature_request', 'language_request', 'requesting_reply',
                       'challenge_feedback', 'schools', 'iap_refunds',

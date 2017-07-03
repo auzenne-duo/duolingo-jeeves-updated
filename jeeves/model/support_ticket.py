@@ -2,6 +2,7 @@
 A model representing a support ticket.
 """
 
+import json
 
 class SupportTicket(object):
 
@@ -33,3 +34,14 @@ class SupportTicket(object):
         variables = ', '.join('%s=%s' % summarize(item)
                               for item in vars(self).items())
         return '%s(%s)' % (type(self).__name__, variables)
+
+    def __json__(self):
+        return json.dumps(
+            dict(
+                id=self.ticket_id,
+                created_at=self.date_time,
+                subject=self.subject,
+                description=self.description,
+                category_labels=self.category_labels
+            )
+        )

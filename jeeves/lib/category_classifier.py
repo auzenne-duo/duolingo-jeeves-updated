@@ -33,11 +33,11 @@ class RuleBasedCategoryClassifier(AbstractCategoryClassifier):
         # Baseline 1: This is just to make sure the architecture works.
         # If this is to be used as a baseline, we'll need to write a bunch of rules which can take
         # a lot of time
-        if category == 'inappropriate_ad':
+        if category is CATEGORIES.inappropriate_ad:
             return re.search(r'\b(inappropriate|unacceptable)\b', description)
-        elif category == 'suggestion':
+        elif category is CATEGORIES.suggestion:
             return re.search(r'\b(please)\b', description)
-        elif category == 'bug':
+        elif category == CATEGORIES.bug:
             # Note that this is an extremely low baseline
             # and this would catch tickets containing `streak freeze`
             # as a bug because of the keyword match

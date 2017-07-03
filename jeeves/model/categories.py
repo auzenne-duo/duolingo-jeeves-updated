@@ -46,4 +46,10 @@ Lauren's spreadsheet has the following categoies:
  - Clubs stream not showing
 """
 
-CATEGORIES = frozenset({'bug', 'suggestion', 'inappropriate_ad'})
+from enum import Enum, auto
+
+class CATEGORIES(Enum):
+    """Duolingo Jeeves tag categories"""
+    bug = auto()
+    suggestion = auto()
+    inappropriate_ad = auto()
