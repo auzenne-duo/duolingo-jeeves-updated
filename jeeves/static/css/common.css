@@ -1,14 +1,14 @@
 @font-face {
   font-family: 'museo-sans-rounded';
-  src: url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.eot');
-  src: url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.eot?#iefix') format('embedded-opentype'), url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.woff2') format('woff2'), url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.woff') format('woff'), url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.svg#museo_sans_rounded500') format('svg');
+  src: url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.eot');
+  src: url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.eot?#iefix') format('embedded-opentype'), url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.woff2') format('woff2'), url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.woff') format('woff'), url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-500-webfont.svg#museo_sans_rounded500') format('svg');
   font-weight: 500;
   font-style: normal;
 }
 @font-face {
   font-family: 'museo-sans-rounded';
-  src: url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.eot');
-  src: url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.eot?#iefix') format('embedded-opentype'), url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.woff2') format('woff2'), url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.woff') format('woff'), url('http://d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.svg#museo_sans_rounded700') format('svg');
+  src: url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.eot');
+  src: url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.eot?#iefix') format('embedded-opentype'), url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.woff2') format('woff2'), url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.woff') format('woff'), url('//d7mj4aqfscim2.cloudfront.net/proxy/fonts/museo/museosansrounded-700-webfont.svg#museo_sans_rounded700') format('svg');
   font-weight: 700;
   font-style: normal;
 }

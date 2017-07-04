@@ -3,6 +3,7 @@ APIs.
 """
 from flask import Blueprint, abort, json, make_response, render_template, request
 import logging
+import random
 
 from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.lib.time_series_generator import get_time_series, get_recent_tickets_by_word
@@ -13,6 +14,8 @@ blueprint_api = Blueprint('api', __name__)
 
 _LOG = logging.getLogger('application')
 
+# Append this to resource URLs (i.e. JS and CSS) to avoid caching.
+_RANDOM = random.randint(0, 1000000)
 
 @blueprint_api.route('/api/1/hello')
 def say_hello():
@@ -21,7 +24,7 @@ def say_hello():
 
 @blueprint_api.route('/')
 def show_index():
-    return render_template('index.html')
+    return render_template('index.html', random=_RANDOM)
 
 
 @blueprint_api.route('/about')
@@ -32,12 +35,12 @@ def show_about():
 
 @blueprint_api.route('/training')
 def show_train_jeeves():
-    return render_template('training.html')
+    return render_template('training.html', random=_RANDOM)
 
 
 @blueprint_api.route('/analysis')
 def show_analysis():
-    return render_template('analysis.html')
+    return render_template('analysis.html', random=_RANDOM)
 
 
 @blueprint_api.route('/api/1/tickets')

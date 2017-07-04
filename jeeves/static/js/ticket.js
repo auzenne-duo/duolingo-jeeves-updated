@@ -17,6 +17,9 @@ function loadTickets(page, word) {
                                   </div>`;
             }
             ticket.description = ticket.description.replace(/\n/g, '<br>');
+            if (word) {
+              ticket.description = ticket.description.replace(RegExp('(' + word + ')', 'g'), '<mark>$1</mark>');
+            }
             content += `<table><tr>
             <th width="150">ID</td>
             <td>

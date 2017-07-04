@@ -4,7 +4,7 @@
 
 {% block head %}
   {{ super() }}
-  <script src="{{url_for('static', filename='js/ticket.js')}}"></script>
+  <script src="/static/js/ticket.js?_={{random}}"></script>
   <style>
   .next_wrapper {
     text-align: center;
