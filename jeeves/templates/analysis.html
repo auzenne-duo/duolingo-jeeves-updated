@@ -90,6 +90,9 @@
       $('.word_str').html(word);
       drawChart();
       loadTickets(0, word);
+      $('.next').prop('onclick',null).off('click').click(function() {
+        loadTickets($(this).data('next_page'), word);
+      });
     }
   </script>
 {% endblock %}

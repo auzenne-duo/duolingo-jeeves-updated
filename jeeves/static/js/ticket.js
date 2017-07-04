@@ -2,7 +2,11 @@ function loadTickets(page, word) {
     var params = {page: page};
     if (word) {
         params['word'] = word;
+        if (word === '') {
+            return;
+        }
     }
+    var showCategory = !word;
     $.get('/api/1/tickets', params).done(function(response) {
         var tickets = response.data;
         var next_url = response.next_url;
@@ -10,15 +14,20 @@ function loadTickets(page, word) {
         for (var i in tickets) {
             var ticket = tickets[i];
             var category_html = '';
-            for (var category_name in ticket.category_labels) {
-                category_html += `<div class="category_wrapper">
-                                  <input type="checkbox" id="${category_name}_${i}">&nbsp;
-                                  <label for="${category_name}_${i}">${category_name}</label>
-                                  </div>`;
+            if (showCategory) {
+                for (var category_name in ticket.category_labels) {
+                    category_html += `<div class="category_wrapper">
+                                      <input type="checkbox" id="${category_name}_${i}">&nbsp;
+                                      <label for="${category_name}_${i}">${category_name}</label>
+                                      </div>`;
+                }
+                if (category_html) {
+                    category_html = `<tr><th>Categories</th><td>${category_html}</td></tr>`;
+                }
             }
-            ticket.description = ticket.description.replace(/\n/g, '<br>');
+            ticket.description = ticket.description.trim().replace(/\n{3,}/g, '\n\n').replace(/\n/g, '<br>');
             if (word) {
-              ticket.description = ticket.description.replace(RegExp('(' + word + ')', 'g'), '<mark>$1</mark>');
+              ticket.description = ticket.description.replace(RegExp('(' + word + ')', 'gi'), '<mark>$1</mark>');
             }
             content += `<table><tr>
             <th width="150">ID</td>
@@ -41,10 +50,7 @@ function loadTickets(page, word) {
             ${ticket.description}
             </td>
             </tr>
-            <tr>
-            <th>Category labels</td>
-            <td>${category_html}</td>
-            </tr>
+            ${category_html}
             </table>
             <br>`;
         }
