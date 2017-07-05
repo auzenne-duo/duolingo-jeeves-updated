@@ -27,7 +27,7 @@ function loadTickets(page, word) {
             }
             ticket.description = ticket.description.trim().replace(/\n{3,}/g, '\n\n').replace(/\n/g, '<br>');
             if (word) {
-              ticket.description = ticket.description.replace(RegExp('(' + word + ')', 'gi'), '<mark>$1</mark>');
+              ticket.description = ticket.description.replace(RegExp('\\b(' + word + ')\\b', 'gi'), '<mark>$1</mark>');
             }
             content += `<table><tr>
             <th width="150">ID</td>
