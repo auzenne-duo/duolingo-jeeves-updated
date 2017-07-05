@@ -16,11 +16,15 @@ df['tickets'] = list(FileSystemSupportTicketDAL('tickets-{lang}-{prod}.txt').get
 df.index = df['tickets'].apply(lambda tk: pd.Timestamp(tk.date_time))
 df.index.name = 'datetime'
 
+_SEARCH_REGEX = r'\b(?:{0})\b'
+
+def _compile_search_regex(word):
+    return re.compile(_SEARCH_REGEX.format(word), flags=re.I | re.U)
 
 def get_time_series(word):
     # TODO: support start_date & end_date arguments
     assert isinstance(word, str) and word
-    match = re.compile(r'\b{0}\b'.format(word), flags=re.I | re.U)
+    match = _compile_search_regex(word)
     counts = df['tickets'].apply(lambda tk: bool(match.search(tk.description))).resample('D').sum().transform(lambda i: 0 if np.isnan(i) else i)
     vals = dict(zip(map(lambda dt: dt.strftime('%Y-%m-%d'), counts.index), counts))
     return {'values': vals}
@@ -28,6 +32,6 @@ def get_time_series(word):
 
 def get_recent_tickets_by_word(word):
     assert isinstance(word, str) and word
-    match = re.compile(r'\b{0}\b'.format(word), flags=re.I | re.U)
+    match = _compile_search_regex(word)
     matched_tickets = filter(lambda tk: bool(match.search(tk.description)), df['tickets'].tolist())
     return matched_tickets
