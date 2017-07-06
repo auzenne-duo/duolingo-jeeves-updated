@@ -1,10 +1,16 @@
-function loadTickets(page, word) {
+function loadTickets(page, word, start_time, end_time) {
     var params = {page: page};
     if (word) {
-        params['word'] = word;
+        params.word = word;
         if (word === '') {
             return;
         }
+    }
+    if (start_time) {
+        params.start_time = start_time;
+    }
+    if (end_time) {
+        params.end_time = end_time;
     }
     var showCategory = !word;
     $.get('/api/1/tickets', params).done(function(response) {

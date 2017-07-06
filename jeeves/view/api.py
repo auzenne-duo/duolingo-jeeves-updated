@@ -44,10 +44,12 @@ def manage_tickets():
     # start_time = request.args.get('start_time')
     page = int(request.args.get('page', '0'))
     word = request.args.get('word')
+    start_time = request.args.get('start_time', None)
+    end_time = request.args.get('end_time', None)
 
     def get_tickets_by_word():
         limit = int(request.args.get('limit', '10'))
-        tickets = get_recent_tickets_by_word(word)
+        tickets = get_recent_tickets_by_word(word, start_time=start_time, end_time=end_time)
         tickets = sorted(tickets, key=lambda tk: tk.date_time, reverse=True)
         tickets = tickets[page * limit : (page + 1) * limit]
         values = [{'ticket_id': ticket.ticket_id,

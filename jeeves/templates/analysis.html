@@ -72,27 +72,16 @@
   <script src="/static/js/chart.js?_={{random}}"></script>
   <script>
     $(document).ready(function() {
-      var page = parseInt(getParameterByName('page', '0'));
       var word = getParameterByName('word', 'freeze');
       $('#query').val(word);
       $('.word_str').html(word);
 
-      google.charts.load('current', {packages: ['corechart', 'line']});
-      google.charts.setOnLoadCallback(drawChart);
-
-      loadTickets(page, word);
-      $('.next').click(function() {
-        loadTickets($(this).data('next_page'), word);
-      });
+      drawChart();
     });
     function update() {
       var word = $('#query').val();
       $('.word_str').html(word);
       drawChart();
-      loadTickets(0, word);
-      $('.next').prop('onclick',null).off('click').click(function() {
-        loadTickets($(this).data('next_page'), word);
-      });
     }
   </script>
 {% endblock %}
@@ -114,7 +103,9 @@
 <section class="small-section">
   <h2>Trend</h2>
 </section>
-<div id="chart_container"></div>
+<section>
+  <div id="chart_container"></div>
+</section>
 
 <section class="small-section">
   <h2>Tickets containing "<span class="word_str"></span>"</h2>

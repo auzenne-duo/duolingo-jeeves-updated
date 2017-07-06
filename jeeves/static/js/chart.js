@@ -1,46 +1,67 @@
+var JAN_FIRST = new Date('2017-01-01');
 function drawChart() {
-  var data = new google.visualization.DataTable();
-  data.addColumn('date', 'X');
-  data.addColumn('number', 'Zendesk tickets');
-  var JAN_FIRST = new Date('2017-01-01');
   var keyword = $('#query').val();
   $.get('/api/1/time_series', {word: keyword}).done(function(response) {
-      var pairs = [];
-      for (var dateString in response.values) {
-          if (new Date(dateString) < JAN_FIRST) {
-              continue;
-          }
-          pairs.push([new Date(dateString), response.values[dateString]])
+    var datetimes = Object.keys(response.values).filter(k => new Date(k) >= JAN_FIRST);
+    var freqs = datetimes.map(dt => response.values[dt]);
+    var trace = {
+      type: 'scatter',
+      mode: 'lines',
+      x: datetimes,
+      y: freqs,
+      hovertext: 'Zendesk tickets',
+      line: {
+        color: '#3E82F7'
       }
-      data.addRows(pairs);
+    };
 
-      var options = {
-        title: '# of tickets containing "' + keyword + '"',
-        vAxis: {
-          title: '#'
-        },
-        colors: ['#3E82F7'],
-        legend: {position: 'none'},
-        hAxis: {
-          gridlines: {
-            color: 'transparent'
-          },
-          format: 'yyyy-MM-dd'
-        },
-        vAxis: {
-          gridlines: {
-            color: '#efefef'
-          }
-        },
-        titleTextStyle: {
-          color: '#999999',
-          fontSize: 22,
-        }
-      };
+    var layout = {
+      title: '# of tickets containing "<b>' + keyword + '</b>"',
+      titlefont: {
+        size: 22,
+        color: '#999999'
+      },
+      font: {
+        family: 'museo-sans-rounded, sans-serif'
+      },
+      showlegend: false,
+      xaxis: {
+        title: 'Date',
+        showgrid: 'false'
+      },
+      yaxis: {
+        title: '# of tickets',
+        fixedrange: true,
+        gridcolor: '#efefef'
+      },
+      margin: {
+        l: 50,
+        r: 0,
+        b: 25,
+        t: 75,
+        pad: 4
+      }
+    };
 
-      var chart = new google.visualization.LineChart(document.getElementById('chart_container'));
-      chart.draw(data, options);
-      window.history.pushState(null, null, '/analysis?word=' + keyword);
+    Plotly.newPlot('chart_container', [trace], layout, {showLink: false});
+    loadTickets(0, keyword, null, null);
+    var chart = document.getElementById('chart_container');
+    chart.on('plotly_relayout',
+      function(eventdata){
+        // now, we must grab new tickets based on the new range
+        var xstart = eventdata['xaxis.range[0]'];
+        var xend = eventdata['xaxis.range[1]'];
+
+        xstart = (xstart === undefined) ? null : xstart;
+        xend = (xend === undefined) ? null : xend;
+
+        loadTickets(0, keyword, xstart, xend);
+        $('.next').prop('onclick', null).off('click').click(function() {
+          loadTickets($(this).data('next_page'), keyword, xstart, xend);
+        });
+
+      });
+    window.history.pushState(null, null, '/analysis?word=' + keyword);
   });
 
 }
