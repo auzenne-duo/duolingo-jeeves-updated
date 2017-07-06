@@ -4,6 +4,7 @@ from glob import glob
 import os
 
 from jeeves import data_directory
+from jeeves.dal.category_annotations import CategoryAnnotationDAL
 from jeeves.exception.model import UnsupportedLanguageError
 from jeeves.util.cleanup import clean_description
 from jeeves.model.products import Products
@@ -30,7 +31,7 @@ class AbstractSupportTicketDAL(object):
             date_time=ticket_json['created_at'],
             subject=ticket_json['subject'],
             description=clean_description(ticket_json['description']),
-            category_labels=ticket_json.get('category_labels', list())
+            category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id'])
         )
 
     def get_sample_support_tickets(self):

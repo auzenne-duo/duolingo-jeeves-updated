@@ -5,6 +5,7 @@ from flask import Blueprint, abort, json, make_response, render_template, reques
 import logging
 import random
 
+from jeeves.dal.category_annotations import CategoryAnnotationDAL
 from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.lib.time_series_generator import get_time_series, get_recent_tickets_by_word
 from jeeves.model.categories import CATEGORIES
@@ -27,15 +28,9 @@ def show_index():
     return render_template('index.html', random=_RANDOM)
 
 
-@blueprint_api.route('/about')
-def show_about():
-    return ('<html><body><h1>Hello, I am Jeeves.</h1>'
-            'I am a technology-driven user support system who helps millions of Duolingo users.</body></html>')
-
-
-@blueprint_api.route('/training')
+@blueprint_api.route('/annotation')
 def show_train_jeeves():
-    return render_template('training.html', random=_RANDOM)
+    return render_template('annotation.html', random=_RANDOM)
 
 
 @blueprint_api.route('/analysis')
@@ -43,8 +38,8 @@ def show_analysis():
     return render_template('analysis.html', random=_RANDOM)
 
 
-@blueprint_api.route('/api/1/tickets')
-def get_tickets():
+@blueprint_api.route('/api/1/tickets', methods=['GET', 'PATCH'])
+def manage_tickets():
     # TODO: implement `start_time` restriction instead of `page`
     # start_time = request.args.get('start_time')
     page = int(request.args.get('page', '0'))
@@ -78,18 +73,21 @@ def get_tickets():
                    'date_time': ticket.date_time,
                    'subject': ticket.subject,
                    'description': ticket.description,
-                   'category_labels': {category: ticket.category_labels and
-                                       category in ticket.category_labels
+                   'category_labels': {category: bool(ticket.category_labels and
+                                                      category in ticket.category_labels)
                                        for category in category_list},
                    } for ticket in tickets
                   ]
         return {'data': values,
                 'next_url': '/api/1/tickets?limit=%s&page=%s' % (limit, page + 1)}
 
-    if word:
-        response_data = get_tickets_by_word()
-    else:
-        response_data = get_tickets_for_annotation()
+    if request.method == 'GET':
+        if word:
+            response_data = get_tickets_by_word()
+        else:
+            response_data = get_tickets_for_annotation()
+    elif request.method == 'PATCH':
+        response_data = CategoryAnnotationDAL.bulk_save_annotations(request.get_json())
     return json.jsonify(response_data)
 
 

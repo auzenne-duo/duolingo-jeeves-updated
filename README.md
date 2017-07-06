@@ -17,5 +17,17 @@ Technology-driven user support.
 - Opening a PR will automatically trigger deployment to [`https://duolingo-jeeves-dev.duolingo.com`](https://duolingo-jeeves-dev.duolingo.com)
 - Merging a PR will automatically trigger deployment to [`https://duolingo-jeeves-prod.duolingo.com`](https://duolingo-jeeves-prod.duolingo.com)
 
+## How to contribute
+Make sure to set up Python3 virtual environment, or pylint would fail when trying to commit.
+ - Run `virtualenv -p python3 env`
+ - Run `export PYTHONPATH=$(pwd)`
+ - Run `source env/bin/activate`
+ - Run `pip3 install -r requirements.txt`
+ - Run `pip3 install -r dev-requirements.txt`
+
+The following are required when you updated requirements.
+ - Run `pip-compile --output-file requirements.txt requirements.in`
+ - Run `pip-compile --output-file dev-requirements.txt dev-requirements.in`
+
 ## Links
 - [Jeeves Spec](https://docs.google.com/document/d/1QaIR3qbbQh0cT0uwlHrLWeRywRnmXP4NKyK21PUCXnU/edit#)
