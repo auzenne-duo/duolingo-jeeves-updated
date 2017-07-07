@@ -62,7 +62,7 @@ def manage_tickets():
                 'next_url': '/api/1/tickets?word=%s&limit=%s&page=%s' % (word, limit, page + 1)}
 
     def get_tickets_for_annotation():
-        limit = int(request.args.get('limit', '3'))
+        limit = int(request.args.get('limit', '10'))
         tickets = SupportTicketDAL.get_sample_support_tickets()
         tickets = sorted(tickets, key=lambda tk: tk.date_time, reverse=True)
         tickets = tickets[page * limit : (page + 1) * limit]

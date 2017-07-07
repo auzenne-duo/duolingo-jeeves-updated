@@ -1,4 +1,5 @@
 function loadTickets(page, word, start_time, end_time) {
+    page = parseInt(page);
     var params = {page: page};
     if (word) {
         params.word = word;
@@ -64,10 +65,14 @@ function loadTickets(page, word, start_time, end_time) {
             </table>
             <br>`;
         }
-        var paramString = '?' + (word ? 'word=' + word + '&' : '') + 'page=' + (page + 1);
+        var paramString = '?' + (word ? 'word=' + word + '&' : '') + 'page=' + page;
         window.history.pushState(null, null, window.location.pathname + paramString);
         $('.next').data('next_page', page + 1);
         $('html, body').animate({ scrollTop: 0 });
         $('#tickets').html(content);
+
+        $('input').click(function(e) {
+          $(e.target).closest('table').data('updated', true);
+        });
     });
 }
