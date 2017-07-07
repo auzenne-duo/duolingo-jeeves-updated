@@ -40,7 +40,7 @@ function loadTickets(page, word, start_time, end_time) {
               ticket.description = ticket.description.replace(RegExp('\\b(' + word + ')\\b', 'gi'), '<mark>$1</mark>');
             }
             content += `<table class="ticket_table" data-id="${ticket.ticket_id}"><tr>
-            <th width="150">ID</td>
+            <th>ID</td>
             <td>
             <a href="https://duolingotest.zendesk.com/agent/tickets/${ticket.ticket_id}"
                target="_blank">${ticket.ticket_id}</a>

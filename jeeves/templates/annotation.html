@@ -5,11 +5,6 @@
 {% block head %}
   {{ super() }}
   <script src="/static/js/ticket.js?_={{random}}"></script>
-  <style>
-  .next_wrapper {
-    text-align: center;
-  }
-  </style>
   <script>
   $(document).ready(function() {
     loadTickets(0);

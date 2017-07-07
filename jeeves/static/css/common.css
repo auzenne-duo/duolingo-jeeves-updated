@@ -43,8 +43,13 @@ th {
 section {
   margin: 60px;
 }
+@media only screen and (max-width: 700px) {
+  section {
+    margin: 60px 0;
+  }
+}
 section.next_wrapper {
-  text-align: right;
+  text-align: center;
 }
 section.small-section {
   margin: 0px 60px -40px 60px;
@@ -55,7 +60,6 @@ section.small-section {
 .next {
   width: 200px;
 }
-
 .header {
   box-shadow: 0 3px 5px rgba(0,0,0,0.05);
   background-color: rgba(32,166,231,0.8);
@@ -135,4 +139,12 @@ label {
 h2 {
   margin: 0;
   font-size: 24px;
+}
+.ticket_table th {
+  width: 150px;
+}
+@media only screen and (max-width: 700px) {
+  .ticket_table th {
+    width: 100px;
+  }
 }
