@@ -62,8 +62,11 @@ def manage_tickets():
                 'next_url': '/api/1/tickets?word=%s&limit=%s&page=%s' % (word, limit, page + 1)}
 
     def get_tickets_for_annotation():
-        limit = int(request.args.get('limit', '3'))
-        tickets = SupportTicketDAL.get_sample_support_tickets()
+        limit = int(request.args.get('limit', '10'))
+        tickets = SupportTicketDAL.get_labeled_support_tickets()
+        # TODO(Lawrence): improve handling of this to make incremental with a generator
+        # so we don't ever need to hold all tickets in memory at once
+        # and sort implicitly by writing the file in time order
         tickets = sorted(tickets, key=lambda tk: tk.date_time, reverse=True)
         tickets = tickets[page * limit : (page + 1) * limit]
         category_list = sorted(cat.name for cat in CATEGORIES)

@@ -34,20 +34,8 @@ class AbstractSupportTicketDAL(object):
             category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id'])
         )
 
-    def get_sample_support_tickets(self):
-        """ Get a list of 1000 sample SupportTickets to be shown for prototyping the system. """
-        pass
-
 class AbstractFileSystemSupportTicketDAL(AbstractSupportTicketDAL):
-
-    _sample_ticket_file = 'data/sample_tickets.json'
-
-    def get_sample_support_tickets(self):
-        with open(self._sample_ticket_file, 'r') as input_file:
-            return [
-                self._deserialize_json(ticket_json)
-                for ticket_json in json.load(input_file)['tickets']
-            ]
+    pass
 
 class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
