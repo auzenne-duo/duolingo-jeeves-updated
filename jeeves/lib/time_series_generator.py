@@ -36,3 +36,8 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None):
     match = _compile_search_regex(word)
     matched_tickets = filter(lambda tk: bool(match.search(tk.description)), df[start_time:end_time]['tickets'])
     return matched_tickets
+
+def get_paginated_tickets(page, limit):
+    start = -(page * limit) - 1
+    end = start - page
+    return df.ix[start:end:-1]['tickets']

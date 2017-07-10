@@ -6,8 +6,7 @@ import logging
 import random
 
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
-from jeeves.dal.support_tickets import SupportTicketDAL
-from jeeves.lib.time_series_generator import get_time_series, get_recent_tickets_by_word
+from jeeves.lib.time_series_generator import get_time_series, get_recent_tickets_by_word, get_paginated_tickets
 from jeeves.model.categories import CATEGORIES
 
 # This is being referenced by the application.py
@@ -63,12 +62,7 @@ def manage_tickets():
 
     def get_tickets_for_annotation():
         limit = int(request.args.get('limit', '10'))
-        tickets = SupportTicketDAL.get_labeled_support_tickets()
-        # TODO(Lawrence): improve handling of this to make incremental with a generator
-        # so we don't ever need to hold all tickets in memory at once
-        # and sort implicitly by writing the file in time order
-        tickets = sorted(tickets, key=lambda tk: tk.date_time, reverse=True)
-        tickets = tickets[page * limit : (page + 1) * limit]
+        tickets = get_paginated_tickets(page, limit)
         category_list = sorted(cat.name for cat in CATEGORIES)
         # Adding more categories for demo purpose
         category_list += ['feature_request', 'language_request', 'requesting_reply',
