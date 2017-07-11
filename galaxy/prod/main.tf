@@ -20,7 +20,7 @@ data "aws_route53_zone" "duolingo" {
 
 resource "aws_route53_record" "duolingo-jeeves-prod" {
   zone_id = "${data.aws_route53_zone.duolingo.zone_id}"
-  name    = "duolingo-jeeves-prod.${data.aws_route53_zone.duolingo.name}"
+  name    = "jeeves.${data.aws_route53_zone.duolingo.name}"
   type    = "A"
 
   alias {
