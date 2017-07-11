@@ -39,5 +39,5 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None):
 
 def get_paginated_tickets(page, limit):
     start = -(page * limit) - 1
-    end = start - page
+    end = start - limit
     return df.ix[start:end:-1]['tickets']
