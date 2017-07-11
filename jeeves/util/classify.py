@@ -4,6 +4,9 @@ from jeeves.exception.model import UnsupportedLanguageError
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.model.products import Products
 
+_TINYCARDS_TAGS = frozenset(('tinycards_feedback', 'tinycardsat'))
+_DET_TAGS = frozenset(('examity', 'mettl', 'testcenter', 'test_center', 'det'))
+
 def classifyLang(text):
     lid = langid.classify(text)[0]
     try:
@@ -13,8 +16,7 @@ def classifyLang(text):
 
 def classifyProd(ticket_json):
     tags = frozenset(ticket_json['tags'])
-    _DET_TAGS = frozenset(('examity', 'mettl', 'testcenter', 'test_center', 'det'))
-    if 'tinycards_feedback' in tags:
+    if _TINYCARDS_TAGS & tags:
         return Products.TINYCARDS
     elif (
         _DET_TAGS & tags
@@ -22,7 +24,6 @@ def classifyProd(ticket_json):
             ('[internal-review]', '[web-survey-results]')
         )
     ):
-
         return Products.DET
     else:
         return Products.LA

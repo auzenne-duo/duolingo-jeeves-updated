@@ -1,7 +1,8 @@
 import contextlib
-import json
 from glob import glob
+import json
 import os
+import re
 
 from jeeves import data_directory
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
@@ -55,7 +56,8 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
     def __init__(self):
         super(ZendeskFileSystemSupportTicketDAL, self).__init__()
-        self._files = glob(os.path.join(self._zendesk_ticket_dir, 'tickets_*.json'))
+        TICKET_FILE_REGEX = re.compile(r'tickets_(\d+)\.json$')
+        self._files = sorted(glob(os.path.join(self._zendesk_ticket_dir, 'tickets_*.json')), key=lambda s: int(TICKET_FILE_REGEX.search(s).group(1)))
 
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         for fileName in self._files:
@@ -104,6 +106,12 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                         supTik = self._deserialize_json(ticket_json)
                         # done in this order because ticket creation filters out
                         # some junk from the messages (urls, metadata, etc.)
+
+                        # Skip tickets that have an empty string ('') description
+                        # after cleanup, which are those that consist of just
+                        # punctuation/spacing after cleanup
+                        if not supTik.description:
+                            continue
                         try:
                             language = classifyLang(supTik.description)
                         except UnsupportedLanguageError:

@@ -2,7 +2,7 @@ import re
 
 def _compile_cleanup_pattern():
     METADATA_REGEX = r'-{3,}\s+App information:[\s\S]+?-{3,}|(?:[A-z ]+:.*)(?:\n[A-z ]+:.*)+|[A-z\-_\.]+\.txt'
-    SIGNATURE_REGEX = r'^(?:Sent from|Enviado desde) .*$'
+    SIGNATURE_REGEX = r'^[\s\.,\?\\\/<>\(\)\+=_`~!@#\$%^&\*\[\]\{\}\|\'";:\-]*(?:Sent (?:from|via)|Enviado desde) .*$'
     URL_REGEX = (
         # protocol identifier
         r"(?:(?:https?|ftp)://)"
@@ -42,11 +42,12 @@ def _compile_cleanup_pattern():
         r'|'.join(
             [METADATA_REGEX, SIGNATURE_REGEX, URL_REGEX]  # , CSS_REGEX]
         ),
-        re.UNICODE | re.IGNORECASE
+        re.UNICODE | re.IGNORECASE | re.MULTILINE
     )
     return CLEANUP
 
 _CLEANUP_PATTERN = _compile_cleanup_pattern()
+_EMPTY_STRING_PATTERN = re.compile(r'^[\s\.,\?\\\/<>\(\)\+=_`~!@#\$%^&\*\[\]\{\}\|\'";:\-]*$')
 
 def clean_description(desc):
-    return _CLEANUP_PATTERN.sub('', desc)
+    return _EMPTY_STRING_PATTERN.sub('', _CLEANUP_PATTERN.sub('', desc))
