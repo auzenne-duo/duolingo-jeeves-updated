@@ -1,4 +1,5 @@
 function loadTickets(page, word, start_time, end_time) {
+    page = parseInt(page);
     var params = {page: page};
     if (word) {
         params.word = word;
@@ -40,7 +41,7 @@ function loadTickets(page, word, start_time, end_time) {
               ticket.description = ticket.description.replace(RegExp('\\b(' + word + ')\\b', 'gi'), '<mark>$1</mark>');
             }
             content += `<table class="ticket_table" data-id="${ticket.ticket_id}"><tr>
-            <th width="150">ID</td>
+            <th>ID</td>
             <td>
             <a href="https://duolingotest.zendesk.com/agent/tickets/${ticket.ticket_id}"
                target="_blank">${ticket.ticket_id}</a>
@@ -64,10 +65,14 @@ function loadTickets(page, word, start_time, end_time) {
             </table>
             <br>`;
         }
-        var paramString = '?' + (word ? 'word=' + word + '&' : '') + 'page=' + (page + 1);
+        var paramString = '?' + (word ? 'word=' + word + '&' : '') + 'page=' + page;
         window.history.pushState(null, null, window.location.pathname + paramString);
         $('.next').data('next_page', page + 1);
         $('html, body').animate({ scrollTop: 0 });
         $('#tickets').html(content);
+
+        $('input').click(function(e) {
+          $(e.target).closest('table').data('updated', true);
+        });
     });
 }

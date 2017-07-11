@@ -4,34 +4,36 @@
 
 {% block head %}
   {{ super() }}
+  <script src="/static/js/common.js?_={{random}}"></script>
   <script src="/static/js/ticket.js?_={{random}}"></script>
-  <style>
-  .next_wrapper {
-    text-align: center;
-  }
-  </style>
   <script>
   $(document).ready(function() {
-    loadTickets(0);
+    var page = getParameterByName('page', 0);
+    loadTickets(page);
     $('.next').click(function() {
       var json_data = [];
       $('.ticket_table').each(function() {
         var table = $(this);
+        if (!table.data('updated')) {
+          return;
+        }
         var category_labels = [];
         table.find('input:checked').each(function() {
           category_labels.push($(this).val());
         });
         json_data.push({ticket_id: table.data('id'), category_labels: category_labels});
       });
-      $.ajax({
-        type: 'PATCH',
-        url: '/api/1/tickets',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        data: JSON.stringify(json_data)
-      });
+      if (json_data.length > 0) {
+        $.ajax({
+          type: 'PATCH',
+          url: '/api/1/tickets',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          data: JSON.stringify(json_data)
+        });
+      }
       loadTickets($(this).data('next_page'));
     });
   });

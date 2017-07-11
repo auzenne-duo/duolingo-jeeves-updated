@@ -65,10 +65,56 @@
   .browse_wrapper {
     text-align: center;
   }
+  .help {
+    border: 1px solid #ccc;
+    color: #999;
+    margin: 0 0 0 10px;
+    padding: 1px 4px;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 10px;
+    position: relative;
+    top: -4px;
+  }
+  h1 {
+    display: inline-block;
+  }
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 200;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+  .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 40px;
+    border: 1px solid #888;
+    width: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.04);
+    -webkit-box-shadow: 0 0 25px rgba(0,0,0,0.04);
+    -moz-box-shadow: 0 0 25px rgba(0,0,0,0.04);
+  }
+  .modal-content ul {
+    padding: 20px 0 0 20px;
+    list-style: inherit;
+  }
   </style>
+  <!-- Plotly.js -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="/static/js/common.js?_={{random}}"></script>
   <script src="/static/js/ticket.js?_={{random}}"></script>
-  <script src="https://www.gstatic.com/charts/loader.js"></script>
   <script src="/static/js/chart.js?_={{random}}"></script>
   <script>
     $(document).ready(function() {
@@ -76,7 +122,17 @@
       $('#query').val(word);
       $('.word_str').html(word);
 
+      $('.help').click(function() {
+        $('.modal').show();
+      });
+      $('.modal').click(function() {
+        $(this).hide();
+      });
+
       drawChart();
+      $('.next').click(function() {
+        loadTickets($(this).data('next_page'), word);
+      });
     });
     function update() {
       var word = $('#query').val();
@@ -90,6 +146,17 @@
 <main>
 <section>
 <h1>Time Series Analyzer</h1>
+<span class="help">?</span>
+<div class="modal">
+  <div class="modal-content">
+    Enter a query and press return. You can use regular expressions, for example:
+    <ul>
+      <li>(freeze|frozen|stopped|unresponsive)</li>
+      <li>[0-9]{3,4}.day[s]? streak</li>
+      <li>lost.+?streak</li>
+    </ul>
+  </div>
+</div>
 </section>
 
 <section class="search-box">

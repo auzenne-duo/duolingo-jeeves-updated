@@ -37,7 +37,7 @@ function drawChart() {
       margin: {
         l: 50,
         r: 0,
-        b: 25,
+        b: 50,
         t: 75,
         pad: 4
       }
