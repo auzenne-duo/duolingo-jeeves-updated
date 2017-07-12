@@ -107,6 +107,9 @@ a {
   text-decoration: none;
   -webkit-font-smoothing: antialiased;
 }
+a:hover {
+  text-decoration: underline;
+}
 main {
   max-width: 980px;
   background-color: white;
@@ -147,4 +150,12 @@ h2 {
   .ticket_table th {
     width: 100px;
   }
+}
+.feedback_wrapper {
+  float: right;
+  padding: 20px 0;
+}
+.feedback_wrapper a {
+  color: white;
+  font-size: 18px;
 }
