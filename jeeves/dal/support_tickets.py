@@ -1,17 +1,26 @@
+"""
+DAL for zendesk support ticket dataset.
+"""
 import contextlib
 from glob import glob
 import json
 import os
 import re
+import sys
 
 from jeeves import data_directory
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
 from jeeves.exception.model import UnsupportedLanguageError
-from jeeves.util.cleanup import clean_description
 from jeeves.model.products import Products
 from jeeves.model.support_ticket import SupportTicket
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import classifyLang, classifyProd
+from jeeves.util.cleanup import clean_description
+from jeeves.util.s3 import S3, S3_SEGMENTED_DIR, S3_BUCKET_ID
+
+
+_TICKET_FILE_TEMPLATE = 'tickets-{lang}-{prod}.txt'
+
 
 class AbstractSupportTicketDAL(object):
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
@@ -38,9 +47,12 @@ class AbstractSupportTicketDAL(object):
 class AbstractFileSystemSupportTicketDAL(AbstractSupportTicketDAL):
     pass
 
+class AbstractRemoteSupportTicketDAL(AbstractSupportTicketDAL):
+    """ Abstract Base class for tickets fetched or accessed non-locally"""
+
 class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
-    _labeled_ticket_file = os.path.join(data_directory, 'category_dataset-{lang}.txt')
+    _labeled_ticket_file = os.path.join(data_directory, _TICKET_FILE_TEMPLATE)
 
     def __init__(self, ticket_file=None):
         if ticket_file is not None:
@@ -85,7 +97,7 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                 open(
                     os.path.join(
                         data_directory,
-                        'tickets-{lang}-{prod}.txt'.format(
+                        _TICKET_FILE_TEMPLATE.format(
                             lang=lang.name,
                             prod=prod.name
                         )
@@ -122,5 +134,27 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                             prod = classifyProd(ticket_json)
                             if (language, prod) in outFiles:
                                 print(supTik.__json__(), file=outFiles[language, prod])
+        return list(map(lambda f: f.name, outFiles.values()))
 
-SupportTicketDAL = FileSystemSupportTicketDAL()
+class S3RemoteSupportTicketDAL(AbstractRemoteSupportTicketDAL, FileSystemSupportTicketDAL):
+
+    def __init__(self, ticket_file=None):
+        # First, download from S3
+        print('Downloading segmented data files', file=sys.stderr)
+        for fPath in S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SEGMENTED_DIR):
+            fName = os.path.basename(fPath)
+            with open(os.path.join(data_directory, fName), 'wb') as f:
+                f.write(
+                    S3.download(
+                        S3_BUCKET_ID,
+                        os.path.join(
+                            S3_SEGMENTED_DIR,
+                            fName
+                        )
+                    )
+                )
+        print('Finished downloading segmented data files', file=sys.stderr)
+        super().__init__(ticket_file=ticket_file)
+
+
+SupportTicketDAL = S3RemoteSupportTicketDAL()
