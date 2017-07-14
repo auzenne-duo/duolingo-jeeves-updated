@@ -118,7 +118,15 @@
   <script src="/static/js/chart.js?_={{random}}"></script>
   <script>
     $(document).ready(function() {
-      var word = getParameterByName('word', 'freeze');
+      var suggestions = [
+        'crash(es|ing|ed)|freez(e|es|ing)|frozen|stop(s|ping|ped)|unresponsive|unusable',
+        'lost .+? streak', 'I (hate|don\'t like)', 'refund(ed)?|money back', 'unlock(ed)?', 'fix',
+        'how (do I|can I|to)', 'why|how come', 'latest (update|version)|last update',
+        'please (include|add)|lack(ing|s)|limited', 'inappropriate|offensive', 'I can\'t',
+        'terrible|worst|bad|disappointed|unfortunately|ridiculous|sad(ly)?|annoying|horrible'
+      ];
+      var random_suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+      var word = getParameterByName('word', random_suggestion);
       $('#query').val(word);
       $('.word_str').html(word);
 
