@@ -89,6 +89,7 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
         Segment all the Zendesk tickets into separate files for each
         supported language and product
         """
+        from tqdm import tqdm
         # create a `with` context manager for a programmatically defined number of (output) files
         with contextlib.ExitStack() as stack:
             # create a segmented out file for all supported languages and platforms
@@ -112,7 +113,7 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                 stack.enter_context(mgr)
 
             # now go through each input ticket file
-            for fileName in self._files:
+            for fileName in tqdm(self._files, desc='Segmenting Zendesk Tix'):
                 with open(fileName, 'r') as input_file:
                     for ticket_json in json.load(input_file)['tickets']:
                         supTik = self._deserialize_json(ticket_json)
