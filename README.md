@@ -30,4 +30,5 @@ The following are required when you updated requirements.
  - Run `pip-compile --output-file dev-requirements.txt dev-requirements.in`
 
 ## Links
+- [Jeeves Documentation](https://app.getguru.com/#/facts/60992fb0-ec19-4c3a-b3d1-8429750d448e)
 - [Jeeves Spec](https://docs.google.com/document/d/1QaIR3qbbQh0cT0uwlHrLWeRywRnmXP4NKyK21PUCXnU/edit#)
