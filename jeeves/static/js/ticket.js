@@ -61,6 +61,10 @@ function loadTickets(page, word, start_time, end_time) {
             ${ticket.description}
             </td>
             </tr>
+            <tr>
+            <th>Metadata</td>
+            <td>${JSON.stringify(ticket.metadata, null, 2)}</td>
+            </tr>
             ${category_html}
             </table>
             <br>`;

@@ -55,6 +55,7 @@ def manage_tickets():
                    'date_time': ticket.date_time,
                    'subject': ticket.subject,
                    'description': ticket.description,
+                   'metadata': ticket.metadata
                    } for ticket in tickets
                   ]
         return {'data': values,

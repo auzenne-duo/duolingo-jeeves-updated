@@ -1,7 +1,9 @@
 import re
 
+from jeeves.util.metadata import metadataParse
+
 def _compile_cleanup_pattern():
-    METADATA_REGEX = r'-{3,}\s+App information:[\s\S]+?-{3,}|(?:[A-z ]+:.*)(?:\n[A-z ]+:.*)+|[A-z\-_\.]+\.txt'
+    METADATA_FRIENDS_REGEX = r'-{3,}\s+App information:[\s\S]+?-{3,}|[A-z\-_\.]+\.txt'
     SIGNATURE_REGEX = r'^[\s\.,\?\\\/<>\(\)\+=_`~!@#\$%^&\*\[\]\{\}\|\'";:\-]*(?:Sent (?:from|via)|Enviado desde) .*$'
     URL_REGEX = (
         # protocol identifier
@@ -40,7 +42,7 @@ def _compile_cleanup_pattern():
 
     CLEANUP = re.compile(
         r'|'.join(
-            [METADATA_REGEX, SIGNATURE_REGEX, URL_REGEX]  # , CSS_REGEX]
+            [METADATA_FRIENDS_REGEX, SIGNATURE_REGEX, URL_REGEX]  # , CSS_REGEX]
         ),
         re.UNICODE | re.IGNORECASE | re.MULTILINE
     )
@@ -49,5 +51,17 @@ def _compile_cleanup_pattern():
 _CLEANUP_PATTERN = _compile_cleanup_pattern()
 _EMPTY_STRING_PATTERN = re.compile(r'^[\s\.,\?\\\/<>\(\)\+=_`~!@#\$%^&\*\[\]\{\}\|\'";:\-]*$')
 
-def clean_description(desc):
-    return _EMPTY_STRING_PATTERN.sub('', _CLEANUP_PATTERN.sub('', desc))
+def clean_and_parse_description(desc):
+    """
+    Cleans description and parses out metadata dictionary
+
+    Arguments:
+        desc {str} -- Support Ticket description
+
+    Returns:
+        (str, dict) -- Tuple of cleaned description and metadata dictionary
+    """
+
+    # first parse and cut out metadata, then cleanup rest of description for
+    cutDesc, mdict = metadataParse(desc)
+    return _EMPTY_STRING_PATTERN.sub('', _CLEANUP_PATTERN.sub('', cutDesc)), mdict

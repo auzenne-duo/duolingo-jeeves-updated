@@ -1,0 +1,94 @@
+fields:
+- datatype: str
+  field: version
+- datatype: str
+  field: flavor
+- datatype: str
+  field: apiLevel
+- datatype: str
+  field: osVersion
+- datatype: str
+  field: hostDevice
+- datatype: str
+  field: modelProduct
+- datatype: str
+  field: micTest
+- datatype: str
+  field: screen
+- datatype: str
+  field: screenDensity
+- datatype: str
+  field: installLocation
+- datatype: str
+  field: memLimits
+- datatype: str
+  field: username
+- datatype: str
+  field: toLanguage
+- datatype: str
+  field: locale
+- datatype: str
+  field: deviceLanguage
+- datatype: str
+  field: deviceDefaultLocale
+metadata:
+  android:
+    implicitFields:
+    - field: platform
+      value: android
+    parseFields:
+    - optional: false
+      pattern: (?P<appVersion>.*?) (?P<flavor>.*?)
+      title: App version code
+    - optional: false
+      pattern: (?P<apiLevel>.*?)
+      title: API Level
+    - optional: false
+      pattern: (?P<osVersion>.*?)
+      title: OS Version
+    - optional: false
+      pattern: (?P<hostDevice>.*?)
+      title: Host (Device)
+    - optional: false
+      pattern: (?P<modelProduct>.*?)
+      title: Model (Product)
+    - optional: true
+      pattern: (?P<micTest>.*?)
+      title: Microphone Test
+    - optional: false
+      pattern: (?P<screen>.*?), (?P<screenDensity>.*?)dpi
+      title: Screen
+    - optional: false
+      pattern: (?:(?P<installLocation>.*?), )?(?P<memLimits>.*?)
+      title: Config
+    - optional: true
+      pattern: (?P<username>.*?)
+      title: Username
+    - optional: false
+      pattern: '(?:(?P<toLanguage>.*?)<-(?P<fromLanguage>.*?))?(?: \((?P<locale>.*?)\))? : (?P<deviceLanguage>.*?) : (?P<deviceDefaultLocale>.*?)'
+      title: Languages
+    parseFormat: '{title}: {pattern}[ \t]*\n'
+  ios:
+    implicitFields:
+    - field: platform
+      value: ios
+    parseFields:
+    - optional: false
+      pattern: (?P<username>.*?)
+      title: Username
+    - optional: false
+      pattern: (?P<appVersion>.*?)
+      title: App version
+    - optional: false
+      pattern: (?P<modelProduct>.*?)
+      title: Device model
+    - optional: false
+      pattern: (?P<osVersion>.*?)
+      title: OS version
+    - optional: false
+      pattern: (?P<fromLanguage>.*?)
+      title: UI language
+    - optional: false
+      pattern: (?P<toLanguage>.*?)
+      title: Learning language
+    parseFormat: '{title}: {pattern}[ \t]*\n'

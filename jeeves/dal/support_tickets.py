@@ -1,6 +1,7 @@
 """
 DAL for zendesk support ticket dataset.
 """
+from abc import ABCMeta, abstractmethod
 import contextlib
 from glob import glob
 import json
@@ -11,18 +12,19 @@ import sys
 from jeeves import data_directory
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
 from jeeves.exception.model import UnsupportedLanguageError
+from jeeves.util.cleanup import clean_and_parse_description
 from jeeves.model.products import Products
 from jeeves.model.support_ticket import SupportTicket
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import classifyLang, classifyProd
-from jeeves.util.cleanup import clean_description
 from jeeves.util.s3 import S3, S3_SEGMENTED_DIR, S3_BUCKET_ID
 
 
 _TICKET_FILE_TEMPLATE = 'tickets-{lang}-{prod}.txt'
 
 
-class AbstractSupportTicketDAL(object):
+class AbstractSupportTicketDAL(object, metaclass=ABCMeta):
+    @abstractmethod
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         """
         Get a list of SupportTickets with category_labels annotated.
@@ -32,7 +34,6 @@ class AbstractSupportTicketDAL(object):
                                               (default: {SUPPORTED_LANGUAGES.en})
             product {Products} -- product whose tickets to retreive (default: {Products.LA})
         """
-        pass
 
     @staticmethod
     def _deserialize_json(ticket_json):
@@ -40,15 +41,21 @@ class AbstractSupportTicketDAL(object):
             ticket_id=ticket_json['id'],
             date_time=ticket_json['created_at'],
             subject=ticket_json['subject'],
-            description=clean_description(ticket_json['description']),
-            category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id'])
+            description=ticket_json['description'],
+            category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id']),
+            metadata=ticket_json.get('metadata', {})
         )
 
 class AbstractFileSystemSupportTicketDAL(AbstractSupportTicketDAL):
-    pass
+    @abstractmethod
+    def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
+        pass
 
 class AbstractRemoteSupportTicketDAL(AbstractSupportTicketDAL):
     """ Abstract Base class for tickets fetched or accessed non-locally"""
+    @abstractmethod
+    def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
+        pass
 
 class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
@@ -83,6 +90,18 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                     else:
                         if discoveredLang == language:
                             yield supTik
+
+    @staticmethod
+    def _deserialize_json(ticket_json):
+        desc, metadata = clean_and_parse_description(ticket_json['description'])
+        return SupportTicket(
+            ticket_id=ticket_json['id'],
+            date_time=ticket_json['created_at'],
+            subject=ticket_json['subject'],
+            description=desc,
+            category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id']),
+            metadata=metadata
+        )
 
     def segment_labeled_support_tickets(self):
         """
@@ -137,7 +156,7 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                                 print(supTik.__json__(), file=outFiles[language, prod])
         return list(map(lambda f: f.name, outFiles.values()))
 
-class S3RemoteSupportTicketDAL(AbstractRemoteSupportTicketDAL, FileSystemSupportTicketDAL):
+class S3RemoteSupportTicketDAL(FileSystemSupportTicketDAL, AbstractRemoteSupportTicketDAL):
 
     def __init__(self, ticket_file=None):
         # First, download from S3
