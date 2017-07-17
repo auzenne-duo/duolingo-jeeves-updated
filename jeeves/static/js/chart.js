@@ -67,7 +67,12 @@ function drawChart() {
       }
     };
 
-    Plotly.newPlot('chart_container', [trace], layout, {showLink: false});
+    var config = {
+      showLink: false,
+      displayModeBar: false
+    };
+
+    Plotly.newPlot('chart_container', [trace], layout, config);
     modifyRange(keyword);
     var chart = document.getElementById('chart_container');
     chart.on('plotly_relayout', currier(modifyRange, keyword));
