@@ -63,5 +63,5 @@ def clean_and_parse_description(desc):
     """
 
     # first parse and cut out metadata, then cleanup rest of description for
-    cutDesc, mdict = metadataParse(desc)
-    return _EMPTY_STRING_PATTERN.sub('', _CLEANUP_PATTERN.sub('', cutDesc)), mdict
+    cutDesc, mdict = metadataParse(desc + '\n')
+    return _EMPTY_STRING_PATTERN.sub('', _CLEANUP_PATTERN.sub('', cutDesc.strip())), mdict
