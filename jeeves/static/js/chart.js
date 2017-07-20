@@ -16,7 +16,12 @@ function modifyRange(keyword, eventdata={}){
 
   xstart = (xstart === undefined) ? null : xstart;
   xend = (xend === undefined) ? null : xend;
-
+  if (xstart && xend) {
+    ga('send', 'event', {
+      eventCategory: 'Tickets',
+      eventAction: 'modify_range'
+    });
+  }
   loadTickets(0, keyword, xstart, xend);
   $('.next').prop('onclick', null).off('click').click(function() {
     loadTickets($(this).data('next_page'), keyword, xstart, xend);
@@ -77,6 +82,11 @@ function drawChart() {
     var chart = document.getElementById('chart_container');
     chart.on('plotly_relayout', currier(modifyRange, keyword));
     window.history.pushState(null, null, '/analysis?word=' + keyword);
+    ga('send', 'event', {
+      eventCategory: 'Tickets',
+      eventAction: 'search',
+      eventLabel: keyword
+    });
   });
 
 }

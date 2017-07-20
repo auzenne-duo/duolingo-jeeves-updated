@@ -70,7 +70,13 @@ function loadTickets(page, word, start_time, end_time) {
             <br>`;
         }
         var paramString = '?' + (word ? 'word=' + word + '&' : '') + 'page=' + page;
-        window.history.pushState(null, null, window.location.pathname + paramString);
+        const path = window.location.pathname + paramString;
+        window.history.pushState(null, null, path);
+        if (!start_time && !end_time) {
+          // Avoid loadTickets() triggered by modifyRange() to count as pageview.
+          ga('send', 'pageview', path);
+        }
+
         $('.next').data('next_page', page + 1);
         $('html, body').animate({ scrollTop: 0 });
         $('#tickets').html(content);
