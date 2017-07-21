@@ -6,7 +6,12 @@ import logging
 import random
 
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
-from jeeves.lib.time_series_generator import get_time_series, get_recent_tickets_by_word, get_paginated_tickets
+from jeeves.lib.time_series_generator import (
+    get_metadata_distribution,
+    get_paginated_tickets,
+    get_recent_tickets_by_word,
+    get_time_series
+)
 from jeeves.model.categories import CATEGORIES
 
 # This is being referenced by the application.py
@@ -49,13 +54,12 @@ def manage_tickets():
     def get_tickets_by_word():
         limit = int(request.args.get('limit', '10'))
         tickets = get_recent_tickets_by_word(word, start_time=start_time, end_time=end_time)
-        tickets = sorted(tickets, key=lambda tk: tk.date_time, reverse=True)
-        tickets = tickets[page * limit : (page + 1) * limit]
+        tickets = get_paginated_tickets(page, limit, dataframe=tickets)
         values = [{'ticket_id': ticket.ticket_id,
                    'date_time': ticket.date_time,
                    'subject': ticket.subject,
                    'description': ticket.description,
-                   'metadata': ticket.metadata
+                   'metadata': ticket.metadata._asdict()
                    } for ticket in tickets
                   ]
         return {'data': values,
@@ -98,3 +102,11 @@ def get_time_series_data():
     if not word:
         abort(make_response('Please provide `word` parameter', 500))
     return json.jsonify(get_time_series(word))
+
+@blueprint_api.route('/api/1/metadata_analyze')
+def get_ticket_metadata():
+    word = request.args.get('word')
+    start_time = request.args.get('start_time', None)
+    end_time = request.args.get('end_time', None)
+    meta_freq_dists = get_metadata_distribution(word, start_time=start_time, end_time=end_time)
+    return json.jsonify(dict(metadata=meta_freq_dists))

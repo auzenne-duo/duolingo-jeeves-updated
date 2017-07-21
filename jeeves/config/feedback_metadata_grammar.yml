@@ -1,36 +1,58 @@
 fields:
 - datatype: str
   field: appVersion
+  unique: False
 - datatype: str
   field: flavor
+  unique: False
 - datatype: str
   field: apiLevel
+  unique: False
 - datatype: str
   field: osVersion
+  unique: False
 - datatype: str
   field: hostDevice
+  unique: False
 - datatype: str
   field: modelProduct
+  unique: False
 - datatype: str
   field: micTest
+  unique: False
 - datatype: str
   field: screen
+  unique: False
 - datatype: str
   field: screenDensity
+  unique: False
 - datatype: str
   field: installLocation
+  unique: False
 - datatype: str
   field: memLimits
+  unique: False
 - datatype: str
   field: username
+  unique: True
 - datatype: str
   field: toLanguage
+  unique: False
+- datatype: str
+  field: fromLanguage
+  unique: False
 - datatype: str
   field: locale
+  unique: False
 - datatype: str
   field: deviceLanguage
+  unique: False
 - datatype: str
   field: deviceDefaultLocale
+  unique: False
+- datatype: str
+  field: platform
+  unique: False
 metadata:
   android:
     implicitFields:

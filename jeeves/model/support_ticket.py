@@ -2,13 +2,16 @@
 A model representing a support ticket.
 """
 
+from collections import namedtuple
 import json
 
-class SupportTicket(object):
+from jeeves.model.metadata import Metadata
 
-    classified_categories = {}
+class SupportTicket(namedtuple('ST', 'ticket_id, date_time, subject, description, category_labels, metadata')):
 
-    def __init__(self, ticket_id, date_time, subject, description, category_labels=None, metadata=None):
+    __slots__ = ()
+
+    def __new__(cls, ticket_id, date_time, subject, description, category_labels=None, metadata=None):
         """
         Parameters:
             ticket_id<int>: A zendesk ticket ID.
@@ -19,16 +22,12 @@ class SupportTicket(object):
             metadata<dict>: Metadata dictionary parsed out of Zendesk descriptions.
         """
         # More meta data can be fetched using this ID.
-        self.ticket_id = ticket_id
-        self.date_time = date_time
-        self.subject = subject
-        self.description = description
         if category_labels is None:
             category_labels = []
-        self.category_labels = category_labels
         if metadata is None:
             metadata = {}
-        self.metadata = metadata
+        metadata = Metadata(metadata)
+        return super().__new__(cls, ticket_id, date_time, subject, description, category_labels, metadata)
 
     def __repr__(self):
         def summarize(item):

@@ -1,15 +1,7 @@
-
 import operator
-import os
 import re
-import yaml
 
-from jeeves import package_directory
-
-_METADATA_CONFIG_PATH = os.path.join(package_directory, 'config', 'feedback_metadata_grammar.yml')
-
-with open(_METADATA_CONFIG_PATH, 'r') as f:
-    _CONFIG = yaml.load(f)
+from jeeves.dal.config.metadata import Config
 
 def parse(parseFormat):
     def parseInner(pField):
@@ -24,7 +16,7 @@ def parse(parseFormat):
         return line
     return parseInner
 
-_METADATA_CFG = _CONFIG['metadata']
+_METADATA_CFG = Config['metadata']
 
 _MDATA_REGEXES = {
     plat: re.compile(
