@@ -30,6 +30,9 @@ dist/
 # dev logs
 logs
 
+# local data files
+data
+
 # terraform directories
 .terraform
 

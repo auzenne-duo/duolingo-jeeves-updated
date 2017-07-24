@@ -12,6 +12,8 @@ WORKDIR $INSTALL_PATH
 
 COPY $REQ_TXT $REQ_TXT
 
+RUN mkdir -p data/zendesk
+
 RUN apk add --no-cache --virtual .build-deps \
   g++ linux-headers musl-dev \
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \

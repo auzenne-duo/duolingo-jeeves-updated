@@ -6,5 +6,5 @@
 .*.swp
 /.duolingo_authtkt
 .terraform
-data/zendesk/
+data/
 env/
