@@ -4,6 +4,8 @@ duolingo-base
 langid
 Flask
 pandas
+simplejson
+tqdm
 uwsgi
 
 

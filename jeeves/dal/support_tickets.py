@@ -3,11 +3,12 @@ DAL for zendesk support ticket dataset.
 """
 from abc import ABCMeta, abstractmethod
 import contextlib
+import functools
 from glob import glob
-import json
 import os
 import re
-import sys
+import simplejson as json
+from tqdm import tqdm
 
 from jeeves import data_directory
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
@@ -17,6 +18,7 @@ from jeeves.model.products import Products
 from jeeves.model.support_ticket import SupportTicket
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import classifyLang, classifyProd
+from jeeves.util.json_encoder import JeevesJSONEncoder
 from jeeves.util.s3 import S3, S3_SEGMENTED_DIR, S3_BUCKET_ID
 
 
@@ -38,11 +40,11 @@ class AbstractSupportTicketDAL(object, metaclass=ABCMeta):
     @staticmethod
     def _deserialize_json(ticket_json):
         return SupportTicket(
-            ticket_id=ticket_json['id'],
-            date_time=ticket_json['created_at'],
+            ticket_id=ticket_json['ticket_id'],
+            date_time=ticket_json['date_time'],
             subject=ticket_json['subject'],
             description=ticket_json['description'],
-            category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id']),
+            category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['ticket_id']),
             metadata=ticket_json.get('metadata', {})
         )
 
@@ -108,7 +110,7 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
         Segment all the Zendesk tickets into separate files for each
         supported language and product
         """
-        from tqdm import tqdm
+        customJSONDump = functools.partial(json.dumps, cls=JeevesJSONEncoder)
         # create a `with` context manager for a programmatically defined number of (output) files
         with contextlib.ExitStack() as stack:
             # create a segmented out file for all supported languages and platforms
@@ -153,15 +155,18 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                         else:
                             prod = classifyProd(ticket_json)
                             if (language, prod) in outFiles:
-                                print(supTik.__json__(), file=outFiles[language, prod])
+                                print(customJSONDump(supTik), file=outFiles[language, prod])
         return list(map(lambda f: f.name, outFiles.values()))
 
 class S3RemoteSupportTicketDAL(FileSystemSupportTicketDAL, AbstractRemoteSupportTicketDAL):
 
     def __init__(self, ticket_file=None):
-        # First, download from S3
-        print('Downloading segmented data files', file=sys.stderr)
-        for fPath in S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SEGMENTED_DIR):
+        self._init = False
+        super().__init__(ticket_file=ticket_file)
+
+    def _lazy_init(self):
+        segmented_files = list(S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SEGMENTED_DIR))
+        for fPath in tqdm(segmented_files, desc='Downloading Segmented Files'):
             fName = os.path.basename(fPath)
             with open(os.path.join(data_directory, fName), 'wb') as f:
                 f.write(
@@ -173,8 +178,12 @@ class S3RemoteSupportTicketDAL(FileSystemSupportTicketDAL, AbstractRemoteSupport
                         )
                     )
                 )
-        print('Finished downloading segmented data files', file=sys.stderr)
-        super().__init__(ticket_file=ticket_file)
+        self._init = True
+
+    def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
+        if not self._init:
+            self._lazy_init()
+        yield from super().get_labeled_support_tickets(language, product)
 
 
 SupportTicketDAL = S3RemoteSupportTicketDAL()

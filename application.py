@@ -12,6 +12,7 @@ from duolingo.base.config import Config
 from duolingo.base.util import registry
 from duolingo.base.view.auth import auth_after_request
 
+from jeeves.util.json_encoder import JeevesJSONEncoder
 from jeeves.view.api import blueprint_api
 
 
@@ -29,6 +30,8 @@ application.after_request(auth_after_request)
 application.register_blueprint(blueprint_api)
 
 application.registry = registry.initialize()
+
+application.json_encoder = JeevesJSONEncoder
 
 config.apply_all(registry=application.registry,
                  flask_app=application)

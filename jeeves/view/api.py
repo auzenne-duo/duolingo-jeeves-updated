@@ -55,17 +55,23 @@ def manage_tickets():
         limit = int(request.args.get('limit', '10'))
         tickets = get_recent_tickets_by_word(word, start_time=start_time, end_time=end_time)
         tickets = get_paginated_tickets(page, limit, dataframe=tickets)
-        values = [{'ticket_id': ticket.ticket_id,
-                   'date_time': ticket.date_time,
-                   'subject': ticket.subject,
-                   'description': ticket.description,
-                   'metadata': ticket.metadata._asdict()
-                   } for ticket in tickets
-                  ]
+        values = [
+            ticket.subserialize(
+                'ticket_id',
+                'date_time',
+                'subject',
+                'description',
+                'metadata'
+            )
+            for ticket in tickets
+        ]
         return {'data': values,
                 'next_url': '/api/1/tickets?word=%s&limit=%s&page=%s' % (word, limit, page + 1)}
 
     def get_tickets_for_annotation():
+        def replace(d, field, fn):
+            d[field] = fn(d[field])
+            return d
         limit = int(request.args.get('limit', '10'))
         tickets = get_paginated_tickets(page, limit)
         category_list = sorted(cat.name for cat in CATEGORIES)
@@ -73,15 +79,26 @@ def manage_tickets():
         category_list += ['feature_request', 'language_request', 'requesting_reply',
                           'challenge_feedback', 'schools', 'iap_refunds',
                           'streak_issue', 'forum_abuse']
-        values = [{'ticket_id': ticket.ticket_id,
-                   'date_time': ticket.date_time,
-                   'subject': ticket.subject,
-                   'description': ticket.description,
-                   'category_labels': {category: bool(ticket.category_labels and
-                                                      category in ticket.category_labels)
-                                       for category in category_list},
-                   } for ticket in tickets
-                  ]
+        values = [
+            replace(
+                d=ticket.subserialize(
+                    'ticket_id',
+                    'date_time',
+                    'subject',
+                    'description',
+                    'category_labels'
+                ),
+                field='category_labels',
+                fn=lambda cl: {
+                    cat: cat in cl
+                    for cat in category_list
+                } if cl else {
+                    cat: False
+                    for cat in category_list
+                }
+            )
+            for ticket in tickets
+        ]
         return {'data': values,
                 'next_url': '/api/1/tickets?limit=%s&page=%s' % (limit, page + 1)}
 

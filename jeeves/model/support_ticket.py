@@ -3,11 +3,14 @@ A model representing a support ticket.
 """
 
 from collections import namedtuple
-import json
 
+from jeeves.model import JeevesObject
 from jeeves.model.metadata import Metadata
 
-class SupportTicket(namedtuple('ST', 'ticket_id, date_time, subject, description, category_labels, metadata')):
+class SupportTicket(
+    JeevesObject,
+    namedtuple('ST', 'ticket_id, date_time, subject, description, category_labels, metadata')
+):
 
     __slots__ = ()
 
@@ -37,17 +40,8 @@ class SupportTicket(namedtuple('ST', 'ticket_id, date_time, subject, description
             else:
                 return item
         variables = ', '.join('%s=%s' % summarize(item)
-                              for item in vars(self).items())
+                              for item in self._asdict().items())
         return '%s(%s)' % (type(self).__name__, variables)
 
-    def __json__(self):
-        return json.dumps(
-            dict(
-                id=self.ticket_id,
-                created_at=self.date_time,
-                subject=self.subject,
-                description=self.description,
-                category_labels=self.category_labels,
-                metadata=self.metadata
-            )
-        )
+    def __serialize__(self):
+        return self._asdict()

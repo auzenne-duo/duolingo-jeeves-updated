@@ -6,9 +6,9 @@ API doc: https://developer.zendesk.com/rest_api/docs/core/incremental_export
 """
 
 import datetime
-import json
 import os
 import requests
+import simplejson as json
 import time
 
 from jeeves import data_directory

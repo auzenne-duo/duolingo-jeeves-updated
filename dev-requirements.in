@@ -3,4 +3,3 @@
 pre-commit
 pylint
 pytest
-tqdm

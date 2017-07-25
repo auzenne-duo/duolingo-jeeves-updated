@@ -40,6 +40,7 @@ pytz==2017.2              # via pandas
 pyyaml==3.12              # via aspy.yaml, duolingo-base, pre-commit
 requests==2.18.1          # via duolingo-base
 s3transfer==0.1.10        # via boto3
+simplejson==3.11.1
 six==1.10.0               # via astroid, duolingo-base, pre-commit, pylint, pymemcache, python-dateutil
 tqdm==4.14.0
 urllib3==1.21.1           # via requests
