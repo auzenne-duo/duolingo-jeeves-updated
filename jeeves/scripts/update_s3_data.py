@@ -80,6 +80,10 @@ def recreateAndUploadSegmentedFiles():
     print('Successfully updated S3 data!!', file=sys.stderr)
 
 if __name__ == '__main__':
+    if not os.getenv('ZENDESK_USER') or not os.getenv('ZENDESK_PASSWORD'):
+        print('Please set the environment variables ZENDESK_USER and ZENDESK_PASSWORD.')
+        sys.exit()
+
     deleteExistingTickets()
     downloadS3Tickets()
     downloadNewTicketsAndUploadToS3()

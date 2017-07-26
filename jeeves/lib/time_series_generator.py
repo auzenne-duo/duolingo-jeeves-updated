@@ -43,7 +43,11 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None):
     assert isinstance(word, str)
     if word:
         matched_mask = _match_description(word, start_time, end_time)
-        return TS.df.loc[start_time:end_time][matched_mask]['tickets']
+        try:
+            return TS.df.loc[start_time:end_time][matched_mask]['tickets']
+        except KeyError:
+            print('Data missing for the timespan (%s, %s). Please update.' % (start_time, end_time))
+            raise
     else:
         return TS.df.loc[start_time:end_time]['tickets']
 
