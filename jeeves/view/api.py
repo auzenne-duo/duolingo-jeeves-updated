@@ -6,6 +6,7 @@ import logging
 import random
 
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
+from jeeves.dal.spikes import SpikeDAL
 from jeeves.lib.time_series_generator import (
     get_metadata_distribution,
     get_paginated_tickets,
@@ -40,6 +41,11 @@ def show_train_jeeves():
 @blueprint_api.route('/analysis')
 def show_analysis():
     return render_template('analysis.html', random=_RANDOM)
+
+
+@blueprint_api.route('/spike')
+def show_spike():
+    return render_template('spike.html', random=_RANDOM)
 
 
 @blueprint_api.route('/api/1/tickets', methods=['GET', 'PATCH'])
@@ -119,6 +125,12 @@ def get_time_series_data():
     if not word:
         abort(make_response('Please provide `word` parameter', 500))
     return json.jsonify(get_time_series(word))
+
+
+@blueprint_api.route('/api/1/spikes')
+def get_spike_data():
+    return json.jsonify(SpikeDAL.get_spikes())
+
 
 @blueprint_api.route('/api/1/metadata_analyze')
 def get_ticket_metadata():
