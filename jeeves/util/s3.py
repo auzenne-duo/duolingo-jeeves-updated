@@ -12,6 +12,7 @@ from jeeves.exception.util import S3UploadException
 
 S3_ZENDESK_DIR = os.path.join('data', 'zendesk')
 S3_SEGMENTED_DIR = os.path.join('data', 'segmented')
+S3_SPIKE_DIR = os.path.join('data', 'spike')
 S3_BUCKET_ID = 'duolingo-jeeves'
 
 class S3Manager(object):
