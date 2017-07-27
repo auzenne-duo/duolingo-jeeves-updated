@@ -1,6 +1,7 @@
 """
 APIs.
 """
+import datetime
 from flask import Blueprint, abort, json, make_response, render_template, request
 import logging
 import random
@@ -22,6 +23,9 @@ _LOG = logging.getLogger('application')
 
 # Append this to resource URLs (i.e. JS and CSS) to avoid caching.
 _RANDOM = random.randint(0, 1000000)
+
+_DEPLOYED_TIMESTAMP = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
 
 @blueprint_api.route('/api/1/hello')
 def say_hello():
@@ -139,3 +143,8 @@ def get_ticket_metadata():
     end_time = request.args.get('end_time', None)
     meta_freq_dists = get_metadata_distribution(word, start_time=start_time, end_time=end_time)
     return json.jsonify(dict(metadata=meta_freq_dists))
+
+
+@blueprint_api.route('/api/1/info')
+def show_info():
+    return json.jsonify({'deployed': _DEPLOYED_TIMESTAMP})
