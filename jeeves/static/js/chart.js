@@ -4,22 +4,24 @@ var currier = function(fn) {
   var args = Array.prototype.slice.call(arguments, 1);
 
   return function() {
-    return fn.apply(this, args.concat(
-      Array.prototype.slice.call(arguments, 0)));
+    return fn.apply(
+      this,
+      args.concat(Array.prototype.slice.call(arguments, 0))
+    );
   };
 };
 
-function modifyRange(keyword, eventdata={}){
+function modifyRange(keyword, eventdata = {}) {
   // now, we must grab new tickets based on the new range
   var xstart = eventdata['xaxis.range[0]'];
   var xend = eventdata['xaxis.range[1]'];
 
-  xstart = (xstart === undefined) ? null : xstart;
-  xend = (xend === undefined) ? null : xend;
+  xstart = xstart === undefined ? null : xstart;
+  xend = xend === undefined ? null : xend;
   if (xstart && xend) {
     ga('send', 'event', {
       eventCategory: 'Tickets',
-      eventAction: 'modify_range'
+      eventAction: 'modify_range',
     });
   }
   loadTickets(0, keyword, xstart, xend);
@@ -30,8 +32,10 @@ function modifyRange(keyword, eventdata={}){
 
 function drawChart() {
   var keyword = $('#query').val();
-  $.get('/api/1/time_series', {word: keyword}).done(function(response) {
-    var datetimes = Object.keys(response.values).filter(k => new Date(k) >= JAN_FIRST);
+  $.get('/api/1/time_series', { word: keyword }).done(function(response) {
+    var datetimes = Object.keys(response.values).filter(
+      k => new Date(k) >= JAN_FIRST
+    );
     var freqs = datetimes.map(dt => response.values[dt]);
     var trace = {
       type: 'scatter',
@@ -40,41 +44,41 @@ function drawChart() {
       y: freqs,
       hovertext: 'Zendesk tickets',
       line: {
-        color: '#3E82F7'
-      }
+        color: '#3E82F7',
+      },
     };
 
     var layout = {
       title: '# of tickets containing "<b>' + keyword + '</b>"',
       titlefont: {
         size: 22,
-        color: '#999999'
+        color: '#999999',
       },
       font: {
-        family: 'museo-sans-rounded, sans-serif'
+        family: 'museo-sans-rounded, sans-serif',
       },
       showlegend: false,
       xaxis: {
         title: 'Date',
-        showgrid: 'false'
+        showgrid: 'false',
       },
       yaxis: {
         title: '# of tickets',
         fixedrange: true,
-        gridcolor: '#efefef'
+        gridcolor: '#efefef',
       },
       margin: {
         l: 50,
         r: 0,
         b: 50,
         t: 75,
-        pad: 4
-      }
+        pad: 4,
+      },
     };
 
     var config = {
       showLink: false,
-      displayModeBar: false
+      displayModeBar: false,
     };
 
     Plotly.newPlot('chart_container', [trace], layout, config);
@@ -85,8 +89,7 @@ function drawChart() {
     ga('send', 'event', {
       eventCategory: 'Tickets',
       eventAction: 'search',
-      eventLabel: keyword
+      eventLabel: keyword,
     });
   });
-
 }

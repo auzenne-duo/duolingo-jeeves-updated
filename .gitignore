@@ -8,3 +8,4 @@
 .terraform
 data/
 env/
+node_modules/

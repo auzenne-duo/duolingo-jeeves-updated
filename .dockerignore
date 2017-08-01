@@ -17,6 +17,9 @@
 .pyenv
 env
 
+# node.js packages
+node_modules
+
 # test/coverage/style reports
 nosetests.xml
 .coverage
