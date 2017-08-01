@@ -38,7 +38,7 @@ module "duolingo-jeeves" {
   min_count      = 1                                                           # Minimum number of tasks to run in autoscaling group
   max_count      = 5                                                           # Maximum number of tasks to run in autoscaling group
   scale_out_cpu  = 80                                                          # Scale out at this cpu usage (percent)
-  memory         = 512                                                         # proxy needs 512MB memory
+  memory         = 768                                                         # Maximum memory (default: 128MB)
   product        = "${var.product}"
   owner          = "${var.owner}"                                              # The name of the owner for this service
   ecs_cluster    = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
