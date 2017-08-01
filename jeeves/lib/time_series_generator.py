@@ -7,6 +7,7 @@ import pandas as pd
 import re
 
 from jeeves.dal.config.metadata import STATS_FIELD_TITLES
+from jeeves.model.metadata import Metadata
 from jeeves.model.time_series import TS
 from jeeves.util.cache import CacheHandler
 
@@ -16,12 +17,24 @@ def _compile_search_regex(word):
     return re.compile(_SEARCH_REGEX.format(word), flags=re.I | re.U)
 
 @CacheHandler.cache(maxsize=32, typed=False)
-def _match_description(word, start_time=None, end_time=None):
-    match = _compile_search_regex(word)
-    return TS.df.loc[start_time:end_time]['tickets'].apply(lambda tk: bool(match.search(tk.description)))
+def _match_description(word, start_time=None, end_time=None, meta_filter=Metadata({})):
+    ser = TS.df.loc[start_time:end_time]['tickets']
+    meta_match = lambda tk: all(getattr(tk.metadata, field) == val for field, val in meta_filter.items())
+    if word:
+        match = _compile_search_regex(word)
+        desc_match = lambda tk: bool(match.search(tk.description))
+        if meta_filter:
+            return ser.map(lambda tk: meta_match(tk) and desc_match(tk))
+        else:
+            return ser.map(desc_match)
+    else:
+        if meta_filter:
+            return ser.map(meta_match)
+        else:
+            return pd.Series(np.full(len(ser), True, dtype=np.bool8), index=ser.index)
 
 @CacheHandler.cache(maxsize=32, typed=False)
-def get_time_series(word, start_time=None, end_time=None):
+def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({})):
     """
     Returns time series of, on a daily basis, number of tickets that match a particular keyword
 
@@ -31,6 +44,7 @@ def get_time_series(word, start_time=None, end_time=None):
     Keyword Arguments:
         start_time {pd.Timestamp} -- Datetime to start recording data from (default: {None})
         end_time {pd.Timestamp} -- Datetime to end recording data from (default: {None})
+        meta_filter {dict} -- mapping from metadata field names to acceptable value (default: {None})
     """
     assert isinstance(word, str) and word
     counts = (_match_description(word, start_time, end_time)
@@ -39,10 +53,10 @@ def get_time_series(word, start_time=None, end_time=None):
     return {'values': vals}
 
 @CacheHandler.cache(maxsize=32, typed=False)
-def get_recent_tickets_by_word(word, start_time=None, end_time=None):
+def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter=Metadata({})):
     assert isinstance(word, str)
     if word:
-        matched_mask = _match_description(word, start_time, end_time)
+        matched_mask = _match_description(word, start_time, end_time, meta_filter)
         try:
             return TS.df.loc[start_time:end_time][matched_mask]['tickets']
         except KeyError:
@@ -62,14 +76,27 @@ def get_paginated_tickets(page, limit, dataframe=None):
     return paginated
 
 @CacheHandler.cache(maxsize=32, typed=False)
+def get_viable_categories_in_metadata_distribution(start_time, end_time, min_prob=0.001):
+    matched_mask = _match_description('', start_time, end_time)
+    matched_meta = TS.df.loc[start_time:end_time][matched_mask][STATS_FIELD_TITLES]
+    return {
+        col:
+        set(matched_meta[col].value_counts(normalize=True)[lambda p: p > min_prob].index)
+        for col in matched_meta.columns
+    }
+
+@CacheHandler.cache(maxsize=32, typed=False)
 def get_metadata_distribution(word, start_time=None, end_time=None):
     matched_mask = _match_description(word, start_time, end_time)
     matched_meta = TS.df.loc[start_time:end_time][matched_mask][STATS_FIELD_TITLES]
+    viable_categories = get_viable_categories_in_metadata_distribution(start_time, end_time)
     freq_dict = {
         col: {
             k: v
-            for k, v in matched_meta[col].value_counts().iteritems()
+            for k, v in matched_meta[col].value_counts(normalize=True).iteritems()
             if k != ''  # not counting the unpopulated fields
-        } for col in matched_meta
+            and k in viable_categories[col]  # as long as k is a mildly plausible (non-noise) category
+        }
+        for col in matched_meta
     }
     return freq_dict

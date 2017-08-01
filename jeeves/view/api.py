@@ -4,6 +4,7 @@ APIs.
 import datetime
 from flask import Blueprint, abort, json, make_response, render_template, request
 import logging
+import numpy as np
 import random
 
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
@@ -15,6 +16,8 @@ from jeeves.lib.time_series_generator import (
     get_time_series
 )
 from jeeves.model.categories import CATEGORIES
+from jeeves.model.metadata import Metadata
+from jeeves.util.score import pearsons_coefficient, cosine_similarity
 
 # This is being referenced by the application.py
 blueprint_api = Blueprint('api', __name__)
@@ -60,10 +63,11 @@ def manage_tickets():
     word = request.args.get('word')
     start_time = request.args.get('start_time', None)
     end_time = request.args.get('end_time', None)
+    meta_filter = Metadata(request.args.get('meta_filter', {}))
 
     def get_tickets_by_word():
         limit = int(request.args.get('limit', '10'))
-        tickets = get_recent_tickets_by_word(word, start_time=start_time, end_time=end_time)
+        tickets = get_recent_tickets_by_word(word, start_time=start_time, end_time=end_time, meta_filter=meta_filter)
         tickets = get_paginated_tickets(page, limit, dataframe=tickets)
         values = [
             ticket.subserialize(
@@ -126,8 +130,10 @@ def manage_tickets():
 def get_time_series_data():
     # TODO: support more parameters such as category
     word = request.args.get('word')
+    meta_filter = Metadata(request.args.get('meta_filter', {}))
     if not word:
         abort(make_response('Please provide `word` parameter', 500))
+    print('meta_filter=', type(meta_filter), meta_filter)
     return json.jsonify(get_time_series(word))
 
 
@@ -136,13 +142,39 @@ def get_spike_data():
     return json.jsonify(SpikeDAL.get_spikes())
 
 
+score_map = dict(pearsons=pearsons_coefficient, cosine=cosine_similarity)
+
 @blueprint_api.route('/api/1/metadata_analyze')
 def get_ticket_metadata():
     word = request.args.get('word')
     start_time = request.args.get('start_time', None)
     end_time = request.args.get('end_time', None)
+    if start_time is '':
+        start_time = None
+    if end_time is '':
+        end_time = None
+
+    score = score_map.get(request.args.get('score', None), pearsons_coefficient)
+
     meta_freq_dists = get_metadata_distribution(word, start_time=start_time, end_time=end_time)
-    return json.jsonify(dict(metadata=meta_freq_dists))
+    wordless_freq_dists = get_metadata_distribution('', start_time=start_time, end_time=end_time)
+    item = sorted(
+        filter(
+            lambda d: not np.isnan(d['score']),
+            (
+                dict(
+                    score=score(
+                        meta_freq_dists[col],
+                        wordless_freq_dists[col]
+                    ),
+                    field=col
+                )
+                for col in meta_freq_dists
+            )
+        ),
+        key=lambda entry: entry['score']
+    )
+    return json.jsonify(dict(metadata=item, word=meta_freq_dists, wordless=wordless_freq_dists))
 
 
 @blueprint_api.route('/api/1/info')

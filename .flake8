@@ -136,7 +136,8 @@ ignore =
     # E714	test for object identity should be ‘is not’
     # E721 (^)	do not compare types, use ‘isinstance()’
     # E722	do not use bare except, specify exception instead
-    # E731	do not assign a lambda expression, use a def
+    # E731, do not assign a lambda expression, use a def
+    E731,
     # E741	do not use variables named ‘l’, ‘O’, or ‘I’
     # E742	do not define classes named ‘l’, ‘O’, or ‘I’
     # E743	do not define functions named ‘l’, ‘O’, or ‘I’

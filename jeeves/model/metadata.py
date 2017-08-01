@@ -12,10 +12,23 @@ class Metadata(
     __slots__ = ()
 
     def __new__(cls, metadata_dict):
-        d = metadata_dict.copy()
-        for field in cls._fields:
-            d.setdefault(field, '')
+        # CONSIDER: Will currently ignore keys in `metadata_dict` that aren't
+        # part of FIELD_TITLES. This is silent, but maybe performs faster?
+        # Might want to be not silent about this deletion.
+        d = {field: metadata_dict.get(field, '') for field in cls._fields}
         return super().__new__(cls, **d)
 
     def __serialize__(self):
         return self._asdict()
+
+    def keys(self):
+        return self._fields
+
+    def values(self):
+        return self.__iter__()
+
+    def items(self):
+        return zip(self.keys(), self.values())
+
+    def __bool__(self):
+        return any(self)

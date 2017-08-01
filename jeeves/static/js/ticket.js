@@ -75,7 +75,7 @@ function loadTickets(page, word, start_time, end_time) {
             </table>
             <br>`;
     }
-    var paramString = '?' + (word ? 'word=' + word + '&' : '') + 'page=' + page;
+    var paramString = `?${(word ? `word=${word}&` : '')}page=${page}`;
     const path = window.location.pathname + paramString;
     window.history.pushState(null, null, path);
     if (!start_time && !end_time) {
