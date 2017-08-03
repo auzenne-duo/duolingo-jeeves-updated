@@ -1,9 +1,11 @@
-#!/bin/bash -ex
+#!/bin/bash
+set -ex
 
-PACKAGE=duolingo-jeeves
 
-# default WORKSPACE to current directory so we can run in dev environment too
-WORKSPACE="${WORKSPACE:-$(pwd)}"
+# ----- environment variables definitions -----
+
+MODULE=duolingo-jeeves
+MODULE_S3_WORKER=duolingo-jeeves-s3-worker
 
 DEV_TERRAFORM_ENV=dev
 
@@ -21,8 +23,7 @@ fi
 
 
 # ----- build -----
-TERRAFORM_PATH="galaxy/$TERRAFORM_ENV"
-echo "TERRAFORM_ENV: $TERRAFORM_PATH"
+
 echo "DOCKER_FILE: $DOCKER_FILE"
 IMAGE_HASH="$(build-galaxy "$DOCKER_FILE")"
 
@@ -37,4 +38,12 @@ IMAGE_HASH="$(build-galaxy "$DOCKER_FILE")"
 
 
 # ----- deploy -----
-echo "$IMAGE_HASH" | deploy-galaxy -c -m "$PACKAGE" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+
+TERRAFORM_PATH="galaxy/$TERRAFORM_ENV"
+echo "TERRAFORM_ENV: $TERRAFORM_PATH"
+if [[ "$TERRAFORM_ENV" == "prod" ]]; then
+    echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+    echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+else
+    echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+fi
