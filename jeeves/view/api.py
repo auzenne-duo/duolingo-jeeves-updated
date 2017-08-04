@@ -63,7 +63,7 @@ def manage_tickets():
     word = request.args.get('word')
     start_time = request.args.get('start_time', None)
     end_time = request.args.get('end_time', None)
-    meta_filter = Metadata(request.args.get('meta_filter', {}))
+    meta_filter = Metadata.from_string(request.args.get('meta_filter', '{}'))
 
     def get_tickets_by_word():
         limit = int(request.args.get('limit', '10'))
@@ -130,11 +130,10 @@ def manage_tickets():
 def get_time_series_data():
     # TODO: support more parameters such as category
     word = request.args.get('word')
-    meta_filter = Metadata(request.args.get('meta_filter', {}))
+    meta_filter = Metadata.from_string(request.args.get('meta_filter', '{}'))
     if not word:
         abort(make_response('Please provide `word` parameter', 500))
-    print('meta_filter=', type(meta_filter), meta_filter)
-    return json.jsonify(get_time_series(word))
+    return json.jsonify(get_time_series(word, meta_filter=meta_filter))
 
 
 @blueprint_api.route('/api/1/spikes')
@@ -154,10 +153,12 @@ def get_ticket_metadata():
     if end_time is '':
         end_time = None
 
+    meta_filter = Metadata.from_string(request.args.get('meta_filter', '{}'))
+
     score = score_map.get(request.args.get('score', None), pearsons_coefficient)
 
-    meta_freq_dists = get_metadata_distribution(word, start_time=start_time, end_time=end_time)
-    wordless_freq_dists = get_metadata_distribution('', start_time=start_time, end_time=end_time)
+    meta_freq_dists = get_metadata_distribution(word, start_time=start_time, end_time=end_time, meta_filter=meta_filter)
+    wordless_freq_dists = get_metadata_distribution('', start_time=start_time, end_time=end_time, meta_filter=meta_filter)
     item = sorted(
         filter(
             lambda d: not np.isnan(d['score']),

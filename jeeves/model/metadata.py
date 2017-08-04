@@ -1,4 +1,5 @@
 from collections import namedtuple
+import json
 
 from jeeves.dal.config.metadata import FIELD_TITLES
 from jeeves.model import JeevesObject
@@ -32,3 +33,12 @@ class Metadata(
 
     def __bool__(self):
         return any(self)
+
+    @classmethod
+    def from_string(cls, s):
+        try:
+            o = json.loads(s)
+        except json.decoder.JSONDecodeError:
+            print(s)
+            o = {}
+        return cls(o)

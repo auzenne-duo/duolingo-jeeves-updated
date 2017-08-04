@@ -13,6 +13,8 @@ function loadTickets(page, word, start_time, end_time) {
   if (end_time) {
     params.end_time = end_time;
   }
+
+  params.meta_filter = getParameterByName('meta_filter', '');
   var showCategory = !word;
   $.get('/api/1/tickets', params).done(function(response) {
     var tickets = response.data;
@@ -75,7 +77,14 @@ function loadTickets(page, word, start_time, end_time) {
             </table>
             <br>`;
     }
-    var paramString = `?${(word ? `word=${word}&` : '')}page=${page}`;
+    let state = getJsonFromUrl();
+    if (word) {
+      state['word'] = word;
+    } else {
+      delete state['word'];
+    }
+    state['page'] = page;
+    var paramString = JsonToQueryString(state);
     const path = window.location.pathname + paramString;
     window.history.pushState(null, null, path);
     if (!start_time && !end_time) {
