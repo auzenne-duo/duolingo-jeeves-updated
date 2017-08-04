@@ -1,0 +1,3 @@
+blueprints:
+  - jeeves.view.api.blueprint_api
+  - jeeves.view.health.blueprint_health

@@ -35,6 +35,7 @@ module "duolingo-jeeves" {
   environment    = "${var.environment}"
   service        = "${var.service}"
   subservice     = "api"
+  health_check_path = "/health"
   min_count      = 1                                                           # Minimum number of tasks to run in autoscaling group
   max_count      = 1                                                           # Maximum number of tasks to run in autoscaling group
   memory         = 768                                                         # Maximum memory (default: 128MB)

@@ -2,7 +2,7 @@
 Main entry point for running the service, through command line or mod_wsgi.
 """
 
-from flask import Flask
+from flask import Flask, request
 import logging
 import os
 # import rollbar
@@ -10,28 +10,34 @@ import os
 
 from duolingo.base.config import Config
 from duolingo.base.util import registry
-from duolingo.base.view.auth import auth_after_request
+from duolingo.base.view.auth import auth_after_request, requires_auth
 
 from jeeves.util.json_encoder import JeevesJSONEncoder
-from jeeves.view.api import blueprint_api
-
 
 LOG = logging.getLogger('application')
-
 
 config = Config.load_config()
 
 application = Flask(__name__,
                     static_folder='jeeves/static',
                     template_folder='jeeves/templates')
-application.after_request(auth_after_request)
 
-# Register blueprints
-application.register_blueprint(blueprint_api)
+def auth_before_request():
+    if request.path == '/health':
+        return None
+    else:
+        return requires_auth(permission='administrator')(lambda: None)()
+
+application.before_request(
+    auth_before_request
+)
+application.after_request(auth_after_request)
 
 application.registry = registry.initialize()
 
 application.json_encoder = JeevesJSONEncoder
+
+# Register blueprints
 
 config.apply_all(registry=application.registry,
                  flask_app=application)
