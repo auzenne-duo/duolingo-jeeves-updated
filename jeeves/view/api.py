@@ -17,6 +17,7 @@ from jeeves.lib.time_series_generator import (
 )
 from jeeves.model.categories import CATEGORIES
 from jeeves.model.metadata import Metadata
+from jeeves.util.date_util import time_series_str_to_datetime as str_to_datetime
 from jeeves.util.score import pearsons_coefficient, cosine_similarity
 
 # This is being referenced by the application.py
@@ -61,8 +62,8 @@ def manage_tickets():
     # start_time = request.args.get('start_time')
     page = int(request.args.get('page', '0'))
     word = request.args.get('word')
-    start_time = request.args.get('start_time', None)
-    end_time = request.args.get('end_time', None)
+    start_time = str_to_datetime(request.args.get('start_time', None))
+    end_time = str_to_datetime(request.args.get('end_time', None))
     meta_filter = Metadata.from_string(request.args.get('meta_filter', '{}'))
 
     def get_tickets_by_word():
@@ -146,12 +147,8 @@ score_map = dict(pearsons=pearsons_coefficient, cosine=cosine_similarity)
 @blueprint_api.route('/api/1/metadata_analyze')
 def get_ticket_metadata():
     word = request.args.get('word')
-    start_time = request.args.get('start_time', None)
-    end_time = request.args.get('end_time', None)
-    if start_time is '':
-        start_time = None
-    if end_time is '':
-        end_time = None
+    start_time = str_to_datetime(request.args.get('start_time', None))
+    end_time = str_to_datetime(request.args.get('end_time', None))
 
     meta_filter = Metadata.from_string(request.args.get('meta_filter', '{}'))
 
