@@ -43,6 +43,7 @@ module "duolingo-jeeves" {
   owner          = "${var.owner}"                                              # The name of the owner for this service
   ecs_cluster    = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
   container_port = 5000
+  enable_http_listener = "true"
   internal       = "true"                                                      # Create an internal service
   version        = "${var.version}"
 }
