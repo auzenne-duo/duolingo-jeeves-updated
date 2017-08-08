@@ -78,11 +78,11 @@ function modifyRange(keyword, eventdata = {}) {
 
       var constrained_trace = {
         type: 'bar',
-        name: `Word-constrained ${field}`,
+        name: '',
         // mode: 'bar',
         x: word_meta_cat_names,
         y: word_freqs,
-        hovertext: 'Keyword-matching tickets',
+        hovertext: 'Matched tickets',
         marker: {
           color: 'rgb(49,130,189)',
         },
@@ -92,11 +92,11 @@ function modifyRange(keyword, eventdata = {}) {
 
       var full_trace = {
         type: 'bar',
-        name: `Wordless ${field}`,
+        name: '',
         // mode: 'bar',
         x: wordless_meta_cat_names,
         y: wordless_freqs,
-        hovertext: 'All tickets',
+        hovertext: 'Overall tickets',
         marker: {
           color: 'rgb(204,204,204)',
         },
@@ -113,7 +113,7 @@ function modifyRange(keyword, eventdata = {}) {
         font: {
           family: 'museo-sans-rounded, sans-serif',
         },
-        showlegend: true,
+        showlegend: false,
         xaxis: {
           title: field,
           fixedrange: true,
