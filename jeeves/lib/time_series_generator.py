@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import re
 
-from jeeves.dal.config.metadata import STATS_FIELD_TITLES
+from jeeves.dal.config.metadata import SEMANTIC_FIELD_TITLES, STATS_FIELD_TITLES
 from jeeves.model.metadata import Metadata
 from jeeves.model.time_series import TS
 from jeeves.util.cache import CacheHandler
@@ -78,7 +78,7 @@ def get_paginated_tickets(page, limit, dataframe=None):
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_viable_categories_in_metadata_distribution(start_time, end_time, min_prob=0.001):
     matched_mask = _match_description('', start_time, end_time)
-    matched_meta = TS.df.loc[start_time:end_time][matched_mask][STATS_FIELD_TITLES]
+    matched_meta = TS.df.loc[start_time:end_time][matched_mask][SEMANTIC_FIELD_TITLES]
     return {
         col:
         set(matched_meta[col].value_counts(normalize=True)[lambda p: p > min_prob].index)
@@ -97,6 +97,6 @@ def get_metadata_distribution(word, start_time=None, end_time=None, meta_filter=
             if k != ''  # not counting the unpopulated fields
             and k in viable_categories[col]  # as long as k is a mildly plausible (non-noise) category
         }
-        for col in matched_meta
+        for col in viable_categories
     }
     return freq_dict
