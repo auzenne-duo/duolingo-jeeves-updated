@@ -22,6 +22,11 @@ class AbstractSpikeDAL(object):
         """
         pass
 
+    def reload_cache(self):
+        """Clear and reload cache."""
+        pass
+
+
 class S3RemoteSpikeDAL(AbstractSpikeDAL):
 
     def get_spikes(self):
@@ -33,6 +38,10 @@ class S3RemoteSpikeDAL(AbstractSpikeDAL):
             json_str = S3.download(S3_BUCKET_ID, os.path.join(S3_SPIKE_DIR, file_name))
             _SPIKES[file_name] = json.loads(json_str)
         return _SPIKES
+
+    def reload_cache(self):
+        _SPIKES.clear()
+        self.get_spikes()
 
 
 SpikeDAL = S3RemoteSpikeDAL()

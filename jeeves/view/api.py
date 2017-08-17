@@ -13,7 +13,9 @@ from jeeves.lib.time_series_generator import (
     get_metadata_distribution,
     get_paginated_tickets,
     get_recent_tickets_by_word,
-    get_time_series
+    get_time_series,
+    get_viable_categories_in_metadata_distribution,
+    match_description
 )
 from jeeves.model.categories import CATEGORIES
 from jeeves.model.metadata import Metadata
@@ -178,3 +180,17 @@ def get_ticket_metadata():
 @blueprint_api.route('/api/1/info')
 def show_info():
     return json.jsonify({'deployed': _DEPLOYED_TIMESTAMP})
+
+
+@blueprint_api.route('/api/1/init')
+def do_init():
+    """
+    Clear cache (and warm up).
+    """
+    match_description.cache_clear()
+    get_time_series.cache_clear()
+    get_recent_tickets_by_word.cache_clear()
+    get_viable_categories_in_metadata_distribution.cache_clear()
+    get_metadata_distribution.cache_clear()
+    SpikeDAL.reload_cache()
+    return json.jsonify({'status': 'ok'})
