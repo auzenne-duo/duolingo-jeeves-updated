@@ -2,7 +2,6 @@
 Technology-driven user support.
 
 ## Owner
-- Lawrence Wolf-Sonkin, lawrence@duolingo.com
 - Hideki Shima, hideki@duolingo.com
 
 ## Set up
