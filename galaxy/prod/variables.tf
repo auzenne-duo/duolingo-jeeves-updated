@@ -15,7 +15,7 @@ variable "environment" {
 }
 
 variable "owner" {
-  default = "Lawrence Wolf-Sonkin"
+  default = "Hideki Shima"
 }
 
 variable "ecs_cluster" {
