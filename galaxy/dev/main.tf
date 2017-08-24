@@ -38,7 +38,7 @@ module "duolingo-jeeves" {
   health_check_path = "/health"
   min_count      = 1                                                           # Minimum number of tasks to run in autoscaling group
   max_count      = 1                                                           # Maximum number of tasks to run in autoscaling group
-  memory         = 768                                                         # Maximum memory (default: 128MB)
+  memory         = 800                                                         # Maximum memory (default: 128MB)
   product        = "${var.product}"
   owner          = "${var.owner}"                                              # The name of the owner for this service
   ecs_cluster    = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
