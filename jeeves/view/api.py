@@ -9,6 +9,7 @@ import random
 
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
 from jeeves.dal.spikes import SpikeDAL
+from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.lib.time_series_generator import (
     get_metadata_distribution,
     get_paginated_tickets,
@@ -195,4 +196,5 @@ def do_init():
     get_metadata_distribution.cache_clear()
     SpikeDAL.reload_cache()
     TS.reload_cache()
+    SupportTicketDAL.lazy_init()
     return json.jsonify({'status': 'ok'})

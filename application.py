@@ -23,7 +23,7 @@ application = Flask(__name__,
                     template_folder='jeeves/templates')
 
 def auth_before_request():
-    if request.path == '/health':
+    if request.path in {'/health', '/api/1/init'}:
         return None
     else:
         return requires_auth(permission='administrator')(lambda: None)()
