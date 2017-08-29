@@ -15,7 +15,7 @@
         {"name": "ZENDESK_USER", "value": "community-team@duolingo.com"},
         {"name": "ZENDESK_PASSWORD", "value": "${cookie_secret}"}
     ],
-    "command": ["python", "jeeves/scripts/update_s3_data.py"],
+    "command": ["sh", "./jeeves/scripts/update_jeeves_data.sh"],
     "logConfiguration": {
     "logDriver": "awslogs",
         "options": {
