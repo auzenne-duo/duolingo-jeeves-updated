@@ -16,6 +16,9 @@ class TimeSeries(object):
             self.__init_df()
         return self.__df
 
+    def reload_cache(self):
+        self.__init_df()
+
     def __init_df(self):
         _df = pd.DataFrame()
 

@@ -19,6 +19,7 @@ from jeeves.lib.time_series_generator import (
 )
 from jeeves.model.categories import CATEGORIES
 from jeeves.model.metadata import Metadata
+from jeeves.model.time_series import TS
 from jeeves.util.date_util import time_series_str_to_datetime as str_to_datetime
 from jeeves.util.score import pearsons_coefficient, cosine_similarity
 
@@ -193,4 +194,5 @@ def do_init():
     get_viable_categories_in_metadata_distribution.cache_clear()
     get_metadata_distribution.cache_clear()
     SpikeDAL.reload_cache()
+    TS.reload_cache()
     return json.jsonify({'status': 'ok'})
