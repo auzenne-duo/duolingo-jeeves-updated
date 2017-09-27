@@ -55,11 +55,11 @@ Use the following legend for `Status`:
 | Item | Status |
 | ---- |:---:|
 | Is there CI? | :heavy_check_mark: |
-| Does the CI run on every PR? | |
+| Does the CI run on every PR? | :heavy_check_mark: |
 | `(*)` How long does it take for PRs to be merged? | |
 | Are there no old outstanding PRs? | :heavy_check_mark: |
-| Does it use Galaxy (where applicable)? | |
-| Does it have a `dev` environment? | |
+| Does it use Galaxy (where applicable)? | :heavy_check_mark: |
+| Does it have a `dev` environment? | :heavy_check_mark: |
 | Does it have a `stage` environment? | |
 | Does it have CloudWatch alarms? |  |
 | Does it have Rollbar set up? | |
