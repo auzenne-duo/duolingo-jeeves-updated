@@ -29,7 +29,7 @@ The following are required when you updated requirements.
  - Run `pip-compile --output-file requirements.txt requirements.in`
  - Run `pip-compile --output-file dev-requirements.txt dev-requirements.in`
 
-Run `make prettier` when you made changes to JS files.
+Run `make format` when you made changes to JS files.
 
 ## Links
 - [Jeeves Documentation](https://app.getguru.com/#/facts/60992fb0-ec19-4c3a-b3d1-8429750d448e)
