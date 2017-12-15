@@ -4,6 +4,15 @@ Technology-driven user support.
 ## Owner
 - Hideki Shima, hideki@duolingo.com
 
+## Badges
+![Code](https://s3.amazonaws.com/duolingo-data/severin/code-bronze.png "Code")
+![Tests](https://s3.amazonaws.com/duolingo-data/severin/test-bronze.png "Tests")
+![Documentation](https://s3.amazonaws.com/duolingo-data/severin/docs-bronze.png "Documentation")
+![Process](https://s3.amazonaws.com/duolingo-data/severin/proc-gold.png "Process")
+
+Look into the [Microservice Review](docs/microservice-review.md) for details.
+
+
 ## Set up
 - [Install Docker](https://docs.docker.com/docker-for-mac/install/) on your computer.
 - Run `docker-compose build` in the repo directory.
