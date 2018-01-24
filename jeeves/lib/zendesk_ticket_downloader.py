@@ -5,6 +5,7 @@ We have proper sleeps in each iteration in order to avoid being rate-limited.
 API doc: https://developer.zendesk.com/rest_api/docs/core/incremental_export
 """
 
+from collections import Counter
 import datetime
 import os
 import requests
@@ -23,10 +24,19 @@ _PASSWORD = os.environ.get('ZENDESK_PASSWORD')
 def download_tickets(start_time):
     next_url = '%s/api/v2/incremental/tickets.json?start_time=%s' % (_ZENDESK_HOST, start_time)
     new_files = []
+
+    urls = []
     while True:
+        urls.append(next_url)
+        # Break if same URL is requested for 5 times in a row
+        if len(urls) > 5 and len(Counter(urls[-5:])) == 1:
+            print('Stopped making request to zendesk after consecutive errors')
+            break
         r = requests.get(next_url, auth=(_USER, _PASSWORD))
         j = json.loads(r.text)
         try:
+            if 'error' in j:
+                raise Exception('Error returned from Zendesk')
             file_name = 'tickets_%s.json' % j['end_time']
             write_to_file(r.text, file_name + '.gz',
                           dir_path=os.path.join(data_directory, 'zendesk'))
@@ -40,9 +50,9 @@ def download_tickets(start_time):
                 break
             time.sleep(10)
 
-        except KeyError:
+        except Exception:
             print(r.status_code)
-            if r.status_code == 401:
-                raise Exception('Authentication Error: %s' % r.text)
-            print(r.text)
+            print('KeyError happened for URL=', next_url)
+            print('Returned JSON', r.text)
+
     return new_files
