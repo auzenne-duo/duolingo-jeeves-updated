@@ -79,7 +79,7 @@ class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         file_name = self._labeled_ticket_file.format(lang=language.name, prod=product.name)
-        input_file = read_from_file(file_name + '.gz', dir_path=data_directory, compression=True)
+        input_file = read_from_file(file_name, dir_path=data_directory)
 
         yield from map(self._deserialize_json, map(json.loads, input_file))
 
@@ -95,8 +95,8 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         for fileName in self._files:
-            input_file = read_from_file(os.path.basename(fileName) + '.gz',
-                                        dir_path=self._zendesk_ticket_dir, compression=True)
+            input_file = read_from_file(os.path.basename(fileName),
+                                        dir_path=self._zendesk_ticket_dir)
 
             for ticket_json in json.loads(input_file)['tickets']:
                 supTik = self._deserialize_json(ticket_json)
@@ -143,7 +143,7 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
             # now go through each input ticket file
             for fileName in tqdm(self._files, desc='Segmenting Zendesk Tix'):
                 input_file = read_from_file(os.path.basename(fileName),
-                                            dir_path=self._zendesk_ticket_dir, compression=True)
+                                            dir_path=self._zendesk_ticket_dir)
                 for ticket_json in json.loads(input_file)['tickets']:
                     supTik = self._deserialize_json(ticket_json)
                     # done in this order because ticket creation filters out
