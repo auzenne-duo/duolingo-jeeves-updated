@@ -23,7 +23,7 @@ _CONTENT_TYPE = 'text/plain; charset=utf-8'
 _COUNT_THRESHOLD = 5
 
 # We compare word occurrences in the past these days.
-_HISTORY_WINDOW_SIZE = 50
+_HISTORY_WINDOW_SIZE = 90
 
 # For spikes, occurrences should be at least five-sigma away from historical values.
 _SPIKE_THRESHOLD = 5
@@ -82,7 +82,7 @@ def _find_candidate_words(target_date_str):
     word_counts = Counter(w for ticket in tickets for w in ticket_to_words(ticket))
     # Filter by threshold
     words = [word for word, count in word_counts.items()
-             if count >= _COUNT_THRESHOLD]
+             if count >= _COUNT_THRESHOLD and _valid_word(word)]
     return words
 
 
@@ -106,6 +106,10 @@ def _calculate_spike_score(word, target_date_str='2017-07-16'):
     target_count = date_to_count.get(date_to_str(end_date_obj), 0)
     zscore = (target_count - mean) / std if std != 0 else np.inf
     return zscore
+
+
+def _valid_word(word):
+    return not bool(re.search(r'^\d+$', word))
 
 
 if __name__ == '__main__':

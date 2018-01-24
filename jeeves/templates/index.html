@@ -4,6 +4,13 @@
 
 {% block head %}
   {{ super() }}
+  <script src="/static/js/common.js?_={{random}}"></script>
+  <script src="/static/js/spike.js?_={{random}}"></script>
+  <script>
+  $(document).ready(function() {
+    renderSpikes($('#spike_wrapper'), 1);
+  })
+  </script>
   <style>
   .description {
     color: #999;
@@ -69,6 +76,9 @@
     top: 0;
     width: 0;
   }
+  #spike_wrapper {
+    margin: 0 50px;
+  }
   </style>
 {% endblock %}
 
@@ -78,12 +88,13 @@
     <div class="flag">Live</div>
     <ul>
       <li>
-        <div class="item"><a href="/analysis">Time Series Analyzer (alpha)</a></div>
+        <div class="item"><a href="/analysis">Time Series Analyzer (beta)</a></div>
         <span class="description">Visualize Zendesk tickets over time with a keyword filter.</span>
       </li>
       <li>
-        <div class="item"><a href="/spike">Spike Detector (alpha)</a></div>
+        <div class="item"><a href="/spike">Spike Detector (beta)</a></div>
         <span class="description">Browse the list of trending words where the volume of matched tickets spiked.</span>
+        <div id="spike_wrapper"></div>
       </li>
     </ul>
   </section>

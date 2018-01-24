@@ -1,6 +1,5 @@
-let date = new Date();
-date.setDate(date.getDate() - 60);
-const ORIGIN = dateToYMD(date);
+var ORIGIN = new Date();
+ORIGIN.setDate(ORIGIN.getDate() - 100);
 
 var currier = function(fn) {
   var args = Array.prototype.slice.call(arguments, 1);

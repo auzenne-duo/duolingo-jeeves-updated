@@ -159,3 +159,6 @@ h2 {
   color: white;
   font-size: 18px;
 }
+.score_header {
+  width: 100px;
+}
