@@ -28,7 +28,7 @@ def download_tickets(start_time):
         j = json.loads(r.text)
         try:
             file_name = 'tickets_%s.json' % j['end_time']
-            write_to_file(r.text + '.gz', file_name,
+            write_to_file(r.text, file_name + '.gz',
                           dir_path=os.path.join(data_directory, 'zendesk'))
             new_files.append(os.path.basename(file_name))
             print('Crawled until:', datetime.datetime.fromtimestamp(j['end_time']).strftime('%Y-%m-%d %H:%M:%S'))

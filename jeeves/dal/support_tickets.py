@@ -72,17 +72,13 @@ class AbstractRemoteSupportTicketDAL(AbstractSupportTicketDAL):
 
 class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
-    _labeled_ticket_file = _TICKET_FILE_TEMPLATE
-
-    def __init__(self, ticket_file=None):
-        if ticket_file is not None:
-            self._labeled_ticket_file = ticket_file
-
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
-        file_name = self._labeled_ticket_file.format(lang=language.name, prod=product.name)
-        input_file = read_from_file(file_name + '.gz', dir_path=data_directory)
-
-        yield from map(self._deserialize_json, map(json.loads, input_file))
+        file_name = _TICKET_FILE_TEMPLATE.format(lang=language.name, prod=product.name)
+        json_lines = read_from_file(file_name, dir_path=data_directory)  # No need to append '.gz'
+        for line in json_lines.split('\n'):
+            if not line:
+                continue
+            yield self._deserialize_json(json.loads(line))
 
 
 class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
@@ -169,22 +165,24 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                     else:
                         prod = detect_product(ticket_json)
                         if (language, prod) in out_files:
-                            out_files[language, prod].write(customJSONDump(ticket).encode('utf-8'))
+                            # Append json string to the end of relevant file
+                            ticket_json_str = customJSONDump(ticket) + '\n'
+                            file = out_files[language, prod]
+                            file.write(ticket_json_str.encode('utf-8'))
         return list(map(lambda f: f.name, out_files.values()))
 
 
 class S3RemoteSupportTicketDAL(FileSystemSupportTicketDAL, AbstractRemoteSupportTicketDAL):
 
-    def __init__(self, ticket_file=None):
+    def __init__(self):
         self._init = False
-        super().__init__(ticket_file=ticket_file)
 
     def lazy_init(self):
         segmented_files = list(S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SEGMENTED_DIR))
         for file_path in tqdm(segmented_files, desc='Downloading Segmented Files'):
             file_name = os.path.basename(file_path)
             ticket_json = S3.download(S3_BUCKET_ID, os.path.join(S3_SEGMENTED_DIR, file_name))
-            write_to_file(ticket_json + '.gz', file_name)
+            write_to_file(ticket_json, file_name + '.gz')
         self._init = True
 
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):

@@ -1,5 +1,5 @@
 let date = new Date();
-date.setDate(date.getDate() - 180);
+date.setDate(date.getDate() - 60);
 const ORIGIN = dateToYMD(date);
 
 var currier = function(fn) {

@@ -72,8 +72,9 @@ def crete_segmented_tickets():
     # And upload them to S3
     for file_path in tqdm(segmented_file_paths, desc='Upload Segmented Tix'):
         file_name = os.path.basename(file_path)
-        data = read_from_file(file_name + '.gz', dir_path=data_directory)
-        S3.upload(S3_BUCKET_ID, os.path.join(S3_SEGMENTED_DIR, file_name), data, _CONTENT_TYPE)
+        data = read_from_file(file_name, dir_path=data_directory)  # Already has .gz
+        S3.upload(S3_BUCKET_ID, os.path.join(S3_SEGMENTED_DIR, file_name.replace('.gz', '')),
+                  data, _CONTENT_TYPE)
 
     print('Successfully updated S3 data!!', file=sys.stderr)
 
