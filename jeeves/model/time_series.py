@@ -7,7 +7,7 @@ from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.util.date_util import date_to_str, get_n_days_ago
 
 
-MOST_RECENT_N_DAYS = 100
+MOST_RECENT_N_DAYS = 60
 
 
 class TimeSeries(object):

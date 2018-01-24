@@ -23,7 +23,7 @@ _CONTENT_TYPE = 'text/plain; charset=utf-8'
 _COUNT_THRESHOLD = 5
 
 # We compare word occurrences in the past these days.
-_HISTORY_WINDOW_SIZE = 90
+_HISTORY_WINDOW_SIZE = 50
 
 # For spikes, occurrences should be at least five-sigma away from historical values.
 _SPIKE_THRESHOLD = 5
