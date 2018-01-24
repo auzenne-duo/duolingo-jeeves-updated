@@ -25,6 +25,7 @@ class AbstractCacheHandler(object, metaclass=ABCMeta):
     def caching_type(self):
         pass
 
+
 class LRUCacheHandler(AbstractCacheHandler):
     """`Least Recently Used Cache` Cache Handler to manage cache use """
     @property

@@ -3,6 +3,7 @@ import re
 
 from jeeves.dal.config.metadata import Config
 
+
 def parse(parseFormat):
     def parseInner(pField):
         line = parseFormat.format(
@@ -16,20 +17,17 @@ def parse(parseFormat):
         return line
     return parseInner
 
+
 _METADATA_CFG = Config['metadata']
 
+
 _MDATA_REGEXES = {
-    plat: re.compile(
-        ''.join(
-            map(
-                parse(platData['parseFormat']),
-                platData['parseFields']
-            )
-        )
-    ) for plat, platData in _METADATA_CFG.items()
+    plat: re.compile(''.join(map(parse(platData['parseFormat']), platData['parseFields'])))
+    for plat, platData in _METADATA_CFG.items()
 }
 
-def metadataParse(txt):
+
+def parse_metadata(txt):
     """
     Cuts and parses plaintext metadata out of string
 
@@ -51,7 +49,7 @@ def metadataParse(txt):
         # if none of the parsers find metadata
         else:
             return (0, 0), {}
-    # TODO(Lawrence): Post-process the metadata dictionaries by platform to
+    # TODO: Post-process the metadata dictionaries by platform to
     # - enforce datatype conversions
     # - apply normalization rules by platform
     (s, t), mdict = getRawMetadataDict()

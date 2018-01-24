@@ -1,6 +1,6 @@
 import re
 
-from jeeves.util.metadata import metadataParse
+from jeeves.util.metadata import parse_metadata
 
 def _compile_cleanup_pattern():
     METADATA_FRIENDS_REGEX = r'-{3,}\s+App information:[\s\S]+?-{3,}|[A-z\-_\.]+\.txt'
@@ -63,5 +63,5 @@ def clean_and_parse_description(desc):
     """
 
     # first parse and cut out metadata, then cleanup rest of description for
-    cutDesc, mdict = metadataParse(desc + '\n')
+    cutDesc, mdict = parse_metadata(desc + '\n')
     return _EMPTY_STRING_PATTERN.sub('', _CLEANUP_PATTERN.sub('', cutDesc.strip())), mdict

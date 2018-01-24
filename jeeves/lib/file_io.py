@@ -4,7 +4,7 @@ import os
 from jeeves import data_directory
 
 
-def read_from_file(file_path, dir_path=None, compression=False):
+def read_from_file(file_path, dir_path=None, compression=True):
     if dir_path is None:
         dir_path = data_directory
     path = os.path.join(dir_path, file_path)
@@ -17,7 +17,7 @@ def read_from_file(file_path, dir_path=None, compression=False):
             return f.read()
 
 
-def write_to_file(content, file_path, dir_path=None, compression=False):
+def write_to_file(content, file_path, dir_path=None, compression=True):
     if dir_path is None:
         dir_path = data_directory
     path = os.path.join(dir_path, file_path)

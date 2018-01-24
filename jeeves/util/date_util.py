@@ -7,6 +7,7 @@ import pandas as pd
 
 _DATE_FORMAT = '%Y-%m-%d'
 
+
 def get_n_days_ago(date_obj, n):
     """
     Returns a date object that represents `n` days before the given date.
@@ -19,6 +20,7 @@ def get_n_days_ago(date_obj, n):
         A datetime.date object.
     """
     return date_obj - datetime.timedelta(days=n)
+
 
 def date_to_str(date_obj):
     """
@@ -46,6 +48,7 @@ def str_to_date(date_str):
     """
     _date_str = date_str.split('-')
     return datetime.date(int(_date_str[0]), int(_date_str[1]), int(_date_str[2]))
+
 
 def time_series_str_to_datetime(date_str):
     if date_str is None or date_str == '':

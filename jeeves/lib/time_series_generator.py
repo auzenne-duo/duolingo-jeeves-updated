@@ -13,13 +13,16 @@ from jeeves.util.cache import CacheHandler
 
 _SEARCH_REGEX = r'\b(?:{0})\b'
 
+
 def _compile_search_regex(word):
     return re.compile(_SEARCH_REGEX.format(word), flags=re.I | re.U)
+
 
 @CacheHandler.cache(maxsize=32, typed=False)
 def match_description(word, start_time=None, end_time=None, meta_filter=Metadata({})):
     ser = TS.df.loc[start_time:end_time]['tickets']
-    meta_match = lambda tk: all(getattr(tk.metadata, field) == val for field, val in meta_filter.items() if val != '')
+    meta_match = lambda tk: all(getattr(tk.metadata, field) == val
+                                for field, val in meta_filter.items() if val != '')
     if word:
         match = _compile_search_regex(word)
         desc_match = lambda tk: bool(match.search(tk.description))
@@ -32,6 +35,7 @@ def match_description(word, start_time=None, end_time=None, meta_filter=Metadata
             return ser.map(meta_match)
         else:
             return pd.Series(np.full(len(ser), True, dtype=np.bool8), index=ser.index)
+
 
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({})):
@@ -52,6 +56,7 @@ def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({
     vals = dict(zip(map(lambda dt: dt.strftime('%Y-%m-%d'), counts.index), counts))
     return {'values': vals}
 
+
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter=Metadata({})):
     assert isinstance(word, str)
@@ -65,6 +70,7 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter
     else:
         return TS.df.loc[start_time:end_time]['tickets']
 
+
 def get_paginated_tickets(page, limit, dataframe=None):
     if dataframe is None:
         dataframe = TS.df
@@ -75,6 +81,7 @@ def get_paginated_tickets(page, limit, dataframe=None):
         paginated = paginated['tickets']
     return paginated
 
+
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_viable_categories_in_metadata_distribution(start_time, end_time, min_prob=0.001):
     matched_mask = match_description('', start_time, end_time)
@@ -84,6 +91,7 @@ def get_viable_categories_in_metadata_distribution(start_time, end_time, min_pro
         set(matched_meta[col].value_counts(normalize=True)[lambda p: p > min_prob].index)
         for col in matched_meta.columns
     }
+
 
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_metadata_distribution(word, start_time=None, end_time=None, meta_filter=Metadata({})):

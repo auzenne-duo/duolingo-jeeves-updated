@@ -72,7 +72,8 @@ def manage_tickets():
 
     def get_tickets_by_word():
         limit = int(request.args.get('limit', '10'))
-        tickets = get_recent_tickets_by_word(word, start_time=start_time, end_time=end_time, meta_filter=meta_filter)
+        tickets = get_recent_tickets_by_word(word, start_time=start_time,
+                                             end_time=end_time, meta_filter=meta_filter)
         tickets = get_paginated_tickets(page, limit, dataframe=tickets)
         values = [
             ticket.subserialize(
@@ -158,24 +159,13 @@ def get_ticket_metadata():
 
     score = score_map.get(request.args.get('score', None), pearsons_coefficient)
 
-    meta_freq_dists = get_metadata_distribution(word, start_time=start_time, end_time=end_time, meta_filter=meta_filter)
-    wordless_freq_dists = get_metadata_distribution('', start_time=start_time, end_time=end_time, meta_filter=meta_filter)
-    item = sorted(
-        filter(
-            lambda d: not np.isnan(d['score']),
-            (
-                dict(
-                    score=score(
-                        meta_freq_dists[col],
-                        wordless_freq_dists[col]
-                    ),
-                    field=col
-                )
-                for col in meta_freq_dists
-            )
-        ),
-        key=lambda entry: entry['score']
-    )
+    meta_freq_dists = get_metadata_distribution(word, start_time=start_time,
+                                                end_time=end_time, meta_filter=meta_filter)
+    wordless_freq_dists = get_metadata_distribution('', start_time=start_time,
+                                                    end_time=end_time, meta_filter=meta_filter)
+    item = sorted(filter(lambda d: not np.isnan(d['score']),
+                         (dict(score=score(meta_freq_dists[col], wordless_freq_dists[col]), field=col)
+                         for col in meta_freq_dists)), key=lambda entry: entry['score'])
     return json.jsonify(dict(metadata=item, word=meta_freq_dists, wordless=wordless_freq_dists))
 
 

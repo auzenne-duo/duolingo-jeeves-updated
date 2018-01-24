@@ -20,19 +20,22 @@ _USER = os.environ.get('ZENDESK_USER')
 _PASSWORD = os.environ.get('ZENDESK_PASSWORD')
 
 
-def downloadZendesk(startTime, endTime):
-    next_url = '%s/api/v2/incremental/tickets.json?start_time=%s&end_time=%s' % (_ZENDESK_HOST, startTime, endTime)
-    newFiles = []
+def download_tickets(start_time):
+    next_url = '%s/api/v2/incremental/tickets.json?start_time=%s' % (_ZENDESK_HOST, start_time)
+    new_files = []
     while True:
         r = requests.get(next_url, auth=(_USER, _PASSWORD))
         j = json.loads(r.text)
         try:
-            next_url = j['next_page']
             file_name = 'tickets_%s.json' % j['end_time']
             write_to_file(r.text + '.gz', file_name,
-                          dir_path=os.path.join(data_directory, 'zendesk'), compression=True)
-            newFiles.append(os.path.basename(file_name))
+                          dir_path=os.path.join(data_directory, 'zendesk'))
+            new_files.append(os.path.basename(file_name))
             print('Crawled until:', datetime.datetime.fromtimestamp(j['end_time']).strftime('%Y-%m-%d %H:%M:%S'))
+            if 'next_page' in j:
+                next_url = j['next_page']
+            else:
+                break
             if j['count'] < 1000:
                 break
             time.sleep(10)
@@ -42,4 +45,4 @@ def downloadZendesk(startTime, endTime):
             if r.status_code == 401:
                 raise Exception('Authentication Error: %s' % r.text)
             print(r.text)
-    return newFiles
+    return new_files

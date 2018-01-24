@@ -9,9 +9,9 @@ import os
 import re
 import string
 import time
-from tqdm import tqdm
 
 import numpy as np
+from tqdm import tqdm
 
 from jeeves.lib.time_series_generator import get_recent_tickets_by_word, get_time_series
 from jeeves.util.date_util import date_to_str, get_n_days_ago, str_to_date
@@ -62,7 +62,9 @@ def find_spiked_words(target_date_str, debug=False):
                   json.dumps(result), _CONTENT_TYPE)
     print('Done in %s sec.' % (time.time() - start))
 
+
 _TABLE = str.maketrans({ch: None for ch in string.punctuation})
+
 
 def _find_candidate_words(target_date_str):
     """
@@ -73,7 +75,8 @@ def _find_candidate_words(target_date_str):
     tickets = get_recent_tickets_by_word('', start_time=target_date_str, end_time=end_time)
 
     def ticket_to_words(ticket):
-        return set(word for attr in ('subject', 'description') for word in getattr(ticket, attr).translate(_TABLE).lower().split())
+        return set(word for attr in ('subject', 'description')
+                   for word in getattr(ticket, attr).translate(_TABLE).lower().split())
 
     # A dict from word to number of ticket this word appears during the time span.
     word_counts = Counter(w for ticket in tickets for w in ticket_to_words(ticket))
@@ -93,7 +96,9 @@ def _calculate_spike_score(word, target_date_str='2017-07-16'):
     end_date_obj = str_to_date(target_date_str)
     start_date_obj = date_to_str(get_n_days_ago(end_date_obj, _HISTORY_WINDOW_SIZE))
 
-    date_to_count = get_time_series(re.escape(word), start_time=start_date_obj, end_time=get_n_days_ago(end_date_obj, -1))['values']
+    date_to_count = get_time_series(re.escape(word),
+                                    start_time=start_date_obj,
+                                    end_time=get_n_days_ago(end_date_obj, -1))['values']
     count_history = [date_to_count.get(date_to_str(get_n_days_ago(end_date_obj, i+1)), 0)
                      for i in range(_HISTORY_WINDOW_SIZE)]
     mean = np.mean(count_history)
