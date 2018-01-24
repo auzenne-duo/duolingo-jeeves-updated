@@ -34,15 +34,13 @@ def download_tickets(start_time):
             print('Crawled until:', datetime.datetime.fromtimestamp(j['end_time']).strftime('%Y-%m-%d %H:%M:%S'))
             if 'next_page' in j:
                 next_url = j['next_page']
-            else:
-                break
-            if j['count'] < 1000:
+            if (j['count'] < 1000) or ('next_page' not in j) or (not next_url):
                 break
             time.sleep(10)
 
         except KeyError:
             print(r.status_code)
-            if r.status_code == 401:
-                raise Exception('Authentication Error: %s' % r.text)
-            print(r.text)
+            print('KeyError happened for URL=', next_url)
+            print('Returned JSON', r.text)
+
     return new_files
