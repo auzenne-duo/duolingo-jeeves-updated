@@ -1,5 +1,5 @@
 var ORIGIN = new Date();
-ORIGIN.setDate(ORIGIN.getDate() - 100);
+ORIGIN.setDate(ORIGIN.getDate() - 60);
 
 var currier = function(fn) {
   var args = Array.prototype.slice.call(arguments, 1);
