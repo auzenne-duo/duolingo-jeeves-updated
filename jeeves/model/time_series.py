@@ -1,14 +1,21 @@
+from datetime import datetime
 import operator
 import pandas as pd
 
 from jeeves.dal.config.metadata import STATS_FIELD_TITLES
 from jeeves.dal.support_tickets import SupportTicketDAL
+from jeeves.util.date_util import date_to_str, get_n_days_ago
+
+
+MOST_RECENT_N_DAYS = 100
+
 
 class TimeSeries(object):
 
     def __init__(self):
         self.__df = None
-        self.JAN_FIRST = pd.Timestamp('2017-01-01', tz='UTC')
+        origin = date_to_str(get_n_days_ago(datetime.today(), MOST_RECENT_N_DAYS))
+        self.ORIGIN_DATE = pd.Timestamp(origin, tz='UTC')
 
     @property
     def df(self):
@@ -25,7 +32,7 @@ class TimeSeries(object):
         _df['tickets'] = pd.Series(
             st
             for st in SupportTicketDAL.get_labeled_support_tickets()
-            if pd.Timestamp(st.date_time) > self.JAN_FIRST
+            if pd.Timestamp(st.date_time) > self.ORIGIN_DATE
         )
         print('predrop', _df.shape)
         _df['id'] = _df['tickets'].map(operator.attrgetter('ticket_id'))
@@ -49,5 +56,6 @@ class TimeSeries(object):
         print('loaded metadata cols')
 
         self.__df = _df
+
 
 TS = TimeSeries()

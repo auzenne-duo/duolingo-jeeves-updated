@@ -1,11 +1,13 @@
 """
 DAL for spiked word data for a certain day.
 """
+from datetime import datetime
 import json
 import os
 
+from jeeves.model.time_series import MOST_RECENT_N_DAYS
+from jeeves.util.date_util import str_to_date
 from jeeves.util.s3 import S3, S3_SPIKE_DIR, S3_BUCKET_ID
-
 
 # TODO: Set TTL to this in-memory cache
 _SPIKES = {}
@@ -32,11 +34,12 @@ class S3RemoteSpikeDAL(AbstractSpikeDAL):
     def get_spikes(self):
         if _SPIKES:
             return _SPIKES
-        # TODO: Load data for the last N-days only
         for s3_path in S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SPIKE_DIR):
             file_name = os.path.basename(s3_path)
-            json_str = S3.download(S3_BUCKET_ID, os.path.join(S3_SPIKE_DIR, file_name))
-            _SPIKES[file_name] = json.loads(json_str)
+            spike_datetime = datetime.combine(str_to_date(file_name), datetime.min.time())
+            if (datetime.today() - spike_datetime).days <= MOST_RECENT_N_DAYS:
+                json_str = S3.download(S3_BUCKET_ID, os.path.join(S3_SPIKE_DIR, file_name))
+                _SPIKES[file_name] = json.loads(json_str)
         return _SPIKES
 
     def reload_cache(self):

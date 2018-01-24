@@ -82,11 +82,14 @@ class S3Manager(object):
         Yields:
             The filename (str) for every file in the bucket that matches the given prefix.
         """
+        client = boto3.client('s3')
+        paginator = client.get_paginator('list_objects')
         s3_bucket = self._get_bucket(bucket_id)
-        response = s3_bucket.meta.client.list_objects(Bucket=s3_bucket.name, Prefix='%s/' % path_prefix)
-        keys = [content['Key'] for content in response.get('Contents', {})]
-        for s3_filename in [key.split('/')[-1] for key in keys if not key.endswith('/')]:
-            yield s3_filename
+        page_iterator = paginator.paginate(Bucket=s3_bucket.name, Prefix='%s/' % path_prefix)
+        for page in page_iterator:
+            keys = [content['Key'] for content in page['Contents']]
+            for s3_filename in [key.split('/')[-1] for key in keys if not key.endswith('/')]:
+                yield s3_filename
 
 
 S3 = S3Manager()

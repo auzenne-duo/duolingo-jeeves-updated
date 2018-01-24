@@ -24,6 +24,12 @@ from jeeves.util.s3 import S3, S3_SEGMENTED_DIR, S3_BUCKET_ID
 
 _TICKET_FILE_TEMPLATE = 'tickets-{lang}-{prod}.txt'
 
+_TICKET_FILE_REGEX = re.compile(r'tickets_(\d+)\.json$')
+
+
+def extract_ticket_timestamp(filename):
+    return int(_TICKET_FILE_REGEX.search(filename).group(1))
+
 
 class AbstractSupportTicketDAL(object, metaclass=ABCMeta):
     @abstractmethod
@@ -77,8 +83,8 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
     def __init__(self):
         super(ZendeskFileSystemSupportTicketDAL, self).__init__()
-        TICKET_FILE_REGEX = re.compile(r'tickets_(\d+)\.json$')
-        self._files = sorted(glob(os.path.join(self._zendesk_ticket_dir, 'tickets_*.json')), key=lambda s: int(TICKET_FILE_REGEX.search(s).group(1)))
+        self._files = sorted(glob(os.path.join(self._zendesk_ticket_dir, 'tickets_*.json')),
+                             key=extract_ticket_timestamp)
 
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         for fileName in self._files:

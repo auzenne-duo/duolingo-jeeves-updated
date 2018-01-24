@@ -1,4 +1,6 @@
-var JAN_FIRST = new Date('2017-01-01');
+let date = new Date();
+date.setDate(date.getDate() - 180);
+const ORIGIN = dateToYMD(date);
 
 var currier = function(fn) {
   var args = Array.prototype.slice.call(arguments, 1);
@@ -169,9 +171,7 @@ function drawChart(updateData) {
     word: keyword,
     meta_filter: meta_filter_str,
   }).done(function(response) {
-    var datetimes = Object.keys(response.values).filter(
-      k => new Date(k) >= JAN_FIRST
-    );
+    var datetimes = Object.keys(response.values).filter(k => new Date(k) >= ORIGIN);
     var freqs = datetimes.map(dt => response.values[dt]);
     var trace = {
       type: 'scatter',
