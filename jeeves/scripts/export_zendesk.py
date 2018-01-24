@@ -12,15 +12,15 @@ import simplejson as json
 import time
 
 from jeeves import data_directory
+from jeeves.lib.file_io import write_to_file
 
 _ZENDESK_HOST = 'https://duolingotest.zendesk.com'
-# _SEED_START = 1496275200  # 2017-06-01
-# _END_TIME = 1498694400  # 2017-06-29
 
 _USER = os.environ.get('ZENDESK_USER')
 _PASSWORD = os.environ.get('ZENDESK_PASSWORD')
 
-def downloadZendesk(startTime, endTime, directory=os.path.join(data_directory, 'zendesk')):
+
+def downloadZendesk(startTime, endTime):
     next_url = '%s/api/v2/incremental/tickets.json?start_time=%s&end_time=%s' % (_ZENDESK_HOST, startTime, endTime)
     newFiles = []
     while True:
@@ -28,9 +28,10 @@ def downloadZendesk(startTime, endTime, directory=os.path.join(data_directory, '
         j = json.loads(r.text)
         try:
             next_url = j['next_page']
-            with open(os.path.join(directory, 'tickets_%s.json' % j['end_time']), 'w') as f:
-                f.write(r.text)
-                newFiles.append(os.path.basename(f.name))
+            file_name = 'tickets_%s.json' % j['end_time']
+            write_to_file(r.text + '.gz', file_name,
+                          dir_path=os.path.join(data_directory, 'zendesk'), compression=True)
+            newFiles.append(os.path.basename(file_name))
             print('Crawled until:', datetime.datetime.fromtimestamp(j['end_time']).strftime('%Y-%m-%d %H:%M:%S'))
             if j['count'] < 1000:
                 break

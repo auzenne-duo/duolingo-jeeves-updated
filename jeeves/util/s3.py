@@ -71,7 +71,7 @@ class S3Manager(object):
         """
         s3_bucket = self._get_bucket(bucket_id)
         s3_key = s3_bucket.Object(path)
-        return s3_key.get()["Body"].read()
+        return s3_key.get()["Body"].read().decode('utf-8')
 
     def yield_filenames(self, bucket_id, path_prefix=''):
         """
