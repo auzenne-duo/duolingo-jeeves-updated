@@ -28,13 +28,14 @@ echo "DOCKER_FILE: $DOCKER_FILE"
 IMAGE_HASH="$(build-galaxy "$DOCKER_FILE")"
 
 
-# TODO: add unit tests
-# # ----- test -----
-# if [[ "$TERRAFORM_ENV" == "prod" ]]; then
-#     echo "No unit tests in prod environment."
-# else
-#     docker run "$IMAGE_HASH" pytest
-# fi
+# ----- test -----
+if [[ "$TERRAFORM_ENV" == "prod" ]]; then
+    echo "No unit tests in prod environment."
+else
+    WORKDIR="/code"
+    CMD="pytest --junitxml=results.xml --cov-report=term --cov-report=xml:cobertura.xml --cov-report=html --cov=jeeves"
+    docker run --rm --volume "$(pwd):$WORKDIR" "$IMAGE_HASH" sh -c "$CMD"
+fi
 
 
 # ----- deploy -----

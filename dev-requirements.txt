@@ -6,6 +6,7 @@
 #
 --index-url https://pypi.duolingo.com/pypi/
 
+apipkg==1.4               # via execnet
 aspy.yaml==0.3.0          # via pre-commit
 astroid==1.5.3            # via pylint
 boto3==1.4.4              # via duolingo-base
@@ -13,9 +14,12 @@ botocore==1.5.73          # via boto3, s3transfer
 cached-property==1.3.0    # via pre-commit
 certifi==2017.4.17        # via requests
 chardet==3.0.4            # via requests
-click==6.7                # via flask
+click==6.7                # via flask, pip-tools
+coverage==4.4.2           # via pytest-cov
 docutils==0.13.1          # via botocore
 duolingo-base==0.9.37
+execnet==1.5.0            # via pytest-xdist
+first==2.0.1              # via pip-tools
 flask==0.12.2
 idna==2.5                 # via requests
 isort==4.2.15             # via pylint
@@ -29,11 +33,16 @@ mccabe==0.6.1             # via pylint
 nodeenv==1.1.2            # via pre-commit
 numpy==1.13.0             # via langid, pandas
 pandas==0.20.2
+pip-tools==1.11.0
 pre-commit==0.14.2
 py==1.4.34                # via pytest
 pyjwt==1.5.2              # via duolingo-base
 pylint==1.7.1
 pymemcache==1.4.3         # via duolingo-base
+pytest-cov==2.5.1
+pytest-forked==0.2        # via pytest-xdist
+pytest-mock==1.6.3
+pytest-xdist==1.22.0
 pytest==3.1.2
 python-dateutil==2.6.0    # via botocore, pandas
 pytz==2017.2              # via pandas
@@ -41,7 +50,7 @@ pyyaml==3.12              # via aspy.yaml, duolingo-base, pre-commit
 requests==2.18.1          # via duolingo-base
 s3transfer==0.1.10        # via boto3
 simplejson==3.11.1
-six==1.10.0               # via astroid, duolingo-base, pre-commit, pylint, pymemcache, python-dateutil
+six==1.10.0               # via astroid, duolingo-base, pip-tools, pre-commit, pylint, pymemcache, python-dateutil
 tqdm==4.14.0
 urllib3==1.21.1           # via requests
 uwsgi==2.0.15

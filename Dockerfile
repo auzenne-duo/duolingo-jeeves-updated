@@ -17,6 +17,7 @@ RUN mkdir -p data/zendesk
 RUN apk add --no-cache --virtual .build-deps \
   g++ linux-headers musl-dev \
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \
+    && pip3 install numpy==1.13.0 \
     && pip3 install -r "$REQ_TXT" \
     && find /usr/local \
         \( -type d -a -name test -o -name tests \) \
