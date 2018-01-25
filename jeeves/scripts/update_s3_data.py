@@ -39,7 +39,7 @@ def get_tickets_from_s3():
         ticket_date = datetime.fromtimestamp(timestamp)
         if (today - ticket_date).days <= MOST_RECENT_N_DAYS:
             ticket_json = S3.download(S3_BUCKET_ID, os.path.join(S3_ZENDESK_DIR, file_name))
-            write_to_file(ticket_json + '.gz', file_name, dir_path=_LOCAL_ZENDESK_DIR)
+            write_to_file(ticket_json, file_name + '.gz', dir_path=_LOCAL_ZENDESK_DIR)
 
 
 def get_tickets_from_zendesk():
