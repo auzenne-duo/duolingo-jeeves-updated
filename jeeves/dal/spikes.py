@@ -6,7 +6,7 @@ import json
 import os
 
 from jeeves.model.time_series import MOST_RECENT_N_DAYS
-from jeeves.util.date_util import get_eastern_today, str_to_date
+from jeeves.util.date_util import str_to_date
 from jeeves.util.s3 import S3, S3_SPIKE_DIR, S3_BUCKET_ID
 
 # TODO: Set TTL to this in-memory cache
@@ -37,7 +37,7 @@ class S3RemoteSpikeDAL(AbstractSpikeDAL):
         for s3_path in S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SPIKE_DIR):
             file_name = os.path.basename(s3_path)
             spike_datetime = datetime.combine(str_to_date(file_name), datetime.min.time())
-            if (get_eastern_today() - spike_datetime).days <= MOST_RECENT_N_DAYS:
+            if (datetime.today() - spike_datetime).days <= MOST_RECENT_N_DAYS:
                 json_str = S3.download(S3_BUCKET_ID, os.path.join(S3_SPIKE_DIR, file_name))
                 _SPIKES[file_name] = json.loads(json_str)
         return _SPIKES
