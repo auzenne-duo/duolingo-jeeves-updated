@@ -1,10 +1,9 @@
-from datetime import datetime
 import operator
 import pandas as pd
 
 from jeeves.dal.config.metadata import STATS_FIELD_TITLES
 from jeeves.dal.support_tickets import SupportTicketDAL
-from jeeves.util.date_util import date_to_str, get_n_days_ago
+from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
 
 
 # Jeeves shows tickets for the past `MOST_RECENT_N_DAYS` days
@@ -15,7 +14,7 @@ class TimeSeries(object):
 
     def __init__(self):
         self.__df = None
-        origin = date_to_str(get_n_days_ago(datetime.today(), MOST_RECENT_N_DAYS))
+        origin = date_to_str(get_n_days_ago(get_eastern_today(), MOST_RECENT_N_DAYS))
         self.ORIGIN_DATE = pd.Timestamp(origin, tz='UTC')
 
     @property
@@ -52,7 +51,9 @@ class TimeSeries(object):
 
         for field in STATS_FIELD_TITLES:
             # pylint: disable=W0640
-            _df[field] = _df['tickets'].map(lambda tk: getattr(tk.metadata, field)).astype('category', copy=False)
+            _df[field] = (_df['tickets']
+                          .map(lambda tk: getattr(tk.metadata, field))
+                          .astype('category', copy=False))
 
         print('loaded metadata cols')
 

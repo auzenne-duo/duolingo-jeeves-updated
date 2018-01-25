@@ -2,10 +2,18 @@
 A utility that offers date-related functions.
 """
 import datetime
+import pytz
+
 import pandas as pd
 
 
 _DATE_FORMAT = '%Y-%m-%d'
+
+
+def get_eastern_today():
+    """ Get datetime object representing right now in US/Eastern (Not UTC!) """
+    time = datetime.datetime.utcnow()
+    return time.replace(tzinfo=pytz.timezone('UTC')).astimezone(tz=pytz.timezone('US/Eastern'))
 
 
 def get_n_days_ago(date_obj, n):

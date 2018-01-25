@@ -3,7 +3,6 @@ A script for finding spikes of word occurrences in Zendesk tickets.
 Candidate words are from Zendesk tickets on a target date.
 """
 from collections import Counter
-import datetime
 import json
 import os
 import re
@@ -14,7 +13,7 @@ import numpy as np
 from tqdm import tqdm
 
 from jeeves.lib.time_series_generator import get_recent_tickets_by_word, get_time_series
-from jeeves.util.date_util import date_to_str, get_n_days_ago, str_to_date
+from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago, str_to_date
 from jeeves.util.s3 import S3, S3_BUCKET_ID, S3_SPIKE_DIR
 
 _CONTENT_TYPE = 'text/plain; charset=utf-8'
@@ -113,7 +112,7 @@ def _valid_word(word):
 
 
 if __name__ == '__main__':
-    today = datetime.date.today()
+    today = get_eastern_today()
     for i in range(7):
         date_str = date_to_str(get_n_days_ago(today, i))
         find_spiked_words(date_str)

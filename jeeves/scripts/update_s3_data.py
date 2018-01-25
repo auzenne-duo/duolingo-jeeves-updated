@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import sys
+
 from tqdm import tqdm
 
 from jeeves import data_directory
@@ -8,6 +9,7 @@ from jeeves.dal.support_tickets import ZendeskFileSystemSupportTicketDAL, extrac
 from jeeves.lib.file_io import read_from_file, write_to_file
 from jeeves.lib.zendesk_ticket_downloader import download_tickets
 from jeeves.model.time_series import MOST_RECENT_N_DAYS
+from jeeves.util.date_util import get_eastern_today
 from jeeves.util.s3 import S3, S3_ZENDESK_DIR, S3_SEGMENTED_DIR, S3_BUCKET_ID
 
 
@@ -32,7 +34,7 @@ def get_tickets_from_s3():
     print('Downloading S3 Tickets', file=sys.stderr)
     remote_files = list(S3.yield_filenames(S3_BUCKET_ID, S3_ZENDESK_DIR))
     print('Number of remote files:', len(remote_files))
-    today = datetime.today()
+    today = get_eastern_today()
     for remote_file_path in tqdm(remote_files, desc='Download Zendesk Tix'):
         file_name = os.path.basename(remote_file_path)
         timestamp = extract_ticket_timestamp(file_name)
