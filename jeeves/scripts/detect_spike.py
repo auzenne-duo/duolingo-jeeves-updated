@@ -22,7 +22,7 @@ _CONTENT_TYPE = 'text/plain; charset=utf-8'
 _COUNT_THRESHOLD = 5
 
 # We compare word occurrences in the past these days.
-_HISTORY_WINDOW_SIZE = 50
+_HISTORY_WINDOW_SIZE = 60
 
 # For spikes, occurrences should be at least five-sigma away from historical values.
 _SPIKE_THRESHOLD = 5
@@ -114,6 +114,6 @@ def _valid_word(word):
 
 if __name__ == '__main__':
     today = get_eastern_today()
-    for i in range(7):
+    for i in range(3):
         date_str = date_to_str(get_n_days_ago(today, i))
         find_spiked_words(date_str)
