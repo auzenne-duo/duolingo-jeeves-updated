@@ -52,6 +52,10 @@ class AbstractSupportTicketDAL(object, metaclass=ABCMeta):
             date_time=ticket_json['date_time'],
             subject=ticket_json['subject'],
             description=ticket_json['description'],
+            priority=ticket_json.get('priority'),
+            via=ticket_json.get('via'),
+            tags=ticket_json.get('tags'),
+            requester_id=ticket_json.get('requester_id'),
             category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['ticket_id']),
             metadata=ticket_json.get('metadata', {})
         )
@@ -113,6 +117,10 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
             date_time=ticket_json['created_at'],
             subject=ticket_json['subject'],
             description=desc,
+            priority=ticket_json['priority'],
+            via=ticket_json['via'],
+            tags=ticket_json['tags'],
+            requester_id=ticket_json['requester_id'],
             category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id']),
             metadata=metadata
         )

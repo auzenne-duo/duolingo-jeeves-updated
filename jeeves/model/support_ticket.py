@@ -7,12 +7,19 @@ from collections import namedtuple
 from jeeves.model import JeevesObject
 from jeeves.model.metadata import Metadata
 
-class SupportTicket(JeevesObject, namedtuple('ST', ('ticket_id, date_time, subject, description, '
-                                                    'category_labels, metadata'))):
+
+_TICKET_FIELDS = ('ticket_id', 'date_time', 'subject', 'description',
+                  'priority', 'via', 'tags', 'requester_id',
+                  'category_labels', 'metadata')
+
+
+class SupportTicket(JeevesObject, namedtuple('ST', ' '.join(_TICKET_FIELDS))):
 
     __slots__ = ()
 
-    def __new__(cls, ticket_id, date_time, subject, description, category_labels=None, metadata=None):
+    def __new__(cls, ticket_id, date_time, subject, description,
+                priority, via, tags, requester_id,
+                category_labels=None, metadata=None):
         """
         Parameters:
             ticket_id<int>: A zendesk ticket ID.
@@ -28,7 +35,9 @@ class SupportTicket(JeevesObject, namedtuple('ST', ('ticket_id, date_time, subje
         if metadata is None:
             metadata = {}
         metadata = Metadata(metadata)
-        return super().__new__(cls, ticket_id, date_time, subject, description, category_labels, metadata)
+        return super().__new__(cls, ticket_id, date_time, subject, description,
+                               priority, via, tags, requester_id,
+                               category_labels, metadata)
 
     def __repr__(self):
         def summarize(item):

@@ -89,7 +89,7 @@ function loadTickets(page, word, start_time, end_time) {
     }
 
     $('.next').data('next_page', page + 1);
-    $('html, body').animate({ scrollTop: 0 });
+    $('html, body').animate({ scrollTop: (page && page >= 1 ? $('#ticket_list').offset().top - 100 : 0) });
     $('#tickets').html(content);
 
     $('input').click(function(e) {
