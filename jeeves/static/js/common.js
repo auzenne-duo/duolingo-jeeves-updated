@@ -42,9 +42,19 @@ function JsonToQueryString(j) {
   return '?' + Object.keys(j).map(key => `${key}=${j[key]}`).join('&');
 }
 
-function dateToYMD(date) {
-    var d = date.getDate();
-    var m = date.getMonth() + 1; //Month from 0 to 11
-    var y = date.getFullYear();
-    return '' + y + '-' + (m<=9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
+function utcToLocal(utcDateString) {
+  var date = new Date(utcDateString);
+  var y = date.getFullYear();
+  var m = date.getMonth() + 1; //Month from 0 to 11
+  var d = date.getDate();
+  var hh = date.getHours();
+  var mm = date.getMinutes();
+  var ss = date.getSeconds();
+
+  function pad(v) {
+    return v <= 9 ? '0' + v : v;
+  }
+
+  return (y + '-' + pad(m) + '-' + pad(d) + ' '
+          + pad(hh) + ':' + pad(mm) + ':' + pad(ss));
 }

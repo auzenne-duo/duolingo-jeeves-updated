@@ -29,11 +29,12 @@ class TimeSeries(object):
     def __init_df(self):
         _df = pd.DataFrame()
 
-        _df['tickets'] = pd.Series(
-            st
-            for st in SupportTicketDAL.get_labeled_support_tickets()
-            if pd.Timestamp(st.date_time) > self.ORIGIN_DATE
-        )
+        # Slow! Load tickets.
+        support_tickets = SupportTicketDAL.get_labeled_support_tickets()
+
+        # Obtain recent tickets only
+        _df['tickets'] = pd.Series(st for st in support_tickets
+                                   if pd.Timestamp(st.date_time, tz='UTC') > self.ORIGIN_DATE)
         print('predrop', _df.shape)
         _df['id'] = _df['tickets'].map(operator.attrgetter('ticket_id'))
         _df.drop_duplicates(subset='id', inplace=True)
@@ -41,10 +42,8 @@ class TimeSeries(object):
 
         print('main', _df.shape)
 
-        _df.set_index(
-            _df['tickets'].map(lambda tk: pd.Timestamp(tk.date_time)),
-            inplace=True
-        )
+        _df.set_index(_df['tickets'].map(lambda tk: pd.Timestamp(tk.date_time, tz='UTC')),
+                      inplace=True)
         _df.sort_index(inplace=True)
 
         print('set and sorted index')

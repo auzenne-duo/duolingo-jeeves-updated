@@ -10,6 +10,8 @@ from jeeves.dal.config.metadata import SEMANTIC_FIELD_TITLES, STATS_FIELD_TITLES
 from jeeves.model.metadata import Metadata
 from jeeves.model.time_series import TS
 from jeeves.util.cache import CacheHandler
+from jeeves.util.date_util import get_n_days_ago
+
 
 _SEARCH_REGEX = r'\b(?:{0})\b'
 
@@ -20,6 +22,8 @@ def _compile_search_regex(word):
 
 @CacheHandler.cache(maxsize=32, typed=False)
 def match_description(word, start_time=None, end_time=None, meta_filter=Metadata({})):
+    # end_time doesn't have to be incremented for 1 day
+
     ser = TS.df.loc[start_time:end_time]['tickets']
     meta_match = lambda tk: all(getattr(tk.metadata, field) == val
                                 for field, val in meta_filter.items() if val != '')
@@ -51,15 +55,20 @@ def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({
         meta_filter {dict} -- mapping from metadata field names to acceptable value (default: {None})
     """
     assert isinstance(word, str) and word
+    if end_time:
+        # end_time has to be incremented for 1 day!!
+        end_time = get_n_days_ago(end_time, -1)
     counts = (match_description(word, start_time, end_time, meta_filter).astype(int, copy=False)
               .resample('D').sum().transform(lambda i: 0 if np.isnan(i) else i))
     vals = dict(zip(map(lambda dt: dt.strftime('%Y-%m-%d'), counts.index), counts))
     return {'values': vals}
 
-
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter=Metadata({})):
     assert isinstance(word, str)
+    if end_time:
+        # end_time has to be incremented for 1 day!!
+        end_time = get_n_days_ago(end_time, -1)
     if word:
         matched_mask = match_description(word, start_time, end_time, meta_filter)
         try:
@@ -84,6 +93,8 @@ def get_paginated_tickets(page, limit, dataframe=None):
 
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_viable_categories_in_metadata_distribution(start_time, end_time, min_prob=0.001):
+    # end_time doesn't have to be incremented for 1 day
+
     matched_mask = match_description('', start_time, end_time)
     matched_meta = TS.df.loc[start_time:end_time][matched_mask][SEMANTIC_FIELD_TITLES]
     return {
@@ -95,6 +106,9 @@ def get_viable_categories_in_metadata_distribution(start_time, end_time, min_pro
 
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_metadata_distribution(word, start_time=None, end_time=None, meta_filter=Metadata({})):
+    if end_time:
+        # end_time has to be incremented for 1 day!!
+        end_time = get_n_days_ago(end_time, -1)
     matched_mask = match_description(word, start_time, end_time, meta_filter)
     matched_meta = TS.df.loc[start_time:end_time][matched_mask][STATS_FIELD_TITLES]
     viable_categories = get_viable_categories_in_metadata_distribution(start_time, end_time)

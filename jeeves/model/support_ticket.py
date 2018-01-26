@@ -7,10 +7,8 @@ from collections import namedtuple
 from jeeves.model import JeevesObject
 from jeeves.model.metadata import Metadata
 
-class SupportTicket(
-    JeevesObject,
-    namedtuple('ST', 'ticket_id, date_time, subject, description, category_labels, metadata')
-):
+class SupportTicket(JeevesObject, namedtuple('ST', ('ticket_id, date_time, subject, description, '
+                                                    'category_labels, metadata'))):
 
     __slots__ = ()
 

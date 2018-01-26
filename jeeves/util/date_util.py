@@ -64,4 +64,4 @@ def time_series_str_to_datetime(date_str):
     if date_str is None or date_str == '':
         return None
     else:
-        return pd.Timestamp(date_str)
+        return pd.Timestamp(date_str, tz='UTC')

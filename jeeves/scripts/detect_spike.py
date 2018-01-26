@@ -70,8 +70,9 @@ def _find_candidate_words(target_date_str):
     Returns a list of words occurred more than `count_threshold` times in tickets on the target
     date.
     """
-    end_time = get_n_days_ago(str_to_date(target_date_str), -1)
-    tickets = get_recent_tickets_by_word('', start_time=target_date_str, end_time=end_time)
+    end_datetime = str_to_date(target_date_str)
+    start_datetime = date_to_str(get_n_days_ago(end_datetime, _HISTORY_WINDOW_SIZE))
+    tickets = get_recent_tickets_by_word('', start_time=start_datetime, end_time=end_datetime)
 
     def ticket_to_words(ticket):
         return set(word for attr in ('subject', 'description')
@@ -92,17 +93,17 @@ def _calculate_spike_score(word, target_date_str='2017-07-16'):
 
     https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data
     """
-    end_date_obj = str_to_date(target_date_str)
-    start_date_obj = date_to_str(get_n_days_ago(end_date_obj, _HISTORY_WINDOW_SIZE))
+    end_datetime = str_to_date(target_date_str)
+    start_datetime = date_to_str(get_n_days_ago(end_datetime, _HISTORY_WINDOW_SIZE))
 
     date_to_count = get_time_series(re.escape(word),
-                                    start_time=start_date_obj,
-                                    end_time=get_n_days_ago(end_date_obj, -1))['values']
-    count_history = [date_to_count.get(date_to_str(get_n_days_ago(end_date_obj, i+1)), 0)
+                                    start_time=start_datetime,
+                                    end_time=end_datetime)['values']
+    count_history = [date_to_count.get(date_to_str(get_n_days_ago(end_datetime, i+1)), 0)
                      for i in range(_HISTORY_WINDOW_SIZE)]
     mean = np.mean(count_history)
     std = np.std(count_history)
-    target_count = date_to_count.get(date_to_str(end_date_obj), 0)
+    target_count = date_to_count.get(date_to_str(end_datetime), 0)
     zscore = (target_count - mean) / std if std != 0 else np.inf
     return zscore
 

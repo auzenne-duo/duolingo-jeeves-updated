@@ -57,7 +57,7 @@ function loadTickets(page, word, start_time, end_time) {
             </tr>
             <tr>
             <th>Date</td>
-            <td>${ticket.date_time}</td>
+            <td>${utcToLocal(ticket.date_time)}</td>
             </tr>
             <tr>
             <th>Subject</td>
