@@ -17,7 +17,7 @@ resource "aws_kms_alias" "kms_alias" {
 data "aws_kms_secret" "zendesk_password" {
   secret {
     name    = "zendesk_password"
-    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwHvME9UqmWVQdjYJMjSodNbAAAAaTBnBgkqhkiG9w0BBwagWjBYAgEAMFMGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMbiOMxKCLP745qFt6AgEQgCb2weL3ZCC+ynG3OyPm2TB3MQsgXy4+DN5dVPwCGfsmAnxN8mv7hw=="
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwGCjSoloQU3xf2xczypY9grAAAAbjBsBgkqhkiG9w0BBwagXzBdAgEAMFgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMzjwTzJmbu8vJnzG+AgEQgCtzIvtAQ4iLS4RgQmSg0hAeHC5X2D1p21U9YCAqFArh1Q2BAkTTL5952jKi"
 
     context {
       product     = "${var.product}"
