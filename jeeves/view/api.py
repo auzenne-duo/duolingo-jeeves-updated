@@ -81,6 +81,10 @@ def manage_tickets():
                 'date_time',
                 'subject',
                 'description',
+                'priority',
+                'via',
+                'tags',
+                'requester_id',
                 'metadata'
             )
             for ticket in tickets

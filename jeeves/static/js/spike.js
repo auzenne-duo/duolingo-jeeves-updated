@@ -22,10 +22,13 @@ function renderSpikes(jQueryElement, limit) {
                      <td>${score.toFixed(1)}</td>
                      <td><a href="/analysis?word=${word}">${word}</a></td>
                      </tr>`;
+           if (typeof limit !== 'undefined' && j == 4) {
+             break;
+           }
         }
         if (result) {
           result = `<table>
-                    <tr><th class="score_header">Spikiness</th><th>Word</th></tr>
+                    <tr><th class="score_header">Spikiness</th><th>Spiked Word</th></tr>
                     ${result}
                     </table>`;
         } else {

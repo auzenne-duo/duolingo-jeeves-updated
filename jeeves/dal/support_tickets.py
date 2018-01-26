@@ -185,12 +185,13 @@ class S3RemoteSupportTicketDAL(FileSystemSupportTicketDAL, AbstractRemoteSupport
     def __init__(self):
         self._init = False
 
-    def lazy_init(self):
-        segmented_files = list(S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SEGMENTED_DIR))
-        for file_path in tqdm(segmented_files, desc='Downloading Segmented Files'):
-            file_name = os.path.basename(file_path)
-            ticket_json = S3.download(S3_BUCKET_ID, os.path.join(S3_SEGMENTED_DIR, file_name))
-            write_to_file(ticket_json, file_name + '.gz')
+    def lazy_init(self, sync_with_remote=True):
+        if sync_with_remote:
+            segmented_files = list(S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SEGMENTED_DIR))
+            for file_path in tqdm(segmented_files, desc='Downloading Segmented Files'):
+                file_name = os.path.basename(file_path)
+                ticket_json = S3.download(S3_BUCKET_ID, os.path.join(S3_SEGMENTED_DIR, file_name))
+                write_to_file(ticket_json, file_name + '.gz')
         self._init = True
 
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
