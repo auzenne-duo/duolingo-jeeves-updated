@@ -110,6 +110,19 @@
     padding: 20px 0 0 20px;
     list-style: inherit;
   }
+  .p0-tag, .p1-tag {
+    color: #ffffff;
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-right: 5px;
+  }
+  .p0-tag {
+    background-color: #ff3333;
+    font-weight: 700;
+  }
+  .p1-tag {
+    background-color: #cccccc;
+  }
   </style>
   <!-- Plotly.js -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -122,8 +135,9 @@
         'crash(es|ing|ed)|freez(e|es|ing)|frozen|stop(s|ping|ped)|unresponsive|unusable',
         'lost .+? streak', 'I (hate|don\'t like)', 'refund(ed)?|money back', 'unlock(ed)?', 'fix',
         'how (do I|can I|to)', 'why|how come', 'latest (update|version)|last update',
-        'please (include|add)|lack(ing|s)|limited', 'inappropriate|offensive', 'I can\'t',
-        'terrible|worst|bad|disappointed|unfortunately|ridiculous|sad(ly)?|annoying|horrible'
+        'please (include|add)|lack(ing|s)|limited', 'inappropriate|offensive',
+        'stuck|I (can\'t|couldn\'t)',
+        '(disappoint|annoy|frustrat|irritat)(ed|ing)|terrible|horrible|worst|bad|unfortunately|ridiculous|sad(ly)?'
       ];
       var random_suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
       var word = getParameterByName('word', random_suggestion);

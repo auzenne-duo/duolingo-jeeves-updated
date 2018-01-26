@@ -48,26 +48,41 @@ function loadTickets(page, word, start_time, end_time) {
           '<mark>$1</mark>'
         );
       }
-      content += `<table class="ticket_table" data-id="${ticket.ticket_id}"><tr>
-            <th>ID</td>
-            <td>
-            <a href="https://duolingotest.zendesk.com/agent/tickets/${ticket.ticket_id}"
-               target="_blank">${ticket.ticket_id}</a>
-            </td>
+      var source = (ticket.via.source && ticket.via.source.from && ticket.via.source.from.address ?
+                    (`${ticket.via.source.from.name} &lt;${ticket.via.source.from.address}&gt;`) :
+                    '');
+      source += ` via ${ticket.via.channel}`
+      var tags = ticket.priority !== null ? `<span class="p0-tag">${ticket.priority}</span> ` : '';
+      tags += ticket.tags.map(function(tag) {
+        return `<span class="p1-tag">${tag}</span>`;
+      }).join(' ');
+
+      content += `<table class="ticket_table" data-id="${ticket.ticket_id}">
+            <tr>
+              <th>Subject</th>
+              <td>${ticket.subject}</td>
             </tr>
             <tr>
-            <th>Date</td>
-            <td>${utcToLocal(ticket.date_time)}</td>
+              <th>Date</th>
+              <td><a href="https://duolingotest.zendesk.com/agent/tickets/${ticket.ticket_id}"
+               target="_blank">${utcToLocal(ticket.date_time)}</a>
+              </td>
             </tr>
             <tr>
-            <th>Subject</td>
-            <td>${ticket.subject}</td>
+              <th>Source</th>
+              <td><a href="https://duolingotest.zendesk.com/agent/users/${ticket.requester_id}"
+               target="_blank">${source}</a>
+              </td>
             </tr>
             <tr>
-            <th>Description</td>
-            <td>
-            ${ticket.description}
-            </td>
+              <th>Tags</th>
+              <td>${tags}</td>
+            </tr>
+            <tr>
+              <th>Description</th>
+              <td>
+              ${ticket.description}
+              </td>
             </tr>
             ${category_html}
             </table>
