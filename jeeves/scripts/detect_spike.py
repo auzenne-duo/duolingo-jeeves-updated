@@ -34,15 +34,17 @@ def find_spiked_words(target_date_str, debug=False):
         target_date_str: The target date to detect spike (YYYY-MM-DD).
         debug: Whether to debug this function (runs faster on a small sample).
     """
+    print('Spike detection started for', target_date_str)
     start = time.time()
     words = _find_candidate_words(target_date_str)
-    print('%s candidate words found.' % len(words))
     if debug:
         words = words[:10]
-    score_word_pairs = [(_calculate_spike_score(word, target_date_str=target_date_str), word)
+
+    target_datetime = str_to_date(target_date_str)
+
+    # Very slow. Can we parallel compute or do filtering in _find_candidate_words()?
+    score_word_pairs = [(_calculate_spike_score(word, target_datetime), word)
                         for word in tqdm(words, desc='Calculate spikiness scores')]
-#     score_word_pairs = [(score, word) for (score, word) in score_word_pairs
-#                         if not np.isnan(score) and score > _SPIKE_THRESHOLD]
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
     result = {}
     result['spike'] = [(score, word) for score, word in score_word_pairs
@@ -80,40 +82,42 @@ def _find_candidate_words(target_date_str):
 
     # A dict from word to number of ticket this word appears during the time span.
     word_counts = Counter(w for ticket in tickets for w in ticket_to_words(ticket))
+    print('%s raw words found. Applying filtering...' % len(word_counts))
     # Filter by threshold
     words = [word for word, count in word_counts.items()
              if count >= _COUNT_THRESHOLD and _valid_word(word)]
+    print('%s candidate words found.' % len(words))
     return words
 
 
-def _calculate_spike_score(word, target_date_str='2017-07-16'):
+def _calculate_spike_score(word, target_datetime):
     """
     Given a word, returns a score that represents spikiness where spikiness is a z-score
     computed based on word occurrences in the previous `moving_avg_window_size` days.
 
     https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data
     """
-    end_datetime = str_to_date(target_date_str)
-    start_datetime = date_to_str(get_n_days_ago(end_datetime, _HISTORY_WINDOW_SIZE))
-
     date_to_count = get_time_series(re.escape(word),
-                                    start_time=start_datetime,
-                                    end_time=end_datetime)['values']
-    count_history = [date_to_count.get(date_to_str(get_n_days_ago(end_datetime, i+1)), 0)
+                                    start_time=get_n_days_ago(target_datetime, _HISTORY_WINDOW_SIZE),
+                                    end_time=target_datetime)['values']
+    target_count = date_to_count.get(date_to_str(target_datetime), 0)
+    if target_count < _COUNT_THRESHOLD:
+        return -1
+    count_history = [date_to_count.get(date_to_str(get_n_days_ago(target_datetime, i+1)), 0)
                      for i in range(_HISTORY_WINDOW_SIZE)]
     mean = np.mean(count_history)
     std = np.std(count_history)
-    target_count = date_to_count.get(date_to_str(end_datetime), 0)
     zscore = (target_count - mean) / std if std != 0 else np.inf
     return zscore
 
 
 def _valid_word(word):
-    return not bool(re.search(r'^\d+$', word))
+    # Word should be at least 3 words and can have chars [a-zA-Z] only.
+    return bool(re.search(r'^[a-zA-Z]{3,}$', word))
 
 
 if __name__ == '__main__':
     today = get_eastern_today()
     for i in range(3):
         date_str = date_to_str(get_n_days_ago(today, i))
-        find_spiked_words(date_str)
+        find_spiked_words(date_str, debug=False)
