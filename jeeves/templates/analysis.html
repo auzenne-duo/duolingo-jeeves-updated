@@ -132,11 +132,12 @@
   <script>
     $(document).ready(function() {
       var suggestions = [
-        'crash(es|ing|ed)|freez(e|es|ing)|frozen|stop(s|ping|ped)|unresponsive|unusable',
+        'crash(es|ing|ed)|freez(e|es|ing)|frozen|stop(s|ping|ped)|unresponsive|unusable|slow',
         'lost .+? streak', 'I (hate|don\'t like)', 'refund(ed)?|money back', 'unlock(ed)?', 'fix',
         'how (do I|can I|to)', 'why|how come', 'latest (update|version)|last update',
         'please (include|add)|lack(ing|s)|limited', 'inappropriate|offensive',
-        'stuck|I (can\'t|couldn\'t)',
+        'stuck|I (can\'t|couldn\'t)', '(chat)?bot(s)?|tutor',
+        'pearson|class(room|rooms)?|(student|teacher|assignment|homework|school)(s)?',
         '(disappoint|annoy|frustrat|irritat)(ed|ing)|terrible|horrible|worst|bad|unfortunately|ridiculous|sad(ly)?'
       ];
       var random_suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];

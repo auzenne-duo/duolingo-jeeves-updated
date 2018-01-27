@@ -1,7 +1,6 @@
 """
 APIs.
 """
-import datetime
 from flask import Blueprint, abort, json, make_response, render_template, request
 import logging
 import numpy as np
@@ -21,7 +20,7 @@ from jeeves.lib.time_series_generator import (
 from jeeves.model.categories import CATEGORIES
 from jeeves.model.metadata import Metadata
 from jeeves.model.time_series import TS
-from jeeves.util.date_util import time_series_str_to_datetime as str_to_datetime
+from jeeves.util.date_util import get_eastern_today, time_series_str_to_datetime as str_to_datetime
 from jeeves.util.score import pearsons_coefficient, cosine_similarity
 
 # This is being referenced by the application.py
@@ -32,7 +31,9 @@ _LOG = logging.getLogger('application')
 # Append this to resource URLs (i.e. JS and CSS) to avoid caching.
 _RANDOM = random.randint(0, 1000000)
 
-_DEPLOYED_TIMESTAMP = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+_DEPLOYED_TIMESTAMP = get_eastern_today().strftime('%Y-%m-%dT%H:%M:%S')
+
+_init_timestamp = None
 
 
 @blueprint_api.route('/api/1/hello')
@@ -175,7 +176,7 @@ def get_ticket_metadata():
 
 @blueprint_api.route('/api/1/info')
 def show_info():
-    return json.jsonify({'deployed': _DEPLOYED_TIMESTAMP})
+    return json.jsonify({'deployed': _DEPLOYED_TIMESTAMP, 'initialized': _init_timestamp})
 
 
 @blueprint_api.route('/api/1/init')
@@ -191,4 +192,6 @@ def do_init():
     SpikeDAL.reload_cache()
     TS.reload_cache()
     SupportTicketDAL.lazy_init()
-    return json.jsonify({'status': 'ok'})
+    global _init_timestamp
+    _init_timestamp = get_eastern_today().strftime('%Y-%m-%dT%H:%M:%S')
+    return json.jsonify({'status': 'ok', 'timestamp': _init_timestamp})
