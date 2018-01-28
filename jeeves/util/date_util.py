@@ -8,6 +8,7 @@ import pandas as pd
 
 
 _DATE_FORMAT = '%Y-%m-%d'
+_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 EASTERN = pytz.timezone('US/Eastern')
 
@@ -15,7 +16,15 @@ EASTERN = pytz.timezone('US/Eastern')
 def get_eastern_today():
     """ Get datetime object representing right now in US/Eastern (Not UTC!) """
     time = datetime.datetime.utcnow()
-    return time.replace(tzinfo=pytz.timezone('UTC')).astimezone(tz=EASTERN)
+    return convert_timezone(time)
+
+
+def convert_timezone(time, tz_from=None, tz_to=None):
+    if tz_from is None:
+        tz_from = pytz.timezone('UTC')
+    if tz_to is None:
+        tz_to = EASTERN
+    return time.replace(tzinfo=tz_from).astimezone(tz=tz_to)
 
 
 def get_n_days_ago(date_obj, n):
@@ -44,6 +53,20 @@ def date_to_str(date_obj):
     """
     assert isinstance(date_obj, datetime.date)
     return date_obj.strftime(_DATE_FORMAT)
+
+
+def datetime_to_str(datetime_obj):
+    """
+    Converts a date object to string.
+
+    Parameters:
+        date_obj: A datetime object.
+
+    Returns:
+        A date string (YYYY-MM-DD hh:mm:ss).
+    """
+    assert isinstance(datetime_obj, datetime.date)
+    return datetime_obj.strftime(_DATETIME_FORMAT)
 
 
 def str_to_date(date_str):

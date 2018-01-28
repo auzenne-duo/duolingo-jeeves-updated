@@ -2,6 +2,7 @@
 A library for generating ticket volume over time.
 """
 
+from dateutil.parser import parse
 import numpy as np
 import pandas as pd
 import re
@@ -10,7 +11,7 @@ from jeeves.dal.config.metadata import SEMANTIC_FIELD_TITLES, STATS_FIELD_TITLES
 from jeeves.model.metadata import Metadata
 from jeeves.model.time_series import TS
 from jeeves.util.cache import CacheHandler
-from jeeves.util.date_util import get_n_days_ago
+from jeeves.util.date_util import convert_timezone, datetime_to_str, get_n_days_ago
 
 
 _SEARCH_REGEX = r'\b(?:{0})\b'
@@ -78,6 +79,13 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter
             raise
     else:
         return TS.df.loc[start_time:end_time]['tickets']
+
+
+def get_most_recent_ticket_timestamp():
+    """ Returns the timestamp (YYYY:MM:DD hh:mm:ss in US/Eastern) of most recent ticket. """
+    dt_str = TS.df.ix[-1]['tickets'].date_time
+    dt = parse(dt_str)
+    return datetime_to_str(convert_timezone(dt))
 
 
 def get_paginated_tickets(page, limit, dataframe=None):

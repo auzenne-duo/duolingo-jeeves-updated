@@ -11,6 +11,7 @@ from jeeves.dal.spikes import SpikeDAL
 from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.lib.time_series_generator import (
     get_metadata_distribution,
+    get_most_recent_ticket_timestamp,
     get_paginated_tickets,
     get_recent_tickets_by_word,
     get_time_series,
@@ -20,7 +21,8 @@ from jeeves.lib.time_series_generator import (
 from jeeves.model.categories import CATEGORIES
 from jeeves.model.metadata import Metadata
 from jeeves.model.time_series import TS
-from jeeves.util.date_util import get_eastern_today, time_series_str_to_datetime as str_to_datetime
+from jeeves.util.date_util import datetime_to_str, get_eastern_today, \
+    time_series_str_to_datetime as str_to_datetime
 from jeeves.util.score import pearsons_coefficient, cosine_similarity
 
 # This is being referenced by the application.py
@@ -31,9 +33,9 @@ _LOG = logging.getLogger('application')
 # Append this to resource URLs (i.e. JS and CSS) to avoid caching.
 _RANDOM = random.randint(0, 1000000)
 
-_DEPLOYED_TIMESTAMP = get_eastern_today().strftime('%Y-%m-%dT%H:%M:%S')
+_DEPLOYED_TIMESTAMP = datetime_to_str(get_eastern_today())
 
-_init_timestamp = None
+_init_timestamp = datetime_to_str(get_eastern_today())
 
 
 @blueprint_api.route('/api/1/hello')
@@ -176,7 +178,9 @@ def get_ticket_metadata():
 
 @blueprint_api.route('/api/1/info')
 def show_info():
-    return json.jsonify({'deployed': _DEPLOYED_TIMESTAMP, 'initialized': _init_timestamp})
+    return json.jsonify({'deployed_timestamp': _DEPLOYED_TIMESTAMP,
+                         'initialized_timestamp': _init_timestamp,
+                         'lastest_ticket_timestamp': get_most_recent_ticket_timestamp()})
 
 
 @blueprint_api.route('/api/1/init')
@@ -193,5 +197,5 @@ def do_init():
     TS.reload_cache()
     SupportTicketDAL.lazy_init()
     global _init_timestamp
-    _init_timestamp = get_eastern_today().strftime('%Y-%m-%dT%H:%M:%S')
+    _init_timestamp = datetime_to_str(get_eastern_today())
     return json.jsonify({'status': 'ok', 'timestamp': _init_timestamp})
