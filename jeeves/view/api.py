@@ -178,9 +178,7 @@ def get_ticket_metadata():
 
 @blueprint_api.route('/api/1/info')
 def show_info():
-    return json.jsonify({'deployed_timestamp': _DEPLOYED_TIMESTAMP,
-                         'initialized_timestamp': _init_timestamp,
-                         'lastest_ticket_timestamp': get_most_recent_ticket_timestamp()})
+    return json.jsonify(_get_status())
 
 
 @blueprint_api.route('/api/1/init')
@@ -198,4 +196,12 @@ def do_init():
     SupportTicketDAL.lazy_init()
     global _init_timestamp
     _init_timestamp = datetime_to_str(get_eastern_today())
-    return json.jsonify({'status': 'ok', 'timestamp': _init_timestamp})
+    status = _get_status()
+    status['status'] = 'ok'
+    return json.jsonify(status)
+
+
+def _get_status():
+    return {'deployed_timestamp': _DEPLOYED_TIMESTAMP,
+            'initialized_timestamp': _init_timestamp,
+            'latest_ticket_timestamp': get_most_recent_ticket_timestamp()}

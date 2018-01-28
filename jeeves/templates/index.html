@@ -9,6 +9,20 @@
   <script>
   $(document).ready(function() {
     renderSpikes($('#spike_wrapper'), 1);
+    $.get('/api/1/info', function(data) {
+      var html = `
+        <ul>
+          <li>
+            <div class="item">Most recent ticket</div>
+            <span class="description">${data.latest_ticket_timestamp}</span>
+          </li>
+          <li>
+            <div class="item">Cache initialized</div>
+            <span class="description">${data.initialized_timestamp}</span>
+          </li>
+        </ul>`;
+      $('.stats').html(html);
+    });
   })
   </script>
   <style>
@@ -44,12 +58,6 @@
     margin: -10px -10px 40px -90px;
     height: 20px;
   }
-  .live .flag {
-    background: #1caff6;
-  }
-  .coming-soon .flag {
-    background: #9b5fca;
-  }
   .flag::before {
     border-left: 30px solid transparent;
     content: " ";
@@ -59,8 +67,20 @@
     top: 50px;
     width: 0;
   }
+  .live .flag {
+    background: #1caff6;
+  }
+  .jeeves-stats .flag {
+    background: #ff9d00;
+  }
+  .coming-soon .flag {
+    background: #9b5fca;
+  }
   .live .flag::before {
     border-top: 30px solid #0883be;
+  }
+  .jeeves-stats .flag::before {
+    border-top: 30px solid #b36e00;
   }
   .coming-soon .flag::before {
     border-top: 30px solid #7537a6;
@@ -98,6 +118,11 @@
       </li>
     </ul>
   </section>
+  <section class="inner-section jeeves-stats">
+    <div class="flag">Jeeves Info</div>
+    <div class="stats"><ul><li><div class="item">Loading...</div></li></ul></div>
+  </section>
+  <!--
   <section class="inner-section coming-soon">
     <div class="flag">Coming soon</div>
     <ul>
@@ -111,6 +136,7 @@
       </li>
     </ul>
   </section>
+  -->
 </main>
 {% endblock %}
 
