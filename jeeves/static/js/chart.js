@@ -201,6 +201,7 @@ function drawChart(updateData) {
         title: '# of tickets',
         fixedrange: true,
         gridcolor: '#efefef',
+        rangemode: 'tozero',
       },
       margin: {
         l: 50,
