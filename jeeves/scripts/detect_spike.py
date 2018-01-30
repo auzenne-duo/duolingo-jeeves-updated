@@ -19,7 +19,7 @@ from jeeves.util.s3 import S3, S3_BUCKET_ID, S3_SPIKE_DIR
 _CONTENT_TYPE = 'text/plain; charset=utf-8'
 
 # On the target day, the word has to occur at least this many times to be considered as a candidate.
-_COUNT_THRESHOLD = 5
+_COUNT_THRESHOLD = 3
 
 # We compare word occurrences in the past these days.
 _HISTORY_WINDOW_SIZE = 60
