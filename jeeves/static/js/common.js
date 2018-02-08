@@ -55,6 +55,17 @@ function utcToLocal(utcDateString) {
     return v <= 9 ? '0' + v : v;
   }
 
-  return (y + '-' + pad(m) + '-' + pad(d) + ' '
-          + pad(hh) + ':' + pad(mm) + ':' + pad(ss));
+  return (
+    y +
+    '-' +
+    pad(m) +
+    '-' +
+    pad(d) +
+    ' ' +
+    pad(hh) +
+    ':' +
+    pad(mm) +
+    ':' +
+    pad(ss)
+  );
 }

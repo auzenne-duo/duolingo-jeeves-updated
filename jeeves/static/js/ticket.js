@@ -48,14 +48,23 @@ function loadTickets(page, word, start_time, end_time) {
           '<mark>$1</mark>'
         );
       }
-      var source = (ticket.via.source && ticket.via.source.from && ticket.via.source.from.address ?
-                    (`${ticket.via.source.from.name} &lt;${ticket.via.source.from.address}&gt;`) :
-                    '');
-      source += ` via ${ticket.via.channel}`
-      var tags = ticket.priority !== null ? `<span class="p0-tag">${ticket.priority}</span> ` : '';
-      tags += ticket.tags.map(function(tag) {
-        return `<span class="p1-tag">${tag}</span>`;
-      }).join(' ');
+      var source =
+        ticket.via.source &&
+        ticket.via.source.from &&
+        ticket.via.source.from.address
+          ? `${ticket.via.source.from.name} &lt;${ticket.via.source.from
+              .address}&gt;`
+          : '';
+      source += ` via ${ticket.via.channel}`;
+      var tags =
+        ticket.priority !== null
+          ? `<span class="p0-tag">${ticket.priority}</span> `
+          : '';
+      tags += ticket.tags
+        .map(function(tag) {
+          return `<span class="p1-tag">${tag}</span>`;
+        })
+        .join(' ');
 
       content += `<table class="ticket_table" data-id="${ticket.ticket_id}">
             <tr>
@@ -104,7 +113,9 @@ function loadTickets(page, word, start_time, end_time) {
     }
 
     $('.next').data('next_page', page + 1);
-    $('html, body').animate({ scrollTop: (page && page >= 1 ? $('#ticket_list').offset().top - 100 : 0) });
+    $('html, body').animate({
+      scrollTop: page && page >= 1 ? $('#ticket_list').offset().top - 100 : 0,
+    });
     $('#tickets').html(content);
 
     $('input').click(function(e) {

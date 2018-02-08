@@ -170,7 +170,9 @@ function drawChart(updateData) {
     word: keyword,
     meta_filter: meta_filter_str,
   }).done(function(response) {
-    var datetimes = Object.keys(response.values).filter(k => new Date(k) >= ORIGIN);
+    var datetimes = Object.keys(response.values).filter(
+      k => new Date(k) >= ORIGIN
+    );
     var freqs = datetimes.map(dt => response.values[dt]);
     var trace = {
       type: 'scatter',
