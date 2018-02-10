@@ -6,6 +6,7 @@ import contextlib
 import functools
 from glob import glob
 import gzip
+from hashlib import md5
 import os
 import re
 import simplejson as json
@@ -23,6 +24,9 @@ from jeeves.util.cleanup import clean_and_parse_description
 from jeeves.util.json_encoder import JeevesJSONEncoder
 from jeeves.util.s3 import S3, S3_SEGMENTED_DIR, S3_BUCKET_ID
 
+
+# Jeeves ignores tickets sent by the following emails
+_SENDERS_TO_IGNORE = {'no-reply@duolingo.com'}
 
 _TICKET_FILE_TEMPLATE = 'tickets-{lang}-{prod}.txt.gz'
 
@@ -145,7 +149,7 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                 # __enter__ the with context, and register it to be __exit__'ed
                 stack.enter_context(mgr)
 
-            id_history = set()
+            content_history = set()
             # now go through each input ticket file
             for filename in tqdm(self._files, desc='Segmenting Zendesk Tix'):
                 input_file = read_from_file(os.path.basename(filename),  # Already has .gz
@@ -155,9 +159,19 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
                     # done in this order because ticket creation filters out
                     # some junk from the messages (urls, metadata, etc.)
 
-                    if ticket.ticket_id in id_history:
+                    # Ignore a ticket with a duplicate description sent on a specific day
+                    hash_seed = ticket.description + ticket.date_time[:10]
+                    content_hash = md5(hash_seed.encode('utf-8')).hexdigest()
+                    if content_hash in content_history:
                         continue
-                    id_history.add(ticket.ticket_id)
+                    content_history.add(content_hash)
+
+                    # Ignore a ticket if a sender email is on a blacklist
+                    from_data = ticket.via['source']['from']
+                    if (from_data and
+                            'address' in from_data and
+                            from_data['address'] in _SENDERS_TO_IGNORE):
+                        continue
 
                     # Skip tickets that have an empty string ('') description
                     # after cleanup, which are those that consist of just
