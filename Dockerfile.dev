@@ -1,4 +1,4 @@
-FROM python:3.6.1-alpine
+FROM 940168671796.dkr.ecr.us-east-1.amazonaws.com/duolingo/base/py3:0.1.0
 
 ENV INSTALL_PATH /code
 ENV DEV_REQ_TXT dev-requirements.txt
