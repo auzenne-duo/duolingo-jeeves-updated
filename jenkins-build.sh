@@ -35,6 +35,7 @@ else
     WORKDIR="/code"
     CMD="pytest --junitxml=results.xml --cov-report=term --cov-report=xml:cobertura.xml --cov-report=html --cov=jeeves"
     docker run --rm --volume "$(pwd):$WORKDIR" "$IMAGE_HASH" sh -c "$CMD"
+    sed -i"" "s#<source>/code/jeeves</source>#<source>$WORKSPACE/jeeves</source>#" cobertura.xml
 fi
 
 
