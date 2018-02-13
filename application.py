@@ -8,9 +8,9 @@ import os
 # import rollbar
 # import rollbar.contrib.flask
 
-from duolingo.base.config import Config
-from duolingo.base.util import registry
-from duolingo.base.view.auth import auth_after_request, requires_auth
+from duolingo_base.config import Config
+from duolingo_base.util import registry
+from duolingo_base.view.auth import auth_after_request, requires_auth
 
 from jeeves.util.json_encoder import JeevesJSONEncoder
 

@@ -1,6 +1,6 @@
---index-url https://pypi.duolingo.com/pypi/
+--extra-index-url https://pypi.duolingo.com/pypi/
 
-duolingo-base
+duolingo-base==0.9.49
 langid
 Flask
 pandas
