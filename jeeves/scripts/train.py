@@ -5,6 +5,7 @@ Script for training text classifier models.
 import argparse
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
+
 def train(language):
     """
     TODO: Train a model and save it.

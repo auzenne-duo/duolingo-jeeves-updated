@@ -26,8 +26,7 @@ class SpreadSheetCategoryAnnotationDAL(object):
     def _lazy_init(self):
         response = requests.get(self._API_URL)
         # There may be duplicate ticket_id but newer row overwrites older one.
-        self._cache = {ticket['ticket_id']: ticket['category_labels']
-                       for ticket in response.json()}
+        self._cache = {ticket['ticket_id']: ticket['category_labels'] for ticket in response.json()}
 
     def bulk_save_annotations(self, ticket_annotations):
         if self._cache is None:

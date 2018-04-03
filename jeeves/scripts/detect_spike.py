@@ -43,14 +43,17 @@ def find_spiked_words(target_date_str, debug=False):
     target_datetime = str_to_date(target_date_str)
 
     # Very slow. Can we parallel compute or do filtering in _find_candidate_words()?
-    score_word_pairs = [(_calculate_spike_score(word, target_datetime), word)
-                        for word in tqdm(words, desc='Calculate spikiness scores')]
+    score_word_pairs = [
+        (_calculate_spike_score(word, target_datetime), word)
+        for word in tqdm(words, desc='Calculate spikiness scores')
+    ]
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
     result = {}
-    result['spike'] = [(score, word) for score, word in score_word_pairs
-                       if (not np.isnan(score)
-                           and not np.isinf(score)
-                           and score > _SPIKE_THRESHOLD)]
+    result['spike'] = [
+        (score, word)
+        for score, word in score_word_pairs
+        if (not np.isnan(score) and not np.isinf(score) and score > _SPIKE_THRESHOLD)
+    ]
     result['new'] = [word for score, word in score_word_pairs if np.isinf(score)]
     print('%s spiked words found on %s:' % (len(result['spike']), target_date_str))
     for pair in result['spike']:
@@ -59,8 +62,10 @@ def find_spiked_words(target_date_str, debug=False):
     for pair in result['new']:
         print(pair)
     if not debug:
-        S3.upload(S3_BUCKET_ID, os.path.join(S3_SPIKE_DIR, target_date_str),
-                  json.dumps(result), _CONTENT_TYPE)
+        S3.upload(
+            S3_BUCKET_ID, os.path.join(S3_SPIKE_DIR, target_date_str), json.dumps(result),
+            _CONTENT_TYPE
+        )
     print('Done in %s sec.' % (time.time() - start))
 
 
@@ -77,15 +82,19 @@ def _find_candidate_words(target_date_str):
     tickets = get_recent_tickets_by_word('', start_time=start_datetime, end_time=end_datetime)
 
     def ticket_to_words(ticket):
-        return set(word for attr in ('subject', 'description')
-                   for word in getattr(ticket, attr).translate(_TABLE).lower().split())
+        return set(
+            word for attr in ('subject', 'description')
+            for word in getattr(ticket, attr).translate(_TABLE).lower().split()
+        )
 
     # A dict from word to number of ticket this word appears during the time span.
     word_counts = Counter(w for ticket in tickets for w in ticket_to_words(ticket))
     print('%s raw words found. Applying filtering...' % len(word_counts))
     # Filter by threshold
-    words = [word for word, count in word_counts.items()
-             if count >= _COUNT_THRESHOLD and _valid_word(word)]
+    words = [
+        word for word, count in word_counts.items()
+        if count >= _COUNT_THRESHOLD and _valid_word(word)
+    ]
     print('%s candidate words found.' % len(words))
     return words
 
@@ -97,14 +106,18 @@ def _calculate_spike_score(word, target_datetime):
 
     https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data
     """
-    date_to_count = get_time_series(re.escape(word),
-                                    start_time=get_n_days_ago(target_datetime, _HISTORY_WINDOW_SIZE),
-                                    end_time=target_datetime)['values']
+    date_to_count = get_time_series(
+        re.escape(word),
+        start_time=get_n_days_ago(target_datetime, _HISTORY_WINDOW_SIZE),
+        end_time=target_datetime
+    )['values']
     target_count = date_to_count.get(date_to_str(target_datetime), 0)
     if target_count < _COUNT_THRESHOLD:
         return -1
-    count_history = [date_to_count.get(date_to_str(get_n_days_ago(target_datetime, i+1)), 0)
-                     for i in range(_HISTORY_WINDOW_SIZE)]
+    count_history = [
+        date_to_count.get(date_to_str(get_n_days_ago(target_datetime, i + 1)), 0)
+        for i in range(_HISTORY_WINDOW_SIZE)
+    ]
     mean = np.mean(count_history)
     std = np.std(count_history)
     zscore = (target_count - mean) / std if std != 0 else np.inf

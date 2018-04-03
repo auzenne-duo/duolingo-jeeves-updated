@@ -25,8 +25,7 @@ def detect_faq(ticket):
     Returns:
         An FAQ ID (int) if there is a relevant FAQ detected, otherwise None.
     """
-    scored_faqs = [(score_faq(ticket, faq), faq)
-                   for faq in FAQDAL.get_faqs().values()]
+    scored_faqs = [(score_faq(ticket, faq), faq) for faq in FAQDAL.get_faqs().values()]
     sorted_scored_faqs = sorted(scored_faqs, key=lambda pair: pair[0], reverse=True)
     (best_faq_score, best_faq) = sorted_scored_faqs[0]
     return best_faq['id'] if best_faq_score > _FAQ_SCORE_THRESHOLD else None

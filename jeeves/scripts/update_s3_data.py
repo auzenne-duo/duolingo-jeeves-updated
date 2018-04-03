@@ -12,7 +12,6 @@ from jeeves.model.time_series import MOST_RECENT_N_DAYS
 from jeeves.util.date_util import EASTERN, get_eastern_today
 from jeeves.util.s3 import S3, S3_ZENDESK_DIR, S3_SEGMENTED_DIR, S3_BUCKET_ID
 
-
 _CONTENT_TYPE = 'text/plain; charset=utf-8'
 _LOCAL_ZENDESK_DIR = os.path.join(data_directory, 'zendesk')
 
@@ -48,14 +47,19 @@ def get_tickets_from_zendesk():
     """ Downloads recent tickets from Zendesk and uploads them to S3. """
     # Get most recent Zendesk timestamp and the current timestamp
     try:
-        latest_timestamp = max(extract_ticket_timestamp(filename)
-                              for filename in S3.yield_filenames(S3_BUCKET_ID, S3_ZENDESK_DIR))
+        latest_timestamp = max(
+            extract_ticket_timestamp(filename)
+            for filename in S3.yield_filenames(S3_BUCKET_ID, S3_ZENDESK_DIR)
+        )
     except ValueError:
         # if nothing is in S3, start on December 1st
         latest_timestamp = 1480550400  # 2016-12-01
 
-    print('Downloading new tickets since {}'.format(datetime.fromtimestamp(latest_timestamp)
-                                                    .strftime('%Y-%m-%d %H:%M:%S')))
+    print(
+        'Downloading new tickets since {}'.format(
+            datetime.fromtimestamp(latest_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        )
+    )
 
     # Download all new Zendesk ticket files and upload them to S3
     new_files = download_tickets(latest_timestamp)
@@ -75,8 +79,10 @@ def crete_segmented_tickets():
     for file_path in tqdm(segmented_file_paths, desc='Upload Segmented Tix'):
         file_name = os.path.basename(file_path)
         data = read_from_file(file_name, dir_path=data_directory)  # Already has .gz
-        S3.upload(S3_BUCKET_ID, os.path.join(S3_SEGMENTED_DIR, file_name.replace('.gz', '')),
-                  data, _CONTENT_TYPE)
+        S3.upload(
+            S3_BUCKET_ID, os.path.join(S3_SEGMENTED_DIR, file_name.replace('.gz', '')), data,
+            _CONTENT_TYPE
+        )
 
     print('Successfully updated S3 data!!', file=sys.stderr)
 

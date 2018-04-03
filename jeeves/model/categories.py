@@ -48,6 +48,7 @@ Lauren's spreadsheet has the following categoies:
 
 from enum import Enum, auto
 
+
 class CATEGORIES(Enum):
     """Duolingo Jeeves tag categories"""
     bug = auto()

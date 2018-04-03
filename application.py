@@ -18,9 +18,8 @@ LOG = logging.getLogger('application')
 
 config = Config.load_config()
 
-application = Flask(__name__,
-                    static_folder='jeeves/static',
-                    template_folder='jeeves/templates')
+application = Flask(__name__, static_folder='jeeves/static', template_folder='jeeves/templates')
+
 
 def auth_before_request():
     if request.path in {'/health', '/api/1/init'}:
@@ -28,9 +27,8 @@ def auth_before_request():
     else:
         return requires_auth(permission='administrator')(lambda: None)()
 
-application.before_request(
-    auth_before_request
-)
+
+application.before_request(auth_before_request)
 application.after_request(auth_after_request)
 
 application.registry = registry.initialize()
@@ -39,8 +37,7 @@ application.json_encoder = JeevesJSONEncoder
 
 # Register blueprints
 
-config.apply_all(registry=application.registry,
-                 flask_app=application)
+config.apply_all(registry=application.registry, flask_app=application)
 
 
 @application.route('/error', methods=['GET', 'POST', 'PATCH', 'PUT'])
@@ -65,12 +62,12 @@ def init():
     LOG.info('initializing')
 
     # Initialize Rollbar
-#     rollbar_config_dict = config.get_nested(['rollbar'])
-#     rollbar.init(rollbar_config_dict['access_token'],
-#                  environment=rollbar_config_dict['environment'],
-#                  root=os.path.dirname(os.path.realpath(__file__)),
-#                  allow_logging_basic_config=False)
-#     got_request_exception.connect(rollbar.contrib.flask.report_exception, application)
+    #     rollbar_config_dict = config.get_nested(['rollbar'])
+    #     rollbar.init(rollbar_config_dict['access_token'],
+    #                  environment=rollbar_config_dict['environment'],
+    #                  root=os.path.dirname(os.path.realpath(__file__)),
+    #                  allow_logging_basic_config=False)
+    #     got_request_exception.connect(rollbar.contrib.flask.report_exception, application)
 
     # Start registry
     application.registry.start()
@@ -103,8 +100,10 @@ if __name__ == '__main__':
         started = True
 
     # Start the flask server, this runs until ctrl-c is pressed
-    application.run(config.get_nested(['flask', 'host'], default='127.0.0.1'),
-                    config.get_nested(['flask', 'port'], default=5000))
+    application.run(
+        config.get_nested(['flask', 'host'], default='127.0.0.1'),
+        config.get_nested(['flask', 'port'], default=5000)
+    )
 
     if started:
         destroy()

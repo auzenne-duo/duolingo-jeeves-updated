@@ -24,7 +24,6 @@ from jeeves.util.cleanup import clean_and_parse_description
 from jeeves.util.json_encoder import JeevesJSONEncoder
 from jeeves.util.s3 import S3, S3_SEGMENTED_DIR, S3_BUCKET_ID
 
-
 # Jeeves ignores tickets sent by the following emails
 _SENDERS_TO_IGNORE = {'no-reply@duolingo.com'}
 
@@ -38,6 +37,7 @@ def extract_ticket_timestamp(filename):
 
 
 class AbstractSupportTicketDAL(object, metaclass=ABCMeta):
+
     @abstractmethod
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         """
@@ -66,6 +66,7 @@ class AbstractSupportTicketDAL(object, metaclass=ABCMeta):
 
 
 class AbstractFileSystemSupportTicketDAL(AbstractSupportTicketDAL):
+
     @abstractmethod
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         pass
@@ -73,6 +74,7 @@ class AbstractFileSystemSupportTicketDAL(AbstractSupportTicketDAL):
 
 class AbstractRemoteSupportTicketDAL(AbstractSupportTicketDAL):
     """ Abstract Base class for tickets fetched or accessed non-locally"""
+
     @abstractmethod
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         pass
@@ -95,13 +97,17 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
     def __init__(self):
         super(ZendeskFileSystemSupportTicketDAL, self).__init__()
-        self._files = sorted(glob(os.path.join(self._zendesk_ticket_dir, 'tickets_*.json.gz')),
-                             key=extract_ticket_timestamp)
+        self._files = sorted(
+            glob(os.path.join(self._zendesk_ticket_dir, 'tickets_*.json.gz')),
+            key=extract_ticket_timestamp
+        )
 
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         for file_name in self._files:
-            input_file = read_from_file(os.path.basename(file_name),  # Already has .gz
-                                        dir_path=self._zendesk_ticket_dir)
+            input_file = read_from_file(
+                os.path.basename(file_name),  # Already has .gz
+                dir_path=self._zendesk_ticket_dir
+            )
 
             for ticket_json in json.loads(input_file)['tickets']:
                 ticket = self._deserialize_json(ticket_json)
@@ -139,11 +145,13 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
         with contextlib.ExitStack() as stack:
             # create a segmented out file for all supported languages and platforms
             out_files = {
-                (lang, prod):
-                gzip.open(os.path.join(data_directory,
-                                       _TICKET_FILE_TEMPLATE.format(lang=lang.name, prod=prod.name)), 'wb')
-                for lang in SUPPORTED_LANGUAGES
-                for prod in Products
+                (lang, prod): gzip.open(
+                    os.path.join(
+                        data_directory,
+                        _TICKET_FILE_TEMPLATE.format(lang=lang.name, prod=prod.name)
+                    ), 'wb'
+                )
+                for lang in SUPPORTED_LANGUAGES for prod in Products
             }
             for mgr in out_files.values():
                 # __enter__ the with context, and register it to be __exit__'ed
@@ -152,8 +160,10 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
             content_history = set()
             # now go through each input ticket file
             for filename in tqdm(self._files, desc='Segmenting Zendesk Tix'):
-                input_file = read_from_file(os.path.basename(filename),  # Already has .gz
-                                            dir_path=self._zendesk_ticket_dir)
+                input_file = read_from_file(
+                    os.path.basename(filename),  # Already has .gz
+                    dir_path=self._zendesk_ticket_dir
+                )
                 for ticket_json in json.loads(input_file)['tickets']:
                     ticket = self._deserialize_json(ticket_json)
                     # done in this order because ticket creation filters out
@@ -168,9 +178,10 @@ class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
 
                     # Ignore a ticket if a sender email is on a blacklist
                     from_data = ticket.via['source']['from']
-                    if (from_data and
-                            'address' in from_data and
-                            from_data['address'] in _SENDERS_TO_IGNORE):
+                    if (
+                        from_data and 'address' in from_data
+                        and from_data['address'] in _SENDERS_TO_IGNORE
+                    ):
                         continue
 
                     # Skip tickets that have an empty string ('') description

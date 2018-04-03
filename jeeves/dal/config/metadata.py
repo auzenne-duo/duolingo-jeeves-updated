@@ -12,10 +12,6 @@ STATS_FIELD_TITLES = [f['field'] for f in Config['fields'] if not f['unique']]
 UNIQUE_FIELD_TITLES = [f['field'] for f in Config['fields'] if f['unique']]
 
 # It is important that SEMANTIC_FIELD_TITLES is subset(eq) to STATS_FIELD_TITLES
-SEMANTIC_FIELD_TITLES = [
-    f['field']
-    for f in Config['fields']
-    if f['semantic'] and not f['unique']
-]
+SEMANTIC_FIELD_TITLES = [f['field'] for f in Config['fields'] if f['semantic'] and not f['unique']]
 
 FIELD_TITLES = STATS_FIELD_TITLES + UNIQUE_FIELD_TITLES

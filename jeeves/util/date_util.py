@@ -6,7 +6,6 @@ import pytz
 
 import pandas as pd
 
-
 _DATE_FORMAT = '%Y-%m-%d'
 _DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 

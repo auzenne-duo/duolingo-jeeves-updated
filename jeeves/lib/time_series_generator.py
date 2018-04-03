@@ -13,7 +13,6 @@ from jeeves.model.time_series import TS
 from jeeves.util.cache import CacheHandler
 from jeeves.util.date_util import convert_timezone, datetime_to_str, get_n_days_ago
 
-
 _SEARCH_REGEX = r'\b(?:{0})\b'
 
 
@@ -59,10 +58,13 @@ def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({
     if end_time:
         # end_time has to be incremented for 1 day!!
         end_time = get_n_days_ago(end_time, -1)
-    counts = (match_description(word, start_time, end_time, meta_filter).astype(int, copy=False)
-              .resample('D').sum().transform(lambda i: 0 if np.isnan(i) else i))
+    counts = (
+        match_description(word, start_time, end_time, meta_filter).astype(int, copy=False)
+        .resample('D').sum().transform(lambda i: 0 if np.isnan(i) else i)
+    )
     vals = dict(zip(map(lambda dt: dt.strftime('%Y-%m-%d'), counts.index), counts))
     return {'values': vals}
+
 
 @CacheHandler.cache(maxsize=32, typed=False)
 def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter=Metadata({})):
@@ -106,8 +108,7 @@ def get_viable_categories_in_metadata_distribution(start_time, end_time, min_pro
     matched_mask = match_description('', start_time, end_time)
     matched_meta = TS.df.loc[start_time:end_time][matched_mask][SEMANTIC_FIELD_TITLES]
     return {
-        col:
-        set(matched_meta[col].value_counts(normalize=True)[lambda p: p > min_prob].index)
+        col: set(matched_meta[col].value_counts(normalize=True)[lambda p: p > min_prob].index)
         for col in matched_meta.columns
     }
 
@@ -125,7 +126,8 @@ def get_metadata_distribution(word, start_time=None, end_time=None, meta_filter=
             k: v
             for k, v in matched_meta[col].value_counts(normalize=True).iteritems()
             if k != ''  # not counting the unpopulated fields
-            and k in viable_categories[col]  # as long as k is a mildly plausible (non-noise) category
+            and k in viable_categories[col
+                                      ]  # as long as k is a mildly plausible (non-noise) category
         }
         for col in viable_categories
     }

@@ -4,10 +4,8 @@ import json
 from jeeves.dal.config.metadata import FIELD_TITLES
 from jeeves.model import JeevesObject
 
-class Metadata(
-    JeevesObject,
-    namedtuple('MD', FIELD_TITLES)
-):
+
+class Metadata(JeevesObject, namedtuple('MD', FIELD_TITLES)):
     """Metadata container"""
 
     __slots__ = ()

@@ -8,21 +8,19 @@ from sqlalchemy import Column, MetaData, Table
 from sqlalchemy.types import BigInteger, DateTime, String
 
 METADATA = MetaData(schema='duolingo_jeeves')
-
 """
 Table for tickets exported from Zendesk.
 """
-ZENDESK_TICKET_TABLE = Table('zendesk_ticket', METADATA,
+ZENDESK_TICKET_TABLE = Table(
+    'zendesk_ticket',
+    METADATA,
     Column('ticket_id', BigInteger, info={'encode': 'LZO'}, primary_key=True),
     Column('created_at', DateTime, info={'encode': 'LZO'}),
-
     Column('subject', String(256), info={'encode': 'LZO'}),
     Column('description', String(16536), info={'encode': 'LZO'}),
-
     Column('user_id', BigInteger, info={'encode': 'LZO'}),
     Column('category_labels', String(512), info={'encode': 'LZO'}),
     Column('metadata', String(16536), info={'encode': 'LZO'}),
-
     redshift_diststyle='KEY',
     redshift_distkey='ticket_id',
     redshift_sortkey='created_at',

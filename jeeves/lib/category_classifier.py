@@ -6,6 +6,7 @@ import re
 from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.model.categories import CATEGORIES
 
+
 class AbstractCategoryClassifier(object):
 
     def is_classifiable(self, description, category):
@@ -23,8 +24,11 @@ class AbstractCategoryClassifier(object):
         pass
 
     def get_categories_for_ticket(self, ticket):
-        return {category for category in CATEGORIES
-                if self.is_classifiable(ticket.description, category)}
+        return {
+            category
+            for category in CATEGORIES
+            if self.is_classifiable(ticket.description, category)
+        }
 
 
 class RuleBasedCategoryClassifier(AbstractCategoryClassifier):
@@ -63,6 +67,6 @@ class SuperCoolMachineLearningBasedCategoryClassifier(AbstractCategoryClassifier
 if __name__ == '__main__':
     classifier = RuleBasedCategoryClassifier()
     for i, ticket in enumerate(SupportTicketDAL.get_labeled_support_tickets()):
-        print('#### Example %s' % (i+1))
+        print('#### Example %s' % (i + 1))
         print('\tclassification result: %s' % classifier.get_categories_for_ticket(ticket))
         print('\texpected result: %s' % ticket.category_labels)
