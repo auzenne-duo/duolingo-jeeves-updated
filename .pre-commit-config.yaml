@@ -21,3 +21,8 @@
         entry: pylint
         language: system
         files: '\.py$'
+-   repo: git://github.com/pre-commit/mirrors-yapf
+    sha: v0.21.0
+    hooks:
+    -   id: yapf
+        args: [-i]
