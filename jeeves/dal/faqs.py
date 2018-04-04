@@ -53,8 +53,11 @@ import requests
 
 _LOCALE = 'en-us'
 
-_URL_TEMPLATE = ('https://support.duolingo.com/api/v2/help_center/{locale}/'
-                 'articles.json?page={page}&per_page=100')
+_URL_TEMPLATE = (
+    'https://support.duolingo.com/api/v2/help_center/{locale}/'
+    'articles.json?page={page}&per_page=100'
+)
+
 
 class ZendeskFAQDAL(object):
     """
@@ -96,5 +99,6 @@ class ZendeskFAQDAL(object):
         if not self.faqs:
             self._lazy_init()
         return self.faqs[faq_id]
+
 
 FAQDAL = ZendeskFAQDAL()

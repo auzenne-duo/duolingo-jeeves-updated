@@ -1,10 +1,10 @@
+repos:
 -   repo: https://github.com/pre-commit/pre-commit.git
-    sha: v0.14.1
+    sha: v1.8.2
     hooks:
-    -   id: validate_config
     -   id: validate_manifest
 -   repo: https://github.com/pre-commit/pre-commit-hooks.git
-    sha: v0.8.0
+    sha: v1.2.3
     hooks:
     -   id: check-json
     -   id: check-yaml
@@ -13,11 +13,18 @@
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: no-commit-to-branch
-    -   id: flake8
--   repo: local
+  # TODO(hwright): Reenable after formatting fixes are submitted
+  # -   id: flake8
+# TODO(hwright): Reenable after formatting fixes are submitted
+#-   repo: local
+#    hooks:
+#    -   id: pylint
+#        name: pylint
+#        entry: pylint
+#        language: system
+#        files: '\.py$'
+-   repo: git://github.com/pre-commit/mirrors-yapf
+    sha: v0.21.0
     hooks:
-    -   id: pylint
-        name: pylint
-        entry: pylint
-        language: system
-        files: '\.py$'
+    -   id: yapf
+        args: [-i]

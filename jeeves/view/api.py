@@ -10,12 +10,8 @@ from jeeves.dal.category_annotations import CategoryAnnotationDAL
 from jeeves.dal.spikes import SpikeDAL
 from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.lib.time_series_generator import (
-    get_metadata_distribution,
-    get_most_recent_ticket_timestamp,
-    get_paginated_tickets,
-    get_recent_tickets_by_word,
-    get_time_series,
-    get_viable_categories_in_metadata_distribution,
+    get_metadata_distribution, get_most_recent_ticket_timestamp, get_paginated_tickets,
+    get_recent_tickets_by_word, get_time_series, get_viable_categories_in_metadata_distribution,
     match_description
 )
 from jeeves.model.categories import CATEGORIES
@@ -75,37 +71,35 @@ def manage_tickets():
 
     def get_tickets_by_word():
         limit = int(request.args.get('limit', '10'))
-        tickets = get_recent_tickets_by_word(word, start_time=start_time,
-                                             end_time=end_time, meta_filter=meta_filter)
+        tickets = get_recent_tickets_by_word(
+            word, start_time=start_time, end_time=end_time, meta_filter=meta_filter
+        )
         tickets = get_paginated_tickets(page, limit, dataframe=tickets)
         values = [
             ticket.subserialize(
-                'ticket_id',
-                'date_time',
-                'subject',
-                'description',
-                'priority',
-                'via',
-                'tags',
-                'requester_id',
-                'metadata'
-            )
-            for ticket in tickets
+                'ticket_id', 'date_time', 'subject', 'description', 'priority', 'via', 'tags',
+                'requester_id', 'metadata'
+            ) for ticket in tickets
         ]
-        return {'data': values,
-                'next_url': '/api/1/tickets?word=%s&limit=%s&page=%s' % (word, limit, page + 1)}
+        return {
+            'data': values,
+            'next_url': '/api/1/tickets?word=%s&limit=%s&page=%s' % (word, limit, page + 1)
+        }
 
     def get_tickets_for_annotation():
+
         def replace(d, field, fn):
             d[field] = fn(d[field])
             return d
+
         limit = int(request.args.get('limit', '10'))
         tickets = get_paginated_tickets(page, limit)
         category_list = sorted(cat.name for cat in CATEGORIES)
         # Adding more categories for demo purpose
-        category_list += ['feature_request', 'language_request', 'requesting_reply',
-                          'challenge_feedback', 'schools', 'iap_refunds',
-                          'streak_issue', 'forum_abuse']
+        category_list += [
+            'feature_request', 'language_request', 'requesting_reply', 'challenge_feedback',
+            'schools', 'iap_refunds', 'streak_issue', 'forum_abuse'
+        ]
         values = [
             replace(
                 d=ticket.subserialize(
@@ -126,8 +120,7 @@ def manage_tickets():
             )
             for ticket in tickets
         ]
-        return {'data': values,
-                'next_url': '/api/1/tickets?limit=%s&page=%s' % (limit, page + 1)}
+        return {'data': values, 'next_url': '/api/1/tickets?limit=%s&page=%s' % (limit, page + 1)}
 
     if request.method == 'GET':
         if word:
@@ -156,6 +149,7 @@ def get_spike_data():
 
 score_map = dict(pearsons=pearsons_coefficient, cosine=cosine_similarity)
 
+
 @blueprint_api.route('/api/1/metadata_analyze')
 def get_ticket_metadata():
     word = request.args.get('word')
@@ -166,13 +160,22 @@ def get_ticket_metadata():
 
     score = score_map.get(request.args.get('score', None), pearsons_coefficient)
 
-    meta_freq_dists = get_metadata_distribution(word, start_time=start_time,
-                                                end_time=end_time, meta_filter=meta_filter)
-    wordless_freq_dists = get_metadata_distribution('', start_time=start_time,
-                                                    end_time=end_time, meta_filter=meta_filter)
-    item = sorted(filter(lambda d: not np.isnan(d['score']),
-                         (dict(score=score(meta_freq_dists[col], wordless_freq_dists[col]), field=col)
-                         for col in meta_freq_dists)), key=lambda entry: entry['score'])
+    meta_freq_dists = get_metadata_distribution(
+        word, start_time=start_time, end_time=end_time, meta_filter=meta_filter
+    )
+    wordless_freq_dists = get_metadata_distribution(
+        '', start_time=start_time, end_time=end_time, meta_filter=meta_filter
+    )
+    item = sorted(
+        filter(
+            lambda d: not np.isnan(d['score']),
+            (
+                dict(score=score(meta_freq_dists[col], wordless_freq_dists[col]), field=col)
+                for col in meta_freq_dists
+            )
+        ),
+        key=lambda entry: entry['score']
+    )
     return json.jsonify(dict(metadata=item, word=meta_freq_dists, wordless=wordless_freq_dists))
 
 
@@ -202,6 +205,8 @@ def do_init():
 
 
 def _get_status():
-    return {'deployed_timestamp': _DEPLOYED_TIMESTAMP,
-            'initialized_timestamp': _init_timestamp,
-            'latest_ticket_timestamp': get_most_recent_ticket_timestamp()}
+    return {
+        'deployed_timestamp': _DEPLOYED_TIMESTAMP,
+        'initialized_timestamp': _init_timestamp,
+        'latest_ticket_timestamp': get_most_recent_ticket_timestamp()
+    }

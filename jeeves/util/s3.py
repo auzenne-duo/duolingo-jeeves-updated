@@ -15,6 +15,7 @@ S3_SEGMENTED_DIR = os.path.join('data', 'segmented')
 S3_SPIKE_DIR = os.path.join('data', 'spike')
 S3_BUCKET_ID = 'duolingo-jeeves'
 
+
 class S3Manager(object):
     """ Manages S3 connections. """
 

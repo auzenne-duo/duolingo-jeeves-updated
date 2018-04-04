@@ -3,7 +3,9 @@ import simplejson as json
 
 from jeeves.model import JeevesObject
 
+
 class JeevesJSONEncoder(json.JSONEncoder):
+
     def default(self, o):  # pylint: disable=E0202
         if isinstance(o, JeevesObject):
             return o.__serialize__()
