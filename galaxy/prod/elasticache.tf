@@ -20,5 +20,5 @@ module "duolingo-jeeves-memcache" {
   subservice      = "memcache"
   environment     = "${var.environment}"
   node_type       = "cache.t2.small"
-  num_cache_nodes = 1
+  num_cache_nodes = 3
 }
