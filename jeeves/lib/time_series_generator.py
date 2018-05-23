@@ -2,7 +2,6 @@
 A library for generating ticket volume over time.
 """
 
-from dateutil.parser import parse
 import numpy as np
 import pandas as pd
 import re
@@ -85,9 +84,7 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter
 
 def get_most_recent_ticket_timestamp():
     """ Returns the timestamp (YYYY:MM:DD hh:mm:ss in US/Eastern) of most recent ticket. """
-    dt_str = TS.df.ix[-1]['tickets'].date_time
-    dt = parse(dt_str)
-    return datetime_to_str(convert_timezone(dt))
+    return datetime_to_str(convert_timezone(TS.df.ix[-1]['tickets'].date_time))
 
 
 def get_paginated_tickets(page, limit, dataframe=None):
@@ -125,9 +122,10 @@ def get_metadata_distribution(word, start_time=None, end_time=None, meta_filter=
         col: {
             k: v
             for k, v in matched_meta[col].value_counts(normalize=True).iteritems()
-            if k != ''  # not counting the unpopulated fields
-            and k in viable_categories[col
-                                      ]  # as long as k is a mildly plausible (non-noise) category
+            # not counting the unpopulated fields
+            if k != ''
+            # as long as k is a mildly plausible (non-noise) category
+            and k in viable_categories[col]
         }
         for col in viable_categories
     }

@@ -9,19 +9,25 @@
 apipkg==1.4               # via execnet
 aspy.yaml==0.3.0          # via pre-commit
 astroid==1.5.3            # via pylint
+attrs==18.1.0             # via duolingo-base
 boto3==1.5.27             # via duolingo-base
 botocore==1.8.41          # via boto3, s3transfer
 cached-property==1.3.0    # via pre-commit
 certifi==2017.4.17        # via requests
+cfgv==1.0.0               # via pre-commit
 chardet==3.0.4            # via requests
 click==6.7                # via flask, pip-tools
 coverage==4.4.2           # via pytest-cov
 decorator==4.2.1          # via duolingo-base
+deprecation==2.0.2        # via duolingo-base
 docutils==0.13.1          # via botocore
-duolingo-base==0.9.49
+duolingo-base==0.9.66
+duolingo-proto==2018.4.18.0  # via duolingo-base
 execnet==1.5.0            # via pytest-xdist
 first==2.0.1              # via pip-tools
 flask==0.12.2
+futures==3.1.1
+identify==1.0.17          # via pre-commit
 idna==2.5                 # via requests
 isort==4.2.15             # via pylint
 itsdangerous==0.24        # via flask
@@ -33,13 +39,16 @@ markupsafe==1.0           # via jinja2
 mccabe==0.6.1             # via pylint
 nodeenv==1.1.2            # via pre-commit
 numpy==1.13.0             # via langid, pandas
+packaging==17.1           # via deprecation
 pandas==0.20.2
-pip-tools==1.11.0
-pre-commit==0.14.2
+pip-tools==2.0.2
+pre-commit==1.9.0
+protobuf==3.5.2.post1     # via duolingo-proto
 py==1.4.34                # via pytest
 pyjwt==1.5.2              # via duolingo-base
 pylint==1.7.1
 pymemcache==1.4.3         # via duolingo-base
+pyparsing==2.2.0          # via packaging
 pytest-cov==2.5.1
 pytest-forked==0.2        # via pytest-xdist
 pytest-mock==1.6.3
@@ -53,7 +62,7 @@ requests==2.18.1          # via duolingo-base, rollbar
 rollbar==0.13.17          # via duolingo-base
 s3transfer==0.1.10        # via boto3
 simplejson==3.11.1
-six==1.11.0               # via astroid, duolingo-base, pip-tools, pre-commit, pylint, pymemcache, python-dateutil, rollbar
+six==1.11.0               # via astroid, cfgv, duolingo-base, packaging, pip-tools, pre-commit, protobuf, pylint, pymemcache, python-dateutil, rollbar
 tqdm==4.14.0
 urllib3==1.21.1           # via requests
 uwsgi==2.0.15

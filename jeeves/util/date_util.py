@@ -9,8 +9,6 @@ import pandas as pd
 _DATE_FORMAT = '%Y-%m-%d'
 _DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-EASTERN = pytz.timezone('US/Eastern')
-
 
 def get_eastern_today():
     """ Get datetime object representing right now in US/Eastern (Not UTC!) """
@@ -18,11 +16,15 @@ def get_eastern_today():
     return convert_timezone(time)
 
 
+def get_utc_today():
+    return datetime.datetime.now(pytz.utc)
+
+
 def convert_timezone(time, tz_from=None, tz_to=None):
     if tz_from is None:
         tz_from = pytz.timezone('UTC')
     if tz_to is None:
-        tz_to = EASTERN
+        tz_to = pytz.timezone('US/Eastern')
     return time.replace(tzinfo=tz_from).astimezone(tz=tz_to)
 
 
@@ -50,7 +52,8 @@ def date_to_str(date_obj):
     Returns:
         A date string (YYYY-MM-DD).
     """
-    assert isinstance(date_obj, datetime.date)
+    assert isinstance(date_obj, datetime.date), 'invalid type: %s' % type(date_obj)
+
     return date_obj.strftime(_DATE_FORMAT)
 
 

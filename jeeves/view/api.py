@@ -8,7 +8,6 @@ import random
 
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
 from jeeves.dal.spikes import SpikeDAL
-from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.lib.time_series_generator import (
     get_metadata_distribution, get_most_recent_ticket_timestamp, get_paginated_tickets,
     get_recent_tickets_by_word, get_time_series, get_viable_categories_in_metadata_distribution,
@@ -188,6 +187,8 @@ def show_info():
 def do_init():
     """
     Clear cache (and warm up).
+
+    # TODO: Manage reset requirement info in memcache.
     """
     match_description.cache_clear()
     get_time_series.cache_clear()
@@ -196,7 +197,6 @@ def do_init():
     get_metadata_distribution.cache_clear()
     SpikeDAL.reload_cache()
     TS.reload_cache()
-    SupportTicketDAL.lazy_init()
     global _init_timestamp
     _init_timestamp = datetime_to_str(get_eastern_today())
     status = _get_status()

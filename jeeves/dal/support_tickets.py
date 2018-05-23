@@ -1,228 +1,45 @@
 """
 DAL for zendesk support ticket dataset.
 """
-from abc import ABCMeta, abstractmethod
-import contextlib
-import functools
-from glob import glob
-import gzip
-from hashlib import md5
-import os
-import re
-import simplejson as json
-from tqdm import tqdm
-
-from jeeves import data_directory
-from jeeves.dal.category_annotations import CategoryAnnotationDAL
-from jeeves.exception.model import UnsupportedLanguageError
-from jeeves.lib.file_io import read_from_file, write_to_file
+from jeeves.lib.json_serializer import deserialize_tickets, serialize_tickets
+from jeeves.lib.memcached_wrapper import MemcacheCompressionWrapper
 from jeeves.model.products import Products
-from jeeves.model.support_ticket import SupportTicket
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.util.classify import detect_language, detect_product
-from jeeves.util.cleanup import clean_and_parse_description
-from jeeves.util.json_encoder import JeevesJSONEncoder
-from jeeves.util.s3 import S3, S3_SEGMENTED_DIR, S3_BUCKET_ID
-
-# Jeeves ignores tickets sent by the following emails
-_SENDERS_TO_IGNORE = {'no-reply@duolingo.com'}
-
-_TICKET_FILE_TEMPLATE = 'tickets-{lang}-{prod}.txt.gz'
-
-_TICKET_FILE_REGEX = re.compile(r'tickets_(\d+)\.json(\.gz)?$')
 
 
-def extract_ticket_timestamp(filename):
-    return int(_TICKET_FILE_REGEX.search(filename).group(1))
+class MemcacheSupportTicketDAL(object):
 
+    VERSION = 1
+    TTL = 60 * 60 * 24 * 7  # 1 week
 
-class AbstractSupportTicketDAL(object, metaclass=ABCMeta):
+    def _get_cache_key(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
+        return 'tix:v%s:%s:%s' % (self.VERSION, language.name, product.name)
 
-    @abstractmethod
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         """
-        Get a list of SupportTickets with category_labels annotated.
+        Get a list of SupportTickets.
 
-        Keyword Arguments:
-            language {SUPPORTED_LANGUAGES} -- lang id of tickets to fetch
-                                              (default: {SUPPORTED_LANGUAGES.en})
-            product {Products} -- product whose tickets to retreive (default: {Products.LA})
+        Parameters:
+            language (SUPPORTED_LANGUAGES): A language enum.
+            product (Products): A product enum.
         """
+        cache_key = self._get_cache_key(language=language, product=product)
+        json_lines = MemcacheCompressionWrapper.get(cache_key)
+        return deserialize_tickets(json_lines)
 
-    @staticmethod
-    def _deserialize_json(ticket_json):
-        return SupportTicket(
-            ticket_id=ticket_json['ticket_id'],
-            date_time=ticket_json['date_time'],
-            subject=ticket_json['subject'],
-            description=ticket_json['description'],
-            priority=ticket_json.get('priority'),
-            via=ticket_json.get('via'),
-            tags=ticket_json.get('tags'),
-            requester_id=ticket_json.get('requester_id'),
-            category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['ticket_id']),
-            metadata=ticket_json.get('metadata', {})
-        )
-
-
-class AbstractFileSystemSupportTicketDAL(AbstractSupportTicketDAL):
-
-    @abstractmethod
-    def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
-        pass
-
-
-class AbstractRemoteSupportTicketDAL(AbstractSupportTicketDAL):
-    """ Abstract Base class for tickets fetched or accessed non-locally"""
-
-    @abstractmethod
-    def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
-        pass
-
-
-class FileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
-
-    def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
-        file_name = _TICKET_FILE_TEMPLATE.format(lang=language.name, prod=product.name)
-        json_lines = read_from_file(file_name, dir_path=data_directory)  # No need to append '.gz'
-        for line in json_lines.split('\n'):
-            if not line:
-                continue
-            yield self._deserialize_json(json.loads(line))
-
-
-class ZendeskFileSystemSupportTicketDAL(AbstractFileSystemSupportTicketDAL):
-
-    _zendesk_ticket_dir = os.path.join(data_directory, 'zendesk')
-
-    def __init__(self):
-        super(ZendeskFileSystemSupportTicketDAL, self).__init__()
-        self._files = sorted(
-            glob(os.path.join(self._zendesk_ticket_dir, 'tickets_*.json.gz')),
-            key=extract_ticket_timestamp
-        )
-
-    def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
-        for file_name in self._files:
-            input_file = read_from_file(
-                os.path.basename(file_name),  # Already has .gz
-                dir_path=self._zendesk_ticket_dir
-            )
-
-            for ticket_json in json.loads(input_file)['tickets']:
-                ticket = self._deserialize_json(ticket_json)
-                try:
-                    discoveredLang = detect_language(ticket.description)
-                except UnsupportedLanguageError:
-                    pass
-                else:
-                    if discoveredLang == language:
-                        yield ticket
-
-    @staticmethod
-    def _deserialize_json(ticket_json):
-        desc, metadata = clean_and_parse_description(ticket_json['description'])
-        return SupportTicket(
-            ticket_id=ticket_json['id'],
-            date_time=ticket_json['created_at'],
-            subject=ticket_json['subject'],
-            description=desc,
-            priority=ticket_json['priority'],
-            via=ticket_json['via'],
-            tags=ticket_json['tags'],
-            requester_id=ticket_json['requester_id'],
-            category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id']),
-            metadata=metadata
-        )
-
-    def segment_labeled_support_tickets(self):
+    def set_labeled_support_tickets(
+        self, tickets, language=SUPPORTED_LANGUAGES.en, product=Products.LA
+    ):
         """
-        Segment all the Zendesk tickets into separate files for each
-        supported language and product
+        Set a list of SupportTickets.
+
+        Parameters:
+            tickets (list<SupportTicket>): A list of tickets.
+            language (SUPPORTED_LANGUAGES): A language enum.
+            product (Products): A product enum.
         """
-        customJSONDump = functools.partial(json.dumps, cls=JeevesJSONEncoder)
-        # create a `with` context manager for a programmatically defined number of (output) files
-        with contextlib.ExitStack() as stack:
-            # create a segmented out file for all supported languages and platforms
-            out_files = {
-                (lang, prod): gzip.open(
-                    os.path.join(
-                        data_directory,
-                        _TICKET_FILE_TEMPLATE.format(lang=lang.name, prod=prod.name)
-                    ), 'wb'
-                )
-                for lang in SUPPORTED_LANGUAGES for prod in Products
-            }
-            for mgr in out_files.values():
-                # __enter__ the with context, and register it to be __exit__'ed
-                stack.enter_context(mgr)
-
-            content_history = set()
-            # now go through each input ticket file
-            for filename in tqdm(self._files, desc='Segmenting Zendesk Tix'):
-                input_file = read_from_file(
-                    os.path.basename(filename),  # Already has .gz
-                    dir_path=self._zendesk_ticket_dir
-                )
-                for ticket_json in json.loads(input_file)['tickets']:
-                    ticket = self._deserialize_json(ticket_json)
-                    # done in this order because ticket creation filters out
-                    # some junk from the messages (urls, metadata, etc.)
-
-                    # Ignore a ticket with a duplicate description sent on a specific day
-                    hash_seed = ticket.description + ticket.date_time[:10]
-                    content_hash = md5(hash_seed.encode('utf-8')).hexdigest()
-                    if content_hash in content_history:
-                        continue
-                    content_history.add(content_hash)
-
-                    # Ignore a ticket if a sender email is on a blacklist
-                    from_data = ticket.via['source']['from']
-                    if (
-                        from_data and 'address' in from_data
-                        and from_data['address'] in _SENDERS_TO_IGNORE
-                    ):
-                        continue
-
-                    # Skip tickets that have an empty string ('') description
-                    # after cleanup, which are those that consist of just
-                    # punctuation/spacing after cleanup
-                    if not ticket.description:
-                        continue
-                    try:
-                        language = detect_language(ticket.description)
-                    except UnsupportedLanguageError:
-                        # ignore tickets in unsupported languages
-                        pass
-                    # `classifyProd` requires access to `subject` and `tags`
-                    else:
-                        prod = detect_product(ticket_json)
-                        if (language, prod) in out_files:
-                            # Append json string to the end of relevant file
-                            ticket_json_str = customJSONDump(ticket) + '\n'
-                            file = out_files[language, prod]
-                            file.write(ticket_json_str.encode('utf-8'))
-        return list(map(lambda f: f.name, out_files.values()))
+        cache_key = self._get_cache_key(language=language, product=product)
+        MemcacheCompressionWrapper.set(cache_key, serialize_tickets(tickets), self.TTL)
 
 
-class S3RemoteSupportTicketDAL(FileSystemSupportTicketDAL, AbstractRemoteSupportTicketDAL):
-
-    def __init__(self):
-        self._init = False
-
-    def lazy_init(self, sync_with_remote=True):
-        if sync_with_remote:
-            segmented_files = list(S3.yield_filenames(S3_BUCKET_ID, path_prefix=S3_SEGMENTED_DIR))
-            for file_path in tqdm(segmented_files, desc='Downloading Segmented Files'):
-                file_name = os.path.basename(file_path)
-                ticket_json = S3.download(S3_BUCKET_ID, os.path.join(S3_SEGMENTED_DIR, file_name))
-                write_to_file(ticket_json, file_name + '.gz')
-        self._init = True
-
-    def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
-        if not self._init:
-            self.lazy_init()
-        yield from super().get_labeled_support_tickets(language, product)
-
-
-SupportTicketDAL = S3RemoteSupportTicketDAL()
+SupportTicketDAL = MemcacheSupportTicketDAL()
