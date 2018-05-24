@@ -20,13 +20,22 @@ Sent: Tuesday, May 22, 2018 12:58:47 AM
 
 TODO: consider using 3rd party tool or machine learning (sequential tagging).
 """
+import re
+
+_CLOSING = re.compile(
+    (
+        '^(Best|Best Regards|Best wishes|Cheers|Kind regards|Regards|Sincerely|'
+        'Sincerely yours|Thanks|Thank you|Thanks in advance|Yours sincerely)[,!]?$'
+    ), re.IGNORECASE
+)
+
+_QUOTE = re.compile('.+ (wrote|escribió|escreveu|a écrit|ha scritto)[ ]?:$')
+
+_SEPARATOR = re.compile('^[_-]{25,}$')
 
 
 def _is_below_junk(line):
-    return (
-        line.endswith('wrote:') or line.startswith('From:') or line.startswith('_' * 30)
-        or line.startswith('-' * 30)
-    )
+    return _CLOSING.match(line) or _QUOTE.match(line) or _SEPARATOR.match(line)
 
 
 def cleanup_email(body_text):
