@@ -10,7 +10,7 @@ from jeeves.dal.config.metadata import SEMANTIC_FIELD_TITLES, STATS_FIELD_TITLES
 from jeeves.model.metadata import Metadata
 from jeeves.model.time_series import TS
 from jeeves.util.cache import CacheHandler
-from jeeves.util.date_util import convert_timezone, datetime_to_str, get_n_days_ago
+from jeeves.util.date_util import datetime_to_str, get_n_days_ago
 
 _SEARCH_REGEX = r'\b(?:{0})\b'
 
@@ -84,7 +84,7 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter
 
 def get_most_recent_ticket_timestamp():
     """ Returns the timestamp (YYYY:MM:DD hh:mm:ss in US/Eastern) of most recent ticket. """
-    return datetime_to_str(convert_timezone(TS.df.ix[-1]['tickets'].date_time))
+    return datetime_to_str(TS.df.ix[-1]['tickets'].date_time)
 
 
 def get_paginated_tickets(page, limit, dataframe=None):

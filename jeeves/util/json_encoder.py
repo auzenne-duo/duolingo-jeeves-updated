@@ -18,6 +18,6 @@ class JeevesJSONEncoder(json.JSONEncoder):
         elif isinstance(o, np.ndarray):
             return o.tolist()
         elif isinstance(o, datetime):
-            return '%s UTC' % datetime_to_str(o)
+            return datetime_to_str(o)
         else:
             return super().default(o)

@@ -16,7 +16,7 @@ from jeeves.lib.time_series_generator import (
 from jeeves.model.categories import CATEGORIES
 from jeeves.model.metadata import Metadata
 from jeeves.model.time_series import TS
-from jeeves.util.date_util import datetime_to_str, get_eastern_today, \
+from jeeves.util.date_util import datetime_to_str, get_utc_today, \
     time_series_str_to_datetime as str_to_datetime
 from jeeves.util.score import pearsons_coefficient, cosine_similarity
 
@@ -28,9 +28,9 @@ _LOG = logging.getLogger('application')
 # Append this to resource URLs (i.e. JS and CSS) to avoid caching.
 _RANDOM = random.randint(0, 1000000)
 
-_DEPLOYED_TIMESTAMP = datetime_to_str(get_eastern_today())
+_DEPLOYED_TIMESTAMP = datetime_to_str(get_utc_today())
 
-_init_timestamp = datetime_to_str(get_eastern_today())
+_init_timestamp = datetime_to_str(get_utc_today())
 
 
 @blueprint_api.route('/api/1/hello')
@@ -198,7 +198,7 @@ def do_init():
     SpikeDAL.reload_cache()
     TS.reload_cache()
     global _init_timestamp
-    _init_timestamp = datetime_to_str(get_eastern_today())
+    _init_timestamp = datetime_to_str(get_utc_today())
     status = _get_status()
     status['status'] = 'ok'
     return json.jsonify(status)

@@ -25,7 +25,7 @@ def deserialize_zendesk_ticket_json(ticket_json):
     desc, metadata = clean_and_parse_description(ticket_json['description'])
     return SupportTicket(
         ticket_id=ticket_json['id'],
-        date_time=parse(ticket_json['created_at']).astimezone(pytz.utc),
+        date_time=parse(ticket_json['created_at']).replace(tzinfo=pytz.utc),
         subject=ticket_json['subject'],
         description=desc,
         language=detect_language(desc),
@@ -51,7 +51,7 @@ def deserialize_jeeves_ticket_json(ticket_json):
     """
     return SupportTicket(
         ticket_id=ticket_json['ticket_id'],
-        date_time=parse(ticket_json['date_time']).astimezone(pytz.utc),
+        date_time=parse(ticket_json['date_time']).replace(tzinfo=pytz.utc),
         subject=ticket_json['subject'],
         description=ticket_json['description'],
         language=ticket_json['language'],

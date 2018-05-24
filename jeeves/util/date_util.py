@@ -7,7 +7,7 @@ import pytz
 import pandas as pd
 
 _DATE_FORMAT = '%Y-%m-%d'
-_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'  # ISO Format https://www.w3.org/TR/NOTE-datetime
 
 
 def get_eastern_today():
