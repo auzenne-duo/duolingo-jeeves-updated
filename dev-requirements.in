@@ -1,7 +1,7 @@
--r requirements.in
+-r requirements.txt
 
-pip-tools==2.0.2  # Fixes `No module named 'pip.req'` error due to pip 10 when pip-compile
-pre-commit==1.9.0  # Somehow 0.14 is used without pinning
+pip-tools
+pre-commit
 pylint
 pytest
 pytest-cov

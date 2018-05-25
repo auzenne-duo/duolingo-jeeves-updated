@@ -32,6 +32,25 @@ IMAGE_HASH="$(build-galaxy "$DOCKER_FILE")"
 if [[ "$TERRAFORM_ENV" == "prod" ]]; then
     echo "No unit tests in prod environment."
 else
+
+
+    # --- run git hooks on CI ---
+
+    # Running this outside of Docker because of an issue with Alpine + Python 3
+    # https://github.com/python/cpython/pull/4783
+    WORKSPACE=${WORKSPACE:-$(pwd)}
+    PYENV_HOME="$WORKSPACE/.pyenv/"
+    python3 -m venv "$PYENV_HOME"
+    . "$PYENV_HOME/bin/activate"
+    export PYTHONPATH="$WORKSPACE"
+
+    pip install -U pip wheel setuptools
+    pip install -r dev-requirements.txt
+
+    git diff --name-only HEAD^...HEAD
+    pre-commit run --source HEAD^ --origin HEAD
+
+    # --- run tests ---
     WORKDIR="/code"
     CMD="pytest --junitxml=results.xml --cov-report=term --cov-report=xml:cobertura.xml --cov-report=html --cov=jeeves"
     docker run --rm --volume "$(pwd):$WORKDIR" "$IMAGE_HASH" sh -c "$CMD"
