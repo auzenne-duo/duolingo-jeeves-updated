@@ -51,7 +51,7 @@ Use the following legend for `Status`:
 ## Tests
 | Item | Status |
 | ---- |:---:|
-| What is the unit test coverage? | None |
+| What is the unit test coverage? | 26% |
 | Are there appropriate integration and acceptance tests? | N/A (Not much code yet) |
 | Are there instructions for running the tests locally? | :heavy_multiplication_x: |
 | Are there _quick_ smoke tests (e.g. `curl` one-liners) for local development to make sure that the environment is working as expected? | :heavy_multiplication_x: |
