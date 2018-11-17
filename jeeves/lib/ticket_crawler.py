@@ -47,6 +47,10 @@ def crawl_tickets():
             continue
         content_history.add(content_hash)
 
+        # Ignore a ticket if created via chat because they add noise
+        if ticket.via['channel'] == 'chat':
+            continue
+
         # Ignore a ticket if a sender email is on a blacklist
         from_data = ticket.via['source']['from']
         if (from_data and 'address' in from_data and from_data['address'] in _SENDERS_TO_IGNORE):
