@@ -25,7 +25,7 @@ def auth_before_request():
     if request.path in {'/health', '/api/1/init'}:
         return None
     else:
-        return requires_auth(permission='administrator')(lambda: None)()
+        return requires_auth(permission='access-jeeves')(lambda: None)()
 
 
 application.before_request(auth_before_request)
