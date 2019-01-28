@@ -23,13 +23,15 @@ def deserialize_zendesk_ticket_json(ticket_json):
         A SupportTicket object.
     """
     desc, metadata = clean_and_parse_description(ticket_json['description'])
+    ticket_subject = ticket_json['subject'] if ticket_json['subject'] else ''
+
     return SupportTicket(
         ticket_id=ticket_json['id'],
         date_time=parse(ticket_json['created_at']).replace(tzinfo=pytz.utc),
-        subject=ticket_json['subject'],
+        subject=ticket_subject,
         description=desc,
         language=detect_language(desc),
-        product=detect_product(ticket_json['tags'], ticket_json['subject']).name,
+        product=detect_product(ticket_json['tags'], ticket_subject).name,
         priority=ticket_json['priority'],
         via=ticket_json['via'],
         tags=ticket_json['tags'],
@@ -49,10 +51,12 @@ def deserialize_jeeves_ticket_json(ticket_json):
     Returns:
         A SupportTicket object.
     """
+    ticket_subject = ticket_json['subject'] if ticket_json['subject'] else ''
+
     return SupportTicket(
         ticket_id=ticket_json['ticket_id'],
         date_time=parse(ticket_json['date_time']).replace(tzinfo=pytz.utc),
-        subject=ticket_json['subject'],
+        subject=ticket_subject,
         description=ticket_json['description'],
         language=ticket_json['language'],
         product=ticket_json['product'],
