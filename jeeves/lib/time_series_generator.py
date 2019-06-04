@@ -83,8 +83,11 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter
 
 
 def get_most_recent_ticket_timestamp():
-    """ Returns the timestamp (YYYY:MM:DD hh:mm:ss in US/Eastern) of most recent ticket. """
-    return datetime_to_str(TS.df.ix[-1]['tickets'].date_time)
+    """ Returns the timestamp (YYYY-MM-DD hh:mm:ss in US/Eastern) of most recent ticket. """
+    if len(TS.df.index) > 0:
+        return datetime_to_str(TS.df.ix[-1]['tickets'].date_time)
+    else:
+        return '1970-01-01 00:00:00'
 
 
 def get_paginated_tickets(page, limit, dataframe=None):

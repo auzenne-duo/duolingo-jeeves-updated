@@ -9,7 +9,7 @@ from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
 class MemcacheSupportTicketDAL(object):
 
-    VERSION = 1
+    VERSION = 2
     TTL = 60 * 60 * 24 * 7  # 1 week
 
     def _get_cache_key(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):

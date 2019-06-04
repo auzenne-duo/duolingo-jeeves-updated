@@ -92,4 +92,7 @@ def deserialize_tickets(json_lines):
     Returns:
         List of SupportTicket objects.
     """
+    if not json_lines:
+        return []
+
     return [deserialize_jeeves_ticket_json(json.loads(line)) for line in json_lines.split('\n')]
