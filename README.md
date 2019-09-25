@@ -2,7 +2,7 @@
 Technology-driven user support.
 
 ## Owner
-- Hideki Shima, hideki@duolingo.com
+- Peter Chapman, peter@duolingo.com
 
 ## Badges
 ![Code](https://s3.amazonaws.com/duolingo-data/severin/code-bronze.png "Code")
