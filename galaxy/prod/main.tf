@@ -64,6 +64,6 @@ module "duolingo-jeeves-s3-worker" {
   owner                              = "${var.owner}"                                                 # The name of the owner for this service
   ecs_cluster                        = "${var.ecs_cluster}"                                           # Name of the ECS cluster to run on
   container_definition               = "s3-worker.json"
-  cookie_secret                      = "${data.aws_kms_secret.zendesk_password.zendesk_password}"
+  cookie_secret                      = "${data.aws_kms_secrets.secrets.plaintext["zendesk_password"]}"
   version                            = "${var.version}"
 }
