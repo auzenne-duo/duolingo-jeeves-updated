@@ -25,7 +25,7 @@ fi
 # ----- build -----
 
 echo "DOCKER_FILE: $DOCKER_FILE"
-IMAGE_HASH="$(build-galaxy "$DOCKER_FILE")"
+IMAGE_HASH="$(docker build -q -f "$DOCKER_FILE" .)"
 
 
 # ----- test -----
