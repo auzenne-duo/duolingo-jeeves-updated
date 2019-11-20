@@ -47,8 +47,11 @@ class MemcacheCompressionWrapper(object):
         key_to_values = M.get_many(keys)
         values = [key_to_values[key] for key in keys]
         compressed = bytes(item for value in values for item in value)
-        decompressed = zlib.decompress(compressed)
-        return decompressed.decode('utf-8')
+        try:
+            decompressed = zlib.decompress(compressed)
+            return decompressed.decode('utf-8')
+        except zlib.error:
+            return None
 
     @classmethod
     def set(cls, cache_key, cache_value, ttl):
