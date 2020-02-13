@@ -32,7 +32,6 @@ def pearsons(a, b):
 
 
 class Test(unittest.TestCase):
-
     def test_pearsons_coefficient(self):
         expected = pearsons(np_first, np_second)
         result = pearsons_coefficient(first, second)
@@ -44,5 +43,5 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(result, expected)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

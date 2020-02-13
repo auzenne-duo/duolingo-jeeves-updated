@@ -7,7 +7,6 @@ from jeeves.util.cleanup import clean_and_parse_description
 
 
 class Test(unittest.TestCase):
-
     def test_clean_description(self):
         description = r"""I don't have a problem with the functionality of the app but it kept on
         displaying somewhat adult but sensored pictures.
@@ -50,5 +49,5 @@ class Test(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

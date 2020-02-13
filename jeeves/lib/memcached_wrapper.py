@@ -18,19 +18,18 @@ TODO: Replace the underlying manager with the implementation in python-duolingo-
 import zlib
 from jeeves.lib.memcached_client import get_client
 
-_CLIENT_NAME = 'default'
+_CLIENT_NAME = "default"
 
 # Each chunk after split is 500KB or less. Somehow it doesn't work when it's close to 1MB.
-_CHUNK_SIZE = (500 * 1024)
+_CHUNK_SIZE = 500 * 1024
 
 
 class MemcacheCompressionWrapper(object):
-
     @classmethod
     def _get_key(cls, cache_key, split=None):
         if split is None:
-            split = '#'
-        return '%s:%s' % (cache_key, split)
+            split = "#"
+        return "%s:%s" % (cache_key, split)
 
     @classmethod
     def get(cls, cache_key):
@@ -49,7 +48,7 @@ class MemcacheCompressionWrapper(object):
         compressed = bytes(item for value in values for item in value)
         try:
             decompressed = zlib.decompress(compressed)
-            return decompressed.decode('utf-8')
+            return decompressed.decode("utf-8")
         except zlib.error:
             return None
 
@@ -64,10 +63,10 @@ class MemcacheCompressionWrapper(object):
                 https://github.com/memcached/memcached/wiki/Programming#expiration
         """
         M = get_client(_CLIENT_NAME, expiration=ttl, jitter=0)
-        compressed_value = zlib.compress(cache_value.encode('utf-8'))
+        compressed_value = zlib.compress(cache_value.encode("utf-8"))
         split_ids = range(int(len(compressed_value) / _CHUNK_SIZE) + 1)
         split_compressed_values = [
-            compressed_value[i * _CHUNK_SIZE:(i + 1) * _CHUNK_SIZE] for i in split_ids
+            compressed_value[i * _CHUNK_SIZE : (i + 1) * _CHUNK_SIZE] for i in split_ids
         ]
         key_to_value = {
             cls._get_key(cache_key, i): split_compressed_value

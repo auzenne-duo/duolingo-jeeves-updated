@@ -13,7 +13,7 @@ class MemcacheSupportTicketDAL(object):
     TTL = 60 * 60 * 24 * 7  # 1 week
 
     def _get_cache_key(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
-        return 'tix:v%s:%s:%s' % (self.VERSION, language.name, product.name)
+        return "tix:v%s:%s:%s" % (self.VERSION, language.name, product.name)
 
     def get_labeled_support_tickets(self, language=SUPPORTED_LANGUAGES.en, product=Products.LA):
         """

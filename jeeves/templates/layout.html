@@ -1,43 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-{% block head %}
-  <meta charset="UTF-8">
-  <meta http-equiv="cache-control" content="no-cache">
-  <meta http-equiv="pragma" content="no-cache">
-  <title>{% block title %}Duolingo Blast{% endblock %}</title>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <link rel="stylesheet" href="/static/css/common.css?_={{random}}" type="text/css">
-  <link rel="shortcut icon" href="/static/images/favicon.ico">
-{% endblock %}
-  <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-    ga('create', 'UA-21595814-10', 'auto');
-    ga('send', 'pageview');
-  </script>
-</head>
-<body>
-<header class="header">
-  <div class="header-inner">
-    <div class="container">
-      <a href="/" class="topbar-brand navigate-home white smaller-logo"></a>
-      <span class="lockup">jeeves</span>
-      <div class="feedback_wrapper">
-        <!-- #jeeves Slack Channel Deep Link -->
-        <a href="slack://channel?team=T0299K8L0&id=C6A1F2CNA">Feedback/Suggestions</a>
+  <head>
+    {% block head %}
+    <meta charset="UTF-8" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>{% block title %}Duolingo Blast{% endblock %}</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="/static/css/common.css?_={{random}}"
+      type="text/css"
+    />
+    <link rel="shortcut icon" href="/static/images/favicon.ico" />
+    {% endblock %}
+    <script>
+      (function(i, s, o, g, r, a, m) {
+        i["GoogleAnalyticsObject"] = r;
+        (i[r] =
+          i[r] ||
+          function() {
+            (i[r].q = i[r].q || []).push(arguments);
+          }),
+          (i[r].l = 1 * new Date());
+        (a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m);
+      })(
+        window,
+        document,
+        "script",
+        "https://www.google-analytics.com/analytics.js",
+        "ga",
+      );
+      ga("create", "UA-21595814-10", "auto");
+      ga("send", "pageview");
+    </script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="container">
+          <a href="/" class="topbar-brand navigate-home white smaller-logo"></a>
+          <span class="lockup">jeeves</span>
+          <div class="feedback_wrapper">
+            <!-- #jeeves Slack Channel Deep Link -->
+            <a href="slack://channel?team=T0299K8L0&id=C6A1F2CNA"
+              >Feedback/Suggestions</a
+            >
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</header>
+    </header>
 
-{% block body %}
-{% endblock %}
-
-{% block footer %}
-{% endblock %}
-
-</body>
+    {% block body %} {% endblock %} {% block footer %} {% endblock %}
+  </body>
 </html>

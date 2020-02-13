@@ -10,7 +10,7 @@ import unicodedata
 
 class Tokenizer(object):
 
-    table = {i: ' ' for i in range(sys.maxunicode) if unicodedata.category(chr(i)).startswith('P')}
+    table = {i: " " for i in range(sys.maxunicode) if unicodedata.category(chr(i)).startswith("P")}
 
     def tokenize(self, text):
         return text.translate(self.table).lower().split()

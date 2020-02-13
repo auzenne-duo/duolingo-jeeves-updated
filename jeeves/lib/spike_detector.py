@@ -38,13 +38,14 @@ def _get_word_to_date_to_count():
     for ticket in tickets:
         date = date_to_str(convert_timezone(ticket.date_time))
         unique_tickets[(date, ticket.requester_id)] += [
-            ticket.subject, cleanup_email(ticket.description)
+            ticket.subject,
+            cleanup_email(ticket.description),
         ]
 
     for (date, _), ticket_texts in unique_tickets.items():
         # Has to convert to Eastern from UTC before indexing data by date string
         words = set(
-            word for word in tokenizer.tokenize(' '.join(ticket_texts)) if _valid_word(word)
+            word for word in tokenizer.tokenize(" ".join(ticket_texts)) if _valid_word(word)
         )
         date_to_counter[date].update(words)
     word_to_date_to_count = {}
@@ -53,36 +54,37 @@ def _get_word_to_date_to_count():
             if word not in word_to_date_to_count:
                 word_to_date_to_count[word] = {_date: 0 for _date in date_to_counter.keys()}
             word_to_date_to_count[word][date] = count
-    print('num words = %s' % len(word_to_date_to_count))
+    print("num words = %s" % len(word_to_date_to_count))
     return word_to_date_to_count
 
 
 def _find_spiked_words(word_to_date_to_count, target_dt):
     target_date_str = date_to_str(target_dt)
-    print('Spike detection started for', target_date_str)
+    print("Spike detection started for", target_date_str)
     start = time.time()
 
     score_word_pairs = [
-        (_calculate_spike_score(date_to_count, target_dt), word) for word, date_to_count in
-        tqdm(word_to_date_to_count.items(), desc='Calculate spikiness scores')
+        (_calculate_spike_score(date_to_count, target_dt), word)
+        for word, date_to_count in tqdm(
+            word_to_date_to_count.items(), desc="Calculate spikiness scores"
+        )
     ]
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
     result = {
-        'spike':
-            [
-                (score, word)
-                for score, word in score_word_pairs
-                if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
-            ],
-        'new': [word for score, word in score_word_pairs if np.isinf(score)]
+        "spike": [
+            (score, word)
+            for score, word in score_word_pairs
+            if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
+        ],
+        "new": [word for score, word in score_word_pairs if np.isinf(score)],
     }
-    print('%s spiked words found on %s:' % (len(result['spike']), target_date_str))
-    for score, word in result['spike']:
-        print('%.2f %2d %s' % (score, word_to_date_to_count[word][target_date_str], word))
-    print('%s new words found on %s:' % (len(result['new']), target_date_str))
-    for pair in result['new']:
+    print("%s spiked words found on %s:" % (len(result["spike"]), target_date_str))
+    for score, word in result["spike"]:
+        print("%.2f %2d %s" % (score, word_to_date_to_count[word][target_date_str], word))
+    print("%s new words found on %s:" % (len(result["new"]), target_date_str))
+    for pair in result["new"]:
         print(pair)
-    print('Done in %.3f sec.' % (time.time() - start))
+    print("Done in %.3f sec." % (time.time() - start))
     return {target_date_str: result}
 
 
@@ -109,4 +111,4 @@ def _calculate_spike_score(date_to_count, target_datetime):
 
 def _valid_word(word):
     # Word should be at least 3 words and can have chars [a-zA-Z] only.
-    return bool(re.search(r'^[a-zA-Z]{3,}$', word))
+    return bool(re.search(r"^[a-zA-Z]{3,}$", word))

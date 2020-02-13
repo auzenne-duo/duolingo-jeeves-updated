@@ -1,134 +1,134 @@
 fields:
-- datatype: str
-  field: appVersion
-  unique: False
-  semantic: True
-- datatype: str
-  field: flavor
-  unique: False
-  semantic: False
-- datatype: str
-  field: apiLevel
-  unique: False
-  semantic: True
-- datatype: str
-  field: osVersion
-  unique: False
-  semantic: False
-- datatype: str
-  field: hostDevice
-  unique: False
-  semantic: False
-- datatype: str
-  field: modelProduct
-  unique: False
-  semantic: True
-- datatype: str
-  field: micTest
-  unique: False
-  semantic: False
-- datatype: str
-  field: screen
-  unique: False
-  semantic: False
-- datatype: str
-  field: screenDensity
-  unique: False
-  semantic: False
-- datatype: str
-  field: installLocation
-  unique: False
-  semantic: False
-- datatype: str
-  field: memLimits
-  unique: False
-  semantic: False
-- datatype: str
-  field: username
-  unique: True
-  semantic: False
-- datatype: str
-  field: toLanguage
-  unique: False
-  semantic: True
-- datatype: str
-  field: fromLanguage
-  unique: False
-  semantic: True
-- datatype: str
-  field: locale
-  unique: False
-  semantic: False
-- datatype: str
-  field: deviceLanguage
-  unique: False
-  semantic: False
-- datatype: str
-  field: deviceDefaultLocale
-  unique: False
-  semantic: False
-- datatype: str
-  field: platform
-  unique: False
-  semantic: True
+  - datatype: str
+    field: appVersion
+    unique: False
+    semantic: True
+  - datatype: str
+    field: flavor
+    unique: False
+    semantic: False
+  - datatype: str
+    field: apiLevel
+    unique: False
+    semantic: True
+  - datatype: str
+    field: osVersion
+    unique: False
+    semantic: False
+  - datatype: str
+    field: hostDevice
+    unique: False
+    semantic: False
+  - datatype: str
+    field: modelProduct
+    unique: False
+    semantic: True
+  - datatype: str
+    field: micTest
+    unique: False
+    semantic: False
+  - datatype: str
+    field: screen
+    unique: False
+    semantic: False
+  - datatype: str
+    field: screenDensity
+    unique: False
+    semantic: False
+  - datatype: str
+    field: installLocation
+    unique: False
+    semantic: False
+  - datatype: str
+    field: memLimits
+    unique: False
+    semantic: False
+  - datatype: str
+    field: username
+    unique: True
+    semantic: False
+  - datatype: str
+    field: toLanguage
+    unique: False
+    semantic: True
+  - datatype: str
+    field: fromLanguage
+    unique: False
+    semantic: True
+  - datatype: str
+    field: locale
+    unique: False
+    semantic: False
+  - datatype: str
+    field: deviceLanguage
+    unique: False
+    semantic: False
+  - datatype: str
+    field: deviceDefaultLocale
+    unique: False
+    semantic: False
+  - datatype: str
+    field: platform
+    unique: False
+    semantic: True
 metadata:
   android:
     implicitFields:
-    - field: platform
-      value: android
+      - field: platform
+        value: android
     parseFields:
-    - optional: false
-      pattern: (?P<appVersion>.*?) (?P<flavor>.*?)
-      title: App version code
-    - optional: false
-      pattern: (?P<apiLevel>.*?)
-      title: API Level
-    - optional: false
-      pattern: (?P<osVersion>.*?)
-      title: OS Version
-    - optional: false
-      pattern: (?P<hostDevice>.*?)
-      title: Host (Device)
-    - optional: false
-      pattern: (?P<modelProduct>.*?)
-      title: Model (Product)
-    - optional: true
-      pattern: (?P<micTest>.*?)
-      title: Microphone Test
-    - optional: false
-      pattern: (?P<screen>.*?), (?P<screenDensity>.*?)dpi
-      title: Screen
-    - optional: false
-      pattern: (?:(?P<installLocation>.*?), )?(?P<memLimits>.*?)
-      title: Config
-    - optional: true
-      pattern: (?P<username>.*?)
-      title: Username
-    - optional: false
-      pattern: '(?:(?P<toLanguage>.*?)<-(?P<fromLanguage>.*?))?(?: \((?P<locale>.*?)\))? : (?P<deviceLanguage>.*?) : (?P<deviceDefaultLocale>.*?)'
-      title: Languages
+      - optional: false
+        pattern: (?P<appVersion>.*?) (?P<flavor>.*?)
+        title: App version code
+      - optional: false
+        pattern: (?P<apiLevel>.*?)
+        title: API Level
+      - optional: false
+        pattern: (?P<osVersion>.*?)
+        title: OS Version
+      - optional: false
+        pattern: (?P<hostDevice>.*?)
+        title: Host (Device)
+      - optional: false
+        pattern: (?P<modelProduct>.*?)
+        title: Model (Product)
+      - optional: true
+        pattern: (?P<micTest>.*?)
+        title: Microphone Test
+      - optional: false
+        pattern: (?P<screen>.*?), (?P<screenDensity>.*?)dpi
+        title: Screen
+      - optional: false
+        pattern: (?:(?P<installLocation>.*?), )?(?P<memLimits>.*?)
+        title: Config
+      - optional: true
+        pattern: (?P<username>.*?)
+        title: Username
+      - optional: false
+        pattern: '(?:(?P<toLanguage>.*?)<-(?P<fromLanguage>.*?))?(?: \((?P<locale>.*?)\))? : (?P<deviceLanguage>.*?) : (?P<deviceDefaultLocale>.*?)'
+        title: Languages
     parseFormat: '{title}: {pattern}[ \t\r]*\n'
   ios:
     implicitFields:
-    - field: platform
-      value: ios
+      - field: platform
+        value: ios
     parseFields:
-    - optional: false
-      pattern: (?P<username>.*?)
-      title: Username
-    - optional: false
-      pattern: (?P<appVersion>.*?)
-      title: App version
-    - optional: false
-      pattern: (?P<modelProduct>.*?)
-      title: Device model
-    - optional: false
-      pattern: (?P<osVersion>.*?)
-      title: OS version
-    - optional: false
-      pattern: (?P<fromLanguage>.*?)
-      title: UI language
-    - optional: false
-      pattern: (?P<toLanguage>.*?)
-      title: Learning language
+      - optional: false
+        pattern: (?P<username>.*?)
+        title: Username
+      - optional: false
+        pattern: (?P<appVersion>.*?)
+        title: App version
+      - optional: false
+        pattern: (?P<modelProduct>.*?)
+        title: Device model
+      - optional: false
+        pattern: (?P<osVersion>.*?)
+        title: OS version
+      - optional: false
+        pattern: (?P<fromLanguage>.*?)
+        title: UI language
+      - optional: false
+        pattern: (?P<toLanguage>.*?)
+        title: Learning language
     parseFormat: '{title}: {pattern}[ \t\r]*\n'

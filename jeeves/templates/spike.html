@@ -1,25 +1,18 @@
-{% extends "layout.html" %}
-
-{% block title %}Spike Detector | Duolingo Jeeves{% endblock %}
-
-{% block head %}
-  {{ super() }}
-  <script src="/static/js/common.js?_={{random}}"></script>
-  <script src="/static/js/spike.js?_={{random}}"></script>
-  <script>
+{% extends "layout.html" %} {% block title %}Spike Detector | Duolingo Jeeves{%
+endblock %} {% block head %} {{ super() }}
+<script src="/static/js/common.js?_={{random}}"></script>
+<script src="/static/js/spike.js?_={{random}}"></script>
+<script>
   $(document).ready(function() {
-    renderSpikes($('#spike_wrapper'));
-  })
-  </script>
-{% endblock %}
-
-{% block body %}
+    renderSpikes($("#spike_wrapper"));
+  });
+</script>
+{% endblock %} {% block body %}
 <main>
-<section>
-  <h1>Spike Detector</h1>
-</section>
+  <section>
+    <h1>Spike Detector</h1>
+  </section>
 
-<section id="spike_wrapper"></section>
-
+  <section id="spike_wrapper"></section>
 </main>
 {% endblock %}

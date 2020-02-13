@@ -24,14 +24,15 @@ import re
 
 _CLOSING = re.compile(
     (
-        '^(Best|Best Regards|Best wishes|Cheers|Kind regards|Regards|Sincerely|'
-        'Sincerely yours|Thanks|Thank you|Thanks in advance|Yours sincerely)[,!]?$'
-    ), re.IGNORECASE
+        "^(Best|Best Regards|Best wishes|Cheers|Kind regards|Regards|Sincerely|"
+        "Sincerely yours|Thanks|Thank you|Thanks in advance|Yours sincerely)[,!]?$"
+    ),
+    re.IGNORECASE,
 )
 
-_QUOTE = re.compile('.+ (wrote|escribió|escreveu|a écrit|ha scritto)[ ]?:$')
+_QUOTE = re.compile(".+ (wrote|escribió|escreveu|a écrit|ha scritto)[ ]?:$")
 
-_SEPARATOR = re.compile('^[_-]{25,}$')
+_SEPARATOR = re.compile("^[_-]{25,}$")
 
 
 def _is_below_junk(line):
@@ -39,6 +40,6 @@ def _is_below_junk(line):
 
 
 def cleanup_email(body_text):
-    lines = body_text.split('\n')
+    lines = body_text.split("\n")
     pos = next((i for i, line in enumerate(lines) if _is_below_junk(line)), None)
-    return '\n'.join(lines[:pos])
+    return "\n".join(lines[:pos])

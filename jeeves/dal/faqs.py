@@ -51,11 +51,11 @@ import time
 
 import requests
 
-_LOCALE = 'en-us'
+_LOCALE = "en-us"
 
 _URL_TEMPLATE = (
-    'https://support.duolingo.com/api/v2/help_center/{locale}/'
-    'articles.json?page={page}&per_page=100'
+    "https://support.duolingo.com/api/v2/help_center/{locale}/"
+    "articles.json?page={page}&per_page=100"
 )
 
 
@@ -77,8 +77,8 @@ class ZendeskFAQDAL(object):
             url = _URL_TEMPLATE.format(locale=_LOCALE, page=count)
             response = requests.get(url)
             json_response = response.json()
-            self.faqs.update({article['id']: article for article in json_response['articles']})
-            if count == json_response['page_count']:
+            self.faqs.update({article["id"]: article for article in json_response["articles"]})
+            if count == json_response["page_count"]:
                 break
             count += 1
             # Avoid rate-limiting

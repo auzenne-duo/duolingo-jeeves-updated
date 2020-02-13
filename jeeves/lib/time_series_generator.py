@@ -12,7 +12,7 @@ from jeeves.model.time_series import TS
 from jeeves.util.cache import CacheHandler
 from jeeves.util.date_util import datetime_to_str, get_n_days_ago
 
-_SEARCH_REGEX = r'\b(?:{0})\b'
+_SEARCH_REGEX = r"\b(?:{0})\b"
 
 
 def _compile_search_regex(word):
@@ -23,9 +23,10 @@ def _compile_search_regex(word):
 def match_description(word, start_time=None, end_time=None, meta_filter=Metadata({})):
     # end_time doesn't have to be incremented for 1 day
 
-    ser = TS.df.loc[start_time:end_time]['tickets']
-    meta_match = lambda tk: all(getattr(tk.metadata, field) == val
-                                for field, val in meta_filter.items() if val != '')
+    ser = TS.df.loc[start_time:end_time]["tickets"]
+    meta_match = lambda tk: all(
+        getattr(tk.metadata, field) == val for field, val in meta_filter.items() if val != ""
+    )
     if word:
         match = _compile_search_regex(word)
         desc_match = lambda tk: bool(match.search(tk.description))
@@ -58,11 +59,14 @@ def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({
         # end_time has to be incremented for 1 day!!
         end_time = get_n_days_ago(end_time, -1)
     counts = (
-        match_description(word, start_time, end_time, meta_filter).astype(int, copy=False)
-        .resample('D').sum().transform(lambda i: 0 if np.isnan(i) else i)
+        match_description(word, start_time, end_time, meta_filter)
+        .astype(int, copy=False)
+        .resample("D")
+        .sum()
+        .transform(lambda i: 0 if np.isnan(i) else i)
     )
-    vals = dict(zip(map(lambda dt: dt.strftime('%Y-%m-%d'), counts.index), counts))
-    return {'values': vals}
+    vals = dict(zip(map(lambda dt: dt.strftime("%Y-%m-%d"), counts.index), counts))
+    return {"values": vals}
 
 
 @CacheHandler.cache(maxsize=32, typed=False)
@@ -74,20 +78,20 @@ def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter
     if word:
         matched_mask = match_description(word, start_time, end_time, meta_filter)
         try:
-            return TS.df.loc[start_time:end_time][matched_mask]['tickets']
+            return TS.df.loc[start_time:end_time][matched_mask]["tickets"]
         except KeyError:
-            print('Data missing for the timespan (%s, %s). Please update.' % (start_time, end_time))
+            print("Data missing for the timespan (%s, %s). Please update." % (start_time, end_time))
             raise
     else:
-        return TS.df.loc[start_time:end_time]['tickets']
+        return TS.df.loc[start_time:end_time]["tickets"]
 
 
 def get_most_recent_ticket_timestamp():
     """ Returns the timestamp (YYYY-MM-DD hh:mm:ss in US/Eastern) of most recent ticket. """
     if len(TS.df.index) > 0:
-        return datetime_to_str(TS.df.ix[-1]['tickets'].date_time)
+        return datetime_to_str(TS.df.ix[-1]["tickets"].date_time)
     else:
-        return '1970-01-01 00:00:00'
+        return "1970-01-01 00:00:00"
 
 
 def get_paginated_tickets(page, limit, dataframe=None):
@@ -97,7 +101,7 @@ def get_paginated_tickets(page, limit, dataframe=None):
     end = start - limit
     paginated = dataframe.ix[start:end:-1]
     if isinstance(paginated, pd.DataFrame):
-        paginated = paginated['tickets']
+        paginated = paginated["tickets"]
     return paginated
 
 
@@ -105,7 +109,7 @@ def get_paginated_tickets(page, limit, dataframe=None):
 def get_viable_categories_in_metadata_distribution(start_time, end_time, min_prob=0.001):
     # end_time doesn't have to be incremented for 1 day
 
-    matched_mask = match_description('', start_time, end_time)
+    matched_mask = match_description("", start_time, end_time)
     matched_meta = TS.df.loc[start_time:end_time][matched_mask][SEMANTIC_FIELD_TITLES]
     return {
         col: set(matched_meta[col].value_counts(normalize=True)[lambda p: p > min_prob].index)
@@ -126,7 +130,7 @@ def get_metadata_distribution(word, start_time=None, end_time=None, meta_filter=
             k: v
             for k, v in matched_meta[col].value_counts(normalize=True).iteritems()
             # not counting the unpopulated fields
-            if k != ''
+            if k != ""
             # as long as k is a mildly plausible (non-noise) category
             and k in viable_categories[col]
         }

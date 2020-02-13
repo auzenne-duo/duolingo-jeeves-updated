@@ -7,4 +7,5 @@ from enum import Enum, auto
 
 class SUPPORTED_LANGUAGES(Enum):
     """Duolingo Jeeves supported languages"""
+
     en = auto()  # English

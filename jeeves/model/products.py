@@ -7,6 +7,7 @@ from enum import Enum, auto
 
 class Products(Enum):
     """Duolingo Products"""
+
     LA = auto()
     TINYCARDS = auto()
     DET = auto()

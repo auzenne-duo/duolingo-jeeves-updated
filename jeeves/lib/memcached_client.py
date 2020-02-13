@@ -33,11 +33,9 @@ def get_client(prefix, expiration=0, jitter=0):
         with _memcache_creation_lock:
             if prefix in _memcache_clients:
                 return _memcache_clients[prefix]
-            host = _config.get_nested(['memcached', 'host'])
-            port = int(_config.get_nested(['memcached', 'port']))
-            _memcache_clients[prefix] = \
-                BaseMemcacheDAL(MemcacheClient([(host, port)]),
-                                prefix,
-                                expiration,
-                                jitter=jitter)
+            host = _config.get_nested(["memcached", "host"])
+            port = int(_config.get_nested(["memcached", "port"]))
+            _memcache_clients[prefix] = BaseMemcacheDAL(
+                MemcacheClient([(host, port)]), prefix, expiration, jitter=jitter
+            )
         return _memcache_clients[prefix]

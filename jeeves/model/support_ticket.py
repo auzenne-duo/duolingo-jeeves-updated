@@ -8,12 +8,22 @@ from jeeves.model import JeevesObject
 from jeeves.model.metadata import Metadata
 
 _TICKET_FIELDS = (
-    'ticket_id', 'date_time', 'subject', 'description', 'language', 'product', 'priority', 'via',
-    'tags', 'requester_id', 'category_labels', 'metadata'
+    "ticket_id",
+    "date_time",
+    "subject",
+    "description",
+    "language",
+    "product",
+    "priority",
+    "via",
+    "tags",
+    "requester_id",
+    "category_labels",
+    "metadata",
 )
 
 
-class SupportTicket(JeevesObject, namedtuple('ST', ' '.join(_TICKET_FIELDS))):
+class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
 
     __slots__ = ()
 
@@ -30,7 +40,7 @@ class SupportTicket(JeevesObject, namedtuple('ST', ' '.join(_TICKET_FIELDS))):
         tags,
         requester_id,
         category_labels=None,
-        metadata=None
+        metadata=None,
     ):
         """
         Parameters:
@@ -54,21 +64,31 @@ class SupportTicket(JeevesObject, namedtuple('ST', ' '.join(_TICKET_FIELDS))):
             metadata = {}
         metadata = Metadata(metadata)
         return super().__new__(
-            cls, ticket_id, date_time, subject, description, language, product, priority, via, tags,
-            requester_id, category_labels, metadata
+            cls,
+            ticket_id,
+            date_time,
+            subject,
+            description,
+            language,
+            product,
+            priority,
+            via,
+            tags,
+            requester_id,
+            category_labels,
+            metadata,
         )
 
     def __repr__(self):
-
         def summarize(item):
             key, value = item
-            if key == 'description' and len(value) > 30:
-                return (key, value.replace('\n', ' ')[:30] + '...')
+            if key == "description" and len(value) > 30:
+                return (key, value.replace("\n", " ")[:30] + "...")
             else:
                 return item
 
-        variables = ', '.join('%s=%s' % summarize(item) for item in self._asdict().items())
-        return '%s(%s)' % (type(self).__name__, variables)
+        variables = ", ".join("%s=%s" % summarize(item) for item in self._asdict().items())
+        return "%s(%s)" % (type(self).__name__, variables)
 
     def __serialize__(self):
         return self._asdict()

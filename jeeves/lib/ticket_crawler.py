@@ -9,7 +9,7 @@ from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import datetime_to_str, date_to_str, get_n_days_ago, get_utc_today
 
 # Jeeves ignores tickets sent by the following emails
-_SENDERS_TO_IGNORE = {'no-reply@duolingo.com', 'community@duolingo.com'}
+_SENDERS_TO_IGNORE = {"no-reply@duolingo.com", "community@duolingo.com"}
 
 _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
 
@@ -27,13 +27,14 @@ def crawl_tickets():
         latest_timestamp = _THRESHOLD_DATE.timestamp()
 
     print(
-        'Downloading new tickets since {}'
-        .format(datetime_to_str(datetime.fromtimestamp(latest_timestamp)))
+        "Downloading new tickets since {}".format(
+            datetime_to_str(datetime.fromtimestamp(latest_timestamp))
+        )
     )
 
     def get_hash(ticket):
         hash_seed = ticket.description + date_to_str(ticket.date_time)
-        return md5(hash_seed.encode('utf-8')).hexdigest()
+        return md5(hash_seed.encode("utf-8")).hexdigest()
 
     content_history = {get_hash(ticket) for ticket in tickets}
     for ticket in yield_tickets(latest_timestamp):
@@ -48,12 +49,12 @@ def crawl_tickets():
         content_history.add(content_hash)
 
         # Ignore a ticket if created via chat because they add noise
-        if ticket.via['channel'] == 'chat':
+        if ticket.via["channel"] == "chat":
             continue
 
         # Ignore a ticket if a sender email is on a blacklist
-        from_data = ticket.via['source']['from']
-        if (from_data and 'address' in from_data and from_data['address'] in _SENDERS_TO_IGNORE):
+        from_data = ticket.via["source"]["from"]
+        if from_data and "address" in from_data and from_data["address"] in _SENDERS_TO_IGNORE:
             continue
 
         # Skip tickets that have an empty string ('') description
@@ -81,8 +82,8 @@ def crawl_tickets():
     num_tickets_decreased = num_tickets_after_crawling - num_tickets_after_filtering
 
     print(
-        '# of tickets in DB: %s (+%s, -%s)' %
-        (len(tickets), num_tickets_added, num_tickets_decreased)
+        "# of tickets in DB: %s (+%s, -%s)"
+        % (len(tickets), num_tickets_added, num_tickets_decreased)
     )
 
     SupportTicketDAL.set_labeled_support_tickets(tickets)

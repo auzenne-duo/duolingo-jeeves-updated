@@ -51,6 +51,7 @@ from enum import Enum, auto
 
 class CATEGORIES(Enum):
     """Duolingo Jeeves tag categories"""
+
     bug = auto()
     suggestion = auto()
     inappropriate_ad = auto()

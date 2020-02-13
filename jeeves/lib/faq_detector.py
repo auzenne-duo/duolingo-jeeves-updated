@@ -28,7 +28,7 @@ def detect_faq(ticket):
     scored_faqs = [(score_faq(ticket, faq), faq) for faq in FAQDAL.get_faqs().values()]
     sorted_scored_faqs = sorted(scored_faqs, key=lambda pair: pair[0], reverse=True)
     (best_faq_score, best_faq) = sorted_scored_faqs[0]
-    return best_faq['id'] if best_faq_score > _FAQ_SCORE_THRESHOLD else None
+    return best_faq["id"] if best_faq_score > _FAQ_SCORE_THRESHOLD else None
 
 
 # pylint: disable=unused-argument
@@ -41,4 +41,5 @@ def score_faq(ticket, faq):
     # pylint: disable=fixme
     # TODO(Lawrence): Implement something simple to start with
     import random
+
     return random.random()

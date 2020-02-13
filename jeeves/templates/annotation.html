@@ -1,55 +1,52 @@
-{% extends "layout.html" %}
-
-{% block title %}Annotation Tool | Duolingo Jeeves{% endblock %}
-
-{% block head %}
-  {{ super() }}
-  <script src="/static/js/common.js?_={{random}}"></script>
-  <script src="/static/js/ticket.js?_={{random}}"></script>
-  <script>
+{% extends "layout.html" %} {% block title %}Annotation Tool | Duolingo Jeeves{%
+endblock %} {% block head %} {{ super() }}
+<script src="/static/js/common.js?_={{random}}"></script>
+<script src="/static/js/ticket.js?_={{random}}"></script>
+<script>
   $(document).ready(function() {
-    var page = getParameterByName('page', 0);
+    var page = getParameterByName("page", 0);
     loadTickets(page);
-    $('.next').click(function() {
+    $(".next").click(function() {
       var json_data = [];
-      $('.ticket_table').each(function() {
+      $(".ticket_table").each(function() {
         var table = $(this);
-        if (!table.data('updated')) {
+        if (!table.data("updated")) {
           return;
         }
         var category_labels = [];
-        table.find('input:checked').each(function() {
+        table.find("input:checked").each(function() {
           category_labels.push($(this).val());
         });
-        json_data.push({ticket_id: table.data('id'), category_labels: category_labels});
+        json_data.push({
+          ticket_id: table.data("id"),
+          category_labels: category_labels,
+        });
       });
       if (json_data.length > 0) {
         $.ajax({
-          type: 'PATCH',
-          url: '/api/1/tickets',
+          type: "PATCH",
+          url: "/api/1/tickets",
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            Accept: "application/json",
+            "Content-Type": "application/json",
           },
-          data: JSON.stringify(json_data)
+          data: JSON.stringify(json_data),
         });
       }
-      loadTickets($(this).data('next_page'));
+      loadTickets($(this).data("next_page"));
     });
   });
-  </script>
-{% endblock %}
-
-{% block body %}
+</script>
+{% endblock %} {% block body %}
 <main>
-<section>
-  <h1>Annotation Tool</h1>
-</section>
+  <section>
+    <h1>Annotation Tool</h1>
+  </section>
 
-<section id="tickets"></section>
+  <section id="tickets"></section>
 
-<section class="next_wrapper">
-  <button class="next btn-primary">Save &amp; Continue</button>
-</section>
+  <section class="next_wrapper">
+    <button class="next btn-primary">Save &amp; Continue</button>
+  </section>
 </main>
 {% endblock %}

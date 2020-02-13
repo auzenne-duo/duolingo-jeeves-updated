@@ -1,7 +1,6 @@
 -r requirements.txt
 
 pip-tools
-pre-commit
 pylint
 pytest
 pytest-cov

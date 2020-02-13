@@ -13,11 +13,11 @@ def evaluate(language):
     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--language', default='en', help='Language abbreviation.')
+    parser.add_argument("--language", default="en", help="Language abbreviation.")
     args = parser.parse_args()
-    print('Parameters: ', args)
+    print("Parameters: ", args)
 
     if args.language:
         assert args.language in SUPPORTED_LANGUAGES
@@ -26,4 +26,4 @@ if __name__ == '__main__':
         for language in SUPPORTED_LANGUAGES:
             evaluate(language)
 
-    print('Done.')
+    print("Done.")

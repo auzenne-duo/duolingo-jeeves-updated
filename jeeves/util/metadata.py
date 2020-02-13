@@ -5,25 +5,24 @@ from jeeves.dal.config.metadata import Config
 
 
 def parse(parseFormat):
-
     def parseInner(pField):
         line = parseFormat.format(
             **{
-                k: re.escape(v) if k != 'pattern' and isinstance(v, str) else v
+                k: re.escape(v) if k != "pattern" and isinstance(v, str) else v
                 for k, v in pField.items()
             }
         )
-        if pField['optional']:
-            line = r'(?:{})?'.format(line)
+        if pField["optional"]:
+            line = r"(?:{})?".format(line)
         return line
 
     return parseInner
 
 
-_METADATA_CFG = Config['metadata']
+_METADATA_CFG = Config["metadata"]
 
 _MDATA_REGEXES = {
-    plat: re.compile(''.join(map(parse(platData['parseFormat']), platData['parseFields'])))
+    plat: re.compile("".join(map(parse(platData["parseFormat"]), platData["parseFields"])))
     for plat, platData in _METADATA_CFG.items()
 }
 
@@ -44,8 +43,8 @@ def parse_metadata(txt):
             match = mdataParser.search(txt)
             if match:
                 d = match.groupdict()
-                for implFields in _METADATA_CFG[plat]['implicitFields']:
-                    fld, val = operator.itemgetter('field', 'value')(implFields)
+                for implFields in _METADATA_CFG[plat]["implicitFields"]:
+                    fld, val = operator.itemgetter("field", "value")(implFields)
                     d[fld] = val
                 return match.span(), d
         # if none of the parsers find metadata

@@ -6,8 +6,8 @@ import pytz
 
 import pandas as pd
 
-_DATE_FORMAT = '%Y-%m-%d'
-_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'  # ISO Format https://www.w3.org/TR/NOTE-datetime
+_DATE_FORMAT = "%Y-%m-%d"
+_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"  # ISO Format https://www.w3.org/TR/NOTE-datetime
 
 
 def get_eastern_today():
@@ -22,9 +22,9 @@ def get_utc_today():
 
 def convert_timezone(time, tz_from=None, tz_to=None):
     if tz_from is None:
-        tz_from = pytz.timezone('UTC')
+        tz_from = pytz.timezone("UTC")
     if tz_to is None:
-        tz_to = pytz.timezone('US/Eastern')
+        tz_to = pytz.timezone("US/Eastern")
     return time.replace(tzinfo=tz_from).astimezone(tz=tz_to)
 
 
@@ -52,7 +52,7 @@ def date_to_str(date_obj):
     Returns:
         A date string (YYYY-MM-DD).
     """
-    assert isinstance(date_obj, datetime.date), 'invalid type: %s' % type(date_obj)
+    assert isinstance(date_obj, datetime.date), "invalid type: %s" % type(date_obj)
 
     return date_obj.strftime(_DATE_FORMAT)
 
@@ -81,12 +81,12 @@ def str_to_date(date_str):
     Returns:
         A datetime.date object
     """
-    _date_str = date_str.split('-')
+    _date_str = date_str.split("-")
     return datetime.date(int(_date_str[0]), int(_date_str[1]), int(_date_str[2]))
 
 
 def time_series_str_to_datetime(date_str):
-    if date_str is None or date_str == '':
+    if date_str is None or date_str == "":
         return None
     else:
-        return pd.Timestamp(date_str, tz='UTC')
+        return pd.Timestamp(date_str, tz="UTC")

@@ -22,22 +22,22 @@ def deserialize_zendesk_ticket_json(ticket_json):
     Returns:
         A SupportTicket object.
     """
-    desc, metadata = clean_and_parse_description(ticket_json['description'])
-    ticket_subject = ticket_json['subject'] if ticket_json['subject'] else ''
+    desc, metadata = clean_and_parse_description(ticket_json["description"])
+    ticket_subject = ticket_json["subject"] if ticket_json["subject"] else ""
 
     return SupportTicket(
-        ticket_id=ticket_json['id'],
-        date_time=parse(ticket_json['created_at']).replace(tzinfo=pytz.utc),
+        ticket_id=ticket_json["id"],
+        date_time=parse(ticket_json["created_at"]).replace(tzinfo=pytz.utc),
         subject=ticket_subject,
         description=desc,
         language=detect_language(desc),
-        product=detect_product(ticket_json['tags'], ticket_subject).name,
-        priority=ticket_json['priority'],
-        via=ticket_json['via'],
-        tags=ticket_json['tags'],
-        requester_id=ticket_json['requester_id'],
-        category_labels=CategoryAnnotationDAL.get_annotations(ticket_json['id']),
-        metadata=metadata
+        product=detect_product(ticket_json["tags"], ticket_subject).name,
+        priority=ticket_json["priority"],
+        via=ticket_json["via"],
+        tags=ticket_json["tags"],
+        requester_id=ticket_json["requester_id"],
+        category_labels=CategoryAnnotationDAL.get_annotations(ticket_json["id"]),
+        metadata=metadata,
     )
 
 
@@ -51,21 +51,21 @@ def deserialize_jeeves_ticket_json(ticket_json):
     Returns:
         A SupportTicket object.
     """
-    ticket_subject = ticket_json['subject'] if ticket_json['subject'] else ''
+    ticket_subject = ticket_json["subject"] if ticket_json["subject"] else ""
 
     return SupportTicket(
-        ticket_id=ticket_json['ticket_id'],
-        date_time=parse(ticket_json['date_time']).replace(tzinfo=pytz.utc),
+        ticket_id=ticket_json["ticket_id"],
+        date_time=parse(ticket_json["date_time"]).replace(tzinfo=pytz.utc),
         subject=ticket_subject,
-        description=ticket_json['description'],
-        language=ticket_json['language'],
-        product=ticket_json['product'],
-        priority=ticket_json['priority'],
-        via=ticket_json['via'],
-        tags=ticket_json['tags'],
-        requester_id=ticket_json['requester_id'],
-        category_labels=ticket_json['category_labels'],
-        metadata=ticket_json['metadata']
+        description=ticket_json["description"],
+        language=ticket_json["language"],
+        product=ticket_json["product"],
+        priority=ticket_json["priority"],
+        via=ticket_json["via"],
+        tags=ticket_json["tags"],
+        requester_id=ticket_json["requester_id"],
+        category_labels=ticket_json["category_labels"],
+        metadata=ticket_json["metadata"],
     )
 
 
@@ -79,7 +79,7 @@ def serialize_tickets(tickets):
     Returns:
         A string.
     """
-    return '\n'.join(_CUSTOM_JSON_DUMP(ticket) for ticket in tickets)
+    return "\n".join(_CUSTOM_JSON_DUMP(ticket) for ticket in tickets)
 
 
 def deserialize_tickets(json_lines):
@@ -95,4 +95,4 @@ def deserialize_tickets(json_lines):
     if not json_lines:
         return []
 
-    return [deserialize_jeeves_ticket_json(json.loads(line)) for line in json_lines.split('\n')]
+    return [deserialize_jeeves_ticket_json(json.loads(line)) for line in json_lines.split("\n")]

@@ -5,7 +5,7 @@ from jeeves.dal.config.metadata import FIELD_TITLES
 from jeeves.model import JeevesObject
 
 
-class Metadata(JeevesObject, namedtuple('MD', FIELD_TITLES)):
+class Metadata(JeevesObject, namedtuple("MD", FIELD_TITLES)):
     """Metadata container"""
 
     __slots__ = ()
@@ -14,7 +14,7 @@ class Metadata(JeevesObject, namedtuple('MD', FIELD_TITLES)):
         # CONSIDER: Will currently ignore keys in `metadata_dict` that aren't
         # part of FIELD_TITLES. This is silent, but maybe performs faster?
         # Might want to be not silent about this deletion.
-        d = {field: metadata_dict.get(field, '') for field in cls._fields}
+        d = {field: metadata_dict.get(field, "") for field in cls._fields}
         return super().__new__(cls, **d)
 
     def __serialize__(self):

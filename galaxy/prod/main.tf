@@ -56,13 +56,13 @@ module "duolingo-jeeves-s3-worker" {
   subservice                         = "s3-worker"
   cpu                                = 1024
   memory                             = 1024
-  min_count                          = 1                                                              # Minimum number of tasks to run in autoscaling group
-  max_count                          = 1                                                              # Maximum number of tasks to run in autoscaling group
+  min_count                          = 1                                                               # Minimum number of tasks to run in autoscaling group
+  max_count                          = 1                                                               # Maximum number of tasks to run in autoscaling group
   scale_out_count                    = 0
   deployment_minimum_healthy_percent = 0
   product                            = "${var.product}"
-  owner                              = "${var.owner}"                                                 # The name of the owner for this service
-  ecs_cluster                        = "${var.ecs_cluster}"                                           # Name of the ECS cluster to run on
+  owner                              = "${var.owner}"                                                  # The name of the owner for this service
+  ecs_cluster                        = "${var.ecs_cluster}"                                            # Name of the ECS cluster to run on
   container_definition               = "s3-worker.json"
   cookie_secret                      = "${data.aws_kms_secrets.secrets.plaintext["zendesk_password"]}"
   version                            = "${var.version}"

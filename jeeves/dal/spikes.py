@@ -7,7 +7,7 @@ from jeeves.config.config import CRAWL_WINDOW_SIZE
 from jeeves.lib.memcached_client import get_client
 from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
 
-_CLIENT_NAME = 'default'
+_CLIENT_NAME = "default"
 
 # TODO: Set TTL to this in-memory cache
 _SPIKES = {}
@@ -16,7 +16,6 @@ _TTL = 60 * 60 * 24 * 7
 
 
 class MemcacheSpikeDAL(object):
-
     def get_spikes(self):
         """
         Returns:
@@ -27,7 +26,7 @@ class MemcacheSpikeDAL(object):
         if _SPIKES:
             return _SPIKES
         M = get_client(_CLIENT_NAME)
-        spike_json_str = M.get('spikes')
+        spike_json_str = M.get("spikes")
         if spike_json_str:
             _SPIKES.update(json.loads(spike_json_str))
         return _SPIKES
@@ -46,7 +45,7 @@ class MemcacheSpikeDAL(object):
         today = get_eastern_today()
         valid_range = set(date_to_str(get_n_days_ago(today, i)) for i in range(CRAWL_WINDOW_SIZE))
         spike_dict = {k: v for k, v in spike_dict.items() if k in valid_range}
-        M.set('spikes', json.dumps(spike_dict))
+        M.set("spikes", json.dumps(spike_dict))
 
     def reload_cache(self):
         """Clear and reload cache."""
