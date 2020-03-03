@@ -1,16 +1,16 @@
 # The AWS region. This is normally us-east-1
 provider "aws" {
   region  = "us-east-1"
-  version = "~> 1.6"
+  version = "~> 2.0"
 }
 
 terraform {
   backend "s3" {
-    bucket     = "infra-galaxy-state"
-    key        = "duolingo/jeeves/dev/terraform.tfstate"
-    region     = "us-east-1"
-    encrypt    = "true"
-    lock_table = "infra-galaxy-lock"
+    bucket         = "infra-galaxy-state"
+    key            = "duolingo/jeeves/dev/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = "true"
+    dynamodb_table = "infra-galaxy-lock"
   }
 }
 
@@ -32,18 +32,18 @@ resource "aws_route53_record" "duolingo-jeeves-dev" {
 }
 
 module "duolingo-jeeves" {
-  source            = "github.com/duolingo/infra-galaxy//modules/ecs_web_service"
+  source            = "github.com/duolingo/infra-galaxy//modules/ecs_web_service?ref=ops-7557"
   environment       = "${var.environment}"
   service           = "${var.service}"
   subservice        = "api"
   health_check_path = "/health"
-  min_count         = 1                                                           # Minimum number of tasks to run in autoscaling group
-  max_count         = 1                                                           # Maximum number of tasks to run in autoscaling group
-  memory            = 800                                                         # Maximum memory (default: 128MB)
+  min_count         = 1                                                                        # Minimum number of tasks to run in autoscaling group
+  max_count         = 1                                                                        # Maximum number of tasks to run in autoscaling group
+  memory            = 800                                                                      # Maximum memory (default: 128MB)
   product           = "${var.product}"
-  owner             = "${var.owner}"                                              # The name of the owner for this service
-  ecs_cluster       = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
+  owner             = "${var.owner}"                                                           # The name of the owner for this service
+  ecs_cluster       = "${var.ecs_cluster}"                                                     # Name of the ECS cluster to run on
   container_port    = 5000
-  internal          = "true"                                                      # Create an internal service
+  internal          = "true"                                                                   # Create an internal service
   version           = "${var.version}"
 }

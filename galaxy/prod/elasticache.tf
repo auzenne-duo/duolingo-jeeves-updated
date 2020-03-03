@@ -12,7 +12,7 @@ resource "aws_route53_record" "duolingo-jeeves-memcache-vpc-record" {
 }
 
 module "duolingo-jeeves-memcache" {
-  source          = "github.com/duolingo/infra-galaxy//modules/memcache_cluster"
+  source          = "github.com/duolingo/infra-galaxy//modules/memcache_cluster?ref=ops-7557"
   identifier      = "duolingo-jeeves-prod"
   product         = "${var.product}"
   owner           = "${var.owner}"
