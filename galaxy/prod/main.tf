@@ -32,37 +32,37 @@ resource "aws_route53_record" "duolingo-jeeves-prod" {
 }
 
 module "duolingo-jeeves" {
-  source            = "github.com/duolingo/infra-galaxy//modules/ecs_web_service?ref=ops-7557"
+  source            = "github.com/duolingo/infra-galaxy//modules/ecs_web_service"
   environment       = "${var.environment}"
   service           = "${var.service}"
   subservice        = "api"
   health_check_path = "/health"
-  min_count         = 1                                                                        # Minimum number of tasks to run in autoscaling group
-  max_count         = 5                                                                        # Maximum number of tasks to run in autoscaling group
-  scale_out_cpu     = 80                                                                       # Scale out at this cpu usage (percent)
-  memory            = 1024                                                                     # Maximum memory (default: 128MB)
+  min_count         = 1                                                           # Minimum number of tasks to run in autoscaling group
+  max_count         = 5                                                           # Maximum number of tasks to run in autoscaling group
+  scale_out_cpu     = 80                                                          # Scale out at this cpu usage (percent)
+  memory            = 1024                                                        # Maximum memory (default: 128MB)
   product           = "${var.product}"
-  owner             = "${var.owner}"                                                           # The name of the owner for this service
-  ecs_cluster       = "${var.ecs_cluster}"                                                     # Name of the ECS cluster to run on
+  owner             = "${var.owner}"                                              # The name of the owner for this service
+  ecs_cluster       = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
   container_port    = 5000
-  internal          = "false"                                                                  # Create a service accessible outside the office network
+  internal          = "false"                                                     # Create a service accessible outside the office network
   version           = "${var.version}"
 }
 
 module "duolingo-jeeves-s3-worker" {
-  source                             = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service?ref=ops-7557"
+  source                             = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
   environment                        = "${var.environment}"
   service                            = "${var.service}"
   subservice                         = "s3-worker"
   cpu                                = 1024
   memory                             = 1024
-  min_count                          = 1                                                                           # Minimum number of tasks to run in autoscaling group
-  max_count                          = 1                                                                           # Maximum number of tasks to run in autoscaling group
+  min_count                          = 1                                                               # Minimum number of tasks to run in autoscaling group
+  max_count                          = 1                                                               # Maximum number of tasks to run in autoscaling group
   scale_out_count                    = 0
   deployment_minimum_healthy_percent = 0
   product                            = "${var.product}"
-  owner                              = "${var.owner}"                                                              # The name of the owner for this service
-  ecs_cluster                        = "${var.ecs_cluster}"                                                        # Name of the ECS cluster to run on
+  owner                              = "${var.owner}"                                                  # The name of the owner for this service
+  ecs_cluster                        = "${var.ecs_cluster}"                                            # Name of the ECS cluster to run on
   container_definition               = "s3-worker.json"
   cookie_secret                      = "${data.aws_kms_secrets.secrets.plaintext["zendesk_password"]}"
   version                            = "${var.version}"
