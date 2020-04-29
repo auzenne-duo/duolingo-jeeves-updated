@@ -1,4 +1,4 @@
-resource "aws_kms_key" "kms_key" {
+resource "aws_kms_key" "kms-key" {
   description = "Key for encrypting/decrypting duolingo jeeves prod resources"
 
   tags {
@@ -9,9 +9,9 @@ resource "aws_kms_key" "kms_key" {
   }
 }
 
-resource "aws_kms_alias" "kms_alias" {
+resource "aws_kms_alias" "kms-alias" {
   name          = "alias/duolingo/jeeves/prod"
-  target_key_id = "${aws_kms_key.kms_key.key_id}"
+  target_key_id = "${aws_kms_key.kms-key.key_id}"
 }
 
 data "aws_kms_secrets" "secrets" {
