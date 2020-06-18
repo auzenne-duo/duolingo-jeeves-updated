@@ -45,5 +45,5 @@ module "duolingo-jeeves" {
   ecs_cluster       = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
   container_port    = 5000
   internal          = "true"                                                      # Create an internal service
-  version           = "${var.version}"
+  release_version   = "${var.version}"
 }

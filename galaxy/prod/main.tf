@@ -46,7 +46,7 @@ module "duolingo-jeeves" {
   ecs_cluster       = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
   container_port    = 5000
   internal          = "false"                                                     # Create a service accessible outside the office network
-  version           = "${var.version}"
+  release_version   = "${var.version}"
 }
 
 module "duolingo-jeeves-s3-worker" {
@@ -65,5 +65,5 @@ module "duolingo-jeeves-s3-worker" {
   ecs_cluster                        = "${var.ecs_cluster}"                                            # Name of the ECS cluster to run on
   container_definition               = "s3-worker.json"
   cookie_secret                      = "${data.aws_kms_secrets.secrets.plaintext["zendesk_password"]}"
-  version                            = "${var.version}"
+  release_version                    = "${var.version}"
 }
