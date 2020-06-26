@@ -1,0 +1,28 @@
+[
+  {
+    "name": "${service}",
+    "image": "${ecr_repo}:${version}",
+    "cpu": ${cpu},
+    "memory": ${memory},
+    "essential": true,
+    "ulimits": [{
+        "name": "nofile",
+        "softLimit": 65535,
+        "hardLimit": 65535
+    }],
+    "environment": [
+        {"name": "PYTHONPATH", "value": "/code"},
+        {"name": "ZENDESK_USER", "value": "community-team@duolingo.com"},
+        {"name": "ZENDESK_PASSWORD", "value": "${cookie_secret}"}
+    ],
+    "command": ["python", "./jeeves/scripts/update_jeeves_data.py"],
+    "logConfiguration": {
+    "logDriver": "awslogs",
+        "options": {
+        "awslogs-region": "${region}",
+        "awslogs-group": "${service}",
+        "awslogs-stream-prefix": "${service}"
+        }
+    }
+  }
+]
