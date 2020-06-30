@@ -39,7 +39,9 @@ class TimeSeries(object):
         print("main", _df.shape)
 
         _df.set_index(
-            _df["tickets"].map(lambda tk: pd.Timestamp(datetime_to_str(tk.date_time), tz="UTC")),
+            _df["tickets"].map(
+                lambda tk: pd.Timestamp(datetime_to_str(tk.date_time), tz="US/Eastern")
+            ),
             inplace=True,
         )
         _df.sort_index(inplace=True)
