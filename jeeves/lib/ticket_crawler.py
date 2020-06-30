@@ -11,7 +11,14 @@ from jeeves.util.date_util import datetime_to_str, date_to_str, get_n_days_ago, 
 # Jeeves ignores tickets sent by the following emails
 _SENDERS_TO_IGNORE = {"no-reply@duolingo.com", "community@duolingo.com"}
 # It will also ignore tickets sent to the following emails
-_RECEIVERS_TO_IGNORE = {"luis@duolingotest.zendesk.com", "luis@duolingo.com"}
+_RECEIVERS_TO_IGNORE = {
+    "luis@duolingotest.zendesk.com",
+    "luis@duolingo.com",
+    "institution@testcenter.zendesk.com",
+    "testcenter-support@duolingo.com",
+}
+# It will also ignore tickets with one or more of the following tags
+_TAGS_TO_IGNORE = {"duolingo_english_test___appeal_results"}
 
 _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
 
@@ -61,6 +68,10 @@ def crawl_tickets():
         # Ignore a ticket if receiving email is on a blocklist
         to_data = ticket.via["source"]["to"]
         if to_data and "address" in to_data and to_data["address"] in _RECEIVERS_TO_IGNORE:
+            continue
+
+        tag_data = ticket.tags
+        if tag_data and set(tag_data) & _TAGS_TO_IGNORE:
             continue
 
         # Skip tickets that have an empty string ('') description
