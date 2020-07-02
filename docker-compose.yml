@@ -12,3 +12,13 @@ services:
     volumes:
       - .:/code
       - ~/.aws:/root/.aws
+
+  cronworker:
+    image: duolingojeeves_api
+    volumes:
+      - .:/code
+      - ~/.aws:/root/.aws
+    command: ["python", "/code/jeeves/scripts/slack.py"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev

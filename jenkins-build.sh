@@ -5,6 +5,7 @@ set -ex
 
 MODULE=duolingo-jeeves
 MODULE_S3_WORKER=duolingo-jeeves-s3-worker
+MODULE_WORKER_CRON=duolingo-jeeves-worker-cron
 
 DEV_TERRAFORM_ENV=dev
 
@@ -57,7 +58,9 @@ echo "TERRAFORM_ENV: $TERRAFORM_PATH"
 if [[ $TERRAFORM_ENV == "prod" ]]; then
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+  echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
 else
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+  echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
 fi

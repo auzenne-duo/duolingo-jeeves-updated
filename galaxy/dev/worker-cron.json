@@ -1,0 +1,27 @@
+[
+  {
+    "name": "${service}",
+    "image": "${ecr_repo}:${version}",
+    "cpu": ${cpu},
+    "memory": ${memory},
+    "essential": true,
+    "ulimits": [{
+        "name": "nofile",
+        "softLimit": 65535,
+        "hardLimit": 65535
+    }],
+    "command": ["python","./jeeves/scripts/slack.py"],
+    "environment": [
+        {"name": "PYTHONPATH", "value": "/code"},
+        {"name": "SLACK_POST_URL", "value": "${cookie_secret}"}
+    ],
+    "logConfiguration": {
+    "logDriver": "awslogs",
+        "options": {
+        "awslogs-region": "${region}",
+        "awslogs-group": "${service}",
+        "awslogs-stream-prefix": "${service}"
+      }
+    }
+  }
+]

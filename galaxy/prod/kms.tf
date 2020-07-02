@@ -26,4 +26,17 @@ data "aws_kms_secrets" "secrets" {
       environment = "${var.environment}"
     }
   }
+
+  # We require that the URL of our Slack channel be encrypted because Slack provides no auth measures around webhooks, other than "don't give away the URL"
+  secret {
+    name    = "slack_post_url"
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwHWkUiHVZPJmoiEgCl/GpF4AAAAsTCBrgYJKoZIhvcNAQcGoIGgMIGdAgEAMIGXBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDB8LRikx7ODBwOlYYAIBEIBq/C8pHAcPgLiVwM2zGwsmyCzHzNNY8WJ3vu5z1u2qBu0zP09pbYFbv7Ya5TuoXM/Ob41FRD2GnwUfF4zjXtj9F/QN0xGEd7xZJ61zwi9m6BSR6Pc6RCOe64X2wNPjZRE6KFK3CTi/WuoW8Q=="
+
+    context {
+      product     = "${var.product}"
+      service     = "${var.service}"
+      subservice  = "worker-cron"
+      environment = "${var.environment}"
+    }
+  }
 }
