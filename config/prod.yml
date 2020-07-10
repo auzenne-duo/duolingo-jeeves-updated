@@ -1,1 +1,5 @@
 environment: prod
+
+memcached:
+  host: duolingo-jeeves-prod.idjnxn.cfg.use1.cache.amazonaws.com
+  port: 11211
