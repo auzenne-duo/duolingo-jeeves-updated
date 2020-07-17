@@ -9,3 +9,6 @@ class SUPPORTED_LANGUAGES(Enum):
     """Duolingo Jeeves supported languages"""
 
     en = auto()  # English
+    es = auto()  # Spanish
+    ja = auto()  # Japanese
+    zh = auto()  # Chinese

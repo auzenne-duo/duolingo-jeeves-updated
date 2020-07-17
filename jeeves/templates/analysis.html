@@ -169,12 +169,12 @@ Jeeves{% endblock %} {% block head %} {{ super() }}
       $(this).hide();
     });
 
-    drawChart();
+    drawChart("{{ lang }}");
   });
   function update() {
     var word = $("#query").val();
     $(".word_str").html(word);
-    drawChart();
+    drawChart("{{ lang }}");
   }
 </script>
 {% endblock %} {% block body %}

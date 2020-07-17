@@ -3,6 +3,7 @@ import pandas as pd
 
 from jeeves.dal.config.metadata import STATS_FIELD_TITLES
 from jeeves.dal.support_tickets import SupportTicketDAL
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import datetime_to_str, get_eastern_today, get_n_days_ago
 
 # Jeeves shows tickets for the past `MOST_RECENT_N_DAYS` days
@@ -10,9 +11,10 @@ MOST_RECENT_N_DAYS = 60
 
 
 class TimeSeries(object):
-    def __init__(self):
+    def __init__(self, language):
         self.__df = None
         self.ORIGIN_DATE = get_n_days_ago(get_eastern_today(), MOST_RECENT_N_DAYS)
+        self.language = language
 
     @property
     def df(self):
@@ -27,7 +29,7 @@ class TimeSeries(object):
         _df = pd.DataFrame()
 
         # Slow! Load tickets.
-        support_tickets = SupportTicketDAL.get_labeled_support_tickets()
+        support_tickets = SupportTicketDAL.get_labeled_support_tickets(self.language)
 
         # Obtain recent tickets only
         _df["tickets"] = pd.Series(st for st in support_tickets if st.date_time > self.ORIGIN_DATE)
@@ -61,4 +63,6 @@ class TimeSeries(object):
         self.__df = _df
 
 
-TS = TimeSeries()
+ticket_almanac = {}
+for language in SUPPORTED_LANGUAGES:
+    ticket_almanac[language.name] = TimeSeries(language)

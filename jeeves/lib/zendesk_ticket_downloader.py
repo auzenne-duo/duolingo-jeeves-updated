@@ -12,7 +12,6 @@ import requests
 import simplejson as json
 import time
 
-from jeeves.lib.json_serializer import deserialize_zendesk_ticket_json
 from jeeves.util.date_util import datetime_to_str
 
 _ZENDESK_HOST = "https://duolingotest.zendesk.com"
@@ -21,7 +20,7 @@ _USER = os.environ.get("ZENDESK_USER")
 _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
 
 
-def yield_tickets(start_timestamp):
+def yield_json_tickets(start_timestamp):
     """
     Yields tickets downloaded from Zendesk API.
 
@@ -29,12 +28,9 @@ def yield_tickets(start_timestamp):
         start_timestamp: A unix timestamp (UTC).
 
     Yields:
-        A SupportTicket object.
+        A JSON representation of a support ticket.
     """
-    next_url = "%s/api/v2/incremental/tickets.json?start_time=%s" % (
-        _ZENDESK_HOST,
-        int(start_timestamp),
-    )
+    next_url = f"{_ZENDESK_HOST}/api/v2/incremental/tickets.json?start_time={int(start_timestamp)}"
 
     urls = []
     while True:
@@ -54,13 +50,11 @@ def yield_tickets(start_timestamp):
                 raise Exception("Error returned from Zendesk")
 
             for ticket_json in j["tickets"]:
-                ticket = deserialize_zendesk_ticket_json(ticket_json)
-                yield ticket
+                yield ticket_json
 
             if j["end_time"]:
                 print(
-                    "Downloaded %s tickets until: %s"
-                    % (len(j["tickets"]), datetime_to_str(datetime.fromtimestamp(j["end_time"])))
+                    f"Downloaded {len(j['tickets'])} tickets until: {datetime_to_str(datetime.fromtimestamp(j['end_time']))}"
                 )
 
             if j["next_page"]:

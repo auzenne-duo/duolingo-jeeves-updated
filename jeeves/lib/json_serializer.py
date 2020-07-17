@@ -12,12 +12,13 @@ from jeeves.util.json_encoder import JeevesJSONEncoder
 _CUSTOM_JSON_DUMP = functools.partial(json.dumps, cls=JeevesJSONEncoder)
 
 
-def deserialize_zendesk_ticket_json(ticket_json):
+def deserialize_zendesk_ticket_json(ticket_json, ticket_tokens=None):
     """
     Convert a JSON representation of a ticket returned from Zendesk API to our ticket model.
 
     Parameters:
         ticket_json (dict): A ticket json.
+        ticket_tokens (list<str>): A full list of ticket's tokenized 'words'
 
     Returns:
         A SupportTicket object.
@@ -38,6 +39,7 @@ def deserialize_zendesk_ticket_json(ticket_json):
         requester_id=ticket_json["requester_id"],
         category_labels=CategoryAnnotationDAL.get_annotations(ticket_json["id"]),
         metadata=metadata,
+        tokens=ticket_tokens,
     )
 
 
@@ -52,6 +54,7 @@ def deserialize_jeeves_ticket_json(ticket_json):
         A SupportTicket object.
     """
     ticket_subject = ticket_json["subject"] if ticket_json["subject"] else ""
+    ticket_tokens = ticket_json["tokens"] if "tokens" in ticket_json else None
 
     return SupportTicket(
         ticket_id=ticket_json["ticket_id"],
@@ -66,6 +69,7 @@ def deserialize_jeeves_ticket_json(ticket_json):
         requester_id=ticket_json["requester_id"],
         category_labels=ticket_json["category_labels"],
         metadata=ticket_json["metadata"],
+        tokens=ticket_tokens,
     )
 
 

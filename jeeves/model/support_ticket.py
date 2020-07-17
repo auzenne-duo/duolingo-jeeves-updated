@@ -20,6 +20,7 @@ _TICKET_FIELDS = (
     "requester_id",
     "category_labels",
     "metadata",
+    "tokens",
 )
 
 
@@ -41,6 +42,7 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
         requester_id,
         category_labels=None,
         metadata=None,
+        tokens=None,
     ):
         """
         Parameters:
@@ -56,6 +58,7 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
             requester_id: An ID of zendesk user who requested this ticket.
             category_labels (collection<str>): Gold standard labeled assigned by human annotator.
             metadata (dict): Metadata dictionary parsed out of Zendesk descriptions.
+            tokens (list<str>): A full list of 'words' in the ticket's subject and description.
         """
         # More meta data can be fetched using this ID.
         if category_labels is None:
@@ -63,6 +66,8 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
         if metadata is None:
             metadata = {}
         metadata = Metadata(metadata)
+        if tokens is None:
+            tokens = []
         return super().__new__(
             cls,
             ticket_id,
@@ -77,6 +82,7 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
             requester_id,
             category_labels,
             metadata,
+            tokens,
         )
 
     def __repr__(self):
@@ -87,8 +93,13 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
             else:
                 return item
 
-        variables = ", ".join("%s=%s" % summarize(item) for item in self._asdict().items())
-        return "%s(%s)" % (type(self).__name__, variables)
+        def stringify_summary(sum_key, sum_val):
+            return f"{sum_key}={sum_val}"
+
+        variables = ", ".join(
+            stringify_summary(*(summarize(item))) for item in self._asdict().items()
+        )
+        return f"{type(self).__name__}({variables})"
 
     def __serialize__(self):
         return self._asdict()

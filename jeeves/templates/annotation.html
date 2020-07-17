@@ -5,7 +5,7 @@ endblock %} {% block head %} {{ super() }}
 <script>
   $(document).ready(function() {
     var page = getParameterByName("page", 0);
-    loadTickets(page);
+    loadTickets("{{ lang }}", page);
     $(".next").click(function() {
       var json_data = [];
       $(".ticket_table").each(function() {
@@ -25,7 +25,7 @@ endblock %} {% block head %} {{ super() }}
       if (json_data.length > 0) {
         $.ajax({
           type: "PATCH",
-          url: "/api/1/tickets",
+          url: "/api/1/{{ lang }}/tickets",
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
@@ -33,7 +33,7 @@ endblock %} {% block head %} {{ super() }}
           data: JSON.stringify(json_data),
         });
       }
-      loadTickets($(this).data("next_page"));
+      loadTickets("{{ lang }}", $(this).data("next_page"));
     });
   });
 </script>

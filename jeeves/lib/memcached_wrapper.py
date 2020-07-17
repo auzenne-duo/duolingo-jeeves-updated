@@ -29,7 +29,7 @@ class MemcacheCompressionWrapper(object):
     def _get_key(cls, cache_key, split=None):
         if split is None:
             split = "#"
-        return "%s:%s" % (cache_key, split)
+        return f"{cache_key}:{split}"
 
     @classmethod
     def get(cls, cache_key):
@@ -50,6 +50,7 @@ class MemcacheCompressionWrapper(object):
             decompressed = zlib.decompress(compressed)
             return decompressed.decode("utf-8")
         except zlib.error:
+            print("There was a zlib error")
             return None
 
     @classmethod

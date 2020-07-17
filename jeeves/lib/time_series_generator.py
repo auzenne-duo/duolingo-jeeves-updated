@@ -8,7 +8,7 @@ import re
 
 from jeeves.dal.config.metadata import SEMANTIC_FIELD_TITLES, STATS_FIELD_TITLES
 from jeeves.model.metadata import Metadata
-from jeeves.model.time_series import TS
+from jeeves.model.time_series import ticket_almanac
 from jeeves.util.cache import CacheHandler
 from jeeves.util.date_util import datetime_to_str, get_n_days_ago
 
@@ -20,10 +20,10 @@ def _compile_search_regex(word):
 
 
 @CacheHandler.cache(maxsize=32, typed=False)
-def match_description(word, start_time=None, end_time=None, meta_filter=Metadata({})):
+def match_description(lang, word, start_time=None, end_time=None, meta_filter=Metadata({})):
     # end_time doesn't have to be incremented for 1 day
 
-    ser = TS.df.loc[start_time:end_time]["tickets"]
+    ser = ticket_almanac[lang].df.loc[start_time:end_time]["tickets"]
     meta_match = lambda tk: all(
         getattr(tk.metadata, field) == val for field, val in meta_filter.items() if val != ""
     )
@@ -42,7 +42,7 @@ def match_description(word, start_time=None, end_time=None, meta_filter=Metadata
 
 
 @CacheHandler.cache(maxsize=32, typed=False)
-def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({})):
+def get_time_series(lang, word, start_time=None, end_time=None, meta_filter=Metadata({})):
     """
     Returns time series of, on a daily basis, number of tickets that match a particular keyword
 
@@ -59,7 +59,7 @@ def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({
         # end_time has to be incremented for 1 day!!
         end_time = get_n_days_ago(end_time, -1)
     counts = (
-        match_description(word, start_time, end_time, meta_filter)
+        match_description(lang, word, start_time, end_time, meta_filter)
         .astype(int, copy=False)
         .resample("D")
         .sum()
@@ -70,33 +70,35 @@ def get_time_series(word, start_time=None, end_time=None, meta_filter=Metadata({
 
 
 @CacheHandler.cache(maxsize=32, typed=False)
-def get_recent_tickets_by_word(word, start_time=None, end_time=None, meta_filter=Metadata({})):
+def get_recent_tickets_by_word(
+    lang, word, start_time=None, end_time=None, meta_filter=Metadata({})
+):
     assert isinstance(word, str)
     if end_time:
         # end_time has to be incremented for 1 day!!
         end_time = get_n_days_ago(end_time, -1)
     if word:
-        matched_mask = match_description(word, start_time, end_time, meta_filter)
+        matched_mask = match_description(lang, word, start_time, end_time, meta_filter)
         try:
-            return TS.df.loc[start_time:end_time][matched_mask]["tickets"]
+            return ticket_almanac[lang].df.loc[start_time:end_time][matched_mask]["tickets"]
         except KeyError:
-            print("Data missing for the timespan (%s, %s). Please update." % (start_time, end_time))
+            print(f"Data missing for the timespan ({start_time}, {end_time}). Please update.")
             raise
     else:
-        return TS.df.loc[start_time:end_time]["tickets"]
+        return ticket_almanac[lang].df.loc[start_time:end_time]["tickets"]
 
 
-def get_most_recent_ticket_timestamp():
+def get_most_recent_ticket_timestamp(lang):
     """ Returns the timestamp (YYYY-MM-DD hh:mm:ss in US/Eastern) of most recent ticket. """
-    if len(TS.df.index) > 0:
-        return datetime_to_str(TS.df.ix[-1]["tickets"].date_time)
+    if len(ticket_almanac[lang].df.index) > 0:
+        return datetime_to_str(ticket_almanac[lang].df.ix[-1]["tickets"].date_time)
     else:
         return "1970-01-01 00:00:00"
 
 
-def get_paginated_tickets(page, limit, dataframe=None):
+def get_paginated_tickets(lang, page, limit, dataframe=None):
     if dataframe is None:
-        dataframe = TS.df
+        dataframe = ticket_almanac[lang].df
     start = -(page * limit + 1)
     end = start - limit
     paginated = dataframe.ix[start:end:-1]
@@ -106,11 +108,13 @@ def get_paginated_tickets(page, limit, dataframe=None):
 
 
 @CacheHandler.cache(maxsize=32, typed=False)
-def get_viable_categories_in_metadata_distribution(start_time, end_time, min_prob=0.001):
+def get_viable_categories_in_metadata_distribution(lang, start_time, end_time, min_prob=0.001):
     # end_time doesn't have to be incremented for 1 day
 
-    matched_mask = match_description("", start_time, end_time)
-    matched_meta = TS.df.loc[start_time:end_time][matched_mask][SEMANTIC_FIELD_TITLES]
+    matched_mask = match_description(lang, "", start_time, end_time)
+    matched_meta = ticket_almanac[lang].df.loc[start_time:end_time][matched_mask][
+        SEMANTIC_FIELD_TITLES
+    ]
     return {
         col: set(matched_meta[col].value_counts(normalize=True)[lambda p: p > min_prob].index)
         for col in matched_meta.columns
@@ -118,13 +122,15 @@ def get_viable_categories_in_metadata_distribution(start_time, end_time, min_pro
 
 
 @CacheHandler.cache(maxsize=32, typed=False)
-def get_metadata_distribution(word, start_time=None, end_time=None, meta_filter=Metadata({})):
+def get_metadata_distribution(lang, word, start_time=None, end_time=None, meta_filter=Metadata({})):
     if end_time:
         # end_time has to be incremented for 1 day!!
         end_time = get_n_days_ago(end_time, -1)
-    matched_mask = match_description(word, start_time, end_time, meta_filter)
-    matched_meta = TS.df.loc[start_time:end_time][matched_mask][STATS_FIELD_TITLES]
-    viable_categories = get_viable_categories_in_metadata_distribution(start_time, end_time)
+    matched_mask = match_description(lang, word, start_time, end_time, meta_filter)
+    matched_meta = ticket_almanac[lang].df.loc[start_time:end_time][matched_mask][
+        STATS_FIELD_TITLES
+    ]
+    viable_categories = get_viable_categories_in_metadata_distribution(lang, start_time, end_time)
     freq_dict = {
         col: {
             k: v

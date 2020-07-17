@@ -9,3 +9,6 @@ SPIKE_THRESHOLD = 5
 
 # Should be greater than HISTORY_WINDOW_SIZE + SPIKE_THRESHOLD
 CRAWL_WINDOW_SIZE = 90
+
+# Version number, useful for controlling memcached storage
+VERSION_NUMBER = 6

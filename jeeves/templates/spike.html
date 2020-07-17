@@ -4,7 +4,7 @@ endblock %} {% block head %} {{ super() }}
 <script src="/static/js/spike.js?_={{random}}"></script>
 <script>
   $(document).ready(function() {
-    renderSpikes($("#spike_wrapper"));
+    renderSpikes($("#spike_wrapper"), "{{ lang }}");
   });
 </script>
 {% endblock %} {% block body %}

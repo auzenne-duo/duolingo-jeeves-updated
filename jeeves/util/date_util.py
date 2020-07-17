@@ -52,7 +52,7 @@ def date_to_str(date_obj):
     Returns:
         A date string (YYYY-MM-DD).
     """
-    assert isinstance(date_obj, datetime.date), "invalid type: %s" % type(date_obj)
+    assert isinstance(date_obj, datetime.date), f"invalid type: {type(date_obj)}"
 
     return date_obj.strftime(_DATE_FORMAT)
 

@@ -13,6 +13,7 @@ from duolingo_base.config import Config
 from duolingo_base.util import registry
 from duolingo_base.view.auth import auth_after_request, requires_auth
 
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.json_encoder import JeevesJSONEncoder
 
 LOG = logging.getLogger("application")
@@ -23,7 +24,10 @@ application = Flask(__name__, static_folder="jeeves/static", template_folder="je
 
 
 def auth_before_request():
-    if request.path in {"/health", "/api/1/init"}:
+    # We want health checks to not need authentication, and I don't think
+    # anyone has set up auth credentials for the update script yet, so in the
+    # meantime we just allow all the routes it uses to be serviced without auth
+    if request.path in {"/health"} | {f"/api/1/{lang.name}/init" for lang in SUPPORTED_LANGUAGES}:
         return None
     else:
         return requires_auth(permission="access-jeeves")(lambda: None)()

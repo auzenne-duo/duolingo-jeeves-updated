@@ -1,5 +1,5 @@
-function renderSpikes(jQueryElement, limit) {
-  $.get("/api/1/spikes", function(data) {
+function renderSpikes(jQueryElement, lang, limit) {
+  $.get("/api/1/" + lang + "/spikes", function(data) {
     var keys = [];
     for (var key in data) {
       keys[keys.length] = key;
@@ -20,7 +20,7 @@ function renderSpikes(jQueryElement, limit) {
         var word = score_word_pairs[j][1];
         result += `<tr>
                      <td>${score.toFixed(1)}</td>
-                     <td><a href="/analysis?word=${word}">${word}</a></td>
+                     <td><a href="/${lang}/analysis?word=${word}">${word}</a></td>
                      </tr>`;
         if (typeof limit !== "undefined" && j == 4) {
           break;

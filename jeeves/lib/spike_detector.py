@@ -3,7 +3,6 @@ A script for finding spikes of word occurrences in Zendesk tickets.
 Candidate words are from Zendesk tickets on a target date.
 """
 from collections import Counter, defaultdict
-import re
 import time
 
 import numpy as np
@@ -13,40 +12,39 @@ from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THR
 from jeeves.dal.spikes import SpikeDAL
 from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.util.date_util import convert_timezone, date_to_str, get_eastern_today, get_n_days_ago
-from jeeves.util.email_preprocessor import cleanup_email
-from jeeves.util.tokenizer import Tokenizer
 
 
-def run_spike_detector():
+def run_spike_detector(language):
+    """
+    Runs the spike detector algorithm for a specified language
+
+    Parameters:
+        language(SUPPORTED_LANGUAGES): A language enum; which language to run
+            spike detection on.
+    """
     today = get_eastern_today()  # Shouldn't be UTC
-    word_to_date_to_count = _get_word_to_date_to_count()
+    word_to_date_to_count = _get_word_to_date_to_count(language)
     new_spikes = {}
     for i in range(3):
         target_dt = get_n_days_ago(today, i)
         new_spikes.update(_find_spiked_words(word_to_date_to_count, target_dt))
-    SpikeDAL.add_spikes(new_spikes)
+    SpikeDAL.add_spikes(new_spikes, language.name)
 
 
-def _get_word_to_date_to_count():
-    tokenizer = Tokenizer()
+def _get_word_to_date_to_count(language):
     date_to_counter = defaultdict(Counter)
-    tickets = SupportTicketDAL.get_labeled_support_tickets()
+    tickets = SupportTicketDAL.get_labeled_support_tickets(language)
 
     # We use set for tickets -- multiple word occurrences within a ticket doesn't increase counts.
     # If multiple tickets were created by the same user on a given day, text got concatenated.
     unique_tickets = defaultdict(list)
     for ticket in tickets:
         date = date_to_str(convert_timezone(ticket.date_time))
-        unique_tickets[(date, ticket.requester_id)] += [
-            ticket.subject,
-            cleanup_email(ticket.description),
-        ]
+        if ticket.tokens:
+            unique_tickets[(date, ticket.requester_id)] += ticket.tokens
 
-    for (date, _), ticket_texts in unique_tickets.items():
-        # Has to convert to Eastern from UTC before indexing data by date string
-        words = set(
-            word for word in tokenizer.tokenize(" ".join(ticket_texts)) if _valid_word(word)
-        )
+    for (date, _), ticket_tokens in unique_tickets.items():
+        words = set(ticket_tokens)
         date_to_counter[date].update(words)
     word_to_date_to_count = {}
     for date, counter in date_to_counter.items():
@@ -54,7 +52,7 @@ def _get_word_to_date_to_count():
             if word not in word_to_date_to_count:
                 word_to_date_to_count[word] = {_date: 0 for _date in date_to_counter.keys()}
             word_to_date_to_count[word][date] = count
-    print("num words = %s" % len(word_to_date_to_count))
+    print(f"num words = {len(word_to_date_to_count)}")
     return word_to_date_to_count
 
 
@@ -78,13 +76,13 @@ def _find_spiked_words(word_to_date_to_count, target_dt):
         ],
         "new": [word for score, word in score_word_pairs if np.isinf(score)],
     }
-    print("%s spiked words found on %s:" % (len(result["spike"]), target_date_str))
+    print(f"{len(result['spike'])} spiked words found on {target_date_str}:")
     for score, word in result["spike"]:
-        print("%.2f %2d %s" % (score, word_to_date_to_count[word][target_date_str], word))
-    print("%s new words found on %s:" % (len(result["new"]), target_date_str))
+        print(f"{score:.2f} {word_to_date_to_count[word][target_date_str]:2d} {word}")
+    print(f"{len(result['new'])} new words found on {target_date_str}:")
     for pair in result["new"]:
         print(pair)
-    print("Done in %.3f sec." % (time.time() - start))
+    print(f"Done in {(time.time() - start):.3f} sec.")
     return {target_date_str: result}
 
 
@@ -107,8 +105,3 @@ def _calculate_spike_score(date_to_count, target_datetime):
     std = np.std(count_history)
     zscore = (target_count - mean) / std if std != 0 else np.inf
     return zscore
-
-
-def _valid_word(word):
-    # Word should be at least 3 words and can have chars [a-zA-Z] only.
-    return bool(re.search(r"^[a-zA-Z]{3,}$", word))

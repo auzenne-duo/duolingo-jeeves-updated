@@ -1,12 +1,20 @@
+from collections import defaultdict
 from datetime import datetime
 from hashlib import md5
+import re
+from typing import Any, DefaultDict, List
+from unicodedata import normalize
 
 from jeeves.config.config import CRAWL_WINDOW_SIZE
 from jeeves.dal.support_tickets import SupportTicketDAL
-from jeeves.lib.zendesk_ticket_downloader import yield_tickets
+from jeeves.lib.json_serializer import deserialize_zendesk_ticket_json
+from jeeves.lib.zendesk_ticket_downloader import yield_json_tickets
 from jeeves.model.products import Products
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import datetime_to_str, date_to_str, get_n_days_ago, get_utc_today
+from jeeves.util.email_preprocessor import cleanup_email
+from jeeves.util.tokenizer import Tokenizer
+
 
 # Jeeves ignores tickets sent by the following emails
 _SENDERS_TO_IGNORE = {"no-reply@duolingo.com", "community@duolingo.com"}
@@ -23,14 +31,65 @@ _TAGS_TO_IGNORE = {"duolingo_english_test___appeal_results"}
 _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
 
 
+def count_tickets(ticket_dict: DefaultDict[str, List[Any]]) -> DefaultDict[str, int]:
+    """
+    Given a dictionary of language -> ticket list, counts how many tickets
+        there are in the dictionary for each language.
+
+    Paramaters:
+        ticket_dict (DefaultDict[str, List[Any]]): a defaultdict of
+            lists of support tickets in various languages.
+
+    Returns:
+        DefaultDict[str, int]: a defaultdict that represents the length
+            of each list in the input dict.
+    """
+    ticket_counts = defaultdict(int)
+    for lang, tickets in ticket_dict.items():
+        ticket_counts[lang] = len(tickets)
+    return ticket_counts
+
+
+def diff_counts(
+    counts_a: DefaultDict[str, int], counts_b: DefaultDict[str, int]
+) -> DefaultDict[str, int]:
+    """
+    Given two dictionaries of ticket counts with the same keys,
+        computes the difference (a - b) in ticket counts for each key
+
+    Parameters:
+        counts_a (DefaultDict[Any, int]): A dictionary of integers, presumably
+            counts of support tickets produced by count_tickets. Expected
+            to have the same keys as counts_b. Represents the minuend of
+            the subtraction operation.
+        counts_b (DefaultDict[Any, int]): A dictionary of integers, presumably
+            counts of support tickets produced by count_tickets. Expected
+            to have the same keys as counts_a. Represents the subtrahend of
+            the subtraction operation.
+
+    Returns:
+        DefaultDict[Any, int]: A defaultdict representing the element-wise
+            subtraction of counts_b from counts_a.
+    """
+    diffs = defaultdict(int)
+    for key in counts_a:
+        diffs[key] = counts_a[key] - counts_b[key]
+    return diffs
+
+
 def crawl_tickets():
-    """ Downloads recent tickets from Zendesk and store them to Memcache. """
-    tickets = SupportTicketDAL.get_labeled_support_tickets()
+    """ Downloads recent tickets from Zendesk and stores them to Memcache. """
+    ticket_dict = defaultdict(list)
+    for lang_name, lang in SUPPORTED_LANGUAGES.__members__.items():
+        ticket_dict[lang_name] = SupportTicketDAL.get_labeled_support_tickets(language=lang)
 
-    num_original_tickets = len(tickets)
+    original_ticket_counts = count_tickets(ticket_dict)
+    num_original_tickets = sum(original_ticket_counts.values())
 
-    if tickets:
-        latest_timestamp = max(ticket.date_time for ticket in tickets).timestamp()
+    if num_original_tickets:
+        latest_timestamp = max(
+            ticket.date_time for tickets in ticket_dict.values() for ticket in tickets
+        ).timestamp()
     else:
         latest_timestamp = _THRESHOLD_DATE.timestamp()
 
@@ -44,8 +103,13 @@ def crawl_tickets():
         hash_seed = ticket.description + date_to_str(ticket.date_time)
         return md5(hash_seed.encode("utf-8")).hexdigest()
 
-    content_history = {get_hash(ticket) for ticket in tickets}
-    for ticket in yield_tickets(latest_timestamp):
+    tokenizer = Tokenizer()
+
+    content_history = {get_hash(ticket) for tickets in ticket_dict.values() for ticket in tickets}
+    for ticket_json in yield_json_tickets(latest_timestamp):
+
+        ticket = deserialize_zendesk_ticket_json(ticket_json)
+
         # Filter out old tickets
         if _THRESHOLD_DATE > ticket.date_time:
             continue
@@ -80,29 +144,77 @@ def crawl_tickets():
         if not ticket.description:
             continue
 
-        if ticket.language != SUPPORTED_LANGUAGES.en.name:
+        if ticket.language not in SUPPORTED_LANGUAGES.__members__:
             continue
 
         if ticket.product != Products.LA.name:
             continue
 
-        tickets.append(ticket)
+        # By this point we have determined that the ticket is OK to save
+        # so it is now safe to invest resources in tokenization
+        subj_tokens = tokenizer.tokenize(ticket.subject, ticket.language)
+        desc_tokens = tokenizer.tokenize(cleanup_email(ticket.description), ticket.language)
+        prenormal_tokens = subj_tokens + desc_tokens
+        normalized_tokens = [normalize("NFKC", tok) for tok in prenormal_tokens]
+        valid_tokens = [tok for tok in normalized_tokens if _valid_word(ticket.language, tok)]
 
-    num_tickets_after_crawling = len(tickets)
+        ticket = deserialize_zendesk_ticket_json(ticket_json, valid_tokens)
+
+        ticket_dict[ticket.language].append(ticket)
+
+    ticket_counts_after_crawling = count_tickets(ticket_dict)
 
     # Remove tickets that are too old and save memory
-    tickets = list(filter(lambda t: t.date_time > _THRESHOLD_DATE, tickets))
+    for lang_name in SUPPORTED_LANGUAGES.__members__:
+        ticket_dict[lang_name] = [
+            t for t in ticket_dict[lang_name] if t.date_time > _THRESHOLD_DATE
+        ]
 
-    num_tickets_after_filtering = len(tickets)
+    ticket_counts_after_filtering = count_tickets(ticket_dict)
 
-    num_tickets_added = num_tickets_after_crawling - num_original_tickets
-    num_tickets_decreased = num_tickets_after_crawling - num_tickets_after_filtering
+    num_tickets_added = diff_counts(ticket_counts_after_crawling, original_ticket_counts)
+    num_tickets_decreased = diff_counts(ticket_counts_after_crawling, ticket_counts_after_filtering)
 
+    for lang_name, lang in SUPPORTED_LANGUAGES.__members__.items():
+        SupportTicketDAL.set_labeled_support_tickets(ticket_dict[lang_name], language=lang)
+
+    print(f"# original tickets: {original_ticket_counts}")
+    print(f"# tickets after crawling: {ticket_counts_after_crawling}")
     print(
-        "# of tickets in DB: %s (+%s, -%s)"
-        % (len(tickets), num_tickets_added, num_tickets_decreased)
+        f"# of tickets in DB: {ticket_counts_after_filtering} (+{num_tickets_added}, -{num_tickets_decreased})"
     )
 
-    SupportTicketDAL.set_labeled_support_tickets(tickets)
-
     return num_tickets_added
+
+
+def load_zh_stop_words() -> List[str]:
+    """
+    Loads a list of Chinese words from a static file that should not be
+        considered for spikiness analysis.
+
+    Returns:
+        List[str]: A list of strings representing Chinese stop words, with
+            one stop word per line.
+    """
+    with open("jeeves/resources/zh_stop_words.txt", "r") as stop_word_file:
+        stripped_lines = [line.strip() for line in stop_word_file]
+        stop_words = [word for word in stripped_lines if word]
+        return stop_words
+
+
+# The list of Chinese stop words is VERY LARGE so we don't want to load it
+# every time we check a word. Instead, load it once and use that copy.
+_ZH_STOP_WORDS = load_zh_stop_words()
+
+
+def _valid_word(lang, word):
+    if lang == "en":
+        # Word should be at least 3 letters and can have chars [a-zA-Z] only.
+        return bool(re.search(r"^[a-zA-Z]{3,}$", word))
+    elif lang == "es":
+        # Same as the English filter but also include diacritic characters
+        return bool(re.search(r"^[a-zA-ZÁáÉéÍíÓóÚúÜüÑñ]{3,}$", word))
+    elif lang == "zh":
+        return word not in _ZH_STOP_WORDS
+    else:
+        return True

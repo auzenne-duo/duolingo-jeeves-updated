@@ -42,18 +42,28 @@
     <header class="header">
       <div class="header-inner">
         <div class="container">
-          <a href="/" class="topbar-brand navigate-home white smaller-logo"></a>
-          <span class="lockup">jeeves</span>
-          <div class="feedback_wrapper">
-            <!-- #jeeves Slack Channel Deep Link -->
-            <a href="slack://channel?team=T0299K8L0&id=C6A1F2CNA"
-              >Feedback/Suggestions</a
-            >
+          <a
+            href="/{{ lang }}"
+            class="topbar-brand navigate-home white smaller-logo"
+          ></a>
+          <span class="lockup">jeeves ({{ lang }})</span>
+          <div class="flag_lang_wrapper">
+            <a href="/en">
+              <img src="/static/images/en.svg" />
+            </a>
+            <a href="/es">
+              <img src="/static/images/es.svg" />
+            </a>
+            <a href="/ja">
+              <img src="/static/images/ja.svg" />
+            </a>
+            <a href="/zh">
+              <img src="/static/images/zh.svg" />
+            </a>
           </div>
         </div>
       </div>
     </header>
-
     {% block body %} {% endblock %} {% block footer %} {% endblock %}
   </body>
 </html>

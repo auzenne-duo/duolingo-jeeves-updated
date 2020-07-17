@@ -1,4 +1,4 @@
-function loadTickets(page, word, start_time, end_time) {
+function loadTickets(lang, page, word, start_time, end_time) {
   page = parseInt(page);
   var params = { page: page };
   if (word) {
@@ -16,7 +16,7 @@ function loadTickets(page, word, start_time, end_time) {
 
   params.meta_filter = getParameterByName("meta_filter", "");
   var showCategory = !word;
-  $.get("/api/1/tickets", params).done(function(response) {
+  $.get("/api/1/" + lang + "/tickets", params).done(function(response) {
     var tickets = response.data;
     var next_url = response.next_url;
     var content = "";

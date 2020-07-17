@@ -32,20 +32,21 @@ resource "aws_route53_record" "duolingo-jeeves-dev" {
 }
 
 module "duolingo-jeeves" {
-  source            = "github.com/duolingo/infra-galaxy//modules/ecs_web_service"
-  environment       = "${var.environment}"
-  service           = "${var.service}"
-  subservice        = "api"
-  health_check_path = "/health"
-  min_count         = 1                                                           # Minimum number of tasks to run in autoscaling group
-  max_count         = 1                                                           # Maximum number of tasks to run in autoscaling group
-  memory            = 800                                                         # Maximum memory (default: 128MB)
-  product           = "${var.product}"
-  owner             = "${var.owner}"                                              # The name of the owner for this service
-  ecs_cluster       = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
-  container_port    = 5000
-  internal          = "true"                                                      # Create an internal service
-  release_version   = "${var.version}"
+  source                            = "github.com/duolingo/infra-galaxy//modules/ecs_web_service"
+  environment                       = "${var.environment}"
+  service                           = "${var.service}"
+  subservice                        = "api"
+  health_check_path                 = "/health"
+  min_count                         = 1                                                           # Minimum number of tasks to run in autoscaling group
+  max_count                         = 1                                                           # Maximum number of tasks to run in autoscaling group
+  memory                            = 800                                                         # Maximum memory (default: 128MB)
+  product                           = "${var.product}"
+  owner                             = "${var.owner}"                                              # The name of the owner for this service
+  ecs_cluster                       = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
+  container_port                    = 5000
+  internal                          = "true"                                                      # Create an internal service
+  release_version                   = "${var.version}"
+  health_check_grace_period_seconds = 120
 }
 
 module "duolingo-jeeves-s3-worker" {

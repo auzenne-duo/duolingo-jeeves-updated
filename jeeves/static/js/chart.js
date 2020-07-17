@@ -12,7 +12,7 @@ var currier = function(fn) {
   };
 };
 
-function eventManager(fieldname, eventdata) {
+function eventManager(lang, fieldname, eventdata) {
   let state = getJsonFromUrl();
   keyword = state["word"];
   let col = eventdata.points[0].x;
@@ -20,17 +20,21 @@ function eventManager(fieldname, eventdata) {
   meta_filter[fieldname] = col;
   state.meta_filter = JSON.stringify(meta_filter);
 
-  window.history.pushState(null, null, "/analysis" + JsonToQueryString(state));
+  window.history.pushState(
+    null,
+    null,
+    "/" + lang + "/analysis" + JsonToQueryString(state)
+  );
 
   ga("send", "event", {
     eventCategory: "Metadata",
     eventAction: "metadata_filter",
   });
 
-  drawChart(true);
+  drawChart(lang, true);
 }
 
-function modifyRange(keyword, eventdata = {}) {
+function modifyRange(lang, keyword, eventdata = {}) {
   // now, we must grab new tickets based on the new range
   var xstart;
   var xend;
@@ -52,7 +56,7 @@ function modifyRange(keyword, eventdata = {}) {
   }
   let score_function = getParameterByName("score", "");
   let meta_filter_str = getParameterByName("meta_filter", "");
-  $.get("/api/1/metadata_analyze", {
+  $.get("/api/1/" + lang + "/metadata_analyze", {
     word: keyword,
     start_time: xstart,
     end_time: xend,
@@ -152,24 +156,24 @@ function modifyRange(keyword, eventdata = {}) {
       document
         .getElementById(container_id)
         .on("plotly_click", function(eventdata) {
-          eventManager(field, eventdata);
+          eventManager(lang, field, eventdata);
         });
     }
   });
 
-  loadTickets(0, keyword, xstart, xend);
+  loadTickets(lang, 0, keyword, xstart, xend);
   $(".next")
     .prop("onclick", null)
     .off("click")
     .click(function() {
-      loadTickets($(this).data("next_page"), keyword, xstart, xend);
+      loadTickets(lang, $(this).data("next_page"), keyword, xstart, xend);
     });
 }
 
-function drawChart(updateData) {
+function drawChart(lang, updateData) {
   var keyword = $("#query").val();
   let meta_filter_str = getParameterByName("meta_filter", "");
-  $.get("/api/1/time_series", {
+  $.get("/api/1/" + lang + "/time_series", {
     word: keyword,
     meta_filter: meta_filter_str,
   }).done(function(response) {
@@ -227,15 +231,15 @@ function drawChart(updateData) {
     } else {
       Plotly.update("chart_container", { x: [trace.x], y: [trace.y] });
     }
-    modifyRange(keyword);
+    modifyRange(lang, keyword);
     var chart = document.getElementById("chart_container");
-    chart.on("plotly_relayout", currier(modifyRange, keyword));
+    chart.on("plotly_relayout", currier(modifyRange, lang, keyword));
     let state = getJsonFromUrl();
     state["word"] = keyword;
     window.history.pushState(
       null,
       null,
-      "/analysis" + JsonToQueryString(state)
+      "/" + lang + "/analysis" + JsonToQueryString(state)
     );
     ga("send", "event", {
       eventCategory: "Tickets",
