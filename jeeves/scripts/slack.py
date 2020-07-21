@@ -6,6 +6,9 @@ from jeeves.dal.spikes import SpikeDAL
 from jeeves.util.date_util import get_eastern_today, get_n_days_ago, date_to_str
 
 
+_SLACK_REPORT_LANG = "en"
+
+
 def get_yesterdays_date():
     return date_to_str(get_n_days_ago(get_eastern_today(), 1))
 
@@ -17,13 +20,15 @@ def get_top_spikes_yesterday():
     # column titles
     num_spikes_to_list = 4
 
-    spikes = SpikeDAL.get_spikes()
+    spikes = SpikeDAL.get_spikes(_SLACK_REPORT_LANG)
     spikes_yesterday = spikes[get_yesterdays_date()]["spike"]
     return spikes_yesterday[:num_spikes_to_list]
 
 
 def spike_to_fields_array(spike):
-    spike_word_link = f"<https://jeeves.duolingo.com/analysis?word={spike[1]}|{spike[1]}>"
+    spike_word_link = (
+        f"<https://jeeves.duolingo.com/{_SLACK_REPORT_LANG}/analysis?word={spike[1]}|{spike[1]}>"
+    )
     return [
         {"type": "mrkdwn", "text": spike_word_link},
         {"type": "plain_text", "text": f"{spike[0]:.1f}"},
@@ -32,7 +37,8 @@ def spike_to_fields_array(spike):
 
 def generate_slack_message(top_spikes):
     plural_adjustment = "" if len(top_spikes) == 1 else "s"
-    message_header = f"*Here are the top {len(top_spikes)} trending word{plural_adjustment} we saw in customer feedback for {get_yesterdays_date()}:*"
+    plural_adj_verb = "is" if len(top_spikes) == 1 else "are"
+    message_header = f"*Here {plural_adj_verb} the top {len(top_spikes)} trending word{plural_adjustment} we saw in customer feedback for {get_yesterdays_date()}:*"
     header_block = {"type": "section", "text": {"type": "mrkdwn", "text": message_header}}
 
     message_body_fields = [
