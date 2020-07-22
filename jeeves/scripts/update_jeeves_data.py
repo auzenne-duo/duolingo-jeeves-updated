@@ -17,14 +17,14 @@ if __name__ == "__main__":
 
         # Reset cache on web server
         if is_production_env:
-            print(requests.get("https://jeeves.duolingo.com/api/1/{lang.name}/init").content)
+            print(requests.get(f"https://jeeves.duolingo.com/api/1/{lang.name}/init").content)
         else:
             print(
                 requests.get(
-                    "https://duolingo-jeeves-dev.duolingo.com/api/1/{lang.name}/init"
+                    f"https://duolingo-jeeves-dev.duolingo.com/api/1/{lang.name}/init"
                 ).content
             )
 
     print("=" * 100)
-    print("Batch done in {(time.time() - start):.3f} sec.")
+    print(f"Batch done in {(time.time() - start):.3f} sec.")
     print("=" * 100)
