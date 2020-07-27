@@ -21,6 +21,7 @@ _TEST_TICKET_JSON = {
     "requester_id": "",
     "category_labels": ["cat1", "cat2"],
     "metadata": None,
+    "data_source": "Test",
 }
 
 

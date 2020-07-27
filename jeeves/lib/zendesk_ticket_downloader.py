@@ -50,6 +50,7 @@ def yield_json_tickets(start_timestamp):
                 raise Exception("Error returned from Zendesk")
 
             for ticket_json in j["tickets"]:
+                ticket_json.update({"data_source": "Zendesk"})
                 yield ticket_json
 
             if j["end_time"]:

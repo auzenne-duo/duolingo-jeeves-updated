@@ -48,12 +48,15 @@ function loadTickets(lang, page, word, start_time, end_time) {
           "<mark>$1</mark>"
         );
       }
-      var source =
-        ticket.via.source &&
-        ticket.via.source.from &&
-        ticket.via.source.from.address
-          ? `${ticket.via.source.from.name} &lt;${ticket.via.source.from.address}&gt;`
-          : "";
+      var source = "";
+      if (ticket.via.source && ticket.via.source.from) {
+        if (ticket.via.source.from.name) {
+          source += `${ticket.via.source.from.name}`;
+        }
+        if (ticket.via.source.from.address) {
+          source += `  &lt;${ticket.via.source.from.address}&gt;`;
+        }
+      }
       source += ` via ${ticket.via.channel}`;
       var tags =
         ticket.priority !== null
@@ -65,6 +68,15 @@ function loadTickets(lang, page, word, start_time, end_time) {
         })
         .join(" ");
 
+      var zd_ticket_anchor_open = "";
+      var zd_user_anchor_open = "";
+      var zd_anchor_close = "";
+      if (`${ticket.data_source}` == "Zendesk") {
+        zd_ticket_anchor_open = `<a href="https://duolingotest.zendesk.com/agent/tickets/${ticket.ticket_id}" target="_blank">`;
+        zd_user_anchor_open = `<a href="https://duolingotest.zendesk.com/agent/users/${ticket.requester_id}" target="_blank">`;
+        zd_anchor_close = "</a>";
+      }
+
       content += `<table class="ticket_table" data-id="${ticket.ticket_id}">
             <tr>
               <th>Subject</th>
@@ -72,18 +84,16 @@ function loadTickets(lang, page, word, start_time, end_time) {
             </tr>
             <tr>
               <th>Date</th>
-              <td><a href="https://duolingotest.zendesk.com/agent/tickets/${
-                ticket.ticket_id
-              }"
-               target="_blank">${utcToLocal(ticket.date_time)}</a>
+              <td>${zd_ticket_anchor_open}${utcToLocal(
+        ticket.date_time
+      )}${zd_anchor_close}
               </td>
             </tr>
             <tr>
               <th>Source</th>
-              <td><a href="https://duolingotest.zendesk.com/agent/users/${
-                ticket.requester_id
-              }"
-               target="_blank">${source}</a>
+              <td>${zd_user_anchor_open}${source} ${
+        ticket.data_source
+      }${zd_anchor_close}
               </td>
             </tr>
             <tr>

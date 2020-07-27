@@ -21,6 +21,7 @@ _TICKET_FIELDS = (
     "category_labels",
     "metadata",
     "tokens",
+    "data_source",
 )
 
 
@@ -43,10 +44,11 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
         category_labels=None,
         metadata=None,
         tokens=None,
+        data_source=None,
     ):
         """
         Parameters:
-            ticket_id (int): A zendesk ticket ID.
+            ticket_id (str): A zendesk ticket ID.
             date_time (datetime.datetime): A UTC datetime at which the ticket was created.
             subject (str): A subject of the ticket.
             description (str): A description of the ticket. This may include unstructured meta data.
@@ -59,6 +61,7 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
             category_labels (collection<str>): Gold standard labeled assigned by human annotator.
             metadata (dict): Metadata dictionary parsed out of Zendesk descriptions.
             tokens (list<str>): A full list of 'words' in the ticket's subject and description.
+            data_source (str): The name of the service where we obtained this ticket.
         """
         # More meta data can be fetched using this ID.
         if category_labels is None:
@@ -68,6 +71,8 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
         metadata = Metadata(metadata)
         if tokens is None:
             tokens = []
+        if data_source is None:
+            data_source = ""
         return super().__new__(
             cls,
             ticket_id,
@@ -83,6 +88,7 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
             category_labels,
             metadata,
             tokens,
+            data_source,
         )
 
     def __repr__(self):

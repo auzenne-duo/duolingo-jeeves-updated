@@ -1,12 +1,14 @@
 from collections import defaultdict
 from datetime import datetime
 from hashlib import md5
+from itertools import chain
 import re
 from typing import Any, DefaultDict, List
 from unicodedata import normalize
 
 from jeeves.config.config import CRAWL_WINDOW_SIZE
 from jeeves.dal.support_tickets import SupportTicketDAL
+from jeeves.lib.appfigures_review_downloader import yield_json_reviews
 from jeeves.lib.json_serializer import deserialize_zendesk_ticket_json
 from jeeves.lib.zendesk_ticket_downloader import yield_json_tickets
 from jeeves.model.products import Products
@@ -106,7 +108,9 @@ def crawl_tickets():
     tokenizer = Tokenizer()
 
     content_history = {get_hash(ticket) for tickets in ticket_dict.values() for ticket in tickets}
-    for ticket_json in yield_json_tickets(latest_timestamp):
+    for ticket_json in chain(
+        yield_json_tickets(latest_timestamp), yield_json_reviews(latest_timestamp)
+    ):
 
         ticket = deserialize_zendesk_ticket_json(ticket_json)
 

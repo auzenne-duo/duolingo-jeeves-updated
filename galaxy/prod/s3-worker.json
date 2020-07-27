@@ -10,11 +10,7 @@
         "softLimit": 65535,
         "hardLimit": 65535
     }],
-    "environment": [
-        {"name": "PYTHONPATH", "value": "/code"},
-        {"name": "ZENDESK_USER", "value": "community-team@duolingo.com"},
-        {"name": "ZENDESK_PASSWORD", "value": "${cookie_secret}"}
-    ],
+      "environment": ${environment_vars},
     "command": ["python", "./jeeves/scripts/update_jeeves_data.py"],
     "logConfiguration": {
     "logDriver": "awslogs",

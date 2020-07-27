@@ -40,6 +40,7 @@ def deserialize_zendesk_ticket_json(ticket_json, ticket_tokens=None):
         category_labels=CategoryAnnotationDAL.get_annotations(ticket_json["id"]),
         metadata=metadata,
         tokens=ticket_tokens,
+        data_source=ticket_json["data_source"],
     )
 
 
@@ -70,6 +71,7 @@ def deserialize_jeeves_ticket_json(ticket_json):
         category_labels=ticket_json["category_labels"],
         metadata=ticket_json["metadata"],
         tokens=ticket_tokens,
+        data_source=ticket_json["data_source"],
     )
 
 
