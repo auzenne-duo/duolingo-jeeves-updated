@@ -46,6 +46,8 @@ module "duolingo-jeeves" {
   ecs_cluster                       = "${var.ecs_cluster}"                                        # Name of the ECS cluster to run on
   container_port                    = 5000
   internal                          = "false"                                                     # Create a service accessible outside the office network
+  enable_http_listener              = "true"
+  http_listener_type                = "redirect"
   release_version                   = "${var.version}"
   health_check_grace_period_seconds = 120
 }
