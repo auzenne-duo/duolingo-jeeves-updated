@@ -112,6 +112,7 @@ def manage_tickets(lang):
                 "tags",
                 "requester_id",
                 "metadata",
+                "data_source",
             )
             for ticket in tickets
         ]
