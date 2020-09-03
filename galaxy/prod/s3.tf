@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
       "s3:GetBucketLocation",
     ]
 
-    resources = ["arn:aws:s3:::${aws_s3_bucket.duolingo-jeeves.bucket}"]
+    resources = ["${aws_s3_bucket.duolingo-jeeves.arn}"]
   }
 
   statement {
@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
       "s3:GetObjectAcl",
     ]
 
-    resources = ["arn:aws:s3:::${aws_s3_bucket.duolingo-jeeves.bucket}/*"]
+    resources = ["${aws_s3_bucket.duolingo-jeeves.arn}/*"]
   }
 }
 

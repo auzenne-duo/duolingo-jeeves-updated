@@ -5,7 +5,7 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
       "s3:GetBucketLocation",
     ]
 
-    resources = ["arn:aws:s3:::duolingo-jeeves"]
+    resources = ["${data.aws_s3_bucket.duolingo-jeeves.arn}"]
   }
 
   statement {
@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
       "s3:GetObjectAcl",
     ]
 
-    resources = ["arn:aws:s3:::duolingo-jeeves/*"]
+    resources = ["${data.aws_s3_bucket.duolingo-jeeves.arn}/*"]
   }
 }
 
@@ -25,4 +25,8 @@ resource "aws_iam_role_policy" "s3-rw-duolingo-jeeves" {
   role = "${module.duolingo-jeeves.iam_role}"
 
   policy = "${data.aws_iam_policy_document.s3-rw-duolingo-jeeves.json}"
+}
+
+data "aws_s3_bucket" "duolingo-jeeves" {
+  bucket = "duolingo-jeeves"
 }
