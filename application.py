@@ -13,6 +13,7 @@ from duolingo_base.config import Config
 from duolingo_base.util import registry
 from duolingo_base.view.auth import auth_after_request, requires_auth
 
+from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.json_encoder import JeevesJSONEncoder
 
@@ -82,6 +83,8 @@ def init():
         LOG.info("production")
     else:
         LOG.info("development")
+
+    ElasticDAL.initialize_indices()
 
 
 def destroy():

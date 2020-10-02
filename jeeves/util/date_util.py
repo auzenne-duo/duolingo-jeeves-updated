@@ -4,10 +4,9 @@ A utility that offers date-related functions.
 import datetime
 import pytz
 
-import pandas as pd
-
 _DATE_FORMAT = "%Y-%m-%d"
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"  # ISO Format https://www.w3.org/TR/NOTE-datetime
+_ELASTICSEARCH_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 
 
 def get_eastern_today():
@@ -53,7 +52,6 @@ def date_to_str(date_obj):
         A date string (YYYY-MM-DD).
     """
     assert isinstance(date_obj, datetime.date), f"invalid type: {type(date_obj)}"
-
     return date_obj.strftime(_DATE_FORMAT)
 
 
@@ -68,7 +66,8 @@ def datetime_to_str(datetime_obj):
         A date string (YYYY-MM-DD hh:mm:ss).
     """
     assert isinstance(datetime_obj, datetime.date)
-    return datetime_obj.strftime(_DATETIME_FORMAT)
+    datetime_str = datetime_obj.strftime(_DATETIME_FORMAT)
+    return datetime_str
 
 
 def str_to_date(date_str):
@@ -89,4 +88,6 @@ def time_series_str_to_datetime(date_str):
     if date_str is None or date_str == "":
         return None
     else:
-        return pd.Timestamp(date_str, tz="UTC")
+        if "T" in date_str:
+            return datetime.datetime.strptime(date_str, _ELASTICSEARCH_FORMAT)
+        return datetime.datetime.strptime(date_str, _DATE_FORMAT)

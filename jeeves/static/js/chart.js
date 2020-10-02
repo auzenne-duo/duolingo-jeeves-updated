@@ -1,5 +1,5 @@
 var ORIGIN = new Date();
-ORIGIN.setDate(ORIGIN.getDate() - 60);
+ORIGIN.setDate(ORIGIN.getDate() - 100);
 
 var currier = function(fn) {
   var args = Array.prototype.slice.call(arguments, 1);
@@ -56,111 +56,6 @@ function modifyRange(lang, keyword, eventdata = {}) {
   }
   let score_function = getParameterByName("score", "");
   let meta_filter_str = getParameterByName("meta_filter", "");
-  $.get("/api/1/" + lang + "/metadata_analyze", {
-    word: keyword,
-    start_time: xstart,
-    end_time: xend,
-    score: score_function,
-    meta_filter: meta_filter_str,
-  }).done(function(response) {
-    $("#metadata-container").empty();
-    let len = response.metadata.length;
-    for (var i = 0; i < len; i++) {
-      let { field: field, score: score } = response.metadata[i];
-      let container_id = `metadata_${field}`;
-      $("#metadata-container").append(
-        `<div id=${container_id} class="metadata_plot"></div>`
-      );
-      let word_dist = response.word[field];
-      let wordless_dist = response.wordless[field];
-      let word_meta_cat_names = Object.keys(word_dist);
-      let word_freqs = word_meta_cat_names.map(name => word_dist[name]);
-
-      let wordless_meta_cat_names = Object.keys(wordless_dist);
-      let wordless_freqs = wordless_meta_cat_names.map(
-        name => wordless_dist[name]
-      );
-
-      var constrained_trace = {
-        type: "bar",
-        name: "",
-        // mode: 'bar',
-        x: word_meta_cat_names,
-        y: word_freqs,
-        hovertext: "Matched tickets",
-        marker: {
-          color: "rgb(49,130,189)",
-        },
-        xaxis: "x",
-        yaxis: "y",
-      };
-
-      var full_trace = {
-        type: "bar",
-        name: "",
-        // mode: 'bar',
-        x: wordless_meta_cat_names,
-        y: wordless_freqs,
-        hovertext: "Overall tickets",
-        marker: {
-          color: "rgb(204,204,204)",
-        },
-        xaxis: "x",
-        yaxis: "y",
-      };
-      var layout = {
-        barmode: "group",
-        title: `Distribution over ${field}`,
-        titlefont: {
-          size: 22,
-          color: "#999999",
-        },
-        font: {
-          family: "museo-sans-rounded, sans-serif",
-        },
-        showlegend: false,
-        xaxis: {
-          title: field,
-          fixedrange: true,
-          showgrid: "false",
-          type: "category",
-        },
-        yaxis: {
-          title: "Fraction of Tickets",
-          fixedrange: true,
-          gridcolor: "rgb(49,130,189)",
-        },
-        // yaxis2: {
-        //   title: 'Full # of tickets',
-        //   fixedrange: true,
-        //   gridcolor: 'rgb(204,204,204)',
-        //   side: 'right'
-        // },
-        margin: {
-          l: 50,
-          r: 0,
-          b: 50,
-          t: 75,
-          pad: 4,
-        },
-      };
-
-      var config = {
-        showLink: false,
-        displayModeBar: false,
-      };
-
-      let data = [constrained_trace, full_trace];
-
-      Plotly.newPlot(container_id, data, layout, config);
-      document
-        .getElementById(container_id)
-        .on("plotly_click", function(eventdata) {
-          eventManager(lang, field, eventdata);
-        });
-    }
-  });
-
   loadTickets(lang, 0, keyword, xstart, xend);
   $(".next")
     .prop("onclick", null)

@@ -2,7 +2,7 @@ import json
 import os
 import requests
 
-from jeeves.dal.spikes import SpikeDAL
+from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.util.date_util import get_eastern_today, get_n_days_ago, date_to_str
 
 
@@ -20,18 +20,17 @@ def get_top_spikes_yesterday():
     # column titles
     num_spikes_to_list = 4
 
-    spikes = SpikeDAL.get_spikes(_SLACK_REPORT_LANG)
-    spikes_yesterday = spikes[get_yesterdays_date()]["spike"]
+    spikes_yesterday = list(
+        ElasticDAL.yield_spikes_on_date(_SLACK_REPORT_LANG, get_yesterdays_date())
+    )
     return spikes_yesterday[:num_spikes_to_list]
 
 
 def spike_to_fields_array(spike):
-    spike_word_link = (
-        f"<https://jeeves.duolingo.com/{_SLACK_REPORT_LANG}/analysis?word={spike[1]}|{spike[1]}>"
-    )
+    spike_word_link = f"<https://jeeves.duolingo.com/{_SLACK_REPORT_LANG}/analysis?word={spike['word']}|{spike['word']}>"
     return [
         {"type": "mrkdwn", "text": spike_word_link},
-        {"type": "plain_text", "text": f"{spike[0]:.1f}"},
+        {"type": "plain_text", "text": f"{spike['score']:.1f}"},
     ]
 
 

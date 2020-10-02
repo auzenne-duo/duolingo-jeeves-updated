@@ -20,7 +20,6 @@ _TICKET_FIELDS = (
     "requester_id",
     "category_labels",
     "metadata",
-    "tokens",
     "data_source",
 )
 
@@ -43,7 +42,6 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
         requester_id,
         category_labels=None,
         metadata=None,
-        tokens=None,
         data_source=None,
     ):
         """
@@ -69,8 +67,6 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
         if metadata is None:
             metadata = {}
         metadata = Metadata(metadata)
-        if tokens is None:
-            tokens = []
         if data_source is None:
             data_source = ""
         return super().__new__(
@@ -87,7 +83,6 @@ class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
             requester_id,
             category_labels,
             metadata,
-            tokens,
             data_source,
         )
 

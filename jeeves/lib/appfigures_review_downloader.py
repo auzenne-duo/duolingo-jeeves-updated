@@ -90,7 +90,7 @@ def convert_to_ticket_json(review_json: Dict[str, Any]) -> Dict[str, Any]:
     ticket_json = {}
 
     # Prepend a source designator to the review ID
-    ticket_json["id"] = "{_SOURCE_PREFIX}_{review_json['id']}"
+    ticket_json["id"] = f"{_SOURCE_PREFIX}_{review_json['id']}"
 
     # These ones are easy because AppFigures just gives us what we want
     ticket_json["created_at"] = review_json["date"]

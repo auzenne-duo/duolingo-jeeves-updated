@@ -1,32 +1,25 @@
 """
 APIs.
 """
+
+from datetime import datetime
+
+
 from flask import Blueprint, abort, json, make_response, redirect, render_template, request
 import logging
-import numpy as np
 import random
 
-from jeeves.dal.category_annotations import CategoryAnnotationDAL
-from jeeves.dal.spikes import SpikeDAL
-from jeeves.lib.time_series_generator import (
-    get_metadata_distribution,
-    get_most_recent_ticket_timestamp,
-    get_paginated_tickets,
-    get_recent_tickets_by_word,
-    get_time_series,
-    get_viable_categories_in_metadata_distribution,
-    match_description,
-)
-from jeeves.model.categories import CATEGORIES
-from jeeves.model.metadata import Metadata
+
+from jeeves.dal.elasticsearch_interface import ElasticDAL
+
+
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.model.time_series import ticket_almanac
 from jeeves.util.date_util import (
+    date_to_str,
     datetime_to_str,
     get_utc_today,
     time_series_str_to_datetime as str_to_datetime,
 )
-from jeeves.util.score import pearsons_coefficient, cosine_similarity
 
 # This is being referenced by the application.py
 blueprint_api = Blueprint("api", __name__)
@@ -81,7 +74,7 @@ def show_spike(lang):
     return render_template("spike.html", random=_RANDOM, lang=lang)
 
 
-@blueprint_api.route("/api/1/<lang>/tickets", methods=["GET", "PATCH"])
+@blueprint_api.route("/api/1/<lang>/tickets", methods=["GET"])
 def manage_tickets(lang):
     # TODO: implement `start_time` restriction instead of `page`
     # start_time = request.args.get('start_time')
@@ -91,16 +84,21 @@ def manage_tickets(lang):
 
     page = int(request.args.get("page", "0"))
     word = request.args.get("word")
-    start_time = str_to_datetime(request.args.get("start_time", None))
-    end_time = str_to_datetime(request.args.get("end_time", None))
-    meta_filter = Metadata.from_string(request.args.get("meta_filter", "{}"))
+
+    if request.args.get("start_time") == "-1":
+        start_time = str_to_datetime(None)
+        end_time = str_to_datetime(None)
+    else:
+        start_time = str_to_datetime(request.args.get("start_time"))
+        end_time = str_to_datetime(request.args.get("end_time"))
 
     def get_tickets_by_word():
         limit = int(request.args.get("limit", "10"))
-        tickets = get_recent_tickets_by_word(
-            lang, word, start_time=start_time, end_time=end_time, meta_filter=meta_filter
+
+        tickets = ElasticDAL.get_recent_paginated_tickets(
+            lang, word, page, limit, start_time, end_time
         )
-        tickets = get_paginated_tickets(lang, page, limit, dataframe=tickets)
+
         values = [
             ticket.subserialize(
                 "ticket_id",
@@ -121,46 +119,10 @@ def manage_tickets(lang):
             "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}",
         }
 
-    def get_tickets_for_annotation():
-        def replace(d, field, fn):
-            d[field] = fn(d[field])
-            return d
-
-        limit = int(request.args.get("limit", "10"))
-        tickets = get_paginated_tickets(lang, page, limit)
-        category_list = sorted(cat.name for cat in CATEGORIES)
-        # Adding more categories for demo purpose
-        category_list += [
-            "feature_request",
-            "language_request",
-            "requesting_reply",
-            "challenge_feedback",
-            "schools",
-            "iap_refunds",
-            "streak_issue",
-            "forum_abuse",
-        ]
-        values = [
-            replace(
-                d=ticket.subserialize(
-                    "ticket_id", "date_time", "subject", "description", "category_labels"
-                ),
-                field="category_labels",
-                fn=lambda cl: {cat: cat in cl for cat in category_list}
-                if cl
-                else {cat: False for cat in category_list},
-            )
-            for ticket in tickets
-        ]
-        return {"data": values, "next_url": f"/api/1/{lang}/tickets?limit={limit}&page={page+1}"}
-
     if request.method == "GET":
         if word:
             response_data = get_tickets_by_word()
-        else:
-            response_data = get_tickets_for_annotation()
-    elif request.method == "PATCH":
-        response_data = CategoryAnnotationDAL.bulk_save_annotations(request.get_json())
+
     return json.jsonify(response_data)
 
 
@@ -170,51 +132,35 @@ def get_time_series_data(lang):
     if not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
     word = request.args.get("word")
-    meta_filter = Metadata.from_string(request.args.get("meta_filter", "{}"))
     if not word:
         abort(make_response("Please provide `word` parameter", 500))
-    return json.jsonify(get_time_series(lang, word, meta_filter=meta_filter))
+
+    response_buckets = ElasticDAL.aggregate_time_series(lang, word)
+
+    def bucket_to_value(bucket):
+        date_val = str_to_datetime(bucket["key_as_string"])
+        return {date_to_str(date_val): bucket["doc_count"]}
+
+    tsd = {}
+    for b in response_buckets:
+        tsd.update(bucket_to_value(b))
+
+    return json.jsonify({"values": tsd})
 
 
 @blueprint_api.route("/api/1/<lang>/spikes")
 def get_spike_data(lang):
     if not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
-    return json.jsonify(SpikeDAL.get_spikes(lang))
 
-
-score_map = dict(pearsons=pearsons_coefficient, cosine=cosine_similarity)
-
-
-@blueprint_api.route("/api/1/<lang>/metadata_analyze")
-def get_ticket_metadata(lang):
-    if not _is_language_supported(lang):
-        abort(make_response("Requested language not supported", 400))
-    word = request.args.get("word")
-    start_time = str_to_datetime(request.args.get("start_time", None))
-    end_time = str_to_datetime(request.args.get("end_time", None))
-
-    meta_filter = Metadata.from_string(request.args.get("meta_filter", "{}"))
-
-    score = score_map.get(request.args.get("score", None), pearsons_coefficient)
-
-    meta_freq_dists = get_metadata_distribution(
-        lang, word, start_time=start_time, end_time=end_time, meta_filter=meta_filter
-    )
-    wordless_freq_dists = get_metadata_distribution(
-        lang, "", start_time=start_time, end_time=end_time, meta_filter=meta_filter
-    )
-    item = sorted(
-        filter(
-            lambda d: not np.isnan(d["score"]),
-            (
-                dict(score=score(meta_freq_dists[col], wordless_freq_dists[col]), field=col)
-                for col in meta_freq_dists
-            ),
-        ),
-        key=lambda entry: entry["score"],
-    )
-    return json.jsonify(dict(metadata=item, word=meta_freq_dists, wordless=wordless_freq_dists))
+    stored_spikes = {}
+    for spike in ElasticDAL.yield_all_spikes(lang):
+        if spike["date"] not in stored_spikes:
+            stored_spikes[spike["date"]] = {"spike": []}
+        stored_spikes[spike["date"]]["spike"].append((spike["score"], spike["word"]))
+    for day in stored_spikes:
+        stored_spikes[day]["spike"].sort(reverse=True)
+    return json.jsonify(stored_spikes)
 
 
 @blueprint_api.route("/api/1/<lang>/info")
@@ -233,13 +179,6 @@ def do_init(lang):
     """
     if not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
-    match_description.cache_clear()
-    get_time_series.cache_clear()
-    get_recent_tickets_by_word.cache_clear()
-    get_viable_categories_in_metadata_distribution.cache_clear()
-    get_metadata_distribution.cache_clear()
-    SpikeDAL.reload_cache(lang)
-    ticket_almanac[lang].reload_cache()
     global _init_timestamp
     _init_timestamp = datetime_to_str(get_utc_today())
     status = _get_status(lang)
@@ -248,10 +187,16 @@ def do_init(lang):
 
 
 def _get_status(lang):
+    most_recent_elastic_timestamp = ElasticDAL.get_most_recent_timestamp(lang)
+
     return {
         "deployed_timestamp": _DEPLOYED_TIMESTAMP,
         "initialized_timestamp": _init_timestamp,
-        "latest_ticket_timestamp": get_most_recent_ticket_timestamp(lang),
+        "latest_ticket_timestamp": datetime_to_str(
+            datetime.fromtimestamp(
+                most_recent_elastic_timestamp if most_recent_elastic_timestamp else 0
+            )
+        ),
     }
 
 

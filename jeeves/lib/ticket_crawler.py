@@ -1,21 +1,20 @@
 from collections import defaultdict
 from datetime import datetime
-from hashlib import md5
-from itertools import chain
+import json
 import re
+import time
 from typing import Any, DefaultDict, List
-from unicodedata import normalize
 
 from jeeves.config.config import CRAWL_WINDOW_SIZE
-from jeeves.dal.support_tickets import SupportTicketDAL
-from jeeves.lib.appfigures_review_downloader import yield_json_reviews
-from jeeves.lib.json_serializer import deserialize_zendesk_ticket_json
+from jeeves.dal.elasticsearch_interface import ElasticDAL
+
+from jeeves.lib.json_serializer import deserialize_zendesk_ticket_json, serialize_tickets
+from jeeves.lib.spike_detector import run_spike_detector_for_batch
 from jeeves.lib.zendesk_ticket_downloader import yield_json_tickets
 from jeeves.model.products import Products
+from jeeves.model.support_ticket import SupportTicket
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.util.date_util import datetime_to_str, date_to_str, get_n_days_ago, get_utc_today
-from jeeves.util.email_preprocessor import cleanup_email
-from jeeves.util.tokenizer import Tokenizer
+from jeeves.util.date_util import datetime_to_str, get_n_days_ago, get_utc_today
 
 
 # Jeeves ignores tickets sent by the following emails
@@ -31,6 +30,16 @@ _RECEIVERS_TO_IGNORE = {
 _TAGS_TO_IGNORE = {"duolingo_english_test___appeal_results"}
 
 _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
+
+# Size, in bytes, above which we exclude tickets from indexing.
+# This originally was a method of ensuring reasonable network packet sizes
+# but turned out to also be a decent method for filtering out newsletter emails.
+# Note that this size applies to the entire ticket data structure, not just the
+# title/description of the ticket.
+_INDEX_LINE_LENGTH_LIMIT = 3500
+
+# Number of tickets we collect in one batch before putting them in Elasticsearch
+_CHECKPOINTING_THRESHOLD = 1000
 
 
 def count_tickets(ticket_dict: DefaultDict[str, List[Any]]) -> DefaultDict[str, int]:
@@ -79,38 +88,52 @@ def diff_counts(
     return diffs
 
 
+def _perform_checkpoint(ticket_list: List[SupportTicket]) -> None:
+    """
+    Indexes a batch of tickets into Elasticsearch to checkpoint them,
+    then performs spike detection based on that batch of tickets.
+
+    If we do incremental spike detection like this with multiple data sources,
+    and we ingest one data source fully before moving on to the next one, then
+    we end up having to re-run spike detection at least once per data source.
+    We could avoid this by interleaving how we ingest data, however, spike
+    detection is probably fast enough that doing so wouldn't save more than a
+    few seconds.
+
+    Parameters:
+        ticket_list: List of support tickets to index
+    """
+    ElasticDAL.bulk_index_tickets(
+        [
+            json.loads(line)
+            for line in serialize_tickets(ticket_list).split("\n")
+            if len(line) < _INDEX_LINE_LENGTH_LIMIT
+        ]
+    )
+
+    time.sleep(2)
+
+    run_spike_detector_for_batch(ticket_list)
+
+
 def crawl_tickets():
-    """ Downloads recent tickets from Zendesk and stores them to Memcache. """
-    ticket_dict = defaultdict(list)
-    for lang_name, lang in SUPPORTED_LANGUAGES.__members__.items():
-        ticket_dict[lang_name] = SupportTicketDAL.get_labeled_support_tickets(language=lang)
+    """ Downloads recent tickets and stores them to Elasticsearch. """
 
-    original_ticket_counts = count_tickets(ticket_dict)
-    num_original_tickets = sum(original_ticket_counts.values())
-
-    if num_original_tickets:
-        latest_timestamp = max(
-            ticket.date_time for tickets in ticket_dict.values() for ticket in tickets
-        ).timestamp()
-    else:
+    latest_timestamp = ElasticDAL.get_most_recent_timestamp()
+    any_tickets_indexed = bool(latest_timestamp)
+    if not any_tickets_indexed:
         latest_timestamp = _THRESHOLD_DATE.timestamp()
 
     print(
         "Downloading new tickets since {}".format(
             datetime_to_str(datetime.fromtimestamp(latest_timestamp))
-        )
+        ),
+        flush=True,
     )
 
-    def get_hash(ticket):
-        hash_seed = ticket.description + date_to_str(ticket.date_time)
-        return md5(hash_seed.encode("utf-8")).hexdigest()
+    good_ticket_list = []
 
-    tokenizer = Tokenizer()
-
-    content_history = {get_hash(ticket) for tickets in ticket_dict.values() for ticket in tickets}
-    for ticket_json in chain(
-        yield_json_tickets(latest_timestamp), yield_json_reviews(latest_timestamp)
-    ):
+    for ticket_json in yield_json_tickets(latest_timestamp):
 
         ticket = deserialize_zendesk_ticket_json(ticket_json)
 
@@ -118,17 +141,11 @@ def crawl_tickets():
         if _THRESHOLD_DATE > ticket.date_time:
             continue
 
-        # Ignore a ticket with a duplicate description sent on a specific day
-        content_hash = get_hash(ticket)
-        if content_hash in content_history:
-            continue
-        content_history.add(content_hash)
-
         # Ignore a ticket if created via chat because they add noise
         if ticket.via["channel"] == "chat":
             continue
 
-        # Ignore a ticket if a sender email is on a blacklist
+        # Ignore a ticket if a sender email is on a blocklist
         from_data = ticket.via["source"]["from"]
         if from_data and "address" in from_data and from_data["address"] in _SENDERS_TO_IGNORE:
             continue
@@ -154,41 +171,27 @@ def crawl_tickets():
         if ticket.product != Products.LA.name:
             continue
 
-        # By this point we have determined that the ticket is OK to save
-        # so it is now safe to invest resources in tokenization
-        subj_tokens = tokenizer.tokenize(ticket.subject, ticket.language)
-        desc_tokens = tokenizer.tokenize(cleanup_email(ticket.description), ticket.language)
-        prenormal_tokens = subj_tokens + desc_tokens
-        normalized_tokens = [normalize("NFKC", tok) for tok in prenormal_tokens]
-        valid_tokens = [tok for tok in normalized_tokens if _valid_word(ticket.language, tok)]
+        # Some things break if the ticket index is unpopulated so we want to
+        # get a nonzero number of tickets indexed ASAP, and the fastest nonzero
+        # number of tickets to index is "one ticket".
+        if not any_tickets_indexed:
+            print("Indexing first ticket", flush=True)
+            _perform_checkpoint([ticket])
+            any_tickets_indexed = True
+            continue
 
-        ticket = deserialize_zendesk_ticket_json(ticket_json, valid_tokens)
+        good_ticket_list.append(ticket)
+        if len(good_ticket_list) % (_CHECKPOINTING_THRESHOLD / 10) == 0:
+            print(f"Ticket list has size {len(good_ticket_list)}", flush=True)
 
-        ticket_dict[ticket.language].append(ticket)
+        # Store tickets in batches as a form of checkpointing
+        if len(good_ticket_list) >= _CHECKPOINTING_THRESHOLD:
+            _perform_checkpoint(good_ticket_list)
+            good_ticket_list = []
 
-    ticket_counts_after_crawling = count_tickets(ticket_dict)
+    _perform_checkpoint(good_ticket_list)
 
-    # Remove tickets that are too old and save memory
-    for lang_name in SUPPORTED_LANGUAGES.__members__:
-        ticket_dict[lang_name] = [
-            t for t in ticket_dict[lang_name] if t.date_time > _THRESHOLD_DATE
-        ]
-
-    ticket_counts_after_filtering = count_tickets(ticket_dict)
-
-    num_tickets_added = diff_counts(ticket_counts_after_crawling, original_ticket_counts)
-    num_tickets_decreased = diff_counts(ticket_counts_after_crawling, ticket_counts_after_filtering)
-
-    for lang_name, lang in SUPPORTED_LANGUAGES.__members__.items():
-        SupportTicketDAL.set_labeled_support_tickets(ticket_dict[lang_name], language=lang)
-
-    print(f"# original tickets: {original_ticket_counts}")
-    print(f"# tickets after crawling: {ticket_counts_after_crawling}")
-    print(
-        f"# of tickets in DB: {ticket_counts_after_filtering} (+{num_tickets_added}, -{num_tickets_decreased})"
-    )
-
-    return num_tickets_added
+    return latest_timestamp
 
 
 def load_zh_stop_words() -> List[str]:

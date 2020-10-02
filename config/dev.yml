@@ -3,3 +3,7 @@ environment: dev
 memcached:
   host: duolingo-jeeves-dev.idjnxn.cfg.use1.cache.amazonaws.com
   port: 11211
+
+elasticsearch:
+  host: https://vpc-duolingo-jeeves-es-dev-4xpqalvnvjkuon2qvzqyep3vxa.us-east-1.es.amazonaws.com
+  port: 443

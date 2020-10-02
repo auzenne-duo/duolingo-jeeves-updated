@@ -2,19 +2,58 @@
 A script for finding spikes of word occurrences in Zendesk tickets.
 Candidate words are from Zendesk tickets on a target date.
 """
-from collections import Counter, defaultdict
 import time
+from typing import List
 
 import numpy as np
 from tqdm import tqdm
 
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
-from jeeves.dal.spikes import SpikeDAL
-from jeeves.dal.support_tickets import SupportTicketDAL
-from jeeves.util.date_util import convert_timezone, date_to_str, get_eastern_today, get_n_days_ago
+from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.model.support_ticket import SupportTicket
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
+from jeeves.util.date_util import (
+    date_to_str,
+    get_eastern_today,
+    get_n_days_ago,
+    time_series_str_to_datetime,
+)
 
 
-def run_spike_detector(language):
+def run_spike_detector_for_batch(new_ticket_batch: List[SupportTicket]) -> None:
+    """
+    Given a new batch of tickets from checkpointing, runs spike detection on
+    each of the words in the new tickets, for the date that ticket was opened.
+    That is, if a ticket in this batch contains word X and was submitted on
+    date Y, run spike detection for word X on date Y. Repeat for all words in
+    that ticket, and repeat for all tickets in the batch.
+
+    Parameters:
+        new_ticket_batch (List[SupportTicket]): Batch of new tickets used to
+                                                direct spike detection
+    """
+    # Since spike detection is split up by language, we need to separate tickets
+    # and dates into different language buckets
+    new_ticket_dates_per_lang = dict.fromkeys(SUPPORTED_LANGUAGES.__members__, set())
+    new_ticket_ids_per_lang = dict.fromkeys(SUPPORTED_LANGUAGES.__members__, [])
+
+    for ticket in new_ticket_batch:
+        new_ticket_dates_per_lang[ticket.language].add(ticket.date_time.date())
+        new_ticket_ids_per_lang[ticket.language].append(ticket.ticket_id)
+
+    batch_spike_list = []
+
+    for lang in SUPPORTED_LANGUAGES.__members__:
+        if new_ticket_ids_per_lang[lang]:
+            word_to_date_to_count = _get_word_to_date_to_count(lang, new_ticket_ids_per_lang[lang])
+            for target_dt in new_ticket_dates_per_lang[lang]:
+                batch_spike_list += _find_spiked_words(lang, word_to_date_to_count, target_dt)
+
+    if batch_spike_list:
+        ElasticDAL.bulk_index_spikes(batch_spike_list)
+
+
+def run_spike_detector(language, update_start_time):
     """
     Runs the spike detector algorithm for a specified language
 
@@ -22,41 +61,73 @@ def run_spike_detector(language):
         language(SUPPORTED_LANGUAGES): A language enum; which language to run
             spike detection on.
     """
+
     today = get_eastern_today()  # Shouldn't be UTC
-    word_to_date_to_count = _get_word_to_date_to_count(language)
-    new_spikes = {}
+
+    # We don't want to recalculate existing spikes,
+    # so only consider terms from recent tickets.
+    new_ticket_ids = ElasticDAL.acquire_ticket_ids_since(update_start_time, language.name)
+    word_to_date_to_count = _get_word_to_date_to_count(language.name, new_ticket_ids)
+    recent_spikes = []
     for i in range(3):
         target_dt = get_n_days_ago(today, i)
-        new_spikes.update(_find_spiked_words(word_to_date_to_count, target_dt))
-    SpikeDAL.add_spikes(new_spikes, language.name)
+        recent_spikes += _find_spiked_words(language.name, word_to_date_to_count, target_dt)
+    ElasticDAL.bulk_index_spikes(recent_spikes)
 
 
-def _get_word_to_date_to_count(language):
-    date_to_counter = defaultdict(Counter)
-    tickets = SupportTicketDAL.get_labeled_support_tickets(language)
-
-    # We use set for tickets -- multiple word occurrences within a ticket doesn't increase counts.
-    # If multiple tickets were created by the same user on a given day, text got concatenated.
-    unique_tickets = defaultdict(list)
-    for ticket in tickets:
-        date = date_to_str(convert_timezone(ticket.date_time))
-        if ticket.tokens:
-            unique_tickets[(date, ticket.requester_id)] += ticket.tokens
-
-    for (date, _), ticket_tokens in unique_tickets.items():
-        words = set(ticket_tokens)
-        date_to_counter[date].update(words)
-    word_to_date_to_count = {}
-    for date, counter in date_to_counter.items():
-        for word, count in counter.items():
-            if word not in word_to_date_to_count:
-                word_to_date_to_count[word] = {_date: 0 for _date in date_to_counter.keys()}
-            word_to_date_to_count[word][date] = count
-    print(f"num words = {len(word_to_date_to_count)}")
-    return word_to_date_to_count
+def _bucket_to_value(bucket):
+    date_val = time_series_str_to_datetime(bucket["key_as_string"])
+    return {date_to_str(date_val): bucket["doc_count"]}
 
 
-def _find_spiked_words(word_to_date_to_count, target_dt):
+def _get_word_to_date_to_count(lang, new_ticket_ids):
+    """
+    Compute a data structure that represents how many times a word appeared
+    in our stored tickets, bucketed by date, for each of several words. The
+    'several words' are the applicable words extracted as tokens from the
+    provided ticket IDs.
+
+    Parameters:
+        lang (str): Restrict search to this language
+        new_ticket_ids (List[str]): IDs of tickets to tokenize for words.
+                                    Those words will be mapped to date-bucketed
+                                    counts of instances in stored tickets.
+
+    Returns:
+        A data structure that contains a mapping from each word in the provided
+        tickets to a mapping from dates to how many times that word appeared on
+        that date.
+    """
+    # Elasticsearch can take care of tokenization on top of everything else
+    terms = ElasticDAL.get_terms_from_docs(new_ticket_ids, lang)
+
+    word_date_count = {}
+    for t in terms:
+        word_date_count[t] = {}
+        buckets = ElasticDAL.aggregate_time_series(lang, t)
+        for val in [_bucket_to_value(b) for b in buckets]:
+            word_date_count[t].update(val)
+
+    return word_date_count
+
+
+def _find_spiked_words(lang, word_to_date_to_count, target_dt):
+    """
+    Calculates spike words on a particular date.
+
+    Parameters:
+        lang (str): Language to restrict search to
+        word_to_date_to_count: See _get_word_to_date_to_count, this should be
+                               the direct output of that function.
+        target_dt (datetime.date): The date to perform spike calculation on.
+
+    Returns:
+        A list of spikes, where each spike consists of:
+        - word (str): The spike word
+        - score (float): Generally, how big the spike is
+        - date (str): The date the spike occured on
+        - lang (str): Language of tickets used in spike calculation
+    """
     target_date_str = date_to_str(target_dt)
     print("Spike detection started for", target_date_str)
     start = time.time()
@@ -68,22 +139,14 @@ def _find_spiked_words(word_to_date_to_count, target_dt):
         )
     ]
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
-    result = {
-        "spike": [
-            (score, word)
-            for score, word in score_word_pairs
-            if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
-        ],
-        "new": [word for score, word in score_word_pairs if np.isinf(score)],
-    }
-    print(f"{len(result['spike'])} spiked words found on {target_date_str}:")
-    for score, word in result["spike"]:
-        print(f"{score:.2f} {word_to_date_to_count[word][target_date_str]:2d} {word}")
-    print(f"{len(result['new'])} new words found on {target_date_str}:")
-    for pair in result["new"]:
-        print(pair)
+    result = [
+        {"word": word, "score": score, "date": target_date_str, "lang": lang}
+        for score, word in score_word_pairs
+        if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
+    ]
+    print(f"{len(result)} spiked words found on {target_date_str}:")
     print(f"Done in {(time.time() - start):.3f} sec.")
-    return {target_date_str: result}
+    return result
 
 
 def _calculate_spike_score(date_to_count, target_datetime):

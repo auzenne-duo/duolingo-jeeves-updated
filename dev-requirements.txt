@@ -20,6 +20,8 @@ deprecation==2.0.2
 docutils==0.13.1
 duolingo-base==0.9.66
 duolingo-proto==2018.4.18.0
+elasticsearch-dsl==7.2.1
+elasticsearch==7.9.1
 execnet==1.5.0            # via pytest-xdist
 first==2.0.1              # via pip-tools
 flask==0.12.1
@@ -35,7 +37,6 @@ markupsafe==1.0
 mccabe==0.6.1             # via pylint
 numpy==1.13.0
 packaging==17.1
-pandas==0.20.2
 pip-tools==2.0.2
 protobuf==3.5.2.post1
 py==1.4.34                # via pytest
@@ -48,8 +49,8 @@ pytest-forked==0.2        # via pytest-xdist
 pytest-mock==1.6.3
 pytest-xdist==1.22.0
 pytest==3.1.2
-python-dateutil==2.6.0
-pytz==2017.2
+python-dateutil==2.8.1
+pytz==2020.1
 pyyaml==3.12
 redis==2.10.6
 requests==2.18.4

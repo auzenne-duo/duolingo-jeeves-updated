@@ -16,6 +16,8 @@ from jeeves.util.date_util import datetime_to_str
 
 _ZENDESK_HOST = "https://duolingotest.zendesk.com"
 
+_SOURCE_PREFIX = "ZD"
+
 _USER = os.environ.get("ZENDESK_USER")
 _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
 
@@ -42,7 +44,6 @@ def yield_json_tickets(start_timestamp):
         if len(urls) > 5 and len(Counter(urls[-5:])) == 1:
             print("Stopped making request to zendesk after consecutive errors")
             break
-        print("Downloading tickets from zendesk:", next_url)
         r = requests.get(next_url, auth=(_USER, _PASSWORD))
         j = json.loads(r.text)
         try:
@@ -50,6 +51,8 @@ def yield_json_tickets(start_timestamp):
                 raise Exception("Error returned from Zendesk")
 
             for ticket_json in j["tickets"]:
+                new_ticket_id = f"{_SOURCE_PREFIX}_{ticket_json['id']}"
+                ticket_json.update({"id": new_ticket_id})
                 ticket_json.update({"data_source": "Zendesk"})
                 yield ticket_json
 
