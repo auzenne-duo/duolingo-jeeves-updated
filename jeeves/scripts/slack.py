@@ -21,9 +21,11 @@ def get_top_spikes_yesterday():
     num_spikes_to_list = 4
 
     spikes_yesterday = list(
-        ElasticDAL.yield_spikes_on_date(_SLACK_REPORT_LANG, get_yesterdays_date())
+        ElasticDAL.yield_spikes_on_date(
+            _SLACK_REPORT_LANG, get_yesterdays_date(), num_spikes_to_list
+        )
     )
-    return spikes_yesterday[:num_spikes_to_list]
+    return spikes_yesterday
 
 
 def spike_to_fields_array(spike):

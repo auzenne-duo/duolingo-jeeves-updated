@@ -310,7 +310,7 @@ class ElasticsearchDAL(object):
             yield hit
 
     def yield_spikes_on_date(
-        self, lang: str, date_str: str
+        self, lang: str, date_str: str, num_spikes: int
     ) -> Iterator[Dict[str, Union[str, float]]]:
         """
         Yields all spikes for a given language, from a particular date.
@@ -318,6 +318,7 @@ class ElasticsearchDAL(object):
         Parameters:
             lang (str): Language to yield spikes for.
             date (str): Date to search on, as a string.
+            num_spikes (int): How many spikes we should yield.
 
         Yields:
             Spikes from the requested language on the requested date.
@@ -329,11 +330,12 @@ class ElasticsearchDAL(object):
         timestamp_dict = {"gte": date_str, "lte": date_str}
         s = (
             Search(using=self._es, index=self._spikename)
-            .filter("range", date_time=timestamp_dict)
+            .filter("range", date=timestamp_dict)
             .filter("term", lang=lang)
             .sort("-score")
         )
-        for hit in s.scan():
+        s = s[0:num_spikes]
+        for hit in s.execute():
             yield hit
 
 
