@@ -8,7 +8,7 @@
 
 apipkg==1.4               # via execnet
 astroid==1.5.3            # via pylint
-attrs==18.1.0
+attrs==20.2.0
 boto3==1.5.27
 botocore==1.8.41
 certifi==2018.1.18

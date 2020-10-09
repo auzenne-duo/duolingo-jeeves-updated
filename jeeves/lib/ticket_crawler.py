@@ -1,6 +1,5 @@
 from collections import defaultdict
 from datetime import datetime
-import json
 import re
 import time
 from typing import Any, DefaultDict, List
@@ -8,12 +7,9 @@ from typing import Any, DefaultDict, List
 from jeeves.config.config import CRAWL_WINDOW_SIZE
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 
-from jeeves.lib.json_serializer import deserialize_zendesk_ticket_json, serialize_tickets
 from jeeves.lib.spike_detector import run_spike_detector_for_batch
-from jeeves.lib.zendesk_ticket_downloader import yield_json_tickets
-from jeeves.model.products import Products
-from jeeves.model.support_ticket import SupportTicket
-from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
+from jeeves.lib.zendesk_ticket_downloader import yield_tickets
+from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import datetime_to_str, get_n_days_ago, get_utc_today
 
 
@@ -88,7 +84,7 @@ def diff_counts(
     return diffs
 
 
-def _perform_checkpoint(ticket_list: List[SupportTicket]) -> None:
+def _perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
     """
     Indexes a batch of tickets into Elasticsearch to checkpoint them,
     then performs spike detection based on that batch of tickets.
@@ -101,14 +97,10 @@ def _perform_checkpoint(ticket_list: List[SupportTicket]) -> None:
     few seconds.
 
     Parameters:
-        ticket_list: List of support tickets to index
+        ticket_list: List of documents to index
     """
     ElasticDAL.bulk_index_tickets(
-        [
-            json.loads(line)
-            for line in serialize_tickets(ticket_list).split("\n")
-            if len(line) < _INDEX_LINE_LENGTH_LIMIT
-        ]
+        [document.serialize_to_json(document) for document in ticket_list]
     )
 
     time.sleep(2)
@@ -133,42 +125,13 @@ def crawl_tickets():
 
     good_ticket_list = []
 
-    for ticket_json in yield_json_tickets(latest_timestamp):
-
-        ticket = deserialize_zendesk_ticket_json(ticket_json)
+    for ticket in yield_tickets(latest_timestamp):
 
         # Filter out old tickets
         if _THRESHOLD_DATE > ticket.date_time:
             continue
 
-        # Ignore a ticket if created via chat because they add noise
-        if ticket.via["channel"] == "chat":
-            continue
-
-        # Ignore a ticket if a sender email is on a blocklist
-        from_data = ticket.via["source"]["from"]
-        if from_data and "address" in from_data and from_data["address"] in _SENDERS_TO_IGNORE:
-            continue
-
-        # Ignore a ticket if receiving email is on a blocklist
-        to_data = ticket.via["source"]["to"]
-        if to_data and "address" in to_data and to_data["address"] in _RECEIVERS_TO_IGNORE:
-            continue
-
-        tag_data = ticket.tags
-        if tag_data and set(tag_data) & _TAGS_TO_IGNORE:
-            continue
-
-        # Skip tickets that have an empty string ('') description
-        # after cleanup, which are those that consist of just
-        # punctuation/spacing after cleanup
-        if not ticket.description:
-            continue
-
-        if ticket.language not in SUPPORTED_LANGUAGES.__members__:
-            continue
-
-        if ticket.product != Products.LA.name:
+        if not ticket.check_should_index_document(ticket):
             continue
 
         # Some things break if the ticket index is unpopulated so we want to

@@ -39,7 +39,9 @@ def run_spike_detector_for_batch(new_ticket_batch: List[SupportTicket]) -> None:
 
     for ticket in new_ticket_batch:
         new_ticket_dates_per_lang[ticket.language].add(ticket.date_time.date())
-        new_ticket_ids_per_lang[ticket.language].append(ticket.ticket_id)
+        new_ticket_ids_per_lang[ticket.language].append(
+            f"{ticket.data_source}_{ticket.document_id}"
+        )
 
     batch_spike_list = []
 

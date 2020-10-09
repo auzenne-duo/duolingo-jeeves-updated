@@ -99,21 +99,20 @@ def manage_tickets(lang):
             lang, word, page, limit, start_time, end_time
         )
 
-        values = [
-            ticket.subserialize(
-                "ticket_id",
-                "date_time",
-                "subject",
-                "description",
-                "priority",
-                "via",
-                "tags",
-                "requester_id",
-                "metadata",
-                "data_source",
-            )
-            for ticket in tickets
+        subserial_fields = [
+            "document_id",
+            "date_time",
+            "header_text",
+            "body_text",
+            "priority",
+            "via",
+            "tags",
+            "requester_id",
+            "metadata",
+            "data_source",
+            "links",
         ]
+        values = [ticket.serialize_to_json(ticket, subserial_fields) for ticket in tickets]
         return {
             "data": values,
             "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}",

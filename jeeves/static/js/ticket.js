@@ -38,12 +38,12 @@ function loadTickets(lang, page, word, start_time, end_time) {
                                      </tr>`;
         }
       }
-      ticket.description = ticket.description
+      ticket.body_text = ticket.body_text
         .trim()
         .replace(/\n{3,}/g, "\n\n")
         .replace(/\n/g, "<br>");
       if (word) {
-        ticket.description = ticket.description.replace(
+        ticket.body_text = ticket.body_text.replace(
           RegExp("\\b(" + word + ")\\b", "gi"),
           "<mark>$1</mark>"
         );
@@ -72,15 +72,15 @@ function loadTickets(lang, page, word, start_time, end_time) {
       var zd_user_anchor_open = "";
       var zd_anchor_close = "";
       if (`${ticket.data_source}` == "Zendesk") {
-        zd_ticket_anchor_open = `<a href="https://duolingotest.zendesk.com/agent/tickets/${ticket.ticket_id}" target="_blank">`;
-        zd_user_anchor_open = `<a href="https://duolingotest.zendesk.com/agent/users/${ticket.requester_id}" target="_blank">`;
+        zd_ticket_anchor_open = `<a href="${ticket.links[0]}" target="_blank">`;
+        zd_user_anchor_open = `<a href="${ticket.links[1]}" target="_blank">`;
         zd_anchor_close = "</a>";
       }
 
       content += `<table class="ticket_table" data-id="${ticket.ticket_id}">
             <tr>
               <th>Subject</th>
-              <td>${ticket.subject}</td>
+              <td>${ticket.header_text}</td>
             </tr>
             <tr>
               <th>Date</th>
@@ -103,7 +103,7 @@ function loadTickets(lang, page, word, start_time, end_time) {
             <tr>
               <th>Description</th>
               <td>
-              ${ticket.description}
+              ${ticket.body_text}
               </td>
             </tr>
             ${category_html}

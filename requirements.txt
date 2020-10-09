@@ -6,7 +6,7 @@
 #
 --extra-index-url https://pypi.duolingo.com/pypi/
 
-attrs==18.1.0             # via duolingo-base
+attrs==20.2.0
 boto3==1.5.27             # via duolingo-base
 botocore==1.8.41          # via boto3, s3transfer
 certifi==2018.1.18        # via elasticsearch, requests

@@ -8,9 +8,9 @@ from elasticsearch_dsl import Search
 
 from duolingo_base.config import Config
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
-from jeeves.lib.json_serializer import deserialize_jeeves_ticket_json
+from jeeves.lib.identifier_document_mapping import IDENTIFIER_DOCUMENT_MAPPING
 from jeeves.model.custom_types import JSON
-from jeeves.model.support_ticket import SupportTicket
+from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import datetime_to_str
 
 
@@ -47,7 +47,7 @@ class ElasticsearchDAL(object):
         limit: int = 10,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-    ) -> List[SupportTicket]:
+    ) -> List[JeevesDocument]:
         """
         Returns stored user tickets from Elasticsearch in a paginated manner.
         To obtain multiple pages of tickets, call this function multiple times.
@@ -78,7 +78,7 @@ class ElasticsearchDAL(object):
 
         s = (
             Search(using=self._es, index=self._indexname)
-            .query("match", description=word)
+            .query("match", body_text=word)
             .filter("range", date_time=timestamp_dict)
             .filter("term", language=lang)
             .sort("-date_time")
@@ -95,9 +95,12 @@ class ElasticsearchDAL(object):
             print(response.to_dict(), file=sys.stderr)
 
         tickets = [
-            deserialize_jeeves_ticket_json(hit["_source"])
+            IDENTIFIER_DOCUMENT_MAPPING[
+                hit["_source"]["data_source"]
+            ].deserialize_from_internal_json(hit["_source"])
             for hit in response.to_dict()["hits"]["hits"]
         ]
+
         return tickets
 
     def aggregate_time_series(self, lang: str, word: str) -> List[Dict[str, Union[str, int]]]:
@@ -121,7 +124,7 @@ class ElasticsearchDAL(object):
 
         s = (
             Search(using=self._es, index=self._indexname)
-            .query("match", description=word)
+            .query("match", body_text=word)
             .filter("term", language=lang)
         )
 
@@ -154,7 +157,11 @@ class ElasticsearchDAL(object):
             json_tickets: JSON representation of tickets to store.
         """
         bulk_actions = [
-            {"_index": self._indexname, "_source": ticket, "_id": ticket["ticket_id"]}
+            {
+                "_index": self._indexname,
+                "_source": ticket,
+                "_id": f"{ticket['data_source']}_{ticket['document_id']}",
+            }
             for ticket in json_tickets
         ]
         bulk(self._es, bulk_actions)
@@ -222,17 +229,17 @@ class ElasticsearchDAL(object):
         Returns:
             Set of strings, representing terms from the requested documents.
         """
-        request_body_params = {"fields": ["description"]}
+        request_body_params = {"fields": ["body_text"]}
         if lang == "ja":
-            request_body_params["per_field_analyzer"] = {"description": "kuromoji"}
+            request_body_params["per_field_analyzer"] = {"body_text": "kuromoji"}
         if lang == "zh":
-            request_body_params["per_field_analyzer"] = {"description": "smartcn"}
+            request_body_params["per_field_analyzer"] = {"body_text": "smartcn"}
         request_body = {"ids": doc_ids_slice, "parameters": request_body_params}
 
         m_term_vec_out = self._es.mtermvectors(body=request_body, index=self._indexname)
         try:
             terms_lists = [
-                list(d["term_vectors"]["description"]["terms"]) for d in m_term_vec_out["docs"]
+                list(d["term_vectors"]["body_text"]["terms"]) for d in m_term_vec_out["docs"]
             ]
             # Flatten terms_lists into single list
             terms = set([item for sublist in terms_lists for item in sublist])

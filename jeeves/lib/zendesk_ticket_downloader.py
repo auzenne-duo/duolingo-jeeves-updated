@@ -12,17 +12,16 @@ import requests
 import simplejson as json
 import time
 
+from jeeves.model.zendesk_document import ZendeskDocument
 from jeeves.util.date_util import datetime_to_str
 
 _ZENDESK_HOST = "https://duolingotest.zendesk.com"
-
-_SOURCE_PREFIX = "ZD"
 
 _USER = os.environ.get("ZENDESK_USER")
 _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
 
 
-def yield_json_tickets(start_timestamp):
+def yield_tickets(start_timestamp):
     """
     Yields tickets downloaded from Zendesk API.
 
@@ -30,7 +29,7 @@ def yield_json_tickets(start_timestamp):
         start_timestamp: A unix timestamp (UTC).
 
     Yields:
-        A JSON representation of a support ticket.
+        A support ticket document object.
     """
     next_url = f"{_ZENDESK_HOST}/api/v2/incremental/tickets.json?start_time={int(start_timestamp)}"
 
@@ -51,10 +50,7 @@ def yield_json_tickets(start_timestamp):
                 raise Exception("Error returned from Zendesk")
 
             for ticket_json in j["tickets"]:
-                new_ticket_id = f"{_SOURCE_PREFIX}_{ticket_json['id']}"
-                ticket_json.update({"id": new_ticket_id})
-                ticket_json.update({"data_source": "Zendesk"})
-                yield ticket_json
+                yield ZendeskDocument.deserialize_from_external_json(ticket_json)
 
             if j["end_time"]:
                 print(

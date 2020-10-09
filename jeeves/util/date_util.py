@@ -2,6 +2,7 @@
 A utility that offers date-related functions.
 """
 import datetime
+from dateutil.parser import parse
 import pytz
 
 _DATE_FORMAT = "%Y-%m-%d"
@@ -91,3 +92,19 @@ def time_series_str_to_datetime(date_str):
         if "T" in date_str:
             return datetime.datetime.strptime(date_str, _ELASTICSEARCH_FORMAT)
         return datetime.datetime.strptime(date_str, _DATE_FORMAT)
+
+
+def parse_external_datetime(datetime_str: str) -> datetime.datetime:
+    """
+    Parse dates received from external APIs.
+
+    Parameters:
+        datetime_str: String representation of a date and time, received
+                      from an external API.
+
+    Returns:
+        datetime.datetime object corresponding to given string
+
+    """
+
+    return parse(datetime_str).replace(tzinfo=pytz.utc)
