@@ -1,17 +1,22 @@
 """
 Our model for a ticket from the Zendesk API
 """
+from collections import Counter
+from datetime import datetime
+import json
+import os
+import time
+from typing import List
 
 import attr
-from typing import List
+import requests
 
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
-from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import detect_language, detect_product
 from jeeves.util.cleanup import clean_and_parse_description
-from jeeves.util.date_util import parse_external_datetime
+from jeeves.util.date_util import datetime_to_str, parse_external_datetime
 
 
 @attr.s(kw_only=True)
@@ -46,7 +51,7 @@ class ZendeskDocument(JeevesDocument):
 
         return cls(
             data_source=cls.get_data_source_identifier(),
-            document_id=external_json["id"],
+            document_id=str(external_json["id"]),
             date_time=parse_external_datetime(external_json["created_at"]),
             header_text=header,
             body_text=body,
@@ -83,11 +88,14 @@ class ZendeskDocument(JeevesDocument):
             metadata=internal_json["metadata"],
         )
 
-    @staticmethod
-    def check_should_index_document(document: JeevesDocument) -> bool:
+    @classmethod
+    def check_should_index_document(cls, document: JeevesDocument) -> bool:
         """
         Please see parent class for documentation
         """
+        if not super().check_should_index_document(document):
+            return False
+
         # Ignore tickets sent BY the following emails
         _SENDERS_TO_IGNORE = {"no-reply@duolingo.com", "community@duolingo.com"}
         # Also ignore tickets sent TO the following emails
@@ -123,10 +131,62 @@ class ZendeskDocument(JeevesDocument):
         if not document.body_text:
             return False
 
-        if document.language not in SUPPORTED_LANGUAGES.__members__:
-            return False
-
         if document.product != Products.LA.name:
             return False
 
         return True
+
+    @classmethod
+    def download_external_documents(cls, start_timestamp):
+        """
+        Please see parent class for documentation
+        """
+        _ZENDESK_HOST = "https://duolingotest.zendesk.com"
+
+        _USER = os.environ.get("ZENDESK_USER")
+        _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
+
+        next_url = (
+            f"{_ZENDESK_HOST}/api/v2/incremental/tickets.json?start_time={int(start_timestamp)}"
+        )
+
+        urls = []
+        while True:
+            if len(urls) > 0:
+                print("Sleeping", flush=True)
+                time.sleep(10)
+
+            urls.append(next_url)
+            # Break if same URL is requested for 5 times in a row
+            if len(urls) > 5 and len(Counter(urls[-5:])) == 1:
+                print("Stopped making request to zendesk after consecutive errors")
+                break
+            r = requests.get(next_url, auth=(_USER, _PASSWORD))
+            j = json.loads(r.text)
+            try:
+                if "error" in j:
+                    raise Exception("Error returned from Zendesk")
+
+                for ticket_json in j["tickets"]:
+                    yield cls.deserialize_from_external_json(ticket_json)
+
+                if j["end_time"]:
+                    print(
+                        f"Downloaded {len(j['tickets'])} tickets until: {datetime_to_str(datetime.fromtimestamp(j['end_time']))}"
+                    )
+
+                if j["next_page"]:
+                    next_url = j["next_page"]
+
+                if j["count"] < 1000:
+                    break
+
+            except Exception as e:
+                print(
+                    f"""
+                    Exception happened for URL: {next_url}
+                    Status code: {r.status_code}
+                    Returned JSON: {r.text}
+                    """
+                )
+                raise (e)

@@ -4,7 +4,7 @@ from typing import Dict, Iterator, List, Optional, Set, Union
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
-from elasticsearch_dsl import Search
+from elasticsearch_dsl import Mapping, Search
 
 from duolingo_base.config import Config
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
@@ -35,6 +35,14 @@ class ElasticsearchDAL(object):
 
         if not self._es.indices.exists(index=self._indexname):
             self._es.indices.create(index=self._indexname)
+
+            # We need to explicitly set these types because Elasticsearch will
+            # otherwise misinterpret them. In the future we may want to set more
+            # types explicitly like this.
+            m = Mapping()
+            m.field("data_source", "keyword")
+            m.field("document_id", "keyword")
+            m.save(self._indexname, using=self._es)
 
         if not self._es.indices.exists(index=self._spikename):
             self._es.indices.create(index=self._spikename)
@@ -166,12 +174,16 @@ class ElasticsearchDAL(object):
         ]
         bulk(self._es, bulk_actions)
 
-    def get_most_recent_timestamp(self, lang: Optional[str] = None) -> Optional[float]:
+    def get_most_recent_timestamp(
+        self, lang: Optional[str] = None, data_source: Optional[str] = None
+    ) -> Optional[float]:
         """
         Acquire submission timestamp of most recent stored ticket.
 
         Parameters:
             lang (str): Optional, filter ticket search to only this language.
+            data_source (str): Optional, filter document search to only check
+                               results from this data source
 
         Returns:
             Most recent UNIX timestamp across all searched tickets, or None if
@@ -180,7 +192,10 @@ class ElasticsearchDAL(object):
         s = Search(using=self._es, index=self._indexname).query("match_all")
         if lang:
             s = s.filter("term", language=lang)
+        if data_source:
+            s = s.filter("term", data_source=data_source)
         s.aggs.metric("most_recent_timestamp", "max", field="date_time")
+
         response = s.execute()
         if not response.success():
             print("Attempt to get most recent timestamp failed.", file=sys.stderr)

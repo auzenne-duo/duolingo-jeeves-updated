@@ -49,25 +49,29 @@ function loadTickets(lang, page, word, start_time, end_time) {
         );
       }
       var source = "";
-      if (ticket.via.source && ticket.via.source.from) {
-        if (ticket.via.source.from.name) {
-          source += `${ticket.via.source.from.name}`;
+      var tags = "";
+      var tags_text = "";
+      if (`${ticket.data_source}` == "Zendesk") {
+        if (ticket.via.source && ticket.via.source.from) {
+          if (ticket.via.source.from.name) {
+            source += `${ticket.via.source.from.name}`;
+          }
+          if (ticket.via.source.from.address) {
+            source += `  &lt;${ticket.via.source.from.address}&gt;`;
+          }
         }
-        if (ticket.via.source.from.address) {
-          source += `  &lt;${ticket.via.source.from.address}&gt;`;
-        }
+        source += ` via ${ticket.via.channel}`;
+        tags =
+          ticket.priority !== null
+            ? `<span class="p0-tag">${ticket.priority}</span> `
+            : "";
+        tags += ticket.tags
+          .map(function(tag) {
+            return `<span class="p1-tag">${tag}</span>`;
+          })
+          .join(" ");
+        tags_text = `<tr><th>Tags</th><td>${tags}</td></tr>`;
       }
-      source += ` via ${ticket.via.channel}`;
-      var tags =
-        ticket.priority !== null
-          ? `<span class="p0-tag">${ticket.priority}</span> `
-          : "";
-      tags += ticket.tags
-        .map(function(tag) {
-          return `<span class="p1-tag">${tag}</span>`;
-        })
-        .join(" ");
-
       var zd_ticket_anchor_open = "";
       var zd_user_anchor_open = "";
       var zd_anchor_close = "";
@@ -96,10 +100,7 @@ function loadTickets(lang, page, word, start_time, end_time) {
       }${zd_anchor_close}
               </td>
             </tr>
-            <tr>
-              <th>Tags</th>
-              <td>${tags}</td>
-            </tr>
+            ${tags_text}
             <tr>
               <th>Description</th>
               <td>

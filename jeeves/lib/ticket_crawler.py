@@ -6,9 +6,8 @@ from typing import Any, DefaultDict, List
 
 from jeeves.config.config import CRAWL_WINDOW_SIZE
 from jeeves.dal.elasticsearch_interface import ElasticDAL
-
+from jeeves.lib.identifier_document_mapping import IDENTIFIER_DOCUMENT_MAPPING
 from jeeves.lib.spike_detector import run_spike_detector_for_batch
-from jeeves.lib.zendesk_ticket_downloader import yield_tickets
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import datetime_to_str, get_n_days_ago, get_utc_today
 
@@ -108,53 +107,73 @@ def _perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
     run_spike_detector_for_batch(ticket_list)
 
 
-def crawl_tickets():
-    """ Downloads recent tickets and stores them to Elasticsearch. """
+def _crawl_documents_for_data_source(data_source) -> None:
+    """
+    Downloads documents from a particular data source, indexes them to
+    Elasticsearch, and performs spike detection.
 
-    latest_timestamp = ElasticDAL.get_most_recent_timestamp()
-    any_tickets_indexed = bool(latest_timestamp)
-    if not any_tickets_indexed:
+    Parameters:
+        data_source (str): Identifier of data source to download from
+        downloader: Function to call to download tickets
+
+        TODO: USING A FUNCTION HERE IS TEMPORARY UNTIL WE INTRODUCE A MORE
+              ROBUST CHECKPOINTING STRATEGY.
+    """
+
+    latest_timestamp = ElasticDAL.get_most_recent_timestamp(data_source=data_source)
+    any_documents_indexed = bool(latest_timestamp)
+    if not any_documents_indexed:
         latest_timestamp = _THRESHOLD_DATE.timestamp()
 
     print(
-        "Downloading new tickets since {}".format(
+        "Downloading new documents since {}".format(
             datetime_to_str(datetime.fromtimestamp(latest_timestamp))
         ),
         flush=True,
     )
 
-    good_ticket_list = []
+    good_document_list = []
 
-    for ticket in yield_tickets(latest_timestamp):
+    downloader = IDENTIFIER_DOCUMENT_MAPPING[data_source].download_external_documents
 
-        # Filter out old tickets
-        if _THRESHOLD_DATE > ticket.date_time:
+    for document in downloader(latest_timestamp):
+
+        # Filter out old documents
+        if _THRESHOLD_DATE > document.date_time:
             continue
 
-        if not ticket.check_should_index_document(ticket):
+        if not document.check_should_index_document(document):
             continue
 
-        # Some things break if the ticket index is unpopulated so we want to
-        # get a nonzero number of tickets indexed ASAP, and the fastest nonzero
-        # number of tickets to index is "one ticket".
-        if not any_tickets_indexed:
-            print("Indexing first ticket", flush=True)
-            _perform_checkpoint([ticket])
-            any_tickets_indexed = True
+        # Some things break if the document index is unpopulated so we want to
+        # get a nonzero number of documents indexed ASAP, and the fastest nonzero
+        # number of documents to index is "one document".
+        if not any_documents_indexed:
+            print("Indexing first document", flush=True)
+            _perform_checkpoint([document])
+            any_documents_indexed = True
             continue
 
-        good_ticket_list.append(ticket)
-        if len(good_ticket_list) % (_CHECKPOINTING_THRESHOLD / 10) == 0:
-            print(f"Ticket list has size {len(good_ticket_list)}", flush=True)
+        good_document_list.append(document)
+        if len(good_document_list) % (_CHECKPOINTING_THRESHOLD / 10) == 0:
+            print(f"Document list has size {len(good_document_list)}", flush=True)
 
-        # Store tickets in batches as a form of checkpointing
-        if len(good_ticket_list) >= _CHECKPOINTING_THRESHOLD:
-            _perform_checkpoint(good_ticket_list)
-            good_ticket_list = []
+        # Store documents in batches as a form of checkpointing
+        if len(good_document_list) >= _CHECKPOINTING_THRESHOLD:
+            _perform_checkpoint(good_document_list)
+            good_document_list = []
 
-    _perform_checkpoint(good_ticket_list)
+    _perform_checkpoint(good_document_list)
 
-    return latest_timestamp
+
+def crawl_tickets() -> None:
+    """
+    Downloads documents from all data sources, indexes them to Elasticsearch,
+    and performs spike detection incrementally.
+    """
+
+    for identifier in IDENTIFIER_DOCUMENT_MAPPING:
+        _crawl_documents_for_data_source(identifier)
 
 
 def load_zh_stop_words() -> List[str]:

@@ -4,11 +4,12 @@ Our model for a general, abstract document
 
 from abc import ABC, abstractmethod
 import datetime
-from typing import List, Optional
+from typing import Any, Iterator, List, Optional
 
 import attr
 
 from jeeves.model.custom_types import JSON
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
 
 @attr.s(kw_only=True)
@@ -21,6 +22,14 @@ class JeevesDocument(ABC):
     body_text: str = attr.ib()
     language: str = attr.ib()
     links: List[str] = attr.ib(default=[])
+
+    # It is VERY IMPORTANT, when you add attributes to a subclass of this class,
+    # that the attribute names are distinct from each other attribute name across
+    # all other subclasses of this class. If two subclasses share an attribute name,
+    # when they both get tossed into Elasticsearch, they will be treated as the same
+    # field. If they have different datatypes this will cause an exception. If they
+    # have the same datatype, you probably don't want them being treated identically
+    # in all cases anyway.
 
     @staticmethod
     @abstractmethod
@@ -86,9 +95,9 @@ class JeevesDocument(ABC):
             return attr.asdict(document, filter=lambda attr, _: attr.name in subserial_filter)
         return attr.asdict(document)
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def check_should_index_document(document: "JeevesDocument") -> bool:
+    def check_should_index_document(cls, document: "JeevesDocument") -> bool:
         """
         Checks if a given document should be indexed or not.
         This is meant to be called during document download; documents that
@@ -102,4 +111,27 @@ class JeevesDocument(ABC):
         Returns:
             True if we should index the given document, otherwise False
         """
-        raise NotImplementedError
+        # Having non-empty abstract methods is explicitly allowed by the Python spec
+        return document.language in SUPPORTED_LANGUAGES.__members__
+
+    @classmethod
+    @abstractmethod
+    def download_external_documents(cls, start_timestamp: Any) -> Iterator["JeevesDocument"]:
+        """
+        Downloads documents from an external source and yields them.
+        The external source specified in this method in subclasses of this class
+        should logically match that subclass, i.e., a subclass of this class
+        called XYZDocument should download tickets from XYZ source.
+
+        Parameters:
+            start_timestamp: Some kind of timestamp to indicate which documents
+                             should be downloaded. Generally, all documents
+                             after this timestamp will be downloaded.
+
+            TODO: REPLACE ABOVE PARAMETER WITH SOMETHING MORE INFORMATIVE
+                  TO FACILITATE A BETTER CHECKPOINTING SYSTEM
+
+        Yields:
+            Documents with timestamps later than the given timestamp.
+        """
+        return NotImplementedError
