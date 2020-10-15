@@ -2,6 +2,7 @@
 APIs.
 """
 
+import os
 from datetime import datetime
 
 
@@ -183,6 +184,16 @@ def do_init(lang):
     status = _get_status(lang)
     status["status"] = "ok"
     return json.jsonify(status)
+
+
+@blueprint_api.route("/api/1/shake_to_report_tokens")
+def get_shake_to_report_tokens():
+    jira_token = os.environ.get("SHAKE_TO_REPORT_JIRA_TOKEN")
+    slack_token = os.environ.get("SHAKE_TO_REPORT_SLACK_TOKEN")
+
+    token_dict = {"jira": jira_token, "slack": slack_token}
+
+    return json.jsonify(token_dict)
 
 
 def _get_status(lang):

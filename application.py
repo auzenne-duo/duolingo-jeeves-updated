@@ -30,6 +30,8 @@ def auth_before_request():
     # meantime we just allow all the routes it uses to be serviced without auth
     if request.path in {"/health"} | {f"/api/1/{lang.name}/init" for lang in SUPPORTED_LANGUAGES}:
         return None
+    elif request.path == "/api/1/shake_to_report_tokens":
+        return requires_auth(permission="unlock-skill-tree")(lambda: None)()
     else:
         return requires_auth(permission="access-jeeves")(lambda: None)()
 

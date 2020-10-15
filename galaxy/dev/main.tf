@@ -49,6 +49,17 @@ module "duolingo-jeeves" {
   internal                          = "true" # Create an internal service
   release_version                   = var.release_version
   health_check_grace_period_seconds = 120
+
+  environment_vars = [
+    {
+      name  = "SHAKE_TO_REPORT_JIRA_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["shake_to_report_jira_token"]
+    },
+    {
+      name  = "SHAKE_TO_REPORT_SLACK_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["shake_to_report_slack_token"]
+    },
+  ]
 }
 
 module "duolingo-jeeves-s3-worker" {
