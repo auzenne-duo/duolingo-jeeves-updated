@@ -43,5 +43,5 @@ The following are required when you updated requirements.
 
 ## Links
 
-- [Jeeves Documentation](https://app.getguru.com/#/facts/60992fb0-ec19-4c3a-b3d1-8429750d448e)
+- [Jeeves Documentation](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/644121212/Jeeves)
 - [Jeeves Spec](https://docs.google.com/document/d/1QaIR3qbbQh0cT0uwlHrLWeRywRnmXP4NKyK21PUCXnU/edit#)
