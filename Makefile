@@ -2,8 +2,7 @@ NPM_BIN = $(shell npm bin)
 
 # Starts a local microservice.
 .PHONY: web
-web: install-requirements
-	docker-compose build
+web:
 	docker-compose up
 
 # Recompiles the *requirements.in files -> *requirements.txt.
