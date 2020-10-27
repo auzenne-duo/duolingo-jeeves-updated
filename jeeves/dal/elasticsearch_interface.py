@@ -8,7 +8,9 @@ from elasticsearch_dsl import Mapping, Search
 
 from duolingo_base.config import Config
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
-from jeeves.lib.identifier_document_mapping import IDENTIFIER_DOCUMENT_MAPPING
+
+# from jeeves.lib.identifier_document_mapping import IDENTIFIER_DOCUMENT_MAPPING
+from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import datetime_to_str
@@ -102,10 +104,14 @@ class ElasticsearchDAL(object):
             print("Here's what the call to execute() returned:", file=sys.stderr)
             print(response.to_dict(), file=sys.stderr)
 
+        # TODO:
+        # I'm very aware that having a magic number 0 here is poor style
+        # However I want to get this checked in before I sign off for the day
+        # so I will deal with fixing it on Friday
         tickets = [
-            IDENTIFIER_DOCUMENT_MAPPING[
-                hit["_source"]["data_source"]
-            ].deserialize_from_internal_json(hit["_source"])
+            IDManagerMap.get_manager_for_identifier(hit["_source"]["data_source"])
+            .get_managed_document_type()
+            .deserialize_from_internal_json(hit["_source"])
             for hit in response.to_dict()["hits"]["hits"]
         ]
 

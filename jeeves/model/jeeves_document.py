@@ -4,7 +4,7 @@ Our model for a general, abstract document
 
 from abc import ABC, abstractmethod
 import datetime
-from typing import Any, Iterator, List, Optional
+from typing import List, Optional
 
 import attr
 
@@ -113,25 +113,3 @@ class JeevesDocument(ABC):
         """
         # Having non-empty abstract methods is explicitly allowed by the Python spec
         return document.language in SUPPORTED_LANGUAGES.__members__
-
-    @classmethod
-    @abstractmethod
-    def download_external_documents(cls, start_timestamp: Any) -> Iterator["JeevesDocument"]:
-        """
-        Downloads documents from an external source and yields them.
-        The external source specified in this method in subclasses of this class
-        should logically match that subclass, i.e., a subclass of this class
-        called XYZDocument should download tickets from XYZ source.
-
-        Parameters:
-            start_timestamp: Some kind of timestamp to indicate which documents
-                             should be downloaded. Generally, all documents
-                             after this timestamp will be downloaded.
-
-            TODO: REPLACE ABOVE PARAMETER WITH SOMETHING MORE INFORMATIVE
-                  TO FACILITATE A BETTER CHECKPOINTING SYSTEM
-
-        Yields:
-            Documents with timestamps later than the given timestamp.
-        """
-        return NotImplementedError

@@ -40,6 +40,18 @@ data "aws_kms_secrets" "secrets" {
   }
 
   secret {
+    name    = "jira_api_token"
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwG/lV9PAyLMFnjmGAWXy+JfAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMCJe0tPa5AQmS810TAgEQgDMssZXbaKzXeHbTquYx2K7PNpl+WYTkPhUz9bvvepc8JXQd2wuLu63XZDypPCq3jY3/ndM="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "s3-worker"
+      environment = var.environment
+    }
+  }
+
+  secret {
     name    = "zendesk_password"
     payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwH2eEAhkA/oaRSypwO6I6u9AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMu9kMbwBRqQkW0kGBAgEQgDvkmzo2M3HBLnk0xYvkPP/dcXEL9vqyP6GlZPChWZ55C/qAcGmVq6cQRGHw8kewX8jYB3QBk+z95zQFaA=="
 

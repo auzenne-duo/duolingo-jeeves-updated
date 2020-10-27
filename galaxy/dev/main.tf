@@ -92,6 +92,14 @@ module "duolingo-jeeves-s3-worker" {
       value = data.aws_kms_secrets.secrets.plaintext["zendesk_password"]
     },
     {
+      name  = "JIRA_USERNAME"
+      value = "ppearson@duolingo.com"
+    },
+    {
+      name  = "JIRA_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["jira_api_token"]
+    },
+    {
       name  = "APPFIGURES_USER"
       value = "jeeves-automation@duolingo.com"
     },

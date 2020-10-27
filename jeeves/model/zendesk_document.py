@@ -1,22 +1,16 @@
 """
 Our model for a ticket from the Zendesk API
 """
-from collections import Counter
-from datetime import datetime
-import json
-import os
-import time
 from typing import List
 
 import attr
-import requests
 
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
 from jeeves.util.classify import detect_language, detect_product
 from jeeves.util.cleanup import clean_and_parse_description
-from jeeves.util.date_util import datetime_to_str, parse_external_datetime
+from jeeves.util.date_util import parse_external_datetime
 
 
 @attr.s(kw_only=True)
@@ -135,58 +129,3 @@ class ZendeskDocument(JeevesDocument):
             return False
 
         return True
-
-    @classmethod
-    def download_external_documents(cls, start_timestamp):
-        """
-        Please see parent class for documentation
-        """
-        _ZENDESK_HOST = "https://duolingotest.zendesk.com"
-
-        _USER = os.environ.get("ZENDESK_USER")
-        _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
-
-        next_url = (
-            f"{_ZENDESK_HOST}/api/v2/incremental/tickets.json?start_time={int(start_timestamp)}"
-        )
-
-        urls = []
-        while True:
-            if len(urls) > 0:
-                print("Sleeping", flush=True)
-                time.sleep(10)
-
-            urls.append(next_url)
-            # Break if same URL is requested for 5 times in a row
-            if len(urls) > 5 and len(Counter(urls[-5:])) == 1:
-                print("Stopped making request to zendesk after consecutive errors")
-                break
-            r = requests.get(next_url, auth=(_USER, _PASSWORD))
-            j = json.loads(r.text)
-            try:
-                if "error" in j:
-                    raise Exception("Error returned from Zendesk")
-
-                for ticket_json in j["tickets"]:
-                    yield cls.deserialize_from_external_json(ticket_json)
-
-                if j["end_time"]:
-                    print(
-                        f"Downloaded {len(j['tickets'])} tickets until: {datetime_to_str(datetime.fromtimestamp(j['end_time']))}"
-                    )
-
-                if j["next_page"]:
-                    next_url = j["next_page"]
-
-                if j["count"] < 1000:
-                    break
-
-            except Exception as e:
-                print(
-                    f"""
-                    Exception happened for URL: {next_url}
-                    Status code: {r.status_code}
-                    Returned JSON: {r.text}
-                    """
-                )
-                raise (e)

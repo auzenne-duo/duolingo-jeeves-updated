@@ -6,8 +6,10 @@ from typing import Any, DefaultDict, List
 
 from jeeves.config.config import CRAWL_WINDOW_SIZE
 from jeeves.dal.elasticsearch_interface import ElasticDAL
-from jeeves.lib.identifier_document_mapping import IDENTIFIER_DOCUMENT_MAPPING
+
+from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.lib.spike_detector import run_spike_detector_for_batch
+from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import datetime_to_str, get_n_days_ago, get_utc_today
 
@@ -107,20 +109,18 @@ def _perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
     run_spike_detector_for_batch(ticket_list)
 
 
-def _crawl_documents_for_data_source(data_source) -> None:
+def _crawl_documents_for_data_source(manager: JeevesManager) -> None:
     """
     Downloads documents from a particular data source, indexes them to
     Elasticsearch, and performs spike detection.
 
     Parameters:
-        data_source (str): Identifier of data source to download from
-        downloader: Function to call to download tickets
-
-        TODO: USING A FUNCTION HERE IS TEMPORARY UNTIL WE INTRODUCE A MORE
-              ROBUST CHECKPOINTING STRATEGY.
+        manager: A subclass of JeevesManager responsible for some class of documents
     """
 
-    latest_timestamp = ElasticDAL.get_most_recent_timestamp(data_source=data_source)
+    latest_timestamp = ElasticDAL.get_most_recent_timestamp(
+        data_source=manager.get_managed_document_type().get_data_source_identifier()
+    )
     any_documents_indexed = bool(latest_timestamp)
     if not any_documents_indexed:
         latest_timestamp = _THRESHOLD_DATE.timestamp()
@@ -134,7 +134,7 @@ def _crawl_documents_for_data_source(data_source) -> None:
 
     good_document_list = []
 
-    downloader = IDENTIFIER_DOCUMENT_MAPPING[data_source].download_external_documents
+    downloader = manager.download_documents
 
     for document in downloader(latest_timestamp):
 
@@ -172,8 +172,8 @@ def crawl_tickets() -> None:
     and performs spike detection incrementally.
     """
 
-    for identifier in IDENTIFIER_DOCUMENT_MAPPING:
-        _crawl_documents_for_data_source(identifier)
+    for manager in IDManagerMap.get_all_managers():
+        _crawl_documents_for_data_source(manager)
 
 
 def load_zh_stop_words() -> List[str]:
