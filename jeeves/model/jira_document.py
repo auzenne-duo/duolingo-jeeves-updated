@@ -18,6 +18,7 @@ class JiraDocument(JeevesDocument):
 
     issue_key: str = attr.ib()
     issue_links: List[str] = attr.ib()
+    issue_type: str = attr.ib()
     project: str = attr.ib()
     linked_duplicate_keys: List[str] = attr.ib()
     creation_date: datetime.datetime = attr.ib()
@@ -150,6 +151,9 @@ class JiraDocument(JeevesDocument):
             links=[],
             issue_key=external_json["key"],
             issue_links=external_fields["issue_links"] if "issue_links" in external_fields else [],
+            issue_type=external_fields["issuetype"]["name"]
+            if "issuetype" in external_fields and "name" in external_fields["issuetype"]
+            else "",
             project=external_fields["project"]["name"],
             linked_duplicate_keys=[],
             creation_date=parse_external_datetime(external_fields["created"]),
@@ -189,6 +193,7 @@ class JiraDocument(JeevesDocument):
             links=internal_json["links"],
             issue_key=internal_json["issue_key"],
             issue_links=internal_json["issue_links"],
+            issue_type=internal_json["issue_type"],
             project=internal_json["project"],
             linked_duplicate_keys=internal_json["linked_duplicate_keys"],
             creation_date=internal_json["creation_date"],
