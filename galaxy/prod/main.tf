@@ -34,7 +34,7 @@ resource "aws_route53_record" "duolingo-jeeves-prod" {
 }
 
 module "duolingo-jeeves" {
-  source                            = "github.com/duolingo/infra-galaxy//modules/ecs_web_service?ref=ops-16711"
+  source                            = "github.com/duolingo/infra-galaxy//modules/ecs_web_service"
   environment                       = var.environment
   service                           = var.service
   subservice                        = "api"
@@ -66,7 +66,7 @@ module "duolingo-jeeves" {
 }
 
 module "duolingo-jeeves-s3-worker" {
-  source                             = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service?ref=ops-16711"
+  source                             = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
   environment                        = var.environment
   service                            = var.service
   subservice                         = "s3-worker"
@@ -120,7 +120,7 @@ module "duolingo-jeeves-s3-worker" {
 }
 
 module "duolingo-jeeves-worker-cron" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service?ref=ops-16711"
+  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
   environment          = var.environment
   service              = var.service
   subservice           = "worker-cron"
