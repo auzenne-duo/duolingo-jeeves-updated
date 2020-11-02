@@ -48,7 +48,7 @@ class ZendeskDocument(JeevesDocument):
             document_id=str(external_json["id"]),
             date_time=parse_external_datetime(external_json["created_at"]),
             header_text=header,
-            body_text=body,
+            body_text=external_json["description"],
             language=detect_language(body),
             links=[ticket_link, user_link],
             product=detect_product(external_json["tags"], header).name,

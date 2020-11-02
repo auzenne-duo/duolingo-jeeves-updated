@@ -12,6 +12,7 @@ import random
 
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.lib.duplicate_detector import calculate_duplicates_for_JIRA_issue
 
 
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
@@ -112,6 +113,7 @@ def manage_tickets(lang):
             "metadata",
             "data_source",
             "links",
+            "store",
         ]
         values = [ticket.serialize_to_json(ticket, subserial_fields) for ticket in tickets]
         return {
@@ -194,6 +196,39 @@ def get_shake_to_report_tokens():
     token_dict = {"jira": jira_token, "slack": slack_token}
 
     return json.jsonify(token_dict)
+
+
+@blueprint_api.route("/api/1/detect_duplicates")
+def perform_duplicate_jira_detection():
+    """
+    Endpoint for running duplicate detection on JIRA records.
+    Essentially just a wrapper around a library function so that we have an
+    endpoint for that function.
+
+    Parameters:
+        issue_key (str): The issue key of the JIRA issue we wish to find
+                         duplicates of. If this issue is not already in
+                         Elasticsearch, we attempt to download it.
+
+    Returns:
+        A list of issue keys of suspected duplicate issues.
+    """
+
+    issue_key = request.args.get("issue_key")
+    if not issue_key:
+        abort(make_response("Please provide `issue_key` parameter.", 400))
+
+    num_results = int(request.args.get("num_results", "5"))
+    should_filter_project = request.args.get("should_filter_by_project", "0") != "0"
+
+    return json.jsonify(
+        [
+            issue.serialize_to_json(issue)
+            for issue in calculate_duplicates_for_JIRA_issue(
+                issue_key, num_results=num_results, should_filter_project=should_filter_project
+            )
+        ]
+    )
 
 
 def _get_status(lang):

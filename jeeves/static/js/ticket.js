@@ -81,6 +81,12 @@ function loadTickets(lang, page, word, start_time, end_time) {
         zd_anchor_close = "</a>";
       }
 
+      var data_source_display_name = ticket.data_source;
+      if (ticket.data_source == "AppFigures") {
+        data_source_display_name += ", ";
+        data_source_display_name += ticket.store;
+      }
+
       content += `<table class="ticket_table" data-id="${ticket.ticket_id}">
             <tr>
               <th>Subject</th>
@@ -95,9 +101,7 @@ function loadTickets(lang, page, word, start_time, end_time) {
             </tr>
             <tr>
               <th>Source</th>
-              <td>${zd_user_anchor_open}${source} ${
-        ticket.data_source
-      }${zd_anchor_close}
+              <td>${zd_user_anchor_open}${source} ${data_source_display_name}${zd_anchor_close}
               </td>
             </tr>
             ${tags_text}

@@ -4,9 +4,9 @@ Manager for JIRA documents.
 
 import json
 import os
-from typing import Iterator
+from typing import Iterator, Optional
 
-from requests import Session
+from requests import get, Session
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 
@@ -57,21 +57,21 @@ class JiraManager(JeevesManager):
                 # This call is just to make sure we don't download more issues than are available.
                 r = s.get(template_url, params=url_params)
                 r.raise_for_status()
-                response_JSON = json.loads(r.text)
-                url_params["maxResults"] = min(max_issues_per_fetch, response_JSON["total"])
+                response_json = json.loads(r.text)
+                url_params["maxResults"] = min(max_issues_per_fetch, response_json["total"])
 
-                while url_params["startAt"] < response_JSON["total"]:
+                while url_params["startAt"] < response_json["total"]:
 
                     r = s.get(template_url, params=url_params)
                     r.raise_for_status()
 
-                    response_JSON = json.loads(r.text)
+                    response_json = json.loads(r.text)
                     yield from [
                         JiraDocument.deserialize_from_external_json(issue)
-                        for issue in response_JSON["issues"]
+                        for issue in response_json["issues"]
                     ]
 
-                    url_params["startAt"] += len(response_JSON["issues"])
+                    url_params["startAt"] += len(response_json["issues"])
 
             except RequestException as e:
                 print(
@@ -83,5 +83,44 @@ class JiraManager(JeevesManager):
                     """
                 )
 
-            except Exception as e:
-                print(e)
+    @staticmethod
+    def download_specific_issue(issue_key: str) -> Optional[JeevesDocument]:
+        """
+        Performs a one-off download of a specific issue with the given issue key.
+        It is assumed but not required that Jeeves does not already have the
+        requested document. It is also assumed but not required that the document
+        in question exists in JIRA.
+
+        Parameters:
+            issue_key: Issue key of the issue we wish to download.
+
+        Returns:
+            A JeevesDocument object representing the requested issue if we were
+            able to download it, and None otherwise.
+        """
+
+        base_api_url = "https://duolingo.atlassian.net/rest/api/3/issue"
+        headers = {"Accept": "application/json"}
+        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+
+        request_url = f"{base_api_url}/{issue_key}"
+
+        try:
+            r = get(request_url, auth=auth, headers=headers)
+            r.raise_for_status()
+
+            response_JSON = json.loads(r.text)
+            return JiraDocument.deserialize_from_external_json(response_JSON)
+
+        except RequestException as e:
+            print(
+                f"""
+                An exception occurred for the following request:
+                {e.request}
+                The above request generated the following response:
+                {e.response}
+
+                The requested record could not be found, returning None.
+                """
+            )
+            return None

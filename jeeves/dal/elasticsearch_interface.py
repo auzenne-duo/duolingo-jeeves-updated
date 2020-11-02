@@ -4,12 +4,12 @@ from typing import Dict, Iterator, List, Optional, Set, Union
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
-from elasticsearch_dsl import Mapping, Search
+from elasticsearch_dsl import Mapping, Q, Search
+from elasticsearch_dsl.query import MoreLikeThis
 
 from duolingo_base.config import Config
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
 
-# from jeeves.lib.identifier_document_mapping import IDENTIFIER_DOCUMENT_MAPPING
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
@@ -48,6 +48,38 @@ class ElasticsearchDAL(object):
 
         if not self._es.indices.exists(index=self._spikename):
             self._es.indices.create(index=self._spikename)
+
+    def _execute_search_for_documents(self, s: Search) -> List[JeevesDocument]:
+        """
+        Given an Elasticsearch_DSL Search object, performs the necessary logic
+        to execute that search and convert the results into a list of document
+        objects.
+
+        Parameters:
+            s: An Elasticsearch_DSL Search object to execute.
+
+        Returns:
+            The results of the input search as a list of JeevesDocument objects.
+        """
+
+        response = s.execute()
+        if not response.success():
+            raise Exception(
+                f"""
+            Attempt to get a page of documents failed.
+            Here's what the call to execute() returned:
+            {response.to_dict()}
+            """
+            )
+
+        result_docs = [
+            IDManagerMap.get_manager_for_identifier(hit["_source"]["data_source"])
+            .get_managed_document_type()
+            .deserialize_from_internal_json(hit["_source"])
+            for hit in response.to_dict()["hits"]["hits"]
+        ]
+
+        return result_docs
 
     def get_recent_paginated_tickets(
         self,
@@ -98,24 +130,7 @@ class ElasticsearchDAL(object):
         upper_limit = lower_limit + limit
         s = s[lower_limit:upper_limit]
 
-        response = s.execute()
-        if not response.success():
-            print("Attempt to get recent paginated tickets failed.", file=sys.stderr)
-            print("Here's what the call to execute() returned:", file=sys.stderr)
-            print(response.to_dict(), file=sys.stderr)
-
-        # TODO:
-        # I'm very aware that having a magic number 0 here is poor style
-        # However I want to get this checked in before I sign off for the day
-        # so I will deal with fixing it on Friday
-        tickets = [
-            IDManagerMap.get_manager_for_identifier(hit["_source"]["data_source"])
-            .get_managed_document_type()
-            .deserialize_from_internal_json(hit["_source"])
-            for hit in response.to_dict()["hits"]["hits"]
-        ]
-
-        return tickets
+        return self._execute_search_for_documents(s)
 
     def aggregate_time_series(self, lang: str, word: str) -> List[Dict[str, Union[str, int]]]:
         """
@@ -365,6 +380,130 @@ class ElasticsearchDAL(object):
         s = s[0:num_spikes]
         for hit in s.execute():
             yield hit
+
+    def filter_by_arbitrary_keywords(
+        self, field_value_pairs: Dict[str, str]
+    ) -> Iterator[JeevesDocument]:
+        """
+        Utility method. Constructs and executes a chain of filter()s to search
+        according to arbitrary criteria.
+
+        Parameters:
+            field_value_pairs: A dictionary of filter criteria, where keys are
+                               field names and values are the values those fields
+                               should have.
+
+        Yields:
+            JeevesDocument objects that represent records matching the
+            specified criteria. Results are unordered due to the use of scan().
+        """
+
+        s = Search(using=self._es, index=self._indexname)
+
+        for field, value in field_value_pairs.items():
+            filter_params = {"term": {f"{field}": {"value": f"{value}"}}}
+            s = s.query("bool", filter=[Q(filter_params)])
+
+        yield from [
+            IDManagerMap.get_manager_for_identifier(hit.data_source)
+            .get_managed_document_type()
+            .deserialize_from_internal_json(hit.to_dict())
+            for hit in s.scan()
+        ]
+
+    def count_by_arbitrary_keywords(self, field_value_pairs: Dict[str, str]) -> int:
+        """
+        Utility method. Constructs and executes a chain of filter()s to search
+        according to arbitrary criteria, and return only a count of matches.
+
+        Parameters:
+            field_value_pairs: A dictionary of filter criteria, where keys are
+                               field names and values are the values those fields
+                               should have.
+
+        Returns:
+            A count of how many records match the specified criteria.
+        """
+
+        s = Search(using=self._es, index=self._indexname)
+
+        for field, value in field_value_pairs.items():
+            filter_params = {"term": {f"{field}": {"value": f"{value}"}}}
+            s = s.query("bool", filter=[Q(filter_params)])
+
+        return s.count()
+
+    def run_more_like_this_for_duplicates(
+        self,
+        base_document: JeevesDocument,
+        should_filter_project: bool = False,
+        num_desired_results: int = 5,
+    ) -> List[JeevesDocument]:
+        """
+        Executes a More Like This query based on the provided document.
+        This is intended to be used for duplicate detection, and so the query
+        includes some additional features. It will restrict results to be from the
+        same data source as the base document. Results will only be selected from
+        records with an issue type of Bug. Results are also filtered manually to
+        remove results that are known duplicates of earlier results or known
+        duplicates of the base document. Parameters are provided to control
+        the number of results, and select if we should further restrict results
+        to be from the same JIRA project as the base document.
+        If the base document is not a JIRA document, an exeption will be thrown.
+
+        Parameters:
+            base_document: A document for which we would like to find similar documents.
+            should_filter_project: Optional, if True will restrict results to
+                                   only be from the same JIRA project as
+                                   base_document.
+            num_desired_results: Optional, the number of desired results.
+
+
+        Returns:
+            A list of documents similar to the input document, in the context
+            of duplicate issue detection, as determined by MLT.
+        """
+
+        if base_document.data_source != "JIRA":
+            raise Exception("Duplicate detection is currently only supported for JIRA issues!")
+
+        s = Search(using=self._es, index=self._indexname)
+        s = s.filter("term", data_source=base_document.data_source)
+        s = s.filter("term", issue_type__keyword="Bug")
+        if should_filter_project:
+            s = s.filter("term", project__keyword=base_document.project)
+
+        base_doc_id_str = f"{base_document.data_source}_{base_document.document_id}"
+        s = s.query(
+            MoreLikeThis(like=[{"_id": base_doc_id_str}], fields=["body_text", "header_text"])
+        )
+
+        # Now that we have the query set up, we must address the possibly
+        # painful operation of filtering the results down to disjoint sets.
+        # I'm not aware of a way to do this purely in Elasticsearch but if
+        # anyone reading this has any ideas please let me know.
+        results_page_start = 0
+        results_page_size = 10
+        running_known_duplicates = set(base_document.linked_duplicate_keys)
+        output_list = []
+        while True:
+            s = s[results_page_start : results_page_start + results_page_size]
+            results_page = self._execute_search_for_documents(s)
+
+            for result in results_page:
+                if result.issue_key not in running_known_duplicates:
+                    running_known_duplicates.update(result.linked_duplicate_keys)
+                    output_list.append(result)
+                    if len(output_list) >= num_desired_results:
+                        return output_list
+
+            # If the results page has fewer results than requested I believe
+            # that's an indicator we've run out of results to check and we
+            # should just return what we have.
+            if not results_page:
+                return output_list
+
+            results_page_start += results_page_size
 
 
 ElasticDAL = ElasticsearchDAL()

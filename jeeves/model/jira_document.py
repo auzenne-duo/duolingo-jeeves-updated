@@ -154,7 +154,7 @@ class JiraDocument(JeevesDocument):
             issue_type=external_fields["issuetype"]["name"]
             if "issuetype" in external_fields and "name" in external_fields["issuetype"]
             else "",
-            project=external_fields["project"]["name"],
+            project=external_fields["project"]["key"],
             linked_duplicate_keys=[],
             creation_date=parse_external_datetime(external_fields["created"]),
             updated_date=parse_external_datetime(external_fields["updated"]),
@@ -164,7 +164,9 @@ class JiraDocument(JeevesDocument):
             status=external_fields["status"]["statusCategory"]["name"],
             components=[comp["name"] for comp in external_fields["components"]],
             features=[],
-            priority=external_fields["priority"]["name"],
+            priority=external_fields["priority"]["name"]
+            if external_fields["priority"]
+            else "NO PRIORITY GIVEN",
             reporter=external_fields["reporter"]["displayName"],
             assignee=external_fields["assignee"]["displayName"]
             if external_fields["assignee"]
