@@ -85,7 +85,9 @@ def manage_tickets(lang):
         abort(make_response("Requested language not supported", 400))
 
     page = int(request.args.get("page", "0"))
-    word = request.args.get("word")
+    word = request.args.get("word", "")
+
+    filter_to_zendesk_beta = bool(int(request.args.get("beta_filter", "0")))
 
     if request.args.get("start_time") == "-1":
         start_time = str_to_datetime(None)
@@ -97,8 +99,8 @@ def manage_tickets(lang):
     def get_tickets_by_word():
         limit = int(request.args.get("limit", "10"))
 
-        tickets = ElasticDAL.get_recent_paginated_tickets(
-            lang, word, page, limit, start_time, end_time
+        paginated_info = ElasticDAL.get_recent_paginated_tickets(
+            lang, word, page, limit, start_time, end_time, filter_to_zendesk_beta
         )
 
         subserial_fields = [
@@ -115,15 +117,22 @@ def manage_tickets(lang):
             "links",
             "store",
         ]
-        values = [ticket.serialize_to_json(ticket, subserial_fields) for ticket in tickets]
-        return {
-            "data": values,
-            "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}",
-        }
+        values = [
+            ticket.serialize_to_json(ticket, subserial_fields) for ticket in paginated_info["data"]
+        ]
+
+        return_packet = {"data": values}
+        return_packet.update({"total_records": paginated_info["total_records"]})
+
+        if paginated_info["deepest_index"] < paginated_info["total_records"]:
+            return_packet.update(
+                {"next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}"}
+            )
+
+        return return_packet
 
     if request.method == "GET":
-        if word:
-            response_data = get_tickets_by_word()
+        response_data = get_tickets_by_word()
 
     return json.jsonify(response_data)
 

@@ -18,6 +18,11 @@ from jeeves.util.date_util import datetime_to_str
 
 _config = Config.load_config()
 
+# If these seem like magic, they pretty much are. I talked to Ramya
+# and was told that these are the values we should filter on for
+# release candidate feedback.
+_BETA_INDICATORS = ["bet40189", "betflight40190", "BETRC40190", "BET40189"]
+
 
 class ElasticsearchDAL(object):
     def __init__(self) -> None:
@@ -89,14 +94,18 @@ class ElasticsearchDAL(object):
         limit: int = 10,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-    ) -> List[JeevesDocument]:
+        filter_to_zendesk_beta: Optional[bool] = False,
+    ) -> Dict[str, Union[int, List[JeevesDocument]]]:
         """
         Returns stored user tickets from Elasticsearch in a paginated manner.
         To obtain multiple pages of tickets, call this function multiple times.
+        If an empty string is passed to the `word` parameter, replace the normal
+        `match against this word` query with a `match all` query.
 
         Parameters:
             lang (str): Language to search for tickets in.
-            word (str): Query to search against in Elasticsearch.
+            word (str): Query to search against in Elasticsearch. An empty string
+                        will match to all documents.
             page (int): Desired page number of results.
                         Used when multiple pages of results are needed.
             limit (int): The maximum number of results per page.
@@ -107,10 +116,18 @@ class ElasticsearchDAL(object):
             end_time (datetime):  The end of a date range to search for tickets in,
                                   Results will not have timestamps after this value.
                                   Optional value.
+            filter_to_zendesk_beta (bool): Whether we should filter results to
+                                           have specific values related to release
+                                           candidates. Optional value.
 
         Returns:
-            A list of support ticket objects, representing the requested page of results.
-            Results are sorted, larger timestamps first.
+            A dictionary containing the following:
+            - data: A list of support ticket objects, representing the requested
+              page of results. Results are sorted, larger timestamps first.
+            - total_recoreds: An integer representing the total number of hits
+              for the search criteria
+            - deepest_index: An integer representing the index in the search
+              of the last expected element
         """
         timestamp_dict = {"time_zone": "America/New_York"}
         if start_time:
@@ -120,17 +137,43 @@ class ElasticsearchDAL(object):
 
         s = (
             Search(using=self._es, index=self._indexname)
-            .query("match", body_text=word)
             .filter("range", date_time=timestamp_dict)
             .filter("term", language=lang)
             .sort("-date_time")
         )
 
+        if word:
+            s = s.query("match", body_text=word)
+        else:
+            s = s.query("match_all")
+
+        if filter_to_zendesk_beta:
+            # Construct queries for "match in body text"
+            match_query_list = [Q("match", body_text=beta_ind) for beta_ind in _BETA_INDICATORS]
+
+            # Construct filter for "find any exact terms in tags"
+            composite_query = Q("bool", filter=[Q("terms", tags__keyword=_BETA_INDICATORS)])
+
+            # Combine queries with filter
+            for match_query in match_query_list:
+                composite_query = composite_query | match_query
+
+            s = s.query(composite_query)
+            s = s.filter("term", data_source="Zendesk")
+
+        total_records = s.count()
+
+        retval = {"total_records": total_records}
+
         lower_limit = limit * page
         upper_limit = lower_limit + limit
         s = s[lower_limit:upper_limit]
 
-        return self._execute_search_for_documents(s)
+        retval.update({"deepest_index": upper_limit})
+
+        retval.update({"data": self._execute_search_for_documents(s)})
+
+        return retval
 
     def aggregate_time_series(self, lang: str, word: str) -> List[Dict[str, Union[str, int]]]:
         """
