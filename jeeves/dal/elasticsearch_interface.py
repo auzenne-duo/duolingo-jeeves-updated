@@ -18,11 +18,6 @@ from jeeves.util.date_util import datetime_to_str
 
 _config = Config.load_config()
 
-# If these seem like magic, they pretty much are. I talked to Ramya
-# and was told that these are the values we should filter on for
-# release candidate feedback.
-_BETA_INDICATORS = ["bet40189", "betflight40190", "BETRC40190", "BET40189"]
-
 
 class ElasticsearchDAL(object):
     def __init__(self) -> None:
@@ -49,6 +44,7 @@ class ElasticsearchDAL(object):
             m = Mapping()
             m.field("data_source", "keyword")
             m.field("document_id", "keyword")
+            m.field("shake_to_report_category", "keyword")
             m.save(self._indexname, using=self._es)
 
         if not self._es.indices.exists(index=self._spikename):
@@ -148,17 +144,7 @@ class ElasticsearchDAL(object):
             s = s.query("match_all")
 
         if filter_to_zendesk_beta:
-            # Construct queries for "match in body text"
-            match_query_list = [Q("match", body_text=beta_ind) for beta_ind in _BETA_INDICATORS]
-
-            # Construct filter for "find any exact terms in tags"
-            composite_query = Q("bool", filter=[Q("terms", tags__keyword=_BETA_INDICATORS)])
-
-            # Combine queries with filter
-            for match_query in match_query_list:
-                composite_query = composite_query | match_query
-
-            s = s.query(composite_query)
+            s = s.filter("term", shake_to_report_category="EXTERNAL")
             s = s.filter("term", data_source="Zendesk")
 
         total_records = s.count()

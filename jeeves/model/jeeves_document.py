@@ -9,6 +9,7 @@ from typing import List, Optional
 import attr
 
 from jeeves.model.custom_types import JSON
+from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
 
@@ -22,6 +23,7 @@ class JeevesDocument(ABC):
     body_text: str = attr.ib()
     language: str = attr.ib()
     links: List[str] = attr.ib(default=[])
+    shake_to_report_category: ShakeToReportCategory = attr.ib()
 
     # It is VERY IMPORTANT, when you add attributes to a subclass of this class,
     # that the attribute names are distinct from each other attribute name across
@@ -91,9 +93,18 @@ class JeevesDocument(ABC):
         Returns:
             A JSON representation of the provided object.
         """
+
+        retval = {}
+
         if subserial_filter:
-            return attr.asdict(document, filter=lambda attr, _: attr.name in subserial_filter)
-        return attr.asdict(document)
+            retval = attr.asdict(document, filter=lambda attr, _: attr.name in subserial_filter)
+        else:
+            retval = attr.asdict(document)
+
+        if "shake_to_report_category" in retval:
+            retval["shake_to_report_category"] = document.shake_to_report_category.value
+
+        return retval
 
     @classmethod
     @abstractmethod

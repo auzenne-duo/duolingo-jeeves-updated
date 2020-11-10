@@ -8,6 +8,7 @@ import attr
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
+from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.classify import detect_language, detect_product
 from jeeves.util.cleanup import clean_and_parse_description
 from jeeves.util.date_util import parse_external_datetime
@@ -43,6 +44,16 @@ class ZendeskDocument(JeevesDocument):
         ticket_link = f"{link_url_base}/tickets/{external_json['id']}"
         user_link = f"{link_url_base}/users/{external_json['requester_id']}"
 
+        # If these seem like magic, they pretty much are. I talked to Ramya
+        # and was told that these are the values we should filter on for
+        # release candidate feedback.
+        beta_indicators = ["bet40189", "betflight40190", "BETRC40190", "BET40189"]
+        is_shake_to_report = False
+        for beta_ind in beta_indicators:
+            is_shake_to_report |= (
+                beta_ind in external_json["tags"] or beta_ind in external_json["description"]
+            )
+
         return cls(
             data_source=cls.get_data_source_identifier(),
             document_id=str(external_json["id"]),
@@ -51,6 +62,9 @@ class ZendeskDocument(JeevesDocument):
             body_text=external_json["description"],
             language=detect_language(body),
             links=[ticket_link, user_link],
+            shake_to_report_category=ShakeToReportCategory.EXTERNAL
+            if is_shake_to_report
+            else ShakeToReportCategory.NON_STR,
             product=detect_product(external_json["tags"], header).name,
             priority=external_json["priority"],
             via=external_json["via"],
@@ -74,6 +88,9 @@ class ZendeskDocument(JeevesDocument):
             body_text=internal_json["body_text"],
             language=internal_json["language"],
             links=internal_json["links"],
+            shake_to_report_category=ShakeToReportCategory[
+                internal_json["shake_to_report_category"]
+            ],
             product=internal_json["product"],
             priority=internal_json["priority"],
             via=internal_json["via"],

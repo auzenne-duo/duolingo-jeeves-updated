@@ -17,7 +17,7 @@ deprecation==2.0.2        # via duolingo-base
 docutils==0.13.1          # via botocore
 duolingo-base==0.9.66
 duolingo-proto==2018.4.18.0  # via duolingo-base
-elasticsearch-dsl==7.2.1
+elasticsearch-dsl==7.3.0
 elasticsearch==7.9.1
 flask==0.12.1
 futures==3.1.1

@@ -9,8 +9,11 @@ import attr
 
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.classify import detect_language
 from jeeves.util.date_util import parse_external_datetime
+
+_SHAKE_TO_REPORT_MARKER = "Reported with shake-to-report"
 
 
 @attr.s(kw_only=True)
@@ -135,20 +138,23 @@ class JiraDocument(JeevesDocument):
         """
         external_fields = external_json["fields"]
 
+        body_text = (
+            cls._compress_rich_text(external_fields["description"])
+            if external_fields["description"]
+            else ""
+        )
+
         return cls(
             data_source=cls.get_data_source_identifier(),
             document_id=external_json["id"],
             date_time=parse_external_datetime(external_fields["updated"]),
             header_text=external_fields["summary"],
-            body_text=cls._compress_rich_text(external_fields["description"])
-            if external_fields["description"]
-            else "",
-            language=detect_language(
-                cls._compress_rich_text(external_fields["description"])
-                if external_fields["description"]
-                else external_fields["summary"]
-            ),
+            body_text=body_text,
+            language=detect_language(body_text if body_text else external_fields["summary"]),
             links=[],
+            shake_to_report_category=ShakeToReportCategory.INTERNAL
+            if _SHAKE_TO_REPORT_MARKER in body_text
+            else ShakeToReportCategory.NON_STR,
             issue_key=external_json["key"],
             issue_links=external_fields["issue_links"] if "issue_links" in external_fields else [],
             issue_type=external_fields["issuetype"]["name"]
@@ -193,6 +199,9 @@ class JiraDocument(JeevesDocument):
             body_text=internal_json["body_text"],
             language=internal_json["language"],
             links=internal_json["links"],
+            shake_to_report_category=ShakeToReportCategory[
+                internal_json["shake_to_report_category"]
+            ],
             issue_key=internal_json["issue_key"],
             issue_links=internal_json["issue_links"],
             issue_type=internal_json["issue_type"],

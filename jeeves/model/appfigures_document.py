@@ -5,6 +5,7 @@ import attr
 
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.classify import detect_language
 from jeeves.util.date_util import parse_external_datetime
 
@@ -42,6 +43,7 @@ class AppfiguresDocument(JeevesDocument):
             body_text=external_json["original_review"],
             language=detect_language(external_json["original_review"]),
             links=[],
+            shake_to_report_category=ShakeToReportCategory.NON_STR,
             author=external_json["author"],
             stars=float(external_json["stars"]),
             iso=external_json["iso"],
@@ -64,6 +66,9 @@ class AppfiguresDocument(JeevesDocument):
             body_text=internal_json["body_text"],
             language=internal_json["language"],
             links=internal_json["links"],
+            shake_to_report_category=ShakeToReportCategory[
+                internal_json["shake_to_report_category"]
+            ],
             author=internal_json["author"],
             stars=internal_json["stars"],
             iso=internal_json["iso"],
