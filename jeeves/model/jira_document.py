@@ -225,4 +225,5 @@ class JiraDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
-        return super().check_should_index_document(document)
+        # One-line solution for JEEVES-92
+        return document.issue_type == "Bug" and super().check_should_index_document(document)

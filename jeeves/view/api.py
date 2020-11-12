@@ -13,8 +13,7 @@ import random
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.lib.duplicate_detector import calculate_duplicates_for_JIRA_issue
-
-
+from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import (
     date_to_str,
@@ -164,8 +163,19 @@ def get_spike_data(lang):
     if not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
 
+    # I could only get around this call with an ugly conditional statement.
+    # At the very least, it should be pretty fast and the user won't notice.
+    min_max_possible_dates = ElasticDAL.get_min_and_max_document_dates()
+
+    start_date = request.args.get("start_date", min_max_possible_dates["min"])
+    end_date = request.args.get("end_date", min_max_possible_dates["max"])
+
+    spike_category = request.args.get("spike_category", "ALL_SPIKES")
+    if spike_category not in SpikeCategory.__members__:
+        abort(make_response(f"Invalid spike category {spike_category}", 400))
+
     stored_spikes = {}
-    for spike in ElasticDAL.yield_all_spikes(lang):
+    for spike in ElasticDAL.yield_spikes_in_date_range(lang, start_date, end_date):
         if spike["date"] not in stored_spikes:
             stored_spikes[spike["date"]] = {"spike": []}
         stored_spikes[spike["date"]]["spike"].append((spike["score"], spike["word"]))

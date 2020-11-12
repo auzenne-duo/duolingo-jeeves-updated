@@ -10,7 +10,8 @@ from tqdm import tqdm
 
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
 from jeeves.dal.elasticsearch_interface import ElasticDAL
-from jeeves.model.support_ticket import SupportTicket
+from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import (
     date_to_str,
@@ -20,7 +21,36 @@ from jeeves.util.date_util import (
 )
 
 
-def run_spike_detector_for_batch(new_ticket_batch: List[SupportTicket]) -> None:
+def split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument]) -> None:
+    """
+    Given a mix of documents from checkpointing, split them into groups
+    according to what their shake-to-report categorization is, and run spike
+    detection on each of those groups.
+
+    Parameters:
+        doc_mix: A mix of documents, which can contain documents with various
+                 values for shake_to_report_category.
+    """
+
+    split_batches = {}
+    for document in doc_mix:
+        if document.shake_to_report_category not in split_batches:
+            split_batches[document.shake_to_report_category] = []
+        split_batches[document.shake_to_report_category].append(document)
+
+    for spike_group in SpikeCategory:
+        group_to_run = []
+        for shake_category in SpikeCategory.inter_category_mapping(spike_group):
+            if shake_category in split_batches:
+                group_to_run += split_batches[shake_category]
+
+        if group_to_run:
+            run_spike_detector_for_batch(group_to_run, spike_group)
+
+
+def run_spike_detector_for_batch(
+    new_ticket_batch: List[JeevesDocument], spike_group: SpikeCategory
+) -> None:
     """
     Given a new batch of tickets from checkpointing, runs spike detection on
     each of the words in the new tickets, for the date that ticket was opened.
@@ -29,8 +59,10 @@ def run_spike_detector_for_batch(new_ticket_batch: List[SupportTicket]) -> None:
     that ticket, and repeat for all tickets in the batch.
 
     Parameters:
-        new_ticket_batch (List[SupportTicket]): Batch of new tickets used to
+        new_ticket_batch (List[JeevesDocument]): Batch of new tickets used to
                                                 direct spike detection
+        spike_group (SpikeCategory): Indicator for which types of documents
+                                     are in the current batch.
     """
     # Since spike detection is split up by language, we need to separate tickets
     # and dates into different language buckets
@@ -50,6 +82,9 @@ def run_spike_detector_for_batch(new_ticket_batch: List[SupportTicket]) -> None:
             word_to_date_to_count = _get_word_to_date_to_count(lang, new_ticket_ids_per_lang[lang])
             for target_dt in new_ticket_dates_per_lang[lang]:
                 batch_spike_list += _find_spiked_words(lang, word_to_date_to_count, target_dt)
+
+    for spike in batch_spike_list:
+        spike.update({"spike_group": spike_group.name})
 
     if batch_spike_list:
         ElasticDAL.bulk_index_spikes(batch_spike_list)
