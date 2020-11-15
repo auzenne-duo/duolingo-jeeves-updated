@@ -1,0 +1,22 @@
+@import 'constants';
+
+.content {
+  display: grid;
+  grid-gap: $juicy-margin;
+  justify-items: start;
+}
+
+.main {
+  align-items: start;
+  display: grid;
+  grid-gap: $juicy-margin;
+  grid-template-columns: 240px 1fr;
+  margin: 0 auto;
+  max-width: $width-app-max;
+  padding: $juicy-margin (2 * $juicy-length);
+}
+
+.sidebar {
+  position: sticky;
+  top: $height-topbar + $juicy-margin;
+}

@@ -1,3 +1,19 @@
+FROM node:12.13.1-alpine3.10 AS web-requirements
+
+WORKDIR /code
+COPY web/package.json .
+COPY web/package-lock.json .
+RUN npm ci
+
+FROM node:12.13.1-alpine3.10 AS web-builder
+
+WORKDIR /code
+COPY web .
+COPY --from=web-requirements /code/node_modules ./node_modules
+RUN rm -rf dist && \
+  "$(npm bin)/tsc" -p config && \
+  "$(npm bin)/webpack" --config config/webpack.config.js --mode production
+
 FROM 940168671796.dkr.ecr.us-east-1.amazonaws.com/duolingo/base/py3:0.1.0
 
 ENV INSTALL_PATH /code
@@ -34,7 +50,8 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk del .build-deps \
     && rm -rf /root/.cache
 
-COPY . $INSTALL_PATH
+COPY . .
+COPY --from=web-builder /code/dist ./web/dist
 
 EXPOSE 5000
 

@@ -1,0 +1,36 @@
+@import 'constants';
+
+.container {
+  background: $juicy-snow;
+  border-bottom: $juicy-border;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.logo {
+  height: 29px;
+}
+
+.logo-link {
+  display: none;
+
+  @media (min-width: 500px) {
+    display: flex;
+  }
+}
+
+.search {
+  display: grid;
+}
+
+.wrap {
+  align-items: center;
+  display: grid;
+  grid-gap: $juicy-margin;
+  grid-template-columns: 240px 1fr;
+  height: $height-topbar - $juicy-border-width;
+  margin: 0 auto;
+  max-width: $width-app-max;
+  padding: 0 (2 * $juicy-length);
+}

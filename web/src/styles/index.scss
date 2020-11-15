@@ -1,0 +1,49 @@
+@import 'constants';
+@import 'mixins';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+a {
+  color: $juicy-macaw;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+body {
+  font: 500 17px/25px din-round, sans-serif;
+  overflow-y: scroll;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  appearance: none;
+  background: none;
+  border: none;
+  color: $juicy-macaw;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: inherit;
+  outline: none;
+  transition: filter $duration-button-transition;
+
+  @include hover {
+    filter: brightness(1.1);
+  }
+}
+
+h1 {
+  color: $juicy-eel;
+  font-size: 25px;
+  line-height: 34px;
+  margin: 0;
+}
+
+h2 {
+  color: $juicy-eel;
+  font-size: 19px;
+  line-height: 28px;
+  margin: 0;
+}

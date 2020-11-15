@@ -1,0 +1,24 @@
+@import 'constants';
+
+.table {
+  border: $juicy-border;
+  border-radius: 12px;
+  border-spacing: 0;
+  // Hides shading overflow from border-radius.
+  overflow: hidden;
+
+  td,
+  th {
+    outline: ($juicy-border-width / 2) solid $juicy-swan;
+    padding: 11.5px 16px;
+  }
+
+  th {
+    background: $juicy-ghost;
+    text-align: initial;
+  }
+
+  thead th {
+    text-align: center;
+  }
+}

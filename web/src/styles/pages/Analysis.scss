@@ -1,0 +1,29 @@
+@import '../constants';
+
+.explanation {
+  display: grid;
+  font-size: 15px;
+  grid-gap: 2 * $juicy-length;
+}
+
+.tickets-after-hidden-trend {
+  margin-top: -$juicy-margin;
+}
+
+.trend {
+  width: 100%;
+}
+
+.trend-hidden {
+  composes: trend;
+  // We still render the graph to prevent having to redraw it.
+  height: 0;
+  overflow: hidden;
+}
+
+.trend-header {
+  display: grid;
+  grid-gap: $juicy-margin;
+  grid-template-columns: 1fr min-content;
+  width: 100%;
+}

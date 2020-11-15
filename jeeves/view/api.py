@@ -6,7 +6,16 @@ import os
 from datetime import datetime
 
 
-from flask import Blueprint, abort, json, make_response, redirect, render_template, request
+from flask import (
+    Blueprint,
+    abort,
+    json,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+)
 import logging
 import random
 
@@ -27,9 +36,6 @@ blueprint_api = Blueprint("api", __name__)
 
 _LOG = logging.getLogger("application")
 
-# Append this to resource URLs (i.e. JS and CSS) to avoid caching.
-_RANDOM = random.randint(0, 1000000)
-
 _DEPLOYED_TIMESTAMP = datetime_to_str(get_utc_today())
 
 _init_timestamp = datetime_to_str(get_utc_today())
@@ -38,41 +44,6 @@ _init_timestamp = datetime_to_str(get_utc_today())
 @blueprint_api.route("/api/1/hello")
 def say_hello():
     return json.jsonify({"msg": "hello"})
-
-
-@blueprint_api.route("/<lang>")
-def show_index(lang):
-    if not _is_language_supported(lang):
-        abort(make_response("Requested language not supported", 400))
-    return render_template("index.html", random=_RANDOM, lang=lang)
-
-
-@blueprint_api.route("/")
-def no_lang():
-    return redirect("/en")
-
-
-@blueprint_api.route("/<lang>/annotation")
-def show_train_jeeves(lang):
-    if not _is_language_supported(lang):
-        abort(make_response("Requested language not supported", 400))
-    return render_template("annotation.html", random=_RANDOM, lang=lang)
-
-
-@blueprint_api.route("/<lang>/analysis")
-def show_analysis(lang):
-    print("Entered show_analysis", flush=True)
-    if not _is_language_supported(lang):
-        abort(make_response("Requested language not supported", 400))
-    print("Passed show_analysis lang check", flush=True)
-    return render_template("analysis.html", random=_RANDOM, lang=lang)
-
-
-@blueprint_api.route("/<lang>/spike")
-def show_spike(lang):
-    if not _is_language_supported(lang):
-        abort(make_response("Requested language not supported", 400))
-    return render_template("spike.html", random=_RANDOM, lang=lang)
 
 
 @blueprint_api.route("/api/1/<lang>/tickets", methods=["GET"])
@@ -248,6 +219,19 @@ def perform_duplicate_jira_detection():
             )
         ]
     )
+
+
+@blueprint_api.route("/", defaults={"path": ""})
+@blueprint_api.route("/<path:path>")
+def catch_all(path):
+    """
+    Serves the web client on any request that wasn't matched.
+    The client will handle further routing.
+    """
+    if path != "" and os.path.exists("web/dist/" + path):
+        return send_from_directory("web/dist", path)
+    else:
+        return send_from_directory("web/dist", "index.html")
 
 
 def _get_status(lang):

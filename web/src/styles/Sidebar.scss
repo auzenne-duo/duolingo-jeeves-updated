@@ -1,0 +1,35 @@
+@import 'constants';
+
+.item {
+  color: $juicy-eel;
+  display: flex;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 27px;
+  padding: 18px (2 * $juicy-length);
+  transition: color $duration-fade;
+
+  &:not(:last-child) {
+    border-bottom: $juicy-border;
+  }
+}
+
+.item-active {
+  composes: item;
+  color: $juicy-macaw;
+}
+
+.item-language {
+  composes: item;
+  padding: 0;
+}
+
+.language {
+  padding: 18px (2 * $juicy-length);
+  width: 100%;
+}
+
+.wrap {
+  border: $juicy-border;
+  border-radius: 12px;
+}

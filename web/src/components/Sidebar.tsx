@@ -1,0 +1,61 @@
+import * as React from "react";
+import { NavLink, useHistory, useLocation, useParams } from "react-router-dom";
+
+import LanguagePicker, { LanguageId } from "components/LanguagePicker";
+import styles from "styles/Sidebar.scss";
+
+const LinkItem: React.FC<React.ComponentProps<typeof NavLink>> = ({
+  children,
+  ...rest
+}) => (
+  <NavLink
+    activeClassName={styles["item-active"]}
+    className={styles.item}
+    exact={true}
+    {...rest}
+  >
+    {children}
+  </NavLink>
+);
+
+const Sidebar = () => {
+  const history = useHistory();
+  const location = useLocation();
+  const { lang } = useParams<{ lang: LanguageId }>();
+
+  return (
+    <nav className={styles.wrap}>
+      <div className={styles["item-language"]}>
+        <LanguagePicker
+          className={styles.language}
+          onChange={newValue => {
+            // Replace the language part of the URL, which
+            // is the first part of the path. This also unsets
+            // any search parameters. The assumption is that
+            // search parameters for one language don't make
+            // sense in the other.
+            const parts = location.pathname.split("/");
+            parts[1] = newValue;
+            history.push(parts.join("/"));
+          }}
+          value={lang}
+        />
+      </div>
+      <LinkItem to={`/${lang}`}>Dashboard</LinkItem>
+      <LinkItem
+        title="Browse the list of trending words where the volume of matched tickets spiked."
+        to={`/${lang}/spike`}
+      >
+        Spike Detector
+      </LinkItem>
+      <LinkItem
+        title="Visualize Zendesk tickets over time with a keyword filter."
+        to={`/${lang}/analysis`}
+      >
+        Time Series Analyzer
+      </LinkItem>
+    </nav>
+  );
+};
+
+export default Sidebar;
