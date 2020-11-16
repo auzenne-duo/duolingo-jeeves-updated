@@ -1,21 +1,8 @@
 @import 'constants';
 @import 'mixins';
 
-._button {
-  transition: filter $duration-button-transition;
-
-  @include hover {
-    filter: brightness(1.1);
-  }
-}
-
 .next {
-  composes: _button;
   margin-left: auto;
-}
-
-.previous {
-  composes: _button;
 }
 
 .wrap {

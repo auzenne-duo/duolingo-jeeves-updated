@@ -1,20 +1,32 @@
 import * as React from "react";
 import { NavLink, Route, useHistory, useParams } from "react-router-dom";
-import { Input } from "web-ui";
+import { Input, LoadingDots, Select } from "web-ui";
 
 import { LanguageId } from "components/LanguagePicker";
 import useSearchParams from "components/useSearchParams";
 import imageLogo from "images/logo.svg";
 import styles from "styles/Topbar.scss";
 
-const Topbar = () => {
+interface Props {
+  isLoading: boolean;
+}
+
+const Topbar: React.FC<Props> = ({ isLoading }) => {
   const history = useHistory();
   const { lang } = useParams<{ lang: LanguageId }>();
   const search = useSearchParams();
 
+  const filter = search.get("filter") ?? "beta";
   const query = search.get("q") ?? "";
 
   const [input, setInput] = React.useState(query);
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    history.push({
+      ...location,
+      search: `filter=${encodeURIComponent(e.target.value)}`,
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +46,12 @@ const Topbar = () => {
     <div className={styles.container}>
       <nav className={styles.wrap}>
         <NavLink className={styles["logo-link"]} to={`/${lang}`}>
-          <img alt="Duolingo" className={styles.logo} src={imageLogo} />
+          <img
+            alt="Duolingo"
+            className={styles[`logo${isLoading ? "-invisible" : ""}`]}
+            src={imageLogo}
+          />
+          {isLoading ? <LoadingDots type="button" /> : null}
         </NavLink>
         <Route path="/:lang/analysis">
           <form className={styles.search} onSubmit={handleSubmit}>
@@ -45,6 +62,17 @@ const Topbar = () => {
               value={input}
             />
           </form>
+        </Route>
+        <Route path="/:lang/discovery">
+          <Select
+            className={styles.filter}
+            onChange={handleFilterChange}
+            options={[
+              { text: "All sources", value: "all" },
+              { text: "Beta program", value: "beta" },
+            ]}
+            value={filter}
+          />
         </Route>
       </nav>
     </div>

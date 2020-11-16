@@ -13,25 +13,10 @@ a {
 
 body {
   font: 500 17px/25px din-round, sans-serif;
+  overflow-x: hidden;
   overflow-y: scroll;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-}
-
-button {
-  appearance: none;
-  background: none;
-  border: none;
-  color: $juicy-macaw;
-  cursor: pointer;
-  font-weight: 700;
-  line-height: inherit;
-  outline: none;
-  transition: filter $duration-button-transition;
-
-  @include hover {
-    filter: brightness(1.1);
-  }
 }
 
 h1 {

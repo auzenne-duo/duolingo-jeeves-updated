@@ -1,5 +1,10 @@
 @import 'constants';
 
+$gap: $juicy-margin;
+$padding-x: 2 * $juicy-length;
+$width-left: 240px;
+$width-right: 400px;
+
 .content {
   display: grid;
   grid-gap: $juicy-margin;
@@ -7,16 +12,37 @@
 }
 
 .main {
+  --width-content: calc(var(--width-max) - 2 * #{$padding-x} - #{$gap} - var(--width-sidebar));
+  --width-sidebar: #{$width-left};
+  --width-max: calc(100vw - var(--scrollbar-width));
   align-items: start;
   display: grid;
-  grid-gap: $juicy-margin;
-  grid-template-columns: 240px 1fr;
-  margin: 0 auto;
-  max-width: $width-app-max;
-  padding: $juicy-margin (2 * $juicy-length);
+  grid-gap: $gap;
+  grid-template-columns: $width-left var(--width-content) $width-right;
+  padding: $juicy-margin $padding-x;
+  transition: transform $duration-slide;
+
+  @media (min-width: $width-app-max) {
+    --width-max: #{$width-app-max};
+  }
+
+  @media (prefers-reduced-motion) {
+    transition: none;
+  }
+}
+
+.main-shifted {
+  composes: main;
+  --width-sidebar: #{$width-right};
+  transform: translateX(-$width-left - $gap);
 }
 
 .sidebar {
   position: sticky;
   top: $height-topbar + $juicy-margin;
+}
+
+.wrap {
+  margin: 0 auto;
+  max-width: $width-app-max;
 }

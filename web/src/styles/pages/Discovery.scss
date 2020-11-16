@@ -1,0 +1,30 @@
+@import '../constants';
+@import '../mixins';
+
+.date {
+  text-align: right;
+}
+
+.pagination {
+  text-align: right;
+}
+
+.table {
+  table-layout: fixed;
+  width: 100%;
+
+  tbody {
+    tr {
+      @include hover {
+        background: $juicy-ghost;
+        cursor: pointer;
+      }
+    }
+  }
+
+  td, th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

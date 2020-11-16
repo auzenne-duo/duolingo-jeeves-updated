@@ -42,6 +42,7 @@ const Sidebar = () => {
         />
       </div>
       <LinkItem to={`/${lang}`}>Dashboard</LinkItem>
+      <LinkItem to={`/${lang}/discovery`}>Issue Discovery</LinkItem>
       <LinkItem
         title="Browse the list of trending words where the volume of matched tickets spiked."
         to={`/${lang}/spike`}

@@ -8,12 +8,23 @@
   z-index: 1;
 }
 
+.filter {
+  margin-left: auto;
+}
+
 .logo {
   height: 29px;
 }
 
+.logo-invisible {
+  composes: logo;
+  visibility: hidden;
+}
+
 .logo-link {
+  color: $juicy-owl;
   display: none;
+  position: relative;
 
   @media (min-width: 500px) {
     display: flex;
@@ -28,9 +39,13 @@
   align-items: center;
   display: grid;
   grid-gap: $juicy-margin;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 1fr;
   height: $height-topbar - $juicy-border-width;
   margin: 0 auto;
   max-width: $width-app-max;
   padding: 0 (2 * $juicy-length);
+
+  @media (min-width: 500px) {
+    grid-template-columns: 240px 1fr;
+  }
 }

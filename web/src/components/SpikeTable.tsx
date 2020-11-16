@@ -2,7 +2,6 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { LanguageId } from "components/LanguagePicker";
-import Loading from "components/Loading";
 import Table from "components/Table";
 import styles from "styles/SpikeTable.scss";
 
@@ -35,15 +34,9 @@ const SpikeTable: React.FC<Props> = ({ date, isLoading, language, spikes }) => (
           </td>
         </tr>
       ))}
-      {!spikes.length ? (
+      {!spikes.length && !isLoading ? (
         <tr>
-          <td colSpan={2}>
-            {isLoading ? (
-              <Loading type="table-cell" />
-            ) : (
-              "No data is available for this date."
-            )}
-          </td>
+          <td colSpan={2}>No data is available for this date.</td>
         </tr>
       ) : null}
     </tbody>

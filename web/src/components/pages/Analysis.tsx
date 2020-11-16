@@ -1,10 +1,11 @@
 import { debounce } from "lodash";
 import * as React from "react";
 import { useHistory, useLocation, useParams } from "react-router-dom";
+import { Button } from "web-ui";
 
 import { getTickets } from "api";
+import { AppDispatch } from "components/App";
 import { LanguageId } from "components/LanguagePicker";
-import Loading from "components/Loading";
 import Pagination from "components/Pagination";
 import SearchExample from "components/SearchExample";
 import Ticket from "components/Ticket";
@@ -47,6 +48,7 @@ const Analysis = () => {
   const { lang } = useParams<{ lang: LanguageId; page: string | undefined }>();
   const search = useSearchParams();
 
+  const dispatch = React.useContext(AppDispatch);
   const [showTrend, setShowTrend] = React.useState(true);
 
   const from = search.get("from")
@@ -114,6 +116,15 @@ const Analysis = () => {
   usePageView();
 
   React.useEffect(() => {
+    if (isLoading) {
+      dispatch?.({ type: "LOADING" });
+      return () => {
+        dispatch?.({ type: "LOADED" });
+      };
+    }
+  }, [isLoading]);
+
+  React.useEffect(() => {
     if (page > 1) {
       setShowTrend(false);
     }
@@ -145,9 +156,12 @@ const Analysis = () => {
         <>
           <div className={styles["trend-header"]}>
             <h2>Trend</h2>
-            <button onClick={() => setShowTrend(value => !value)}>
+            <Button
+              onClick={() => setShowTrend(value => !value)}
+              variant="stroke"
+            >
               {showTrend ? "Hide" : "Show"}
-            </button>
+            </Button>
           </div>
           <div className={styles[`trend${showTrend ? "" : "-hidden"}`]}>
             <TrendGraph
@@ -165,9 +179,7 @@ const Analysis = () => {
               ? `Showing ${paginationString} tickets`
               : "Tickets"}
           </h2>
-          {isLoading ? (
-            <Loading />
-          ) : tickets?.length ? (
+          {isLoading ? null : tickets?.length ? (
             tickets.map((t, i) => (
               <Ticket highlight={query} key={i} ticket={t} />
             ))
