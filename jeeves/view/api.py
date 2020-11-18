@@ -5,7 +5,6 @@ APIs.
 import os
 from datetime import datetime
 
-
 from flask import (
     Blueprint,
     abort,
@@ -19,6 +18,8 @@ import logging
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.lib.duplicate_detector import calculate_duplicates_for_JIRA_issue
+from jeeves.dal.shakira import ShakiraDAL
+
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import (
@@ -183,6 +184,37 @@ def get_shake_to_report_tokens():
     token_dict = {"jira": jira_token, "slack": slack_token}
 
     return json.jsonify(token_dict)
+
+
+@blueprint_api.route("/api/1/shakira/features")
+def get_jira_project_features():
+    project = request.args.get("project")
+    if project:
+        features = ShakiraDAL.get_features(project)
+    else:
+        features = ShakiraDAL.get_features("DLAI").union(ShakiraDAL.get_features("DLAA"))
+    return json.jsonify({"features": list(features) if features else []})
+
+
+@blueprint_api.route("/api/1/shakira/report_issue", methods=["POST"])
+def report_issue():
+    """
+    This currently creatus a JIRA issue with any file attachments included in the request.
+    TODO(becky DEL-470): choose whether to post to JIRA or Slack depending on the 'feature' parameter.
+    """
+    issue_data = json.loads(request.form.get("issueData"))
+    issue_key = ShakiraDAL.create_issue(
+        project=issue_data.get("project"),
+        feature=issue_data.get("feature"),
+        summary=issue_data.get("summary"),
+        description=issue_data.get("description"),
+        generated_description=issue_data.get("generatedDescription"),
+        reporter_email=issue_data.get("reporterEmail", None),
+        pre_release=issue_data.get("preRelease", False),
+    )
+    if issue_key:
+        ShakiraDAL.upload_attachments(issue_key, request.files)
+    return json.jsonify({"issueKey": issue_key} if issue_key else {})
 
 
 @blueprint_api.route("/api/1/detect_duplicates")

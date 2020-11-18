@@ -59,6 +59,14 @@ module "duolingo-jeeves" {
       name  = "SHAKE_TO_REPORT_SLACK_TOKEN"
       value = data.aws_kms_secrets.secrets.plaintext["shake_to_report_slack_token"]
     },
+    {
+      name  = "SHAKIRA_JIRA_USERNAME"
+      value = "ppearson@duolingo.com"
+    },
+    {
+      name  = "SHAKIRA_JIRA_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token"]
+    },
   ]
 }
 
