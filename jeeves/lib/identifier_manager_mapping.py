@@ -11,7 +11,7 @@ from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.zendesk_manager import ZendeskManager
 
 
-class IdentifierManagerMapping(object):
+class IdentifierManagerMapping:
     def __init__(self) -> None:
         self._ident_doc_map = {
             AppfiguresManager.get_managed_document_type().get_data_source_identifier(): AppfiguresManager,

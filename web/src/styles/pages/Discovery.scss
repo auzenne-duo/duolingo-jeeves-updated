@@ -1,5 +1,5 @@
-@import '../constants';
-@import '../mixins';
+@import "../constants";
+@import "../mixins";
 
 .date {
   text-align: right;
@@ -22,7 +22,8 @@
     }
   }
 
-  td, th {
+  td,
+  th {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

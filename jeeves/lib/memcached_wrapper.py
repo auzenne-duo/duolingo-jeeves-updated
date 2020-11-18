@@ -24,7 +24,7 @@ _CLIENT_NAME = "default"
 _CHUNK_SIZE = 500 * 1024
 
 
-class MemcacheCompressionWrapper(object):
+class MemcacheCompressionWrapper:
     @classmethod
     def _get_key(cls, cache_key, split=None):
         if split is None:

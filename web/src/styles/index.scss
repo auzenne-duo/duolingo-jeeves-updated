@@ -1,7 +1,9 @@
-@import 'constants';
-@import 'mixins';
+@import "constants";
+@import "mixins";
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 

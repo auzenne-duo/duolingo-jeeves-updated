@@ -11,13 +11,10 @@ from flask import (
     abort,
     json,
     make_response,
-    redirect,
-    render_template,
     request,
     send_from_directory,
 )
 import logging
-import random
 
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL

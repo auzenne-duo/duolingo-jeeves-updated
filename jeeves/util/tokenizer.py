@@ -11,7 +11,7 @@ import requests
 _NLP_URL = "https://nlp.duolingo.com/v1/udep"
 
 
-class Tokenizer(object):
+class Tokenizer:
     def tokenize(self, text, lang):
 
         if not text:

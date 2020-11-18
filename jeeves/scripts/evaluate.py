@@ -10,7 +10,6 @@ def evaluate(language):
     """
     TODO: Run N-fold cross-validation to evaluate classification accuracy.
     """
-    pass
 
 
 if __name__ == "__main__":

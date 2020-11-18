@@ -6,7 +6,7 @@ TODO: Implement a function that exports labeled dataset that machine learning li
 import requests
 
 
-class AbstractCategoryAnnotationDAL(object):
+class AbstractCategoryAnnotationDAL:
     def bulk_save_annotations(self, ticket_annotations):
         pass
 
@@ -14,7 +14,7 @@ class AbstractCategoryAnnotationDAL(object):
         pass
 
 
-class SpreadSheetCategoryAnnotationDAL(object):
+class SpreadSheetCategoryAnnotationDAL:
 
     _KEY = "AKfycbx6JvPzdYwV8Brd-aoxPuwDT8iItlA41fLRLWb4HRwvSMeh4Lg"
     _API_URL = "https://script.google.com/macros/s/{project_key}/exec".format(project_key=_KEY)
@@ -42,7 +42,7 @@ class SpreadSheetCategoryAnnotationDAL(object):
         return self._cache.get(ticket_id, [])
 
 
-class DatabaseCategoryAnnotationDAL(object):
+class DatabaseCategoryAnnotationDAL:
     def bulk_save_annotations(self, ticket_annotations):
         pass
 

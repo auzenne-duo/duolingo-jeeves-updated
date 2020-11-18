@@ -1,4 +1,4 @@
-@import 'constants';
+@import "constants";
 
 $gap: $juicy-margin;
 $padding-x: 2 * $juicy-length;
@@ -12,7 +12,9 @@ $width-right: 400px;
 }
 
 .main {
-  --width-content: calc(var(--width-max) - 2 * #{$padding-x} - #{$gap} - var(--width-sidebar));
+  --width-content: calc(
+    var(--width-max) - 2 * #{$padding-x} - #{$gap} - var(--width-sidebar)
+  );
   --width-sidebar: #{$width-left};
   --width-max: calc(100vw - var(--scrollbar-width));
   align-items: start;

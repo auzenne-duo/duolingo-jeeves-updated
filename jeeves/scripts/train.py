@@ -10,7 +10,6 @@ def train(language):
     """
     TODO: Train a model and save it.
     """
-    pass
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ from jeeves.dal.support_tickets import SupportTicketDAL
 from jeeves.model.categories import CATEGORIES
 
 
-class AbstractCategoryClassifier(object):
+class AbstractCategoryClassifier:
     def is_classifiable(self, description, category):
         """
         Runs a trained text classifier model to identify whether `description` can be classified as
@@ -20,7 +20,6 @@ class AbstractCategoryClassifier(object):
         Returns
             True or False
         """
-        pass
 
     def get_categories_for_ticket(self, ticket):
         return {

@@ -59,7 +59,7 @@ _URL_TEMPLATE = (
 )
 
 
-class ZendeskFAQDAL(object):
+class ZendeskFAQDAL:
     """
     A DAL that fetches FAQs by using Zendesk API.
     """

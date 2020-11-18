@@ -19,7 +19,7 @@ from jeeves.util.date_util import date_to_str, datetime_to_str
 _config = Config.load_config()
 
 
-class ElasticsearchDAL(object):
+class ElasticsearchDAL:
     def __init__(self) -> None:
         host = _config.get_nested(["elasticsearch", "host"])
         port = int(_config.get_nested(["elasticsearch", "port"]))
