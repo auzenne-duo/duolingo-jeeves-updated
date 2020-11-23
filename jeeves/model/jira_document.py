@@ -1,7 +1,6 @@
 """
 Our model for a JIRA issue from the JIRA API
 """
-
 import datetime
 from typing import Dict, List, Union
 
@@ -11,6 +10,7 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.classify import detect_language
+from jeeves.util.cleanup import extract_beta_feedback_metadata
 from jeeves.util.date_util import parse_external_datetime
 
 _SHAKE_TO_REPORT_MARKER = "Reported with shake-to-report"
@@ -144,6 +144,12 @@ class JiraDocument(JeevesDocument):
             else ""
         )
 
+        is_shake_to_report = _SHAKE_TO_REPORT_MARKER in body_text
+
+        beta_feedback_metadata = {}
+        if is_shake_to_report:
+            body_text, beta_feedback_metadata = extract_beta_feedback_metadata(body_text)
+
         return cls(
             data_source=cls.get_data_source_identifier(),
             document_id=external_json["id"],
@@ -153,13 +159,13 @@ class JiraDocument(JeevesDocument):
             language=detect_language(body_text if body_text else external_fields["summary"]),
             links=[],
             shake_to_report_category=ShakeToReportCategory.INTERNAL
-            if _SHAKE_TO_REPORT_MARKER in body_text
+            if is_shake_to_report
             else ShakeToReportCategory.NON_STR,
+            attachments=external_json.get("attachments", []),
+            beta_feedback_metadata=beta_feedback_metadata,
             issue_key=external_json["key"],
-            issue_links=external_fields["issue_links"] if "issue_links" in external_fields else [],
-            issue_type=external_fields["issuetype"]["name"]
-            if "issuetype" in external_fields and "name" in external_fields["issuetype"]
-            else "",
+            issue_links=external_fields.get("issue_links", []),
+            issue_type=external_fields.get("issuetype", {}).get("name", ""),
             project=external_fields["project"]["key"],
             linked_duplicate_keys=[],
             creation_date=parse_external_datetime(external_fields["created"]),
@@ -202,6 +208,8 @@ class JiraDocument(JeevesDocument):
             shake_to_report_category=ShakeToReportCategory[
                 internal_json["shake_to_report_category"]
             ],
+            attachments=internal_json["attachments"],
+            beta_feedback_metadata=internal_json["beta_feedback_metadata"],
             issue_key=internal_json["issue_key"],
             issue_links=internal_json["issue_links"],
             issue_type=internal_json["issue_type"],

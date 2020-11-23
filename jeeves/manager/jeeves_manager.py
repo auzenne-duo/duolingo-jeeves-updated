@@ -11,6 +11,9 @@ from typing import Any, Iterator, List, Type
 from jeeves.model.jeeves_document import JeevesDocument
 
 
+_DEFAULT_CHECKPOINTING_THRESHOLD = 1000
+
+
 class JeevesManager(ABC):
     @classmethod
     def get_all_managers(cls) -> List[Type["JeevesManager"]]:
@@ -60,3 +63,18 @@ class JeevesManager(ABC):
             Documents with timestamps later than the given timestamp.
         """
         raise NotImplementedError
+
+    @staticmethod
+    def get_checkpointing_threshold() -> int:
+        """
+        Returns how many documents of this type should be downloaded before
+        storing them in Elasticsearch via checkpointing. This number is somewhat
+        arbitrary and is influenced by the speed at which documents are downloaded.
+
+        Parameters: None
+
+        Returns:
+            An integer, representing the number of documents that should be
+            collected before storing them in a checkpoint.
+        """
+        return _DEFAULT_CHECKPOINTING_THRESHOLD

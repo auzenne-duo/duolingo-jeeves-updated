@@ -11,4 +11,4 @@ SPIKE_THRESHOLD = 5
 CRAWL_WINDOW_SIZE = 90
 
 # Version number, useful for controlling data storage
-DATA_VERSION_IDENTIFIER = "4.3.1"
+DATA_VERSION_IDENTIFIER = "4.4.0"

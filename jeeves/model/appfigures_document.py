@@ -44,6 +44,8 @@ class AppfiguresDocument(JeevesDocument):
             language=detect_language(external_json["original_review"]),
             links=[],
             shake_to_report_category=ShakeToReportCategory.NON_STR,
+            attachments=[],
+            beta_feedback_metadata={},
             author=external_json["author"],
             stars=float(external_json["stars"]),
             iso=external_json["iso"],
@@ -69,6 +71,8 @@ class AppfiguresDocument(JeevesDocument):
             shake_to_report_category=ShakeToReportCategory[
                 internal_json["shake_to_report_category"]
             ],
+            attachments=internal_json["attachments"],
+            beta_feedback_metadata=internal_json["beta_feedback_metadata"],
             author=internal_json["author"],
             stars=internal_json["stars"],
             iso=internal_json["iso"],

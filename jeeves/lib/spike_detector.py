@@ -2,6 +2,7 @@
 A script for finding spikes of word occurrences in Zendesk tickets.
 Candidate words are from Zendesk tickets on a target date.
 """
+from collections import defaultdict
 import time
 from typing import List
 
@@ -32,10 +33,8 @@ def split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument]) -> None:
                  values for shake_to_report_category.
     """
 
-    split_batches = {}
+    split_batches = defaultdict(list)
     for document in doc_mix:
-        if document.shake_to_report_category not in split_batches:
-            split_batches[document.shake_to_report_category] = []
         split_batches[document.shake_to_report_category].append(document)
 
     for spike_group in SpikeCategory:

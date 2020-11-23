@@ -10,7 +10,7 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.classify import detect_language, detect_product
-from jeeves.util.cleanup import clean_and_parse_description
+from jeeves.util.cleanup import clean_and_parse_description, extract_beta_feedback_metadata
 from jeeves.util.date_util import parse_external_datetime
 
 
@@ -37,13 +37,6 @@ class ZendeskDocument(JeevesDocument):
         Please see parent class for documentation
         """
 
-        body, metadata = clean_and_parse_description(external_json["description"])
-        header = external_json["subject"] if external_json["subject"] else ""
-
-        link_url_base = "https://duolingotest.zendesk.com/agent"
-        ticket_link = f"{link_url_base}/tickets/{external_json['id']}"
-        user_link = f"{link_url_base}/users/{external_json['requester_id']}"
-
         # If these seem like magic, they pretty much are. I talked to Ramya
         # and was told that these are the values we should filter on for
         # release candidate feedback.
@@ -54,17 +47,31 @@ class ZendeskDocument(JeevesDocument):
                 beta_ind in external_json["tags"] or beta_ind in external_json["description"]
             )
 
+        body_text = external_json["description"]
+        beta_feedback_metadata = {}
+        if is_shake_to_report:
+            body_text, beta_feedback_metadata = extract_beta_feedback_metadata(body_text)
+
+        body, metadata = clean_and_parse_description(body_text)
+        header = external_json["subject"] if external_json["subject"] else ""
+
+        link_url_base = "https://duolingotest.zendesk.com/agent"
+        ticket_link = f"{link_url_base}/tickets/{external_json['id']}"
+        user_link = f"{link_url_base}/users/{external_json['requester_id']}"
+
         return cls(
             data_source=cls.get_data_source_identifier(),
             document_id=str(external_json["id"]),
             date_time=parse_external_datetime(external_json["created_at"]),
             header_text=header,
-            body_text=external_json["description"],
+            body_text=body_text,
             language=detect_language(body),
             links=[ticket_link, user_link],
             shake_to_report_category=ShakeToReportCategory.EXTERNAL
             if is_shake_to_report
             else ShakeToReportCategory.NON_STR,
+            attachments=external_json["attachments"],
+            beta_feedback_metadata=beta_feedback_metadata,
             product=detect_product(external_json["tags"], header).name,
             priority=external_json["priority"],
             via=external_json["via"],
@@ -91,6 +98,8 @@ class ZendeskDocument(JeevesDocument):
             shake_to_report_category=ShakeToReportCategory[
                 internal_json["shake_to_report_category"]
             ],
+            attachments=internal_json["attachments"],
+            beta_feedback_metadata=internal_json["beta_feedback_metadata"],
             product=internal_json["product"],
             priority=internal_json["priority"],
             via=internal_json["via"],

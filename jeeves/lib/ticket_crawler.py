@@ -35,9 +35,6 @@ _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
 # title/description of the ticket.
 _INDEX_LINE_LENGTH_LIMIT = 3500
 
-# Number of tickets we collect in one batch before putting them in Elasticsearch
-_CHECKPOINTING_THRESHOLD = 1000
-
 
 def count_tickets(ticket_dict: DefaultDict[str, List[Any]]) -> DefaultDict[str, int]:
     """
@@ -138,10 +135,6 @@ def _crawl_documents_for_data_source(manager: JeevesManager) -> None:
 
     for document in downloader(latest_timestamp):
 
-        # Filter out old documents
-        if _THRESHOLD_DATE > document.date_time:
-            continue
-
         if not document.check_should_index_document(document):
             continue
 
@@ -155,11 +148,11 @@ def _crawl_documents_for_data_source(manager: JeevesManager) -> None:
             continue
 
         good_document_list.append(document)
-        if len(good_document_list) % (_CHECKPOINTING_THRESHOLD / 10) == 0:
+        if len(good_document_list) % (manager.get_checkpointing_threshold() / 10) == 0:
             print(f"Document list has size {len(good_document_list)}", flush=True)
 
         # Store documents in batches as a form of checkpointing
-        if len(good_document_list) >= _CHECKPOINTING_THRESHOLD:
+        if len(good_document_list) >= manager.get_checkpointing_threshold():
             _perform_checkpoint(good_document_list)
             good_document_list = []
 

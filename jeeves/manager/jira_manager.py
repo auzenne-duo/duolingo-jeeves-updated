@@ -46,9 +46,9 @@ class JiraManager(JeevesManager):
         max_issues_per_fetch = 1000
 
         projects_to_fetch = ["DLAA", "DLAI", "DLAW"]
-        projects_fetch_string = f"project IN ({','.join(projects_to_fetch)}) AND updated > {start_timestamp_millis} ORDER BY updated asc"
+        projects_fetch_string = f"project IN ({','.join(projects_to_fetch)}) AND updated > {start_timestamp_millis} AND issueType = Bug ORDER BY updated asc"
 
-        url_params = {"maxResults": 0, "startAt": 0, "jql": projects_fetch_string}
+        url_params = {"fields": "*all", "maxResults": 0, "startAt": 0, "jql": projects_fetch_string}
 
         r = None
         with Session() as s:
@@ -67,10 +67,15 @@ class JiraManager(JeevesManager):
                     r.raise_for_status()
 
                     response_json = json.loads(r.text)
-                    yield from [
-                        JiraDocument.deserialize_from_external_json(issue)
-                        for issue in response_json["issues"]
-                    ]
+                    for issue in response_json["issues"]:
+                        attachments = []
+
+                        if "attachment" in issue["fields"]:
+                            for attachment_json in issue["fields"]["attachment"]:
+                                attachments.append(attachment_json["content"])
+
+                        issue["attachments"] = attachments
+                        yield JiraDocument.deserialize_from_external_json(issue)
 
                     url_params["startAt"] += len(response_json["issues"])
 

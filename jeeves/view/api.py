@@ -93,8 +93,11 @@ def manage_tickets(lang):
         return_packet.update({"total_records": paginated_info["total_records"]})
 
         if paginated_info["deepest_index"] < paginated_info["total_records"]:
+            next_url_beta_filter = "&beta_filter=1" if filter_to_zendesk_beta else ""
             return_packet.update(
-                {"next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}"}
+                {
+                    "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}{next_url_beta_filter}"
+                }
             )
 
         return return_packet

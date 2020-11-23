@@ -4,7 +4,7 @@ Our model for a general, abstract document
 
 from abc import ABC, abstractmethod
 import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import attr
 
@@ -24,6 +24,8 @@ class JeevesDocument(ABC):
     language: str = attr.ib()
     links: List[str] = attr.ib(default=[])
     shake_to_report_category: ShakeToReportCategory = attr.ib()
+    attachments: List[str] = attr.ib()
+    beta_feedback_metadata: Dict[str, JSON] = attr.ib()
 
     # It is VERY IMPORTANT, when you add attributes to a subclass of this class,
     # that the attribute names are distinct from each other attribute name across

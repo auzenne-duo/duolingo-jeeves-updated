@@ -361,11 +361,14 @@ class ElasticsearchDAL:
         s.aggs.metric("max_date", "max", field="date_time", format="yyyy-MM-dd")
 
         response = s.execute()
+
+        min_date = response.aggregations.min_date.value
+        max_date = response.aggregations.max_date.value
         # We need to divide the return values by 1000 because they will be in
         # milliseconds instead of seconds.
         return {
-            "min": date_to_str(date.fromtimestamp(response.aggregations.min_date.value / 1000)),
-            "max": date_to_str(date.fromtimestamp(response.aggregations.max_date.value / 1000)),
+            "min": date_to_str(date.fromtimestamp(min_date / 1000)) if min_date else None,
+            "max": date_to_str(date.fromtimestamp(max_date / 1000)) if max_date else None,
         }
 
     def bulk_index_spikes(self, spikes: List[JSON]) -> None:
@@ -430,6 +433,7 @@ class ElasticsearchDAL:
             Search(using=self._es, index=self._spikename)
             .filter("range", date=timestamp_dict)
             .filter("term", lang=lang)
+            .filter("term", spike_group="NON_STR_SPIKES")
             .sort("-score")
         )
         s = s[0:num_spikes]
@@ -454,14 +458,21 @@ class ElasticsearchDAL:
             See documentation for bulk_index_spikes for a description of spike
             format. Results are unsorted.
         """
-        timestamp_dict = {"gte": start_date, "lte": end_date}
+
         s = (
             Search(using=self._es, index=self._spikename)
-            .filter("range", date=timestamp_dict)
             .filter("term", lang=lang)
             .filter("term", spike_group=spike_group)
             .sort("-score")
         )
+
+        timestamp_dict = {}
+        if start_date:
+            timestamp_dict["gte"] = start_date
+        if end_date:
+            timestamp_dict["lte"] = end_date
+        if timestamp_dict:
+            s = s.filter("range", date=timestamp_dict)
 
         yield from s.scan()
 
