@@ -14,6 +14,7 @@ from requests.exceptions import RequestException
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.appfigures_document import AppfiguresDocument
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.util.error_util import print_request_exception
 
 _USER = os.environ.get("APPFIGURES_USER")
 _PASSWORD = os.environ.get("APPFIGURES_PASSWORD")
@@ -70,12 +71,5 @@ class AppfiguresManager(JeevesManager):
                     url_params.update({"page": f"{next_page}"})
 
                 except RequestException as e:
-                    print(
-                        f"""
-                        An exception occurred for the following request:
-                        {e.request}
-                        The above request generated the following response:
-                        {e.response}
-                        """
-                    )
+                    print_request_exception(e)
                     break

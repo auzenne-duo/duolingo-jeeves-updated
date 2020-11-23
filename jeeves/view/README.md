@@ -9,7 +9,7 @@ Get a list of possible values for the "feature" field for the project.
 #### Prameters
 
 ```
-project: DLAA or DLAI
+project: DLAA, DLAI or DLAW
 ```
 
 ### Response
@@ -41,7 +41,7 @@ example:
     "description": Longer user-provided description.
     "generatedDescription": Generated information such as app version, fullstory url, session type, etc.
     "feature": Feature affected by the issue; e.g. Achievements, Stories, Leaderboards. Must be a value sent by the shakira/features endpoint.
-    "project": "DLAA" or "DLAI".
+    "project": "DLAA", "DLAI" or "DLAW".
     "preRelease": Boolean; Should be "True" if reporting from TestFlight or Android pre-release build. Default value is "False".
 }
 ```

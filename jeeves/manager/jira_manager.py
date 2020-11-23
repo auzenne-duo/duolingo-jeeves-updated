@@ -13,6 +13,7 @@ from requests.exceptions import RequestException
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
+from jeeves.util.error_util import print_request_exception
 
 _USERNAME = os.environ.get("JIRA_USERNAME")
 _API_TOKEN = os.environ.get("JIRA_API_TOKEN")
@@ -74,14 +75,7 @@ class JiraManager(JeevesManager):
                     url_params["startAt"] += len(response_json["issues"])
 
             except RequestException as e:
-                print(
-                    f"""
-                    An exception occurred for the following request:
-                    {e.request}
-                    The above request generated the following response:
-                    {e.response}
-                    """
-                )
+                print_request_exception(e)
 
     @staticmethod
     def download_specific_issue(issue_key: str) -> Optional[JeevesDocument]:
@@ -113,14 +107,5 @@ class JiraManager(JeevesManager):
             return JiraDocument.deserialize_from_external_json(response_JSON)
 
         except RequestException as e:
-            print(
-                f"""
-                An exception occurred for the following request:
-                {e.request}
-                The above request generated the following response:
-                {e.response}
-
-                The requested record could not be found, returning None.
-                """
-            )
+            print_request_exception(e)
             return None

@@ -4,7 +4,7 @@ DAL for interacting with the JIRA API for shakira.
 
 import os
 import json
-from typing import Set, Dict, Optional, Union, List
+from typing import Dict, List, Optional, Union
 from requests import get, post
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
@@ -22,23 +22,25 @@ _ALL_ISSUE_TYPES = [_ISSUE_TYPE_BUG, _ISSUE_TYPE_STORY]
 
 
 class ShakiraApiDAL:
-    def _get_metadata_url_and_params(self, project: str, issue_types: Union[str, List]) -> str:
+    def _get_metadata_url_and_params(
+        self, projects: Union[str, List[str]], issue_types: Union[str, List[str]]
+    ) -> str:
         url = f"{_API}/issue/createmeta"
         params = {
             "expand": "projects.issuetypes.fields",
-            "projectKeys": project,
+            "projectKeys": projects,
             "issuetypeNames": issue_types,
         }
         return (url, params)
 
-    def get_features(self, project: str) -> Set[str]:
+    def get_features(self, projects: Union[str, List[str]]) -> List[str]:
         """
         Get possible values for the "Feature" issue field in a project.
 
         parameters
-            project: e.g. DLAA, DLAI
+            projects: e.g. DLAA, DLAI
         """
-        url, params = self._get_metadata_url_and_params(project, _ALL_ISSUE_TYPES)
+        url, params = self._get_metadata_url_and_params(projects, _ALL_ISSUE_TYPES)
         headers = {"Accept": "application/json"}
         auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
         try:
@@ -46,20 +48,20 @@ class ShakiraApiDAL:
             r.raise_for_status()
 
             response_json = json.loads(r.text)
-            if len(response_json["projects"]) > 0:
-                issuetypes = [
-                    JiraIssueTypeMetaData.from_json(issuetype)
-                    for issuetype in response_json["projects"][0]["issuetypes"]
-                ]
-                return [
-                    name for issuetype in issuetypes for name in issuetype.allowed_feature_values()
-                ]
+            issuetypes = [
+                JiraIssueTypeMetaData.from_json(issuetype)
+                for project in response_json["projects"]
+                for issuetype in project["issuetypes"]
+            ]
+            return list(
+                {name for issuetype in issuetypes for name in issuetype.allowed_feature_values()}
+            )
         except RequestException as e:
             print_request_exception(e)
             return None
 
     def _get_metadata_for_specific_issuetype(
-        self, project, issuetype: str
+        self, project: str, issuetype: str
     ) -> Optional[JiraIssueTypeMetaData]:
         url, params = self._get_metadata_url_and_params(project, issuetype)
         headers = {"Accept": "application/json"}
@@ -95,7 +97,7 @@ class ShakiraApiDAL:
         self,
         project: str,
         feature: str,
-        summary,
+        summary: str,
         description: str,
         generated_description: str,
         reporter_email: Optional[str],

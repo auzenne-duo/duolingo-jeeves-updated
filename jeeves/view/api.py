@@ -192,8 +192,8 @@ def get_jira_project_features():
     if project:
         features = ShakiraDAL.get_features(project)
     else:
-        features = ShakiraDAL.get_features("DLAI").union(ShakiraDAL.get_features("DLAA"))
-    return json.jsonify({"features": list(features) if features else []})
+        features = ShakiraDAL.get_features(["DLAI", "DLAA", "DLAW"])
+    return json.jsonify({"features": features if features else []})
 
 
 @blueprint_api.route("/api/1/shakira/report_issue", methods=["POST"])
