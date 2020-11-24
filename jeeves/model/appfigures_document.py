@@ -43,7 +43,7 @@ class AppfiguresDocument(JeevesDocument):
             body_text=external_json["original_review"],
             language=detect_language(external_json["original_review"]),
             links=[],
-            shake_to_report_category=ShakeToReportCategory.NON_STR,
+            shake_to_report_category=ShakeToReportCategory.NON_STR_EXTERNAL,
             attachments=[],
             beta_feedback_metadata={},
             author=external_json["author"],

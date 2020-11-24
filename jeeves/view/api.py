@@ -84,6 +84,8 @@ def manage_tickets(lang):
             "data_source",
             "links",
             "store",
+            "issue_links",
+            "beta_feedback_metadata",
         ]
         values = [
             ticket.serialize_to_json(ticket, subserial_fields) for ticket in paginated_info["data"]

@@ -160,11 +160,11 @@ class JiraDocument(JeevesDocument):
             links=[],
             shake_to_report_category=ShakeToReportCategory.INTERNAL
             if is_shake_to_report
-            else ShakeToReportCategory.NON_STR,
+            else ShakeToReportCategory.NON_STR_INTERNAL,
             attachments=external_json.get("attachments", []),
             beta_feedback_metadata=beta_feedback_metadata,
             issue_key=external_json["key"],
-            issue_links=external_fields.get("issue_links", []),
+            issue_links=external_fields.get("issuelinks", []),
             issue_type=external_fields.get("issuetype", {}).get("name", ""),
             project=external_fields["project"]["key"],
             linked_duplicate_keys=[],

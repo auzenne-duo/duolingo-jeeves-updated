@@ -69,7 +69,7 @@ class ZendeskDocument(JeevesDocument):
             links=[ticket_link, user_link],
             shake_to_report_category=ShakeToReportCategory.EXTERNAL
             if is_shake_to_report
-            else ShakeToReportCategory.NON_STR,
+            else ShakeToReportCategory.NON_STR_EXTERNAL,
             attachments=external_json["attachments"],
             beta_feedback_metadata=beta_feedback_metadata,
             product=detect_product(external_json["tags"], header).name,

@@ -13,6 +13,7 @@ from jeeves.config.config import DATA_VERSION_IDENTIFIER
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str
 
 
@@ -411,7 +412,7 @@ class ElasticsearchDAL:
             yield hit
 
     def yield_spikes_on_date(
-        self, lang: str, date_str: str, num_spikes: int
+        self, lang: str, date_str: str, num_spikes: int, spike_group: SpikeCategory
     ) -> Iterator[Dict[str, Union[str, float]]]:
         """
         Yields all spikes for a given language, from a particular date.
@@ -420,6 +421,8 @@ class ElasticsearchDAL:
             lang (str): Language to yield spikes for.
             date (str): Date to search on, as a string.
             num_spikes (int): How many spikes we should yield.
+            spike_group: Which group we want spikes from
+                         (see jeeves/model/spike_categories.py)
 
         Yields:
             Spikes from the requested language on the requested date.
@@ -433,7 +436,7 @@ class ElasticsearchDAL:
             Search(using=self._es, index=self._spikename)
             .filter("range", date=timestamp_dict)
             .filter("term", lang=lang)
-            .filter("term", spike_group="NON_STR_SPIKES")
+            .filter("term", spike_group=spike_group.value)
             .sort("-score")
         )
         s = s[0:num_spikes]

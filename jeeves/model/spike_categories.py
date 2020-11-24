@@ -13,7 +13,9 @@ class SpikeCategory(Enum):
     EXTERNAL_STR_SPIKES = auto()
     INTERNAL_STR_SPIKES = auto()
     ALL_STR_SPIKES = auto()
-    NON_STR_SPIKES = auto()
+    EXTERNAL_NON_STR_SPIKES = auto()
+    INTERNAL_NON_STR_SPIKES = auto()
+    ALL_NON_STR_SPIKES = auto()
     ALL_SPIKES = auto()
 
     @classmethod
@@ -35,7 +37,14 @@ class SpikeCategory(Enum):
             cls.EXTERNAL_STR_SPIKES: [STRC.EXTERNAL],
             cls.INTERNAL_STR_SPIKES: [STRC.INTERNAL],
             cls.ALL_STR_SPIKES: [STRC.EXTERNAL, STRC.INTERNAL],
-            cls.NON_STR_SPIKES: [STRC.NON_STR],
-            cls.ALL_SPIKES: [STRC.EXTERNAL, STRC.INTERNAL, STRC.NON_STR],
+            cls.EXTERNAL_NON_STR_SPIKES: [STRC.NON_STR_EXTERNAL],
+            cls.INTERNAL_NON_STR_SPIKES: [STRC.NON_STR_INTERNAL],
+            cls.ALL_NON_STR_SPIKES: [STRC.NON_STR_EXTERNAL, STRC.NON_STR_INTERNAL],
+            cls.ALL_SPIKES: [
+                STRC.EXTERNAL,
+                STRC.INTERNAL,
+                STRC.NON_STR_EXTERNAL,
+                STRC.NON_STR_INTERNAL,
+            ],
         }
         return case_logic[group_category]

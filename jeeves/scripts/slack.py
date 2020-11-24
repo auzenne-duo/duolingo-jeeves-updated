@@ -3,6 +3,7 @@ import os
 import requests
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import get_eastern_today, get_n_days_ago, date_to_str
 
 
@@ -22,7 +23,10 @@ def get_top_spikes_yesterday():
 
     spikes_yesterday = list(
         ElasticDAL.yield_spikes_on_date(
-            _SLACK_REPORT_LANG, get_yesterdays_date(), num_spikes_to_list
+            _SLACK_REPORT_LANG,
+            get_yesterdays_date(),
+            num_spikes_to_list,
+            SpikeCategory.EXTERNAL_NON_STR_SPIKES,
         )
     )
     return spikes_yesterday
