@@ -88,6 +88,21 @@ class ElasticsearchDAL:
 
         return result_docs
 
+    def execute_arbitrary_query(self, jsn: JSON) -> List[JeevesDocument]:
+        """
+        Given JSON representing an arbitrary Elasticsearch query, execute that
+        query and return the results.
+
+        Parameters:
+            jsn: JSON object representing the query to execute
+
+        Returns:
+            A list of documents that match the query criteria
+        """
+        s = Search(using=self._es, index=self._indexname)
+        s = s.update_from_dict(jsn)
+        return self._execute_search_for_documents(s)
+
     def get_recent_paginated_tickets(
         self,
         lang: str,

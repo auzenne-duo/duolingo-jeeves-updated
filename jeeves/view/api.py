@@ -255,6 +255,17 @@ def perform_duplicate_jira_detection():
     )
 
 
+@blueprint_api.route("/api/1/direct_query", methods=["POST"])
+def execute_arbitrary_query():
+    json_data = request.get_json()
+
+    print(json_data)
+
+    return json.jsonify(
+        [doc.serialize_to_json(doc) for doc in ElasticDAL.execute_arbitrary_query(json_data)]
+    )
+
+
 @blueprint_api.route("/", defaults={"path": ""})
 @blueprint_api.route("/<path:path>")
 def catch_all(path):
