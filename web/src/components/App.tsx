@@ -74,7 +74,7 @@ const App = () => {
               </Route>
             </Switch>
           </div>
-          <div className={styles.sidebar} id="aside" />
+          <div className={styles["sidebar-right"]} id="aside" />
         </div>
       </div>
     </AppDispatch.Provider>

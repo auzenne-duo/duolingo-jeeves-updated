@@ -1,126 +1,159 @@
+import cn from "classnames";
 import * as React from "react";
-import { Button } from "web-ui";
 
 import { Ticket } from "api";
-import Table from "components/Table";
-import imageClose from "images/x.svg";
+import CloseButton from "components/CloseButton";
+import Tag from "components/Tag";
 import styles from "styles/Ticket.scss";
-
-/**
- * Tries to highlight all instances of a word in the text.
- * Returns the original text if highlighting failed, for
- * example because the generated regex pattern is invalid.
- */
-const highlightWord = (str: string, word: string) => {
-  try {
-    return str.replace(RegExp(`\\b(${word})\\b`, "gi"), "<mark>$1</mark>");
-  } catch {
-    return str;
-  }
-};
+import {
+  escapeHTML,
+  formatCourseId,
+  formatPlatform,
+  highlightWord,
+  normalizeNewLines,
+} from "util";
 
 interface Props {
+  className?: string;
   highlight?: string;
   onRequestClose?: () => void;
   ticket: Ticket;
 }
 
-const Ticket: React.FC<Props> = ({ highlight, onRequestClose, ticket }) => {
-  let body = (ticket.body_text ?? "")
+const Ticket: React.FC<Props> = ({
+  className,
+  highlight,
+  onRequestClose,
+  ticket,
+}) => {
+  let body = normalizeNewLines(escapeHTML(ticket.body_text ?? ""))
     .trim()
-    .replace(/\n{3,}/g, "\n\n")
     .replace(/\n/g, "<br />");
   body = highlight ? highlightWord(body, highlight) : body;
 
-  const date = ticket.date_time
-    ? new Date(ticket.date_time).toLocaleString()
-    : null;
-
   return (
-    <div className={styles.wrap}>
-      <Table className={styles.table}>
-        <tbody>
-          <tr>
-            <th>Subject</th>
-            <td>{ticket.header_text?.trim()}</td>
-          </tr>
-          <tr>
-            <th>Date</th>
-            <td>
-              {ticket.data_source === "Zendesk" ? (
+    <div className={cn(styles.container, className)}>
+      <div className={styles.bordered}>
+        <div className={styles.content}>
+          <h2>{ticket.header_text?.trim()}</h2>
+          <section>
+            <span className={styles.label}>Description</span>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: body,
+              }}
+            />
+          </section>
+          {ticket.metadata?.app_version ? (
+            <section>
+              <span className={styles.label}>App version</span>
+              <div>{ticket.metadata?.app_version}</div>
+            </section>
+          ) : null}
+          {ticket.metadata?.course ? (
+            <section>
+              <span className={styles.label}>Course</span>
+              <div>{formatCourseId(ticket.metadata?.course)}</div>
+            </section>
+          ) : null}
+          {ticket.metadata?.full_story_url ? (
+            <section>
+              <span className={styles.label}>FullStory recording</span>
+              <div>
+                <a
+                  href={ticket.metadata.full_story_url}
+                  rel="noopener noreferer"
+                  target="_blank"
+                >
+                  Open in new tab
+                </a>
+              </div>
+            </section>
+          ) : null}
+          {ticket.metadata?.os_version ? (
+            <section>
+              <span className={styles.label}>OS version</span>
+              <div>{ticket.metadata.os_version}</div>
+            </section>
+          ) : null}
+          {ticket.metadata?.platform ? (
+            <section>
+              <span className={styles.label}>Platform</span>
+              <div>{formatPlatform(ticket.metadata.platform)}</div>
+            </section>
+          ) : null}
+          {ticket.priority ? (
+            <section>
+              <span className={styles.label}>Priority</span>
+              <div>
+                <Tag
+                  isPriority={["high", "urgent"].includes(ticket.priority)}
+                  value={ticket.priority}
+                />
+              </div>
+            </section>
+          ) : null}
+          {ticket.date_time ? (
+            <section>
+              <span className={styles.label}>Reported at</span>
+              <div>{new Date(ticket.date_time).toLocaleString()}</div>
+            </section>
+          ) : null}
+          {ticket.metadata?.screen_name ? (
+            <section>
+              <span className={styles.label}>Screen</span>
+              <div>{ticket.metadata.screen_name}</div>
+            </section>
+          ) : null}
+          {ticket.metadata?.screen ? (
+            <section>
+              <span className={styles.label}>Screen dimensions</span>
+              <div>{ticket.metadata.screen}</div>
+            </section>
+          ) : null}
+          <section>
+            <span className={styles.label}>Source</span>
+            <div>
+              {ticket.data_source === "AppFigures" ? (
+                `${ticket.data_source}, ${ticket.store}`
+              ) : ticket.data_source === "Zendesk" ? (
                 <a
                   href={ticket.links?.[0]}
                   rel="noopener noreferer"
                   target="_blank"
                 >
-                  {date}
-                </a>
-              ) : (
-                date
-              )}
-            </td>
-          </tr>
-          <tr>
-            <th>Source</th>
-            <td>
-              {ticket.data_source === "AppFigures" ? (
-                `${ticket.data_source}, ${ticket.store}`
-              ) : ticket.data_source === "Zendesk" ? (
-                <a
-                  href={ticket.links?.[1]}
-                  rel="noopener noreferer"
-                  target="_blank"
-                >
-                  {[
-                    ticket.via?.source?.from?.name,
-                    ticket.via?.source?.from?.address
-                      ? `<${ticket.via.source.from.address}>`
-                      : undefined,
-                    `via ${ticket.via?.channel}`,
-                    ticket.data_source,
-                  ]
-                    .filter(part => part)
-                    .join(" ")}
+                  {ticket.data_source}
                 </a>
               ) : (
                 ticket.data_source
               )}
-            </td>
-          </tr>
-          {ticket.data_source === "Zendesk" ? (
-            <tr>
-              <th>Tags</th>
-              <td>
-                <div className={styles.tags}>
-                  {ticket.priority ? (
-                    <span className={styles["tag-priority"]}>
-                      {ticket.priority}
-                    </span>
-                  ) : null}
-                  {ticket.tags?.map(tag => (
-                    <span className={styles.tag} key={tag}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </td>
-            </tr>
+            </div>
+          </section>
+          {ticket.tags?.length ? (
+            <section>
+              <span className={styles.label}>Tags</span>
+              <div className={styles.tags}>
+                {ticket.tags?.map(tag => (
+                  <Tag className={styles.tag} value={tag} key={tag} />
+                ))}
+              </div>
+            </section>
           ) : null}
-          <tr>
-            <td
-              colSpan={2}
-              dangerouslySetInnerHTML={{
-                __html: body,
-              }}
-            />
-          </tr>
-        </tbody>
-      </Table>
-      {onRequestClose ? (
-        <Button className={styles.close} onClick={onRequestClose}>
-          <img src={imageClose} />
-        </Button>
-      ) : null}
+          {ticket.metadata?.ui_language ? (
+            <section>
+              <span className={styles.label}>UI language</span>
+              <div>{ticket.metadata.ui_language}</div>
+            </section>
+          ) : null}
+          {ticket.metadata?.username ? (
+            <section>
+              <span className={styles.label}>User</span>
+              <div>{ticket.metadata.username}</div>
+            </section>
+          ) : null}
+          {onRequestClose ? <CloseButton onClick={onRequestClose} /> : null}
+        </div>
+      </div>
     </div>
   );
 };

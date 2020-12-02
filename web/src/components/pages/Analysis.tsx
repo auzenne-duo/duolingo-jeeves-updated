@@ -8,7 +8,7 @@ import { AppDispatch } from "components/App";
 import { LanguageId } from "components/LanguagePicker";
 import Pagination from "components/Pagination";
 import SearchExample from "components/SearchExample";
-import Ticket from "components/Ticket";
+import TicketTable from "components/TicketTable";
 import TrendGraph, { RangeChangeEvent } from "components/TrendGraph";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import useDocumentTitle from "components/useDocumentTitle";
@@ -181,7 +181,7 @@ const Analysis = () => {
           </h2>
           {isLoading ? null : tickets?.length ? (
             tickets.map((t, i) => (
-              <Ticket highlight={query} key={i} ticket={t} />
+              <TicketTable highlight={query} key={i} ticket={t} />
             ))
           ) : (
             <span>Your search returned no results.</span>

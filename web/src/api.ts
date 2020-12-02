@@ -12,6 +12,36 @@ export type SpikeCategory =
   | "INTERNAL_STR_SPIKES";
 
 export interface Ticket {
+  /** @deprecated This will be moved to the backend. Use the metadata field instead. */
+  beta_feedback_metadata?: {
+    app_information?: {
+      api_level?: string;
+      app_version_code?: string;
+      course?: string;
+      os?: string;
+      os_version?: string;
+      screen?: string;
+      username?: string;
+    };
+    fullstory?: string;
+    session_information?: {
+      activity?: string;
+      fullstory_session?: string;
+      fullstory_session_if_recording?: string;
+      url?: string;
+    };
+    system_information?: {
+      app_version?: string;
+      ios_version?: string;
+      screen?: string;
+      ui_language?: string;
+    };
+    user_information?: {
+      current_course?: string;
+      username?: string;
+    };
+    view_controller_name?: string;
+  };
   /** Main content of the ticket. This is what we search against and perform spike detection on. */
   body_text?: string;
   /** String identifying where we got this ticket. Currently we support Zendesk and Appfigures, with JIRA coming in the near future. */
@@ -24,6 +54,19 @@ export interface Ticket {
   header_text?: string;
   /** URLs we compute on the backend to direct the user to the original ticket/submitter. */
   links?: string[];
+  metadata?: {
+    app_version?: string;
+    course?: string;
+    full_story_url?: string;
+    os_version?: string;
+    platform?: "android" | "ios" | "web";
+    raw: string;
+    screen?: string;
+    screen_name?: string;
+    screenshot_url?: string;
+    ui_language?: string;
+    username?: string;
+  };
   /** Field assigned by Zendesk. */
   priority?: string;
   /** ID assigned to the user on Zendesk that submitted this ticket. */
@@ -121,11 +164,89 @@ export const getTickets = async (
   start_time && params.set("start_time", start_time.toJSON().slice(0, 10));
   word && params.set("word", word);
 
-  return (await get(`/${lang}/tickets?${params.toString()}`)) as {
+  const data = (await get(`/${lang}/tickets?${params.toString()}`)) as {
     data: Ticket[];
     next_url?: string;
     total_records: number;
   };
+
+  // TODO: move this to the backend.
+  data.data = data.data.map(t => {
+    try {
+      const d = t.beta_feedback_metadata;
+      const app_version =
+        d?.app_information?.app_version_code ??
+        d?.system_information?.app_version;
+      const course =
+        d?.app_information?.course ??
+        d?.user_information?.current_course?.split(" ")[0];
+      const full_story_url =
+        d?.fullstory && d?.fullstory !== "No session recorded"
+          ? d.fullstory.replace("- session url: ", "")
+          : (d?.session_information?.fullstory_session ??
+              d?.session_information?.fullstory_session_if_recording) !==
+            "unavailable"
+          ? d?.session_information?.fullstory_session ??
+            d?.session_information?.fullstory_session_if_recording
+          : undefined;
+      const os_version =
+        d?.system_information?.ios_version ??
+        d?.app_information?.os ??
+        d?.app_information?.os_version;
+      const platform = (() => {
+        if (d?.app_information) {
+          return d.app_information.api_level ? "android" : "web";
+        }
+        if (d?.system_information) {
+          return "ios";
+        }
+        for (const tag of t.tags ?? []) {
+          switch (tag) {
+            case "android":
+            case "androidapp":
+            case "bug_report_android":
+              return "android";
+            case "bug_report_web":
+              return "web";
+            case "bug_report_ios":
+            case "device_type__ios":
+            case "iphone":
+            case "iphoneapp":
+              return "ios";
+          }
+        }
+      })();
+      const screen =
+        d?.app_information?.screen ?? d?.system_information?.screen;
+      const screen_name =
+        d?.session_information?.activity?.replace("com.duolingo.", "") ??
+        d?.session_information?.url?.replace(
+          /https:\/\/(.+\.)?duolingo\.com/,
+          "",
+        ) ??
+        d?.view_controller_name;
+      const ui_language = d?.system_information?.ui_language;
+      const username =
+        d?.app_information?.username ?? d?.user_information?.username;
+      t.metadata = {
+        app_version,
+        course,
+        full_story_url,
+        os_version,
+        platform,
+        raw: "",
+        screen,
+        screen_name,
+        ui_language,
+        username,
+      };
+    } catch (ex) {
+      console.error(ex);
+    }
+    return t;
+  });
+
+  return data;
 };
 
 export const getTimeSeries = async (

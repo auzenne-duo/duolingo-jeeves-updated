@@ -15,6 +15,12 @@
 
   tbody {
     tr {
+      transition: color $duration-fade;
+
+      &.selected {
+        color: $juicy-macaw;
+      }
+
       @include hover {
         background: $juicy-ghost;
         cursor: pointer;
@@ -28,4 +34,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+.ticket {
+  max-height: 100%;
 }

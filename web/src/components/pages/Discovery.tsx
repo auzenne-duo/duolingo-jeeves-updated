@@ -13,7 +13,12 @@ import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 import styles from "styles/pages/Discovery.scss";
-import { encodeURLSearchParams, getPaginationString } from "util";
+import {
+  encodeURLSearchParams,
+  formatCourseId,
+  formatPlatform,
+  getPaginationString,
+} from "util";
 
 const PER_PAGE = 50;
 
@@ -117,7 +122,6 @@ const Discovery = () => {
           <tr>
             <th style={{ width: "40%" }}>Summary</th>
             <th style={{ width: 120 }}>Date</th>
-            <th>Features</th>
             <th>Screen</th>
             <th>Platform</th>
             <th>App</th>
@@ -129,16 +133,27 @@ const Discovery = () => {
             const summary = t.body_text?.trim().split("\n")[0];
             const date = t.date_time ? new Date(t.date_time) : undefined;
             return (
-              <tr key={i} onClick={() => setSelected(t)}>
+              <tr
+                className={t === selected ? styles.selected : undefined}
+                key={i}
+                onClick={() => setSelected(t)}
+              >
                 <td title={summary}>{summary}</td>
                 <td className={styles.date} title={date?.toLocaleString()}>
                   {date ? formatDate(date) : null}
                 </td>
-                <td />
-                <td />
-                <td />
-                <td />
-                <td />
+                <td>{t.metadata?.screen_name}</td>
+                <td>
+                  {t.metadata?.platform
+                    ? formatPlatform(t.metadata?.platform)
+                    : null}
+                </td>
+                <td>{t.metadata?.app_version}</td>
+                <td>
+                  {t.metadata?.course
+                    ? formatCourseId(t.metadata?.course)
+                    : null}
+                </td>
               </tr>
             );
           })}
@@ -146,7 +161,7 @@ const Discovery = () => {
         {tickets?.length || !isLoading ? (
           <tfoot>
             <tr>
-              <td colSpan={7}>
+              <td colSpan={6}>
                 {tickets?.length ? (
                   <div className={styles.pagination}>
                     {getPaginationString({
@@ -184,6 +199,7 @@ const Discovery = () => {
       {selected
         ? createPortal(
             <Ticket
+              className={styles.ticket}
               onRequestClose={() => setSelected(undefined)}
               ticket={selected}
             />,

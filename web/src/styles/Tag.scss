@@ -1,0 +1,17 @@
+@import "constants";
+
+.tag {
+  background: $juicy-macaw;
+  border-radius: $juicy-radius;
+  color: $juicy-snow;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 9px;
+}
+
+.tag-priority {
+  composes: tag;
+  background: $juicy-cardinal;
+}

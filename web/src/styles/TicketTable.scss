@@ -1,0 +1,22 @@
+@import "constants";
+
+$tag-spacing: 5px;
+
+.table {
+  table-layout: fixed;
+  width: 100%;
+
+  th {
+    width: 90px;
+  }
+}
+
+.tag {
+  margin: $tag-spacing / 2;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -($tag-spacing / 2);
+}

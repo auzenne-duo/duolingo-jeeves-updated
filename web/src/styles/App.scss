@@ -2,6 +2,7 @@
 
 $gap: $juicy-margin;
 $padding-x: 2 * $juicy-length;
+$padding-y: $juicy-margin;
 $width-left: 240px;
 $width-right: 400px;
 
@@ -21,7 +22,7 @@ $width-right: 400px;
   display: grid;
   grid-gap: $gap;
   grid-template-columns: $width-left var(--width-content) $width-right;
-  padding: $juicy-margin $padding-x;
+  padding: $padding-y $padding-x;
   transition: transform $duration-slide;
 
   @media (min-width: $width-app-max) {
@@ -42,6 +43,11 @@ $width-right: 400px;
 .sidebar {
   position: sticky;
   top: $height-topbar + $juicy-margin;
+}
+
+.sidebar-right {
+  composes: sidebar;
+  height: calc(100vh - #{$height-topbar} - 2 * #{$padding-y});
 }
 
 .wrap {
