@@ -71,25 +71,7 @@ def manage_tickets(lang):
             lang, word, page, limit, start_time, end_time, filter_to_zendesk_beta
         )
 
-        subserial_fields = [
-            "document_id",
-            "date_time",
-            "header_text",
-            "body_text",
-            "priority",
-            "via",
-            "tags",
-            "requester_id",
-            "metadata",
-            "data_source",
-            "links",
-            "store",
-            "issue_links",
-            "beta_feedback_metadata",
-        ]
-        values = [
-            ticket.serialize_to_json(ticket, subserial_fields) for ticket in paginated_info["data"]
-        ]
+        values = [ticket.serialize_to_json(ticket) for ticket in paginated_info["data"]]
 
         return_packet = {"data": values}
         return_packet.update({"total_records": paginated_info["total_records"]})
