@@ -27,6 +27,8 @@ Look into the [Microservice Review](docs/microservice-review.md) for details.
 
 ## How to contribute
 
+### Backend
+
 Make sure to set up Python3 virtual environment, or pylint would fail when trying to commit.
 
 - Run `virtualenv -p python3 env`
@@ -42,6 +44,16 @@ The following are required when you updated requirements.
 - Run `pip-compile --output-file dev-requirements.txt dev-requirements.in`
 
 The data versioning number in `jeeves/config/config.py` should be updated whenever data should be backfilled. Changing this number to a previously unused value will create new data indices in Elasticsearch and the data update scripts will automatically fill them in. As a convention, we have been incrementing the "major" data version number (i.e. before the decimal point) for adding entirely new data sources and for major structural changes, and incrementing the "minor" data version number (i.e. after the decimal point) for smaller changes to existing structures.
+
+### Frontend
+
+To start a local webpack development server and proxy API requests to https://jeeves.duolingo.com:
+
+```
+make install
+make web-dev
+make web-proxy
+```
 
 ## Links
 

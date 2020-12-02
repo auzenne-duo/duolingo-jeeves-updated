@@ -48,7 +48,11 @@ const API_URL =
     : "http://localhost:5000/api/1";
 
 const get = async (url: string) =>
-  await (await fetch(`${API_URL}${url}`)).json();
+  await (
+    await fetch(`${API_URL}${url}`, {
+      credentials: "include",
+    })
+  ).json();
 
 export const getInfo = async (lang: LanguageId) =>
   (await get(`/${lang}/info`)) as {

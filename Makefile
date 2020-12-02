@@ -26,3 +26,7 @@ web-config:
 .PHONY: web-dev
 web-dev: web-config
 	cd web && "$$(npm bin)/webpack" serve --config config/webpack.config.js --mode development
+
+.PHONY: web-proxy
+web-proxy:
+	cd web && "$$(npm bin)/lcp" --proxyUrl https://jeeves.duolingo.com --port 5000 --proxyPartial '' --credentials --origin http://localhost:8080
