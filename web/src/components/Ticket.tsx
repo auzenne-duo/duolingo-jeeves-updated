@@ -1,9 +1,13 @@
 import cn from "classnames";
 import * as React from "react";
+import { LoadingDots } from "web-ui";
 
-import { Ticket } from "api";
+import { Ticket, getJiraDuplicates } from "api";
 import CloseButton from "components/CloseButton";
+import JiraIssues from "components/JiraIssues";
 import Tag from "components/Tag";
+import renderTicketSource from "components/renderTicketSource";
+import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/Ticket.scss";
 import {
   escapeHTML,
@@ -31,12 +35,26 @@ const Ticket: React.FC<Props> = ({
     .replace(/\n/g, "<br />");
   body = highlight ? highlightWord(body, highlight) : body;
 
+  const duplicates = ticket.issue_links?.filter(
+    link => link.type.name === "Duplicate",
+  );
+
+  const [
+    potentialDuplicates,
+    isLoadingPotentialDuplicates,
+  ] = useAwaitedValue(
+    undefined,
+    async () =>
+      ticket.issue_key ? await getJiraDuplicates(ticket.issue_key) : [],
+    [ticket.issue_key],
+  );
+
   return (
     <div className={cn(styles.container, className)}>
       <div className={styles.bordered}>
         <div className={styles.content}>
           <h2>{ticket.header_text?.trim()}</h2>
-          <section>
+          <section className={styles.section}>
             <span className={styles.label}>Description</span>
             <div
               dangerouslySetInnerHTML={{
@@ -45,45 +63,83 @@ const Ticket: React.FC<Props> = ({
             />
           </section>
           {ticket.metadata?.app_version ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>App version</span>
               <div>{ticket.metadata?.app_version}</div>
             </section>
           ) : null}
           {ticket.metadata?.course ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>Course</span>
               <div>{formatCourseId(ticket.metadata?.course)}</div>
             </section>
           ) : null}
           {ticket.metadata?.full_story_url ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>FullStory recording</span>
               <div>
-                <a
-                  href={ticket.metadata.full_story_url}
-                  rel="noopener noreferer"
-                  target="_blank"
-                >
-                  Open in new tab
-                </a>
+                <a href={ticket.metadata.full_story_url}>View session</a>
+              </div>
+            </section>
+          ) : null}
+          {duplicates?.length ? (
+            <section className={styles.section}>
+              <span
+                className={styles.label}
+                title="These are confirmed duplicates and are linked in the Jira record."
+              >
+                Linked duplicates
+              </span>
+              <div>
+                <JiraIssues issues={duplicates} />
               </div>
             </section>
           ) : null}
           {ticket.metadata?.os_version ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>OS version</span>
               <div>{ticket.metadata.os_version}</div>
             </section>
           ) : null}
           {ticket.metadata?.platform ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>Platform</span>
               <div>{formatPlatform(ticket.metadata.platform)}</div>
             </section>
           ) : null}
+          {ticket.data_source === "JIRA" ? (
+            <section className={styles.section}>
+              <span
+                className={styles.label}
+                title="Jeeves has detected these issues as potential duplicates of this ticket."
+              >
+                Potential duplicates
+              </span>
+              <div>
+                {isLoadingPotentialDuplicates ||
+                !potentialDuplicates?.length ? (
+                  <div className={styles["loading-container"]}>
+                    <span
+                      className={
+                        isLoadingPotentialDuplicates
+                          ? styles.invisible
+                          : undefined
+                      }
+                    >
+                      None
+                    </span>
+                    {isLoadingPotentialDuplicates ? (
+                      <LoadingDots type="button" />
+                    ) : null}
+                  </div>
+                ) : (
+                  <JiraIssues issues={potentialDuplicates} />
+                )}
+              </div>
+            </section>
+          ) : null}
           {ticket.priority ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>Priority</span>
               <div>
                 <Tag
@@ -94,43 +150,35 @@ const Ticket: React.FC<Props> = ({
             </section>
           ) : null}
           {ticket.date_time ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>Reported at</span>
               <div>{new Date(ticket.date_time).toLocaleString()}</div>
             </section>
           ) : null}
           {ticket.metadata?.screen_name ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>Screen</span>
               <div>{ticket.metadata.screen_name}</div>
             </section>
           ) : null}
           {ticket.metadata?.screen ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>Screen dimensions</span>
               <div>{ticket.metadata.screen}</div>
             </section>
           ) : null}
-          <section>
+          <section className={styles.section}>
             <span className={styles.label}>Source</span>
             <div>
-              {ticket.data_source === "AppFigures" ? (
-                `${ticket.data_source}, ${ticket.store}`
-              ) : ticket.data_source === "Zendesk" ? (
-                <a
-                  href={ticket.links?.[0]}
-                  rel="noopener noreferer"
-                  target="_blank"
-                >
-                  {ticket.data_source}
-                </a>
+              {ticket.data_source === "JIRA" ? (
+                <JiraIssues issues={[ticket]} />
               ) : (
-                ticket.data_source
+                renderTicketSource(ticket)
               )}
             </div>
           </section>
           {ticket.tags?.length ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>Tags</span>
               <div className={styles.tags}>
                 {ticket.tags?.map(tag => (
@@ -140,13 +188,13 @@ const Ticket: React.FC<Props> = ({
             </section>
           ) : null}
           {ticket.metadata?.ui_language ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>UI language</span>
               <div>{ticket.metadata.ui_language}</div>
             </section>
           ) : null}
           {ticket.metadata?.username ? (
-            <section>
+            <section className={styles.section}>
               <span className={styles.label}>User</span>
               <div>{ticket.metadata.username}</div>
             </section>

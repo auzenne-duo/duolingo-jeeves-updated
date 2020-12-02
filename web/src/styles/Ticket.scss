@@ -24,9 +24,22 @@ $tag-spacing: 5px;
   word-break: break-word;
 }
 
+.invisible {
+  visibility: hidden;
+}
+
 .label {
   font-size: 15px;
   font-weight: 700;
+}
+
+.loading-container {
+  display: inline-block;
+  position: relative;
+}
+
+.section {
+  overflow: hidden;
 }
 
 .tag {

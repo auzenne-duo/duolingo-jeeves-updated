@@ -3,6 +3,7 @@ import * as React from "react";
 import { Ticket } from "api";
 import Table from "components/Table";
 import Tag from "components/Tag";
+import renderTicketSource from "components/renderTicketSource";
 import styles from "styles/TicketTable.scss";
 import { escapeHTML, highlightWord, normalizeNewLines } from "util";
 
@@ -16,15 +17,6 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
     .trim()
     .replace(/\n/g, "<br />");
   body = highlight ? highlightWord(body, highlight) : body;
-
-  const user = [
-    ticket.via?.source?.from?.name,
-    ticket.via?.source?.from?.address
-      ? `<${ticket.via?.source?.from?.address}>`
-      : undefined,
-  ]
-    .filter(part => part)
-    .join(" ");
 
   return (
     <Table className={styles.table}>
@@ -43,36 +35,7 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
         </tr>
         <tr>
           <th>Source</th>
-          <td>
-            {ticket.data_source === "AppFigures" ? (
-              `${ticket.data_source}, ${ticket.store}`
-            ) : ticket.data_source === "Zendesk" ? (
-              <>
-                {user ? (
-                  <>
-                    <a
-                      href={ticket.links?.[1]}
-                      rel="noopener noreferer"
-                      target="_blank"
-                    >
-                      {user}
-                    </a>
-                    {` via `}
-                  </>
-                ) : null}
-                <a
-                  href={ticket.links?.[0]}
-                  rel="noopener noreferer"
-                  target="_blank"
-                >
-                  {ticket.data_source}
-                  {ticket.via?.channel ? `, ${ticket.via?.channel}` : null}
-                </a>
-              </>
-            ) : (
-              ticket.data_source
-            )}
-          </td>
+          <td>{renderTicketSource(ticket, { showUser: true })}</td>
         </tr>
         {ticket.priority || ticket.tags?.length ? (
           <tr>

@@ -1,5 +1,24 @@
 import { LanguageId } from "components/LanguagePicker";
 
+/**
+ * https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-links/#api-group-issue-links
+ */
+export interface JiraIssueLink {
+  inwardIssue: {
+    fields: {
+      summary: string;
+    };
+    id: string;
+    key: string;
+  };
+  type: {
+    id: string;
+    inward: string;
+    name: "Duplicate" | string;
+    outward: string;
+  };
+}
+
 // STR is short for shake-to-report. Internal vs. external
 // refers to internal and external testers.
 export type SpikeCategory =
@@ -44,14 +63,18 @@ export interface Ticket {
   };
   /** Main content of the ticket. This is what we search against and perform spike detection on. */
   body_text?: string;
-  /** String identifying where we got this ticket. Currently we support Zendesk and Appfigures, with JIRA coming in the near future. */
-  data_source?: "AppFigures" | "Zendesk" | string;
+  /** String identifying where we got this ticket. */
+  data_source?: "AppFigures" | "JIRA" | "Zendesk" | string;
   /** The date and time the ticket was submitted to its respective service. */
   date_time?: string;
   /** An identifier for this ticket, assigned by the API we got the ticket from. */
   document_id?: string;
   /** Title, subject line, etc. */
   header_text?: string;
+  /** The issue key of a Jira ticket. */
+  issue_key?: string;
+  /** Linked Jira issues. */
+  issue_links?: JiraIssueLink[];
   /** URLs we compute on the backend to direct the user to the original ticket/submitter. */
   links?: string[];
   metadata?: {
@@ -96,6 +119,14 @@ const get = async (url: string) =>
       credentials: "include",
     })
   ).json();
+
+export const getJiraDuplicates = async (issue_key: string) => {
+  const data = (await get(
+    `/detect_duplicates?issue_key=${encodeURIComponent(issue_key)}`,
+  )) as Ticket[];
+  data.forEach(ticket => loadTicketMetadata(ticket));
+  return data;
+};
 
 export const getInfo = async (lang: LanguageId) =>
   (await get(`/${lang}/info`)) as {
@@ -169,82 +200,7 @@ export const getTickets = async (
     next_url?: string;
     total_records: number;
   };
-
-  // TODO: move this to the backend.
-  data.data = data.data.map(t => {
-    try {
-      const d = t.beta_feedback_metadata;
-      const app_version =
-        d?.app_information?.app_version_code ??
-        d?.system_information?.app_version;
-      const course =
-        d?.app_information?.course ??
-        d?.user_information?.current_course?.split(" ")[0];
-      const full_story_url =
-        d?.fullstory && d?.fullstory !== "No session recorded"
-          ? d.fullstory.replace("- session url: ", "")
-          : (d?.session_information?.fullstory_session ??
-              d?.session_information?.fullstory_session_if_recording) !==
-            "unavailable"
-          ? d?.session_information?.fullstory_session ??
-            d?.session_information?.fullstory_session_if_recording
-          : undefined;
-      const os_version =
-        d?.system_information?.ios_version ??
-        d?.app_information?.os ??
-        d?.app_information?.os_version;
-      const platform = (() => {
-        if (d?.app_information) {
-          return d.app_information.api_level ? "android" : "web";
-        }
-        if (d?.system_information) {
-          return "ios";
-        }
-        for (const tag of t.tags ?? []) {
-          switch (tag) {
-            case "android":
-            case "androidapp":
-            case "bug_report_android":
-              return "android";
-            case "bug_report_web":
-              return "web";
-            case "bug_report_ios":
-            case "device_type__ios":
-            case "iphone":
-            case "iphoneapp":
-              return "ios";
-          }
-        }
-      })();
-      const screen =
-        d?.app_information?.screen ?? d?.system_information?.screen;
-      const screen_name =
-        d?.session_information?.activity?.replace("com.duolingo.", "") ??
-        d?.session_information?.url?.replace(
-          /https:\/\/(.+\.)?duolingo\.com/,
-          "",
-        ) ??
-        d?.view_controller_name;
-      const ui_language = d?.system_information?.ui_language;
-      const username =
-        d?.app_information?.username ?? d?.user_information?.username;
-      t.metadata = {
-        app_version,
-        course,
-        full_story_url,
-        os_version,
-        platform,
-        raw: "",
-        screen,
-        screen_name,
-        ui_language,
-        username,
-      };
-    } catch (ex) {
-      console.error(ex);
-    }
-    return t;
-  });
+  data.data.forEach(ticket => loadTicketMetadata(ticket));
 
   return data;
 };
@@ -262,3 +218,77 @@ export const getTimeSeries = async (
       [date: string]: number | undefined;
     };
   }).values;
+
+// TODO: move this to the backend.
+const loadTicketMetadata = (ticket: Ticket) => {
+  try {
+    const d = ticket.beta_feedback_metadata;
+    const app_version =
+      d?.app_information?.app_version_code ??
+      d?.system_information?.app_version;
+    const course =
+      d?.app_information?.course ??
+      d?.user_information?.current_course?.split(" ")[0];
+    const full_story_url =
+      d?.fullstory && d?.fullstory !== "No session recorded"
+        ? d.fullstory.replace("- session url: ", "")
+        : (d?.session_information?.fullstory_session ??
+            d?.session_information?.fullstory_session_if_recording) !==
+          "unavailable"
+        ? d?.session_information?.fullstory_session ??
+          d?.session_information?.fullstory_session_if_recording
+        : undefined;
+    const os_version =
+      d?.system_information?.ios_version ??
+      d?.app_information?.os ??
+      d?.app_information?.os_version;
+    const platform = (() => {
+      if (d?.app_information) {
+        return d.app_information.api_level ? "android" : "web";
+      }
+      if (d?.system_information) {
+        return "ios";
+      }
+      for (const tag of ticket.tags ?? []) {
+        switch (tag) {
+          case "android":
+          case "androidapp":
+          case "bug_report_android":
+            return "android";
+          case "bug_report_web":
+            return "web";
+          case "bug_report_ios":
+          case "device_type__ios":
+          case "iphone":
+          case "iphoneapp":
+            return "ios";
+        }
+      }
+    })();
+    const screen = d?.app_information?.screen ?? d?.system_information?.screen;
+    const screen_name =
+      d?.session_information?.activity?.replace("com.duolingo.", "") ??
+      d?.session_information?.url?.replace(
+        /https:\/\/(.+\.)?duolingo\.com/,
+        "",
+      ) ??
+      d?.view_controller_name;
+    const ui_language = d?.system_information?.ui_language;
+    const username =
+      d?.app_information?.username ?? d?.user_information?.username;
+    ticket.metadata = {
+      app_version,
+      course,
+      full_story_url,
+      os_version,
+      platform,
+      raw: "",
+      screen,
+      screen_name,
+      ui_language,
+      username,
+    };
+  } catch (ex) {
+    console.error(ex);
+  }
+};
