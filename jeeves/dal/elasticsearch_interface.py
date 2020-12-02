@@ -451,7 +451,7 @@ class ElasticsearchDAL:
             Search(using=self._es, index=self._spikename)
             .filter("range", date=timestamp_dict)
             .filter("term", lang=lang)
-            .filter("term", spike_group=spike_group.value)
+            .filter("term", spike_group=spike_group.name)
             .sort("-score")
         )
         s = s[0:num_spikes]
