@@ -111,7 +111,7 @@ class ElasticsearchDAL:
         limit: int = 10,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-        filter_to_zendesk_beta: Optional[bool] = False,
+        beta_filter_category: Optional[str] = False,
     ) -> Dict[str, Union[int, List[JeevesDocument]]]:
         """
         Returns stored user tickets from Elasticsearch in a paginated manner.
@@ -133,9 +133,9 @@ class ElasticsearchDAL:
             end_time (datetime):  The end of a date range to search for tickets in,
                                   Results will not have timestamps after this value.
                                   Optional value.
-            filter_to_zendesk_beta (bool): Whether we should filter results to
-                                           have specific values related to release
-                                           candidates. Optional value.
+            beta_filter_category (str): How we should filter results to
+                                        have specific values related to release
+                                        candidates, if at all. Optional value.
 
         Returns:
             A dictionary containing the following:
@@ -164,9 +164,8 @@ class ElasticsearchDAL:
         else:
             s = s.query("match_all")
 
-        if filter_to_zendesk_beta:
-            s = s.filter("term", shake_to_report_category="EXTERNAL")
-            s = s.filter("term", data_source="Zendesk")
+        if beta_filter_category:
+            s = s.filter("term", shake_to_report_category=beta_filter_category)
 
         total_records = s.count()
 

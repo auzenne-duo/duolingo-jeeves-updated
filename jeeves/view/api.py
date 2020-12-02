@@ -19,7 +19,7 @@ import logging
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.lib.duplicate_detector import calculate_duplicates_for_JIRA_issue
 from jeeves.dal.shakira import ShakiraDAL
-
+from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import (
@@ -55,7 +55,9 @@ def manage_tickets(lang):
     page = int(request.args.get("page", "0"))
     word = request.args.get("word", "")
 
-    filter_to_zendesk_beta = bool(int(request.args.get("beta_filter", "0")))
+    beta_filter = request.args.get("beta_filter", None)
+    if beta_filter and not any(beta_filter == strc.value for strc in ShakeToReportCategory):
+        abort(make_response("Invalid value provided for beta_filter", 400))
 
     if request.args.get("start_time") == "-1":
         start_time = str_to_datetime(None)
@@ -68,7 +70,7 @@ def manage_tickets(lang):
         limit = int(request.args.get("limit", "10"))
 
         paginated_info = ElasticDAL.get_recent_paginated_tickets(
-            lang, word, page, limit, start_time, end_time, filter_to_zendesk_beta
+            lang, word, page, limit, start_time, end_time, beta_filter
         )
 
         values = [ticket.serialize_to_json(ticket) for ticket in paginated_info["data"]]
@@ -77,7 +79,7 @@ def manage_tickets(lang):
         return_packet.update({"total_records": paginated_info["total_records"]})
 
         if paginated_info["deepest_index"] < paginated_info["total_records"]:
-            next_url_beta_filter = "&beta_filter=1" if filter_to_zendesk_beta else ""
+            next_url_beta_filter = f"&beta_filter={beta_filter}" if beta_filter else ""
             return_packet.update(
                 {
                     "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}{next_url_beta_filter}"
