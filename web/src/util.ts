@@ -32,3 +32,7 @@ export const getPaginationString = ({
         total,
       )} of ${total}`
     : undefined;
+
+/** Removes the time portion of a Date. */
+export const midnight = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());

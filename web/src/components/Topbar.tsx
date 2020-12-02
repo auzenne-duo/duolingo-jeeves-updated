@@ -1,5 +1,11 @@
 import * as React from "react";
-import { NavLink, Route, useHistory, useParams } from "react-router-dom";
+import {
+  NavLink,
+  Route,
+  Switch,
+  useHistory,
+  useParams,
+} from "react-router-dom";
 import { Input, LoadingDots, Select } from "web-ui";
 
 import { LanguageId } from "components/LanguagePicker";
@@ -16,7 +22,7 @@ const Topbar: React.FC<Props> = ({ isLoading }) => {
   const { lang } = useParams<{ lang: LanguageId }>();
   const search = useSearchParams();
 
-  const filter = search.get("filter") ?? "beta";
+  const filter = search.get("filter");
   const query = search.get("q") ?? "";
 
   const [input, setInput] = React.useState(query);
@@ -53,27 +59,51 @@ const Topbar: React.FC<Props> = ({ isLoading }) => {
           />
           {isLoading ? <LoadingDots type="button" /> : null}
         </NavLink>
-        <Route path="/:lang/analysis">
-          <form className={styles.search} onSubmit={handleSubmit}>
-            <Input
-              onChange={e => setInput(e.target.value)}
-              placeholder="Search"
-              type="search"
-              value={input}
+        <Switch>
+          <Route path="/:lang/analysis">
+            <form className={styles.search} onSubmit={handleSubmit}>
+              <Input
+                onChange={e => setInput(e.target.value)}
+                placeholder="Search"
+                type="search"
+                value={input}
+              />
+            </form>
+          </Route>
+          <Route path="/:lang/discovery">
+            <Select
+              className={styles.filter}
+              onChange={handleFilterChange}
+              options={[
+                { text: "All sources", value: "all" },
+                { text: "Beta program", value: "beta" },
+              ]}
+              value={filter ?? "beta"}
             />
-          </form>
-        </Route>
-        <Route path="/:lang/discovery">
-          <Select
-            className={styles.filter}
-            onChange={handleFilterChange}
-            options={[
-              { text: "All sources", value: "all" },
-              { text: "Beta program", value: "beta" },
-            ]}
-            value={filter}
-          />
-        </Route>
+          </Route>
+          <Route path="/:lang/spike">
+            <Select
+              className={styles.filter}
+              onChange={handleFilterChange}
+              options={[
+                { text: "All sources", value: "ALL_SPIKES" },
+                { text: "All dogfooding", value: "ALL_STR_SPIKES" },
+                { text: "External dogfooding", value: "EXTERNAL_STR_SPIKES" },
+                {
+                  text: "External non-dogfooding",
+                  value: "EXTERNAL_NON_STR_SPIKES",
+                },
+                { text: "Internal dogfooding", value: "INTERNAL_STR_SPIKES" },
+                {
+                  text: "Internal non-dogfooding",
+                  value: "INTERNAL_NON_STR_SPIKES",
+                },
+                { text: "Non-dogfooding", value: "ALL_NON_STR_SPIKES" },
+              ]}
+              value={filter ?? "ALL_SPIKES"}
+            />
+          </Route>
+        </Switch>
       </nav>
     </div>
   );

@@ -1,5 +1,16 @@
 import { LanguageId } from "components/LanguagePicker";
 
+// STR is short for shake-to-report. Internal vs. external
+// refers to internal and external testers.
+export type SpikeCategory =
+  | "ALL_NON_STR_SPIKES"
+  | "ALL_SPIKES"
+  | "ALL_STR_SPIKES"
+  | "EXTERNAL_NON_STR_SPIKES"
+  | "EXTERNAL_STR_SPIKES"
+  | "INTERNAL_NON_STR_SPIKES"
+  | "INTERNAL_STR_SPIKES";
+
 export interface Ticket {
   /** Main content of the ticket. This is what we search against and perform spike detection on. */
   body_text?: string;
@@ -48,14 +59,32 @@ export const getInfo = async (lang: LanguageId) =>
     latest_ticket_timestamp: string;
   };
 
-export const getSpikes = async (lang: LanguageId) => {
-  const data = (await get(`/${lang}/spikes`)) as {
+export const getSpikes = async (
+  lang: LanguageId,
+  {
+    end_date,
+    spike_category,
+    start_date,
+  }: {
+    end_date?: Date;
+    spike_category?: SpikeCategory;
+    start_date?: Date;
+  } = {},
+) => {
+  const params = new URLSearchParams();
+
+  end_date && params.set("end_date", end_date.toJSON().slice(0, 10));
+  spike_category && params.set("spike_category", spike_category);
+  start_date && params.set("start_date", start_date.toJSON().slice(0, 10));
+
+  const data = (await get(`/${lang}/spikes?${params.toString()}`)) as {
     [date: string]:
       | {
           spike: [number, string][];
         }
       | undefined;
   };
+
   return Object.fromEntries(
     Object.entries(data).map(([date, value]) => [date, value?.spike]),
   );
@@ -77,7 +106,7 @@ export const getTickets = async (
     page?: number;
     start_time?: Date;
     word?: string;
-  },
+  } = {},
 ) => {
   const params = new URLSearchParams();
 
