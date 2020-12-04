@@ -33,7 +33,7 @@ def get_top_spikes_yesterday():
 
 
 def spike_to_fields_array(spike):
-    spike_word_link = f"<https://jeeves.duolingo.com/{_SLACK_REPORT_LANG}/analysis?word={spike['word']}|{spike['word']}>"
+    spike_word_link = f"<https://jeeves.duolingo.com/{_SLACK_REPORT_LANG}/analysis?q={spike['word']}|{spike['word']}>"
     return [
         {"type": "mrkdwn", "text": spike_word_link},
         {"type": "plain_text", "text": f"{spike['score']:.1f}"},
