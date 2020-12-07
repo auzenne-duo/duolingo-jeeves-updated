@@ -16,10 +16,11 @@ const JiraIssues: React.FC<Props> = ({ issues }) => (
       {issues.map((issue, i) => {
         const key = isTicket(issue)
           ? (issue.issue_key as string)
-          : issue.inwardIssue.key;
+          : ((issue.inwardIssue?.key ?? issue.outwardIssue?.key) as string);
         const title = isTicket(issue)
           ? issue.header_text
-          : issue.inwardIssue.fields.summary;
+          : ((issue.inwardIssue?.fields.summary ??
+              issue.outwardIssue?.fields.summary) as string);
         return (
           <li className={styles.item} key={i}>
             <a

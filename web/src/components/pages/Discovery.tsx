@@ -130,7 +130,10 @@ const Discovery = () => {
         </thead>
         <tbody>
           {tickets?.map((t, i) => {
-            const summary = t.body_text?.trim().split("\n")[0];
+            const summary =
+              t.data_source === "JIRA"
+                ? t.header_text
+                : t.body_text?.trim().split("\n")[0];
             const date = t.date_time ? new Date(t.date_time) : undefined;
             return (
               <tr

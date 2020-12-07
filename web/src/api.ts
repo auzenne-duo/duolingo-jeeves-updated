@@ -4,7 +4,14 @@ import { LanguageId } from "components/LanguagePicker";
  * https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-links/#api-group-issue-links
  */
 export interface JiraIssueLink {
-  inwardIssue: {
+  inwardIssue?: {
+    fields: {
+      summary: string;
+    };
+    id: string;
+    key: string;
+  };
+  outwardIssue?: {
     fields: {
       summary: string;
     };
