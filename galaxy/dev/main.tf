@@ -52,20 +52,24 @@ module "duolingo-jeeves" {
 
   environment_vars = [
     {
-      name  = "SHAKE_TO_REPORT_JIRA_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["shake_to_report_jira_token"]
+      name  = "SHAKIRA_SLACK_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_slack_api_token"]
     },
     {
-      name  = "SHAKE_TO_REPORT_SLACK_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["shake_to_report_slack_token"]
+      name = "SHAKIRA_JIRA_USERNAME_IOS"
+      vaue = "ios-shake-feedback@duolingo.com"
     },
     {
-      name  = "SHAKIRA_JIRA_USERNAME"
-      value = "ppearson@duolingo.com"
+      name  = "SHAKIRA_JIRA_API_TOKEN_IOS"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_ios"]
     },
     {
-      name  = "SHAKIRA_JIRA_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token"]
+      name  = "SHAKIRA_JIRA_USERNAME_ANDROID"
+      value = "android-shake-feedback@duolingo.com"
+    },
+    {
+      name  = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_android"]
     },
   ]
 }

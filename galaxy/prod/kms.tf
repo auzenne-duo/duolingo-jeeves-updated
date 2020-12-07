@@ -52,18 +52,6 @@ data "aws_kms_secrets" "secrets" {
   }
 
   secret {
-    name    = "shakira_jira_api_token"
-    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwHd7Kk+uo7xPInUBljvWAhlAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMiFiLVJjpHZ0AyYCcAgEQgDOPqsyFinZ56WU89rfjC5x1d0cmlBwwZj5pJKk+NFGxfAKPLIf16vnQXavIL7xsg4RVGzY="
-
-    context = {
-      product     = var.product
-      service     = var.service
-      subservice  = "api"
-      environment = var.environment
-    }
-  }
-
-  secret {
     name    = "zendesk_password"
     payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwH2eEAhkA/oaRSypwO6I6u9AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMu9kMbwBRqQkW0kGBAgEQgDvkmzo2M3HBLnk0xYvkPP/dcXEL9vqyP6GlZPChWZ55C/qAcGmVq6cQRGHw8kewX8jYB3QBk+z95zQFaA=="
 
@@ -89,7 +77,7 @@ data "aws_kms_secrets" "secrets" {
   }
 
   secret {
-    name    = "shake_to_report_jira_token"
+    name    = "shakira_jira_api_token_ios"
     payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwFejsjh7t1n8efszcFP+qmuAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMemAzuE+3jcnRGJrrAgEQgDPq0DV8ZBG0wVhNHAbATnC48Y+gQXe4R+IDtWrwBJuDE3j95qPz5JqtDWQ8TSC8KtKy31o="
 
     context = {
@@ -101,7 +89,19 @@ data "aws_kms_secrets" "secrets" {
   }
 
   secret {
-    name    = "shake_to_report_slack_token"
+    name    = "shakira_jira_api_token_android"
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwGvo8zMo7Uwu/h7+Z9czIxgAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMkPpve/vevHKWccWzAgEQgDOh5HBrNrgIieXQcndYjQ1j6sF/hXuasoS23B6FGbYk+FugHM/8nS7C2Xd7GYaJy5JbEjs="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "api"
+      environment = var.environment
+    }
+  }
+
+  secret {
+    name    = "shakira_slack_api_token"
     payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwFI1e5Lsx5tLcUcoumub4s0AAAAlzCBlAYJKoZIhvcNAQcGoIGGMIGDAgEAMH4GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMv+VqTnIT6MdE486GAgEQgFFvmuUTcdVcpiLq8SX3rCG4oYV8uCHzRDwNN4cQWiCilEkABkV4+GSLXDx/2xidYJ8lviIwfUnqgZpDCoRk3U2dUxOjPT2xw/OGJaSxrAQmGnM="
 
     context = {

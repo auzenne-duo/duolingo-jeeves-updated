@@ -13,8 +13,11 @@ from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.util.error_util import print_request_exception
 
 _API = "https://duolingo.atlassian.net/rest/api/2"
-_USERNAME = os.environ.get("SHAKIRA_JIRA_USERNAME")
-_API_TOKEN = os.environ.get("SHAKIRA_JIRA_API_TOKEN")
+
+_USERNAME_ANDROID = os.environ.get("SHAKIRA_JIRA_USERNAME_ANDROID")
+_API_TOKEN_ANDROID = os.environ.get("SHAKIRA_JIRA_API_TOKEN_ANDROID")
+_USERNAME_IOS = os.environ.get("SHAKIRA_JIRA_USERNAME_IOS")
+_API_TOKEN_IOS = os.environ.get("SHAKIRA_JIRA_API_TOKEN_IOS")
 
 _ISSUE_TYPE_BUG = "Bug"
 _ISSUE_TYPE_STORY = "Story"
@@ -22,6 +25,16 @@ _ALL_ISSUE_TYPES = [_ISSUE_TYPE_BUG, _ISSUE_TYPE_STORY]
 
 
 class ShakiraApiDAL:
+    def _get_jira_auth(self, project: Optional[str] = None) -> HTTPBasicAuth:
+        """
+        Returns authentication for the appropriate service account. If no project
+        is provided default to the iOS account.
+        """
+        if project == "DLAA":
+            return HTTPBasicAuth(_USERNAME_ANDROID, _API_TOKEN_ANDROID)
+        else:
+            return HTTPBasicAuth(_USERNAME_IOS, _API_TOKEN_IOS)
+
     def _get_metadata_url_and_params(
         self, projects: Union[str, List[str]], issue_types: Union[str, List[str]]
     ) -> str:
@@ -42,7 +55,7 @@ class ShakiraApiDAL:
         """
         url, params = self._get_metadata_url_and_params(projects, _ALL_ISSUE_TYPES)
         headers = {"Accept": "application/json"}
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+        auth = self._get_jira_auth()
         try:
             r = get(url, auth=auth, headers=headers, params=params)
             r.raise_for_status()
@@ -65,7 +78,7 @@ class ShakiraApiDAL:
     ) -> Optional[JiraIssueTypeMetaData]:
         url, params = self._get_metadata_url_and_params(project, issuetype)
         headers = {"Accept": "application/json"}
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+        auth = self._get_jira_auth(project)
         try:
             r = get(url, auth=auth, headers=headers, params=params)
             r.raise_for_status()
@@ -83,7 +96,7 @@ class ShakiraApiDAL:
         url = f"{_API}/user/search"
         params = {"query": email}
         headers = {"Accept": "application/json"}
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+        auth = self._get_jira_auth()
         try:
             r = get(url, auth=auth, headers=headers, params=params)
             r.raise_for_status()
@@ -159,7 +172,7 @@ class ShakiraApiDAL:
             request = {"fields": fields}
             url = f"{_API}/issue"
             headers = {"Content-Type": "application/json"}
-            auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+            auth = self._get_jira_auth(project)
             try:
                 r = post(url, auth=auth, headers=headers, data=json.dumps(request))
                 r.raise_for_status()
@@ -169,7 +182,7 @@ class ShakiraApiDAL:
                 print_request_exception(e)
                 return None
 
-    def upload_attachments(self, issue_key: str, files: Dict):
+    def upload_attachments(self, project: str, issue_key: str, files: Dict):
         """
         Upload attachment to JIRA issue with key issue_key
         For reference: https://docs.atlassian.com/software/jira/docs/api/REST/8.13.1/#api/2/issue/{issueIdOrKey}/attachments
@@ -181,7 +194,7 @@ class ShakiraApiDAL:
         """
         url = f"{_API}/issue/{issue_key}/attachments"
         headers = {"X-Atlassian-Token": "no-check"}  # header required by JIRA API
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+        auth = auth = self._get_jira_auth(project)
         jira_files = [
             ("file", f) for f in files.values()
         ]  # The JIRA API requires every file to have the form name 'file'

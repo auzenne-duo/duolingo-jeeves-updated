@@ -167,8 +167,8 @@ def do_init(lang):
 
 @blueprint_api.route("/api/1/shake_to_report_tokens")
 def get_shake_to_report_tokens():
-    jira_token = os.environ.get("SHAKE_TO_REPORT_JIRA_TOKEN")
-    slack_token = os.environ.get("SHAKE_TO_REPORT_SLACK_TOKEN")
+    jira_token = os.environ.get("SHAKIRA_JIRA_API_TOKEN_IOS")
+    slack_token = os.environ.get("SHAKIRA_SLACK_API_TOKEN")
 
     token_dict = {"jira": jira_token, "slack": slack_token}
 
@@ -192,8 +192,9 @@ def report_issue():
     TODO(becky DEL-470): choose whether to post to JIRA or Slack depending on the 'feature' parameter.
     """
     issue_data = json.loads(request.form.get("issueData"))
+    project = project = issue_data.get("project")
     issue_key = ShakiraDAL.create_issue(
-        project=issue_data.get("project"),
+        project=project,
         feature=issue_data.get("feature"),
         summary=issue_data.get("summary"),
         description=issue_data.get("description"),
@@ -202,7 +203,7 @@ def report_issue():
         pre_release=issue_data.get("preRelease", False),
     )
     if issue_key:
-        ShakiraDAL.upload_attachments(issue_key, request.files)
+        ShakiraDAL.upload_attachments(project, issue_key, request.files)
     return json.jsonify({"issueKey": issue_key} if issue_key else {})
 
 
