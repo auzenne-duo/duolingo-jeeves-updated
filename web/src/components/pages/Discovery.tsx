@@ -2,7 +2,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useParams } from "react-router-dom";
 
-import { Ticket as ApiTicket, getTickets } from "api";
+import { ShakeToReportCategory, Ticket as ApiTicket, getTickets } from "api";
 import { AppDispatch } from "components/App";
 import { LanguageId } from "components/LanguagePicker";
 import Pagination from "components/Pagination";
@@ -49,7 +49,7 @@ const Discovery = () => {
   const dispatch = React.useContext(AppDispatch);
   const [selected, setSelected] = React.useState<ApiTicket>();
 
-  const filter = search.get("filter") ?? "beta";
+  const filter = search.get("filter");
   const page = search.get("page")
     ? parseInt(search.get("page") as string, 10)
     : 1;
@@ -67,7 +67,7 @@ const Discovery = () => {
     { data: undefined, next_url: undefined, total_records: undefined },
     () =>
       getTickets(lang, {
-        beta_filter: filter === "beta",
+        beta_filter: filter as ShakeToReportCategory,
         limit: PER_PAGE,
         page: page - 1,
       }),

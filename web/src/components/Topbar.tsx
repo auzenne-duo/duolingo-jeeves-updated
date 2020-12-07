@@ -75,10 +75,12 @@ const Topbar: React.FC<Props> = ({ isLoading }) => {
               className={styles.filter}
               onChange={handleFilterChange}
               options={[
-                { text: "All sources", value: "all" },
-                { text: "Beta program", value: "beta" },
+                { text: "All sources", value: "" },
+                { text: "Admin reports", value: "INTERNAL" },
+                { text: "Beta program", value: "EXTERNAL" },
+                { text: "CS reports", value: "NON_STR_EXTERNAL" },
               ]}
-              value={filter ?? "beta"}
+              value={filter ?? ""}
             />
           </Route>
           <Route path="/:lang/spike">

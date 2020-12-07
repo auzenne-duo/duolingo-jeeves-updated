@@ -26,6 +26,12 @@ export interface JiraIssueLink {
   };
 }
 
+export type ShakeToReportCategory =
+  | "EXTERNAL"
+  | "INTERNAL"
+  | "NON_STR_EXTERNAL"
+  | "NON_STR_INTERNAL";
+
 // STR is short for shake-to-report. Internal vs. external
 // refers to internal and external testers.
 export type SpikeCategory =
@@ -185,7 +191,7 @@ export const getTickets = async (
     start_time,
     word,
   }: {
-    beta_filter?: boolean;
+    beta_filter?: ShakeToReportCategory;
     end_time?: Date;
     limit?: number;
     page?: number;
@@ -195,7 +201,7 @@ export const getTickets = async (
 ) => {
   const params = new URLSearchParams();
 
-  beta_filter && params.set("beta_filter", "1");
+  beta_filter && params.set("beta_filter", beta_filter);
   end_time && params.set("end_time", end_time.toJSON().slice(0, 10));
   limit && params.set("limit", `${limit}`);
   page && params.set("page", `${page}`);
