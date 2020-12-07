@@ -68,6 +68,18 @@ const Ticket: React.FC<Props> = ({
               <div>{ticket.metadata?.app_version}</div>
             </section>
           ) : null}
+          {ticket.attachments?.length ? (
+            <section className={styles.section}>
+              <span className={styles.label}>Attachments</span>
+              <div>
+                {ticket.attachments.map((url, i) => (
+                  <a className={styles.attachment} href={url} key={i}>
+                    {url}
+                  </a>
+                ))}
+              </div>
+            </section>
+          ) : null}
           {ticket.metadata?.course ? (
             <section className={styles.section}>
               <span className={styles.label}>Course</span>

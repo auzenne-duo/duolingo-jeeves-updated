@@ -44,6 +44,8 @@ export type SpikeCategory =
   | "INTERNAL_STR_SPIKES";
 
 export interface Ticket {
+  /** URLs to file attachments. Currently only available for Jira tickets. */
+  attachments?: string[];
   /** @deprecated This will be moved to the backend. Use the metadata field instead. */
   beta_feedback_metadata?: {
     app_information?: {

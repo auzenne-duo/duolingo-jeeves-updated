@@ -2,6 +2,10 @@
 
 $tag-spacing: 5px;
 
+.attachment {
+  display: block;
+}
+
 .bordered {
   border: $juicy-border;
   border-radius: $juicy-radius;
