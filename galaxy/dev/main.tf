@@ -52,6 +52,14 @@ module "duolingo-jeeves" {
 
   environment_vars = [
     {
+      name  = "JIRA_USERNAME"
+      value = "ppearson@duolingo.com"
+    },
+    {
+      name  = "JIRA_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["jira_api_token_general"]
+    },
+    {
       name  = "SHAKIRA_SLACK_API_TOKEN"
       value = data.aws_kms_secrets.secrets.plaintext["shakira_slack_api_token"]
     },

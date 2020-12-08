@@ -77,6 +77,18 @@ data "aws_kms_secrets" "secrets" {
   }
 
   secret {
+    name    = "jira_api_token_general"
+    payload = "AQICAHiv5congEi5VHdDF3fTx4DjYoVhEMedwW8dwYVWCwNFnwE/QBkYWBSP5LQRzy/F9qs4AAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMQIYef98Vy7VZDgSjAgEQgDOn23tnr4RUAgt843SiulNX7gh4dPvDc0lpydE2AciaPW3EFcijRayhcS9XVMgtgn4Tk5I="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "api"
+      environment = var.environment
+    }
+  }
+
+  secret {
     name    = "shakira_jira_api_token_ios"
     payload = "AQICAHiv5congEi5VHdDF3fTx4DjYoVhEMedwW8dwYVWCwNFnwEjs//ej3AhdzKfd+vGHjMKAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMDjjVV1clfTMdEI8xAgEQgDMKdH1iUfwsi9vM+VTaaaZHEswu1Psgwrg02SB4SSRGX/+jMzb4Of+0htKcOKhbb28t0Hk="
 
