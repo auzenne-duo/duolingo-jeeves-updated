@@ -56,8 +56,8 @@ module "duolingo-jeeves" {
       value = data.aws_kms_secrets.secrets.plaintext["shakira_slack_api_token"]
     },
     {
-      name = "SHAKIRA_JIRA_USERNAME_IOS"
-      vaue = "ios-shake-feedback@duolingo.com"
+      name  = "SHAKIRA_JIRA_USERNAME_IOS"
+      value = "ios-shake-feedback@duolingo.com"
     },
     {
       name  = "SHAKIRA_JIRA_API_TOKEN_IOS"
