@@ -11,6 +11,7 @@ import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/Ticket.scss";
 import {
   escapeHTML,
+  formatAttachment,
   formatCourseId,
   formatPlatform,
   formatReadableDate,
@@ -77,7 +78,7 @@ const Ticket: React.FC<Props> = ({
               <div>
                 {ticket.attachments.map((url, i) => (
                   <a className={styles.attachment} href={url} key={i}>
-                    {url}
+                    {formatAttachment(url)}
                   </a>
                 ))}
               </div>

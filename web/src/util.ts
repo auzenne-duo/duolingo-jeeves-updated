@@ -34,6 +34,16 @@ const fixedEncodeURIComponent = (str: string) =>
     c => "%" + c.charCodeAt(0).toString(16),
   );
 
+export const formatAttachment = (url: string) => {
+  if (url.startsWith("https://duolingotest.zendesk.com/attachments/")) {
+    return url.split("?name=")[1];
+  }
+  if (url.startsWith("https://duolingo.atlassian.net/")) {
+    return url.split("/").slice(-1);
+  }
+  return url;
+};
+
 export const formatCourseId = (courseId: string) =>
   courseId.slice("DUOLINGO_".length).split(" ")[0].replace("_", "<");
 
