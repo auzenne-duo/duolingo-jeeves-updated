@@ -1,7 +1,7 @@
 import * as React from "react";
 import { NavLink, useHistory, useLocation, useParams } from "react-router-dom";
 
-import LanguagePicker, { LanguageId } from "components/LanguagePicker";
+import LanguagePicker from "components/LanguagePicker";
 import styles from "styles/Sidebar.scss";
 
 const LinkItem: React.FC<React.ComponentProps<typeof NavLink>> = ({
@@ -21,7 +21,7 @@ const LinkItem: React.FC<React.ComponentProps<typeof NavLink>> = ({
 const Sidebar = () => {
   const history = useHistory();
   const location = useLocation();
-  const { lang } = useParams<{ lang: LanguageId }>();
+  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
 
   return (
     <nav className={styles.wrap}>

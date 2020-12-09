@@ -2,7 +2,7 @@ import cn from "classnames";
 import * as React from "react";
 import { LoadingDots } from "web-ui";
 
-import { Ticket, getJiraDuplicates } from "api";
+import { getJiraDuplicates } from "api";
 import CloseButton from "components/CloseButton";
 import JiraIssues from "components/JiraIssues";
 import Tag from "components/Tag";
@@ -13,6 +13,7 @@ import {
   escapeHTML,
   formatCourseId,
   formatPlatform,
+  formatReadableDate,
   highlightWord,
   normalizeNewLines,
 } from "util";
@@ -21,7 +22,7 @@ interface Props {
   className?: string;
   highlight?: string;
   onRequestClose?: () => void;
-  ticket: Ticket;
+  ticket: JSONAPI.Ticket;
 }
 
 const Ticket: React.FC<Props> = ({
@@ -53,15 +54,17 @@ const Ticket: React.FC<Props> = ({
     <div className={cn(styles.container, className)}>
       <div className={styles.bordered}>
         <div className={styles.content}>
-          <h2>{ticket.header_text?.trim()}</h2>
-          <section className={styles.section}>
-            <span className={styles.label}>Description</span>
-            <div
-              dangerouslySetInnerHTML={{
-                __html: body,
-              }}
-            />
-          </section>
+          {ticket.header_text ? <h2>{ticket.header_text}</h2> : null}
+          {body ? (
+            <section className={styles.section}>
+              <span className={styles.label}>Description</span>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: body,
+                }}
+              />
+            </section>
+          ) : null}
           {ticket.metadata?.app_version ? (
             <section className={styles.section}>
               <span className={styles.label}>App version</span>
@@ -164,7 +167,7 @@ const Ticket: React.FC<Props> = ({
           {ticket.date_time ? (
             <section className={styles.section}>
               <span className={styles.label}>Reported at</span>
-              <div>{new Date(ticket.date_time).toLocaleString()}</div>
+              <div>{formatReadableDate(new Date(ticket.date_time))}</div>
             </section>
           ) : null}
           {ticket.metadata?.screen_name ? (

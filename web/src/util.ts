@@ -1,3 +1,12 @@
+import { format } from "date-fns";
+
+export const convertTimeZone = (date: Date, tz: string) =>
+  new Date(
+    date.toLocaleString("en-US", {
+      timeZone: tz,
+    }),
+  );
+
 /**
  * Encodes URLSearchParams using encodeURIComponent instead of
  * application/x-www-form-urlencoded, for consistency.
@@ -27,6 +36,9 @@ const fixedEncodeURIComponent = (str: string) =>
 
 export const formatCourseId = (courseId: string) =>
   courseId.slice("DUOLINGO_".length).split(" ")[0].replace("_", "<");
+
+export const formatReadableDate = (date: Date) =>
+  format(date, "eee, d MMM yyyy HH:mm:ss z");
 
 export const formatPlatform = (platform: "android" | "ios" | "web") =>
   platform === "android"
@@ -71,7 +83,3 @@ export const normalizeNewLines = (str: string) =>
     .replace(/\r\n/g, "\n")
     .replace(/\n\s+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n");
-
-/** Removes the time portion of a Date. */
-export const midnight = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());

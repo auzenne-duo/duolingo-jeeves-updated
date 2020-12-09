@@ -1,9 +1,7 @@
 import * as React from "react";
 
-import { Ticket } from "api";
-
 const renderTicketSource = (
-  ticket: Ticket,
+  ticket: JSONAPI.Ticket,
   { showUser }: { showUser?: boolean } = { showUser: false },
 ) => {
   const user = [

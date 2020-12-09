@@ -1,16 +1,17 @@
+import { formatDistanceToNow, startOfYesterday } from "date-fns";
 import * as React from "react";
 import { useParams } from "react-router-dom";
 
 import { getInfo, getSpikes } from "api";
 import { AppDispatch } from "components/App";
-import { LanguageId } from "components/LanguagePicker";
 import SpikeTable from "components/SpikeTable";
 import Table from "components/Table";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import usePageView from "components/usePageView";
+import { formatReadableDate } from "util";
 
 const Dashboard = () => {
-  const { lang } = useParams<{ lang: LanguageId }>();
+  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
 
   const dispatch = React.useContext(AppDispatch);
 
@@ -22,19 +23,14 @@ const Dashboard = () => {
 
   const [spikes, isLoading] = useAwaitedValue(
     undefined,
-    () => getSpikes(lang),
+    async () =>
+      (
+        await getSpikes(lang, {
+          start_date: startOfYesterday(),
+        })
+      ).reverse(),
     [lang],
   );
-
-  const [recentSpikeDate] = Object.keys(spikes ?? {}).slice(-1);
-  const recentSpikes = spikes?.[recentSpikeDate];
-
-  const latestTicketDate = info?.latest_ticket_timestamp
-    ? new Date(info.latest_ticket_timestamp).toLocaleString()
-    : null;
-  const deployedAtDate = info?.deployed_timestamp
-    ? new Date(info.deployed_timestamp).toLocaleString()
-    : null;
 
   usePageView();
 
@@ -50,20 +46,29 @@ const Dashboard = () => {
   return (
     <>
       <SpikeTable
-        date={recentSpikeDate}
+        date={spikes?.[0]?.date}
         isLoading={isLoading}
         language={lang}
-        spikes={isLoading ? [] : recentSpikes?.slice(0, 5) ?? []}
+        spikes={isLoading ? [] : spikes?.[0]?.spikes.slice(0, 5) ?? []}
       />
       <Table>
         <tbody>
           <tr>
             <th>Most recent ticket</th>
-            {isLoadingInfo ? null : <td>{latestTicketDate}</td>}
+            {isLoadingInfo || !info ? null : (
+              <td>
+                {formatDistanceToNow(info.latest_ticket_timestamp, {
+                  addSuffix: true,
+                  includeSeconds: true,
+                })}
+              </td>
+            )}
           </tr>
           <tr>
             <th>Last Jeeves deployment</th>
-            {isLoadingInfo ? null : <td>{deployedAtDate}</td>}
+            {isLoadingInfo || !info ? null : (
+              <td>{formatReadableDate(info.deployed_timestamp)}</td>
+            )}
           </tr>
         </tbody>
       </Table>

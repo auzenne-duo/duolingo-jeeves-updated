@@ -1,15 +1,19 @@
 import * as React from "react";
 
-import { Ticket } from "api";
 import Table from "components/Table";
 import Tag from "components/Tag";
 import renderTicketSource from "components/renderTicketSource";
 import styles from "styles/TicketTable.scss";
-import { escapeHTML, highlightWord, normalizeNewLines } from "util";
+import {
+  escapeHTML,
+  formatReadableDate,
+  highlightWord,
+  normalizeNewLines,
+} from "util";
 
 interface Props {
   highlight?: string;
-  ticket: Ticket;
+  ticket: JSONAPI.Ticket;
 }
 
 const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
@@ -23,13 +27,13 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
       <tbody>
         <tr>
           <th>Subject</th>
-          <td>{ticket.header_text?.trim()}</td>
+          <td>{ticket.header_text}</td>
         </tr>
         <tr>
           <th>Date</th>
           <td>
             {ticket.date_time
-              ? new Date(ticket.date_time).toLocaleString()
+              ? formatReadableDate(new Date(ticket.date_time))
               : null}
           </td>
         </tr>

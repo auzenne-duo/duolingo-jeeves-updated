@@ -1,13 +1,13 @@
 import * as React from "react";
 
-import { JiraIssueLink, Ticket } from "api";
 import styles from "styles/JiraIssues.scss";
 
-const isTicket = (issue: JiraIssueLink | Ticket): issue is Ticket =>
-  "document_id" in issue;
+const isTicket = (
+  issue: JSONAPI.JiraIssueLink | JSONAPI.Ticket,
+): issue is JSONAPI.Ticket => "document_id" in issue;
 
 interface Props {
-  issues: (JiraIssueLink | Ticket)[];
+  issues: (JSONAPI.JiraIssueLink | JSONAPI.Ticket)[];
 }
 
 const JiraIssues: React.FC<Props> = ({ issues }) => (

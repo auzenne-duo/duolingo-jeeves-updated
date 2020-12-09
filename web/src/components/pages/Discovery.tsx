@@ -1,10 +1,10 @@
+import { format, formatISO, isThisYear, isToday } from "date-fns";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useParams } from "react-router-dom";
 
-import { ShakeToReportCategory, Ticket as ApiTicket, getTickets } from "api";
+import { getTickets } from "api";
 import { AppDispatch } from "components/App";
-import { LanguageId } from "components/LanguagePicker";
 import Pagination from "components/Pagination";
 import Table from "components/Table";
 import Ticket from "components/Ticket";
@@ -17,42 +17,38 @@ import {
   encodeURLSearchParams,
   formatCourseId,
   formatPlatform,
+  formatReadableDate,
   getPaginationString,
 } from "util";
 
 const PER_PAGE = 50;
 
 const formatDate = (date: Date) => {
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  if (isToday) {
-    return date.toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "numeric",
-    });
+  if (isToday(date)) {
+    return format(date, "HH:mm");
   }
-  const isThisYear = date.getFullYear() === now.getFullYear();
-  if (isThisYear) {
-    return date.toLocaleDateString([], {
-      day: "numeric",
-      month: "short",
-    });
+  if (isThisYear(date)) {
+    return format(date, "d MMM");
   }
-  return date.toLocaleDateString();
+  return formatISO(date, { representation: "date" });
 };
 
 const Discovery = () => {
   const location = useLocation();
-  const { lang } = useParams<{ lang: LanguageId; page: string | undefined }>();
+  const { lang } = useParams<{
+    lang: JSONAPI.LanguageId;
+    page: string | undefined;
+  }>();
   const search = useSearchParams();
 
   const dispatch = React.useContext(AppDispatch);
-  const [selected, setSelected] = React.useState<ApiTicket>();
+  const [selected, setSelected] = React.useState<JSONAPI.Ticket>();
 
   const filter = search.get("filter");
   const page = search.get("page")
     ? parseInt(search.get("page") as string, 10)
     : 1;
+  const query = search.get("q") ?? "";
 
   const nextQuery = useSearchParams();
   nextQuery.set("page", `${page + 1}`);
@@ -67,11 +63,12 @@ const Discovery = () => {
     { data: undefined, next_url: undefined, total_records: undefined },
     () =>
       getTickets(lang, {
-        beta_filter: filter as ShakeToReportCategory,
+        beta_filter: filter as JSONAPI.ShakeToReportCategory,
         limit: PER_PAGE,
         page: page - 1,
+        word: query,
       }),
-    [filter, lang, page],
+    [filter, lang, page, query],
   );
 
   useDocumentTitle("Issue Discovery");
@@ -142,7 +139,10 @@ const Discovery = () => {
                 onClick={() => setSelected(t)}
               >
                 <td title={summary}>{summary}</td>
-                <td className={styles.date} title={date?.toLocaleString()}>
+                <td
+                  className={styles.date}
+                  title={date ? formatReadableDate(date) : undefined}
+                >
                   {date ? formatDate(date) : null}
                 </td>
                 <td>{t.metadata?.screen_name}</td>

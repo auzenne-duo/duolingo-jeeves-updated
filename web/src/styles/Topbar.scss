@@ -8,8 +8,17 @@
   z-index: 1;
 }
 
-.filter {
+.filters {
+  display: grid;
+  grid-gap: 2 * $juicy-length;
+  grid-template-columns: min-content min-content;
   margin-left: auto;
+}
+
+.filters-search {
+  composes: filters;
+  grid-template-columns: 1fr min-content;
+  margin-left: 0;
 }
 
 .logo {
@@ -29,10 +38,6 @@
   @media (min-width: 500px) {
     display: flex;
   }
-}
-
-.search {
-  display: grid;
 }
 
 .wrap {

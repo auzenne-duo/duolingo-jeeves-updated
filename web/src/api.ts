@@ -1,132 +1,18 @@
-import { LanguageId } from "components/LanguagePicker";
+import { format, formatISO } from "date-fns";
 
-/**
- * https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-links/#api-group-issue-links
- */
-export interface JiraIssueLink {
-  inwardIssue?: {
-    fields: {
-      summary: string;
-    };
-    id: string;
-    key: string;
-  };
-  outwardIssue?: {
-    fields: {
-      summary: string;
-    };
-    id: string;
-    key: string;
-  };
-  type: {
-    id: string;
-    inward: string;
-    name: "Duplicate" | string;
-    outward: string;
-  };
-}
-
-export type ShakeToReportCategory =
-  | "EXTERNAL"
-  | "INTERNAL"
-  | "NON_STR_EXTERNAL"
-  | "NON_STR_INTERNAL";
-
-// STR is short for shake-to-report. Internal vs. external
-// refers to internal and external testers.
-export type SpikeCategory =
-  | "ALL_NON_STR_SPIKES"
-  | "ALL_SPIKES"
-  | "ALL_STR_SPIKES"
-  | "EXTERNAL_NON_STR_SPIKES"
-  | "EXTERNAL_STR_SPIKES"
-  | "INTERNAL_NON_STR_SPIKES"
-  | "INTERNAL_STR_SPIKES";
-
-export interface Ticket {
-  /** URLs to file attachments. Currently only available for Jira tickets. */
-  attachments?: string[];
-  /** @deprecated This will be moved to the backend. Use the metadata field instead. */
-  beta_feedback_metadata?: {
-    app_information?: {
-      api_level?: string;
-      app_version_code?: string;
-      course?: string;
-      os?: string;
-      os_version?: string;
-      screen?: string;
-      username?: string;
-    };
-    fullstory?: string;
-    session_information?: {
-      activity?: string;
-      fullstory_session?: string;
-      fullstory_session_if_recording?: string;
-      url?: string;
-    };
-    system_information?: {
-      app_version?: string;
-      ios_version?: string;
-      screen?: string;
-      ui_language?: string;
-    };
-    user_information?: {
-      current_course?: string;
-      username?: string;
-    };
-    view_controller_name?: string;
-  };
-  /** Main content of the ticket. This is what we search against and perform spike detection on. */
-  body_text?: string;
-  /** String identifying where we got this ticket. */
-  data_source?: "AppFigures" | "JIRA" | "Zendesk" | string;
-  /** The date and time the ticket was submitted to its respective service. */
-  date_time?: string;
-  /** An identifier for this ticket, assigned by the API we got the ticket from. */
-  document_id?: string;
-  /** Title, subject line, etc. */
-  header_text?: string;
-  /** The issue key of a Jira ticket. */
-  issue_key?: string;
-  /** Linked Jira issues. */
-  issue_links?: JiraIssueLink[];
-  /** URLs we compute on the backend to direct the user to the original ticket/submitter. */
-  links?: string[];
-  metadata?: {
-    app_version?: string;
-    course?: string;
-    full_story_url?: string;
-    os_version?: string;
-    platform?: "android" | "ios" | "web";
-    raw: string;
-    screen?: string;
-    screen_name?: string;
-    screenshot_url?: string;
-    ui_language?: string;
-    username?: string;
-  };
-  /** Field assigned by Zendesk. */
-  priority?: string;
-  /** ID assigned to the user on Zendesk that submitted this ticket. */
-  requester_id?: number;
-  store?: string;
-  tags?: string[];
-  /** Only applies to Zendesk tickets. */
-  via?: {
-    channel?: string;
-    source?: {
-      from?: {
-        address?: string;
-        name?: string;
-      };
-    };
-  };
-}
+import { convertTimeZone } from "util";
 
 const API_URL =
   process.env.NODE_ENV === "production"
     ? "/api/1"
     : "http://localhost:5000/api/1";
+
+/** Converts a date and time to a format that the API supports. */
+const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
+
+/** Converts a date to a format that the API supports. */
+const formatLocalDate = (date: Date) =>
+  formatISO(date, { representation: "date" });
 
 const get = async (url: string) =>
   await (
@@ -135,56 +21,70 @@ const get = async (url: string) =>
     })
   ).json();
 
-export const getJiraDuplicates = async (issue_key: string) => {
+export const getJiraDuplicates = async (
+  issue_key: string,
+): Promise<JSONAPI.Ticket[]> => {
   const data = (await get(
     `/detect_duplicates?issue_key=${encodeURIComponent(issue_key)}`,
-  )) as Ticket[];
+  )) as JSONAPI.Ticket[];
   data.forEach(ticket => loadTicketMetadata(ticket));
   return data;
 };
 
-export const getInfo = async (lang: LanguageId) =>
-  (await get(`/${lang}/info`)) as {
-    /** The time that the current Jeeves instance was created. */
-    deployed_timestamp: string;
-    initialized_timestamp: string;
-    /** The time of the most recent ticket that Elasticsearch has stored. */
-    latest_ticket_timestamp: string;
+export const getInfo = async (
+  lang: JSONAPI.LanguageId,
+): Promise<{
+  deployed_timestamp: Date;
+  initialized_timestamp: Date;
+  latest_ticket_timestamp: Date;
+}> => {
+  const data = (await get(`/${lang}/info`)) as JSONAPI.Info;
+  return {
+    deployed_timestamp: new Date(data.deployed_timestamp),
+    initialized_timestamp: new Date(data.initialized_timestamp),
+    latest_ticket_timestamp: new Date(data.latest_ticket_timestamp),
   };
+};
 
 export const getSpikes = async (
-  lang: LanguageId,
+  lang: JSONAPI.LanguageId,
   {
     end_date,
     spike_category,
     start_date,
   }: {
     end_date?: Date;
-    spike_category?: SpikeCategory;
+    spike_category?: JSONAPI.SpikeCategory;
     start_date?: Date;
   } = {},
-) => {
+): Promise<
+  {
+    date: Date;
+    spikes: [number, string][];
+  }[]
+> => {
   const params = new URLSearchParams();
 
-  end_date && params.set("end_date", end_date.toJSON().slice(0, 10));
+  // Spike detection is precomputed and does not support specifying a time zone.
+  end_date && params.set("end_date", formatLocalDate(end_date));
   spike_category && params.set("spike_category", spike_category);
-  start_date && params.set("start_date", start_date.toJSON().slice(0, 10));
+  start_date && params.set("start_date", formatLocalDate(start_date));
 
-  const data = (await get(`/${lang}/spikes?${params.toString()}`)) as {
-    [date: string]:
-      | {
-          spike: [number, string][];
-        }
-      | undefined;
-  };
+  const data = (await get(
+    `/${lang}/spikes?${params.toString()}`,
+  )) as JSONAPI.Spikes;
 
-  return Object.fromEntries(
-    Object.entries(data).map(([date, value]) => [date, value?.spike]),
-  );
+  return Object.entries(data).map(([date, value]) => ({
+    // Spikes are actually computed on EST date grouping, but
+    // for simplicity we pretend that they are local date groups
+    // in the UI.
+    date: new Date(`${date} 00:00:00`),
+    spikes: value?.spike ?? [],
+  }));
 };
 
 export const getTickets = async (
-  lang: LanguageId,
+  lang: JSONAPI.LanguageId,
   {
     beta_filter,
     end_time,
@@ -193,49 +93,55 @@ export const getTickets = async (
     start_time,
     word,
   }: {
-    beta_filter?: ShakeToReportCategory;
+    beta_filter?: JSONAPI.ShakeToReportCategory;
     end_time?: Date;
     limit?: number;
     page?: number;
     start_time?: Date;
     word?: string;
   } = {},
-) => {
+): Promise<JSONAPI.Tickets> => {
   const params = new URLSearchParams();
 
   beta_filter && params.set("beta_filter", beta_filter);
-  end_time && params.set("end_time", end_time.toJSON().slice(0, 10));
+  end_time && params.set("end_time", formatDateTime(end_time));
   limit && params.set("limit", `${limit}`);
   page && params.set("page", `${page}`);
-  start_time && params.set("start_time", start_time.toJSON().slice(0, 10));
+  start_time && params.set("start_time", formatDateTime(start_time));
   word && params.set("word", word);
 
-  const data = (await get(`/${lang}/tickets?${params.toString()}`)) as {
-    data: Ticket[];
-    next_url?: string;
-    total_records: number;
-  };
+  const data = (await get(
+    `/${lang}/tickets?${params.toString()}`,
+  )) as JSONAPI.Tickets;
   data.data.forEach(ticket => loadTicketMetadata(ticket));
 
   return data;
 };
 
 export const getTimeSeries = async (
-  lang: LanguageId,
+  lang: JSONAPI.LanguageId,
   {
     word,
   }: {
     word: string;
   },
-) =>
-  ((await get(`/${lang}/time_series?word=${word}`)) as {
-    values: {
-      [date: string]: number | undefined;
-    };
-  }).values;
+): Promise<
+  {
+    date: Date;
+    value: number;
+  }[]
+> => {
+  const data = ((await get(
+    `/${lang}/time_series?word=${word}`,
+  )) as JSONAPI.TimeSeries).values;
+  return Object.entries(data).map(([date, value]) => ({
+    date: convertTimeZone(new Date(`${date} 00:00:00`), "America/New_York"),
+    value: value ?? 0,
+  }));
+};
 
 // TODO: move this to the backend.
-const loadTicketMetadata = (ticket: Ticket) => {
+const loadTicketMetadata = (ticket: JSONAPI.Ticket) => {
   try {
     const d = ticket.beta_feedback_metadata;
     const app_version =

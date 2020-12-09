@@ -5,12 +5,12 @@ import { Button } from "web-ui";
 
 import { getTickets } from "api";
 import { AppDispatch } from "components/App";
-import { LanguageId } from "components/LanguagePicker";
 import Pagination from "components/Pagination";
 import SearchExample from "components/SearchExample";
 import TicketTable from "components/TicketTable";
 import TrendGraph, { RangeChangeEvent } from "components/TrendGraph";
 import { useAwaitedValue } from "components/useAwaitedValue";
+import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
@@ -43,24 +43,22 @@ const handleRangeChangeDebouncer = debounce(
 );
 
 const Analysis = () => {
+  const { from, to } = useDateRangeFilter();
   const history = useHistory();
   const location = useLocation();
-  const { lang } = useParams<{ lang: LanguageId; page: string | undefined }>();
+  const { lang } = useParams<{
+    lang: JSONAPI.LanguageId;
+    page: string | undefined;
+  }>();
   const search = useSearchParams();
 
   const dispatch = React.useContext(AppDispatch);
   const [showTrend, setShowTrend] = React.useState(true);
 
-  const from = search.get("from")
-    ? new Date(search.get("from") as string)
-    : undefined;
   const page = search.get("page")
     ? parseInt(search.get("page") as string, 10)
     : 1;
   const query = search.get("q") ?? "";
-  const to = search.get("to")
-    ? new Date(search.get("to") as string)
-    : undefined;
 
   const nextQuery = useSearchParams();
   nextQuery.set("page", `${page + 1}`);
@@ -83,19 +81,17 @@ const Analysis = () => {
             word: query,
           })
         : { data: undefined, next_url: undefined, total_records: undefined },
-    [from?.toJSON(), lang, page, query, to?.toJSON()],
+    [from?.valueOf(), lang, page, query, to?.valueOf()],
   );
 
   const handleRangeChange = (e: RangeChangeEvent) => {
     if (e.from) {
-      // The toJSON() method outputs the UTC date.
-      search.set("from", e.from.toJSON().slice(0, 10));
+      search.set("from", e.from.toJSON());
     } else {
       search.delete("from");
     }
     if (e.to) {
-      // The toJSON() method outputs the UTC date.
-      search.set("to", e.to.toJSON().slice(0, 10));
+      search.set("to", e.to.toJSON());
     } else {
       search.delete("to");
     }

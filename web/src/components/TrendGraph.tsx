@@ -1,9 +1,9 @@
+import { startOfDay, subDays } from "date-fns";
 import Plotly from "plotly.js-basic-dist";
 import * as React from "react";
 import createPlotlyComponent from "react-plotly.js/factory";
 
 import { getTimeSeries } from "api";
-import { LanguageId } from "components/LanguagePicker";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/TrendGraph.scss";
 
@@ -35,7 +35,7 @@ const JUICY_SWAN = "#e5e5e5";
 const Plot = createPlotlyComponent(Plotly);
 
 interface Props {
-  language: LanguageId;
+  language: JSONAPI.LanguageId;
   onRangeChange?: (e: RangeChangeEvent) => void;
   query: string;
   zoomFrom?: Date;
@@ -56,11 +56,8 @@ const TrendGraph: React.FC<Props> = ({
         return [];
       }
       const unfiltered = await getTimeSeries(lang, { word: query });
-      const origin = new Date();
-      origin.setDate(origin.getDate() - 100); // 100 days ago.
-      return Object.entries(unfiltered).filter(
-        ([date]) => new Date(date) >= origin,
-      );
+      const origin = startOfDay(subDays(new Date(), 100));
+      return unfiltered.filter(({ date }) => date >= origin);
     },
     [lang, query],
   );
@@ -96,10 +93,8 @@ const TrendGraph: React.FC<Props> = ({
   };
 
   React.useEffect(() => {
-    // Invoking the Date constructor with a date-only string
-    // creates a UTC date. Plotly will show it in the local timezone.
-    const x = data?.map(([date]) => new Date(date));
-    const y = data?.map(([, freq]) => freq);
+    const x = data?.map(({ date }) => date);
+    const y = data?.map(({ value }) => value);
 
     const range = x
       ? [
@@ -152,7 +147,7 @@ const TrendGraph: React.FC<Props> = ({
         },
       },
     });
-  }, [data, zoomFrom?.toJSON(), zoomTo?.toJSON]);
+  }, [data, zoomFrom?.valueOf(), zoomTo?.valueOf]);
 
   return (
     <Plot

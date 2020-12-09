@@ -1,25 +1,23 @@
 import * as React from "react";
 import { Select } from "web-ui";
 
-const LANGUAGES = {
+const LANGUAGES: Record<JSONAPI.LanguageId, string> = {
   en: "English",
   es: "Spanish",
   ja: "Japanese",
   zh: "Chinese",
 };
 
-export type LanguageId = keyof typeof LANGUAGES;
-
 interface Props {
   className?: string;
-  onChange: (value: LanguageId) => void;
-  value: LanguageId;
+  onChange: (value: JSONAPI.LanguageId) => void;
+  value: JSONAPI.LanguageId;
 }
 
 const LanguagePicker: React.FC<Props> = ({ className, onChange, value }) => (
   <Select
     className={className}
-    onChange={e => onChange(e.target.value as LanguageId)}
+    onChange={e => onChange(e.target.value as JSONAPI.LanguageId)}
     options={Object.entries(LANGUAGES)
       .map(([key, value]) => ({ text: value, value: key }))
       .sort((a, b) => a.text.localeCompare(b.text))}
