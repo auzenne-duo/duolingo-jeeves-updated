@@ -18,7 +18,7 @@ import logging
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.lib.duplicate_detector import calculate_duplicates_for_JIRA_issue
-from jeeves.dal.shakira import ShakiraDAL
+from jeeves.manager.shakira import Shakira
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
@@ -179,32 +179,34 @@ def get_shake_to_report_tokens():
 def get_jira_project_features():
     project = request.args.get("project")
     if project:
-        features = ShakiraDAL.get_features(project)
+        features = Shakira.get_features(project)
     else:
-        features = ShakiraDAL.get_features(["DLAI", "DLAA", "DLAW"])
+        features = Shakira.get_features(["DLAI", "DLAA", "DLAW"])
     return json.jsonify({"features": features if features else []})
 
 
 @blueprint_api.route("/api/1/shakira/report_issue", methods=["POST"])
 def report_issue():
     """
-    This currently creatus a JIRA issue with any file attachments included in the request.
-    TODO(becky DEL-470): choose whether to post to JIRA or Slack depending on the 'feature' parameter.
+    Either create an issue in JIRA or post the screenshot to slack, depending on the feature and slack_channel fields.
     """
-    issue_data = json.loads(request.form.get("issueData"))
-    project = project = issue_data.get("project")
-    issue_key = ShakiraDAL.create_issue(
-        project=project,
-        feature=issue_data.get("feature"),
-        summary=issue_data.get("summary"),
-        description=issue_data.get("description"),
-        generated_description=issue_data.get("generatedDescription"),
-        reporter_email=issue_data.get("reporterEmail", None),
-        pre_release=issue_data.get("preRelease", False),
-    )
-    if issue_key:
-        ShakiraDAL.upload_attachments(project, issue_key, request.files)
-    return json.jsonify({"issueKey": issue_key} if issue_key else {})
+    try:
+        issue_data = json.loads(request.form["issueData"])
+        return json.jsonify(
+            Shakira.report_issue(
+                project=issue_data["project"],
+                feature=issue_data.get("feature"),
+                slack_channel=issue_data.get("slack_channel"),
+                summary=issue_data["summary"],
+                description=issue_data["description"],
+                generated_description=issue_data.get("generatedDescription"),
+                reporter_email=issue_data.get("reporterEmail"),
+                pre_release=issue_data.get("preRelease", False),
+                files=request.files,
+            )
+        )
+    except KeyError:
+        abort(make_response("Missing required field(s)", 400))
 
 
 @blueprint_api.route("/api/1/detect_duplicates")

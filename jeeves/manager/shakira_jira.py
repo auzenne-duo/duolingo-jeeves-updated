@@ -1,5 +1,5 @@
 """
-DAL for interacting with the JIRA API for shakira.
+Manager for interacting with the JIRA API for shakira.
 """
 
 import os
@@ -11,6 +11,7 @@ from requests.exceptions import RequestException
 
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.util.error_util import print_request_exception
+from jeeves.util.shakira import format_description
 
 _API = "https://duolingo.atlassian.net/rest/api/2"
 
@@ -24,7 +25,7 @@ _ISSUE_TYPE_STORY = "Story"
 _ALL_ISSUE_TYPES = [_ISSUE_TYPE_BUG, _ISSUE_TYPE_STORY]
 
 
-class ShakiraApiDAL:
+class ShakiraJiraApiClient:
     def _get_jira_auth(self, project: Optional[str] = None) -> HTTPBasicAuth:
         """
         Returns authentication for the appropriate service account. If no project
@@ -109,10 +110,10 @@ class ShakiraApiDAL:
     def create_issue(
         self,
         project: str,
-        feature: str,
+        feature: Optional[str],
         summary: str,
         description: str,
-        generated_description: str,
+        generated_description: Optional[str],
         reporter_email: Optional[str],
         pre_release: bool,
     ) -> Optional[str]:
@@ -123,7 +124,7 @@ class ShakiraApiDAL:
         parameters:
             project: e.g. DLAI, DLAA
             feature: e.g. Achievements
-            summary: ~One sentence summary of issue.
+            summary: Rougly one-sentence summary of issue.
             description: Longer issue description.
             generated_description: Generated information such as app version, fullstory url, session type, etc.
             reporter_emai: Email of the duo reporting the issue.
@@ -133,25 +134,23 @@ class ShakiraApiDAL:
             issue key: str e.g. DLAA-2508
 
         """
-        # If user selected "Feature request / feedback" then we want to create a "Story" instead of a "Bug"
-        # Generalize to any name containing "request" in case we change the names.
-        if "request" in feature.lower():
-            issuetype = self._get_metadata_for_specific_issuetype(project, _ISSUE_TYPE_STORY)
-        else:
-            issuetype = self._get_metadata_for_specific_issuetype(project, _ISSUE_TYPE_BUG)
+        # We currently only create bugs. In the future this could change based on the feature
+        # or be specified by the client.
+        issuetype = self._get_metadata_for_specific_issuetype(project, _ISSUE_TYPE_BUG)
 
         if issuetype:
             fields = {
                 "project": {"key": project},
                 "summary": summary,
-                "description": f"{description}\n{generated_description}",
+                "description": format_description(description, generated_description),
                 "issuetype": {"id": issuetype.id},
             }
 
-            feature_field_key = issuetype.feature_field_key()
-            feature_value_id = issuetype.get_id_for_allowed_feature_value(feature)
-            if feature_field_key and feature_value_id:
-                fields[feature_field_key] = {"id": feature_value_id}
+            if feature:
+                feature_field_key = issuetype.feature_field_key()
+                feature_value_id = issuetype.get_id_for_allowed_feature_value(feature)
+                if feature_field_key and feature_value_id:
+                    fields[feature_field_key] = {"id": feature_value_id}
 
             labels = []
 
@@ -182,7 +181,7 @@ class ShakiraApiDAL:
                 print_request_exception(e)
                 return None
 
-    def upload_attachments(self, project: str, issue_key: str, files: Dict):
+    def upload_attachments(self, project: str, issue_key: str, files: Dict[str, "FileStorage"]):
         """
         Upload attachment to JIRA issue with key issue_key
         For reference: https://docs.atlassian.com/software/jira/docs/api/REST/8.13.1/#api/2/issue/{issueIdOrKey}/attachments
@@ -205,4 +204,4 @@ class ShakiraApiDAL:
             print_request_exception(e)
 
 
-ShakiraDAL = ShakiraApiDAL()
+ShakiraJiraClient = ShakiraJiraApiClient()
