@@ -133,7 +133,7 @@ def get_spike_data(lang):
         abort(make_response(f"Invalid spike category {spike_category}", 400))
 
     stored_spikes = {}
-    for spike in ElasticDAL.yield_spikes_in_date_range(lang, start_date, end_date):
+    for spike in ElasticDAL.yield_spikes_in_date_range(lang, start_date, end_date, spike_category):
         if spike["date"] not in stored_spikes:
             stored_spikes[spike["date"]] = {"spike": []}
         stored_spikes[spike["date"]]["spike"].append((spike["score"], spike["word"]))
