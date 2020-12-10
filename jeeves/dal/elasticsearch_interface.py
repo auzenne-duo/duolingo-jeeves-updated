@@ -587,7 +587,12 @@ class ElasticsearchDAL:
 
         base_doc_id_str = f"{base_document.data_source}_{base_document.document_id}"
         s = s.query(
-            MoreLikeThis(like=[{"_id": base_doc_id_str}], fields=["body_text", "header_text"])
+            MoreLikeThis(
+                like=[{"_id": base_doc_id_str}],
+                fields=["body_text", "header_text"],
+                min_term_freq=0,
+                min_doc_freq=0,
+            )
         )
 
         # Now that we have the query set up, we must address the possibly
