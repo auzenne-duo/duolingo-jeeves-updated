@@ -43,8 +43,7 @@ $tag-spacing: 5px;
 }
 
 .section {
-  // Workaround for horizontal overflow of the JiraIssues component.
-  max-width: 350px;
+  min-width: 0;
 }
 
 .tag {
