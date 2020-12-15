@@ -145,6 +145,8 @@ const loadTicketMetadata = (ticket: JSONAPI.Ticket) => {
   try {
     const d = ticket.beta_feedback_metadata;
     const app_version =
+      // Web reports the commit hash.
+      d?.app_information?.app_version?.slice(0, 7) ??
       d?.app_information?.app_version_code ??
       d?.system_information?.app_version;
     const course =

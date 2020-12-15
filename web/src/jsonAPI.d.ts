@@ -67,6 +67,7 @@ declare namespace JSONAPI {
     beta_feedback_metadata?: {
       app_information?: {
         api_level?: string;
+        app_version?: string;
         app_version_code?: string;
         course?: string;
         os?: string;
