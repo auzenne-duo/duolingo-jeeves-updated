@@ -1,4 +1,4 @@
-import { format, formatISO } from "date-fns";
+import { format, formatISO, parseISO } from "date-fns";
 
 import { convertTimeZone } from "util";
 
@@ -78,7 +78,7 @@ export const getSpikes = async (
     // Spikes are actually computed on EST date grouping, but
     // for simplicity we pretend that they are local date groups
     // in the UI.
-    date: new Date(`${date} 00:00:00`),
+    date: parseISO(`${date}T00:00:00`),
     spikes: value?.spike ?? [],
   }));
 };
@@ -135,7 +135,7 @@ export const getTimeSeries = async (
     `/${lang}/time_series?word=${word}`,
   )) as JSONAPI.TimeSeries).values;
   return Object.entries(data).map(([date, value]) => ({
-    date: convertTimeZone(new Date(`${date} 00:00:00`), "America/New_York"),
+    date: convertTimeZone(parseISO(`${date}T00:00:00`), "America/New_York"),
     value: value ?? 0,
   }));
 };
