@@ -42,14 +42,6 @@ const App = () => {
     loading: false,
     shifted: false,
   });
-
-  React.useLayoutEffect(() => {
-    document.documentElement.style.setProperty(
-      "--scrollbar-width",
-      `${window.innerWidth - document.documentElement.clientWidth}px`,
-    );
-  }, []);
-
   return (
     <AppDispatch.Provider value={dispatch}>
       <Topbar isLoading={state.loading} />

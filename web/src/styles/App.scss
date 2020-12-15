@@ -13,20 +13,12 @@ $width-right: 400px;
 }
 
 .main {
-  --width-content: calc(
-    var(--width-max) - 2 * #{$padding-x} - #{$gap} - #{$width-left}
-  );
-  --width-max: calc(100vw - var(--scrollbar-width));
   align-items: start;
   display: grid;
   grid-gap: $gap;
-  grid-template-columns: $width-left var(--width-content) $width-right;
+  grid-template-columns: $width-left calc(100% - #{$width-left} - #{$gap}) $width-right;
   padding: $padding-y $padding-x;
   transition: transform $duration-slide;
-
-  @media (min-width: $width-app-max) {
-    --width-max: #{$width-app-max};
-  }
 
   @media (prefers-reduced-motion) {
     transition: none;
