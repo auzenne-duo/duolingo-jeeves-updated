@@ -49,7 +49,9 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
                 {ticket.priority ? (
                   <Tag
                     className={styles.tag}
-                    isPriority={["high", "urgent"].includes(ticket.priority)}
+                    isPriority={["high", "highest", "urgent"].includes(
+                      ticket.priority.toLowerCase(),
+                    )}
                     value={`${ticket.priority} priority`}
                   />
                 ) : null}

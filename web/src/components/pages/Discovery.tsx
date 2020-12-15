@@ -6,17 +6,19 @@ import { useLocation, useParams } from "react-router-dom";
 import { getTickets } from "api";
 import { AppDispatch } from "components/App";
 import Pagination from "components/Pagination";
-import Table from "components/Table";
+import Tag from "components/Tag";
 import Ticket from "components/Ticket";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
+import imagePlatformAndroid from "images/android.svg";
+import imagePlatformApple from "images/apple.svg";
+import imagePlatformWeb from "images/web.svg";
 import styles from "styles/pages/Discovery.scss";
 import {
   encodeURLSearchParams,
   formatCourseId,
-  formatPlatform,
   formatReadableDate,
   getPaginationString,
 } from "util";
@@ -114,73 +116,81 @@ const Discovery = () => {
 
   return (
     <>
-      <Table className={styles.table}>
-        <thead>
-          <tr>
-            <th style={{ width: "40%" }}>Summary</th>
-            <th style={{ width: 120 }}>Date</th>
-            <th>Screen</th>
-            <th>Platform</th>
-            <th>App</th>
-            <th>Course</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tickets?.map((t, i) => {
-            const summary =
-              t.data_source === "JIRA"
-                ? t.header_text
-                : t.body_text?.trim().split("\n")[0];
-            const date = t.date_time ? new Date(t.date_time) : undefined;
-            return (
-              <tr
-                className={t === selected ? styles.selected : undefined}
-                key={i}
-                onClick={() => setSelected(t)}
-              >
-                <td title={summary}>{summary}</td>
-                <td
-                  className={styles.date}
-                  title={date ? formatReadableDate(date) : undefined}
+      {tickets?.length ? (
+        <>
+          <ul className={styles.list}>
+            {tickets?.map((t, i) => {
+              const summary =
+                !t.header_text ||
+                // Header text for tickets reported via the Zendesk mobile SDK
+                // is often truncated after just a few characters.
+                (t.data_source === "Zendesk" && t.via?.channel === "mobile_sdk")
+                  ? t.body_text?.trim().split(/\n|\.\s/)[0]
+                  : t.header_text;
+              const date = t.date_time ? new Date(t.date_time) : undefined;
+              return (
+                <li
+                  className={styles[`item${t === selected ? "-selected" : ""}`]}
+                  key={i}
+                  onClick={() => setSelected(t)}
                 >
-                  {date ? formatDate(date) : null}
-                </td>
-                <td>{t.metadata?.screen_name}</td>
-                <td>
-                  {t.metadata?.platform
-                    ? formatPlatform(t.metadata?.platform)
-                    : null}
-                </td>
-                <td>{t.metadata?.app_version}</td>
-                <td>
-                  {t.metadata?.course
-                    ? formatCourseId(t.metadata?.course)
-                    : null}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-        {tickets?.length || !isLoading ? (
-          <tfoot>
-            <tr>
-              <td colSpan={6}>
-                {tickets?.length ? (
-                  <div className={styles.pagination}>
-                    {getPaginationString({
-                      page,
-                      perPage: PER_PAGE,
-                      total: totalTickets,
-                    })}
+                  <span className={styles.title} title={summary}>
+                    {summary}
+                  </span>
+                  <div className={styles.tags}>
+                    {t.metadata?.app_version ? (
+                      <Tag value={t.metadata?.app_version} />
+                    ) : null}
+                    {t.metadata?.screen_name ? (
+                      <Tag value={t.metadata?.screen_name} />
+                    ) : null}
+                    {t.metadata?.course ? (
+                      <Tag value={formatCourseId(t.metadata?.course)} />
+                    ) : null}
+                    {t.issue_key ? <Tag value={t.issue_key} /> : null}
+                    {t.metadata?.platform === "android" ? (
+                      <img
+                        alt="Android"
+                        className={styles.icon}
+                        src={imagePlatformAndroid}
+                      />
+                    ) : t.metadata?.platform === "ios" ? (
+                      <img
+                        alt="iOS"
+                        className={styles.icon}
+                        src={imagePlatformApple}
+                      />
+                    ) : t.metadata?.platform === "web" ? (
+                      <img
+                        alt="Web"
+                        className={styles.icon}
+                        src={imagePlatformWeb}
+                      />
+                    ) : null}
+                    {date ? (
+                      <span
+                        className={styles.date}
+                        title={formatReadableDate(date)}
+                      >
+                        {formatDate(date)}
+                      </span>
+                    ) : null}
                   </div>
-                ) : (
-                  <span>Your search returned no results.</span>
-                )}
-              </td>
-            </tr>
-          </tfoot>
-        ) : null}
-      </Table>
+                </li>
+              );
+            })}
+          </ul>
+          <div className={styles.pagination}>
+            {getPaginationString({
+              page,
+              perPage: PER_PAGE,
+              total: totalTickets,
+            })}
+          </div>
+        </>
+      ) : isLoading ? null : (
+        <span>Your search returned no results.</span>
+      )}
       <Pagination
         nextLink={
           nextUrl

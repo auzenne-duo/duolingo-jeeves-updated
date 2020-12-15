@@ -14,9 +14,8 @@ $width-right: 400px;
 
 .main {
   --width-content: calc(
-    var(--width-max) - 2 * #{$padding-x} - #{$gap} - var(--width-sidebar)
+    var(--width-max) - 2 * #{$padding-x} - #{$gap} - #{$width-left}
   );
-  --width-sidebar: #{$width-left};
   --width-max: calc(100vw - var(--scrollbar-width));
   align-items: start;
   display: grid;
@@ -36,8 +35,7 @@ $width-right: 400px;
 
 .main-shifted {
   composes: main;
-  --width-sidebar: #{$width-right};
-  transform: translateX(-$width-left - $gap);
+  transform: translateX(-$width-right - $gap);
 }
 
 .sidebar {

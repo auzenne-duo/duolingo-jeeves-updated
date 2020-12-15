@@ -2,40 +2,78 @@
 @import "../mixins";
 
 .date {
-  text-align: right;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.icon {
+  height: 16px;
+  width: 16px;
+}
+
+.item {
+  align-items: start;
+  border: $juicy-border;
+  border-width: $juicy-border-width $juicy-border-width 0;
+  cursor: pointer;
+  display: grid;
+  grid-gap: $juicy-length;
+  grid-template-columns: 40% 60%;
+  padding: 9.5px 16px;
+
+  &:first-child {
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+  }
+
+  &:last-child {
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    border-bottom-width: $juicy-border-width;
+  }
+
+  @include hover {
+    background: $juicy-ghost;
+  }
+}
+
+.item-selected {
+  composes: item;
+
+  .title {
+    color: $juicy-macaw;
+  }
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 .pagination {
   text-align: right;
 }
 
-.table {
-  table-layout: fixed;
-  width: 100%;
+.tags {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin: -$juicy-length / 2;
+  min-height: 25px; // Matches the line height.
 
-  tbody {
-    tr {
-      transition: color $duration-fade;
-
-      &.selected {
-        color: $juicy-macaw;
-      }
-
-      @include hover {
-        background: $juicy-ghost;
-        cursor: pointer;
-      }
-    }
-  }
-
-  td,
-  th {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  > * {
+    margin: $juicy-length / 2;
   }
 }
 
 .ticket {
   max-height: 100%;
+}
+
+.title {
+  transition: color $duration-fade;
 }

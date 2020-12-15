@@ -12,8 +12,9 @@ interface Props {
 const Tag: React.FC<Props> = ({ className, isPriority, value }) => (
   <span
     className={cn(styles[`tag${isPriority ? "-priority" : ""}`], className)}
+    title={value}
   >
-    {value}
+    <span className={styles.value}>{value}</span>
   </span>
 );
 

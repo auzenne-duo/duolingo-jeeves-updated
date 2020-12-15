@@ -159,7 +159,9 @@ const Ticket: React.FC<Props> = ({
               <span className={styles.label}>Priority</span>
               <div>
                 <Tag
-                  isPriority={["high", "urgent"].includes(ticket.priority)}
+                  isPriority={["high", "highest", "urgent"].includes(
+                    ticket.priority.toLowerCase(),
+                  )}
                   value={ticket.priority}
                 />
               </div>

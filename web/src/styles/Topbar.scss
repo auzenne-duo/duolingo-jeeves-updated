@@ -9,6 +9,7 @@
 }
 
 .filters {
+  align-items: end;
   display: grid;
   grid-gap: 2 * $juicy-length;
   grid-template-columns: min-content min-content;
@@ -32,25 +33,17 @@
 
 .logo-link {
   color: $juicy-owl;
-  display: none;
+  display: flex;
   position: relative;
-
-  @media (min-width: 500px) {
-    display: flex;
-  }
 }
 
 .wrap {
   align-items: center;
   display: grid;
   grid-gap: $juicy-margin;
-  grid-template-columns: 1fr;
+  grid-template-columns: 240px 1fr;
   height: $height-topbar - $juicy-border-width;
   margin: 0 auto;
   max-width: $width-app-max;
   padding: 0 (2 * $juicy-length);
-
-  @media (min-width: 500px) {
-    grid-template-columns: 240px 1fr;
-  }
 }
