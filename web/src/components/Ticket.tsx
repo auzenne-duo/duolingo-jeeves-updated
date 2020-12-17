@@ -5,6 +5,7 @@ import { LoadingDots } from "web-ui";
 import { getJiraDuplicates } from "api";
 import CloseButton from "components/CloseButton";
 import JiraIssues from "components/JiraIssues";
+import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
 import renderTicketSource from "components/renderTicketSource";
 import { useAwaitedValue } from "components/useAwaitedValue";
@@ -13,7 +14,6 @@ import {
   escapeHTML,
   formatAttachment,
   formatCourseId,
-  formatPlatform,
   formatReadableDate,
   highlightWord,
   normalizeNewLines,
@@ -69,32 +69,42 @@ const Ticket: React.FC<Props> = ({
           {ticket.metadata?.app_version ? (
             <section className={styles.section}>
               <span className={styles.label}>App version</span>
-              <div>{ticket.metadata?.app_version}</div>
+              <div>
+                <Tag
+                  className={styles.tag}
+                  value={ticket.metadata.app_version}
+                />
+              </div>
             </section>
           ) : null}
-          {ticket.attachments?.length ? (
+          {ticket.attachments?.length || ticket.metadata?.full_story_url ? (
             <section className={styles.section}>
               <span className={styles.label}>Attachments</span>
               <div>
-                {ticket.attachments.map((url, i) => (
+                {ticket.attachments?.map((url, i) => (
                   <a className={styles.attachment} href={url} key={i}>
                     {formatAttachment(url)}
                   </a>
                 ))}
+                {ticket.metadata?.full_story_url ? (
+                  <a
+                    className={styles.attachment}
+                    href={ticket.metadata.full_story_url}
+                  >
+                    FullStory recording
+                  </a>
+                ) : null}
               </div>
             </section>
           ) : null}
           {ticket.metadata?.course ? (
             <section className={styles.section}>
               <span className={styles.label}>Course</span>
-              <div>{formatCourseId(ticket.metadata?.course)}</div>
-            </section>
-          ) : null}
-          {ticket.metadata?.full_story_url ? (
-            <section className={styles.section}>
-              <span className={styles.label}>FullStory recording</span>
               <div>
-                <a href={ticket.metadata.full_story_url}>View session</a>
+                <Tag
+                  className={styles.tag}
+                  value={formatCourseId(ticket.metadata.course)}
+                />
               </div>
             </section>
           ) : null}
@@ -114,13 +124,23 @@ const Ticket: React.FC<Props> = ({
           {ticket.metadata?.os_version ? (
             <section className={styles.section}>
               <span className={styles.label}>OS version</span>
-              <div>{ticket.metadata.os_version}</div>
+              <div>
+                <Tag
+                  className={styles.tag}
+                  value={ticket.metadata.os_version}
+                />
+              </div>
             </section>
           ) : null}
           {ticket.metadata?.platform ? (
             <section className={styles.section}>
               <span className={styles.label}>Platform</span>
-              <div>{formatPlatform(ticket.metadata.platform)}</div>
+              <div>
+                <PlatformIcon
+                  className={styles.icon}
+                  platform={ticket.metadata.platform}
+                />
+              </div>
             </section>
           ) : null}
           {ticket.data_source === "JIRA" ? (
@@ -159,6 +179,7 @@ const Ticket: React.FC<Props> = ({
               <span className={styles.label}>Priority</span>
               <div>
                 <Tag
+                  className={styles.tag}
                   isPriority={["high", "highest", "urgent"].includes(
                     ticket.priority.toLowerCase(),
                   )}
@@ -176,7 +197,12 @@ const Ticket: React.FC<Props> = ({
           {ticket.metadata?.screen_name ? (
             <section className={styles.section}>
               <span className={styles.label}>Screen</span>
-              <div>{ticket.metadata.screen_name}</div>
+              <div>
+                <Tag
+                  className={styles.tag}
+                  value={ticket.metadata.screen_name}
+                />
+              </div>
             </section>
           ) : null}
           {ticket.metadata?.screen ? (

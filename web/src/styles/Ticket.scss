@@ -1,7 +1,5 @@
 @import "constants";
 
-$tag-spacing: 5px;
-
 .attachment {
   display: block;
 }
@@ -28,6 +26,11 @@ $tag-spacing: 5px;
   word-break: break-word;
 }
 
+.icon {
+  height: 16px;
+  width: 16px;
+}
+
 .invisible {
   visibility: hidden;
 }
@@ -47,7 +50,12 @@ $tag-spacing: 5px;
 }
 
 .tag {
-  margin: $tag-spacing / 2;
+  max-width: 100%;
+
+  .tags & {
+    margin: $tag-spacing / 2;
+    max-width: 150px;
+  }
 }
 
 .tags {

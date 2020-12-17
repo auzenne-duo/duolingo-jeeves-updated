@@ -62,11 +62,12 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  margin: -$juicy-length / 2;
+  margin: -$tag-spacing / 2;
   min-height: 25px; // Matches the line height.
 
   > * {
-    margin: $juicy-length / 2;
+    margin: $tag-spacing / 2;
+    max-width: 150px;
   }
 }
 

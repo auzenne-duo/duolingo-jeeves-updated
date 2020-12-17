@@ -6,15 +6,13 @@ import { useLocation, useParams } from "react-router-dom";
 import { getTickets } from "api";
 import { AppDispatch } from "components/App";
 import Pagination from "components/Pagination";
+import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
 import Ticket from "components/Ticket";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
-import imagePlatformAndroid from "images/android.svg";
-import imagePlatformApple from "images/apple.svg";
-import imagePlatformWeb from "images/web.svg";
 import styles from "styles/pages/Discovery.scss";
 import {
   encodeURLSearchParams,
@@ -148,23 +146,10 @@ const Discovery = () => {
                       <Tag value={formatCourseId(t.metadata?.course)} />
                     ) : null}
                     {t.issue_key ? <Tag value={t.issue_key} /> : null}
-                    {t.metadata?.platform === "android" ? (
-                      <img
-                        alt="Android"
+                    {t.metadata?.platform ? (
+                      <PlatformIcon
                         className={styles.icon}
-                        src={imagePlatformAndroid}
-                      />
-                    ) : t.metadata?.platform === "ios" ? (
-                      <img
-                        alt="iOS"
-                        className={styles.icon}
-                        src={imagePlatformApple}
-                      />
-                    ) : t.metadata?.platform === "web" ? (
-                      <img
-                        alt="Web"
-                        className={styles.icon}
-                        src={imagePlatformWeb}
+                        platform={t.metadata.platform}
                       />
                     ) : null}
                     {date ? (
