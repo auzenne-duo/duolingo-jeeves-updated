@@ -10,7 +10,7 @@
     "react-plotly.js": "2.5.0",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
-    "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.19.1-f2e6f49.tgz"
+    "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.19.7.tgz"
   },
   "devDependencies": {
     "@types/classnames": "2.2.11",
