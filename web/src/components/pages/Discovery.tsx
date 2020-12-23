@@ -71,18 +71,16 @@ const Discovery = () => {
     [filter, lang, page, query],
   );
 
+  const handleClick = (t: JSONAPI.Ticket) => {
+    if (selected === t) {
+      dispatch?.({ type: "TOGGLE_ASIDE" });
+    } else {
+      setSelected(t);
+    }
+  };
+
   useDocumentTitle("Issue Discovery");
   usePageView();
-
-  React.useEffect(() => {
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSelected(undefined);
-      }
-    };
-    document.addEventListener("keydown", handleKeydown);
-    return () => document.removeEventListener("keydown", handleKeydown);
-  }, []);
 
   React.useEffect(() => {
     setSelected(undefined);
@@ -105,10 +103,22 @@ const Discovery = () => {
 
   React.useEffect(() => {
     if (selected) {
-      dispatch?.({ type: "SHIFT" });
+      dispatch?.({ type: "SHOW_ASIDE" });
       return () => {
-        dispatch?.({ type: "UNSHIFT" });
+        dispatch?.({ type: "HIDE_ASIDE" });
       };
+    }
+  }, [selected]);
+
+  React.useEffect(() => {
+    if (selected) {
+      const handleKeydown = (e: KeyboardEvent) => {
+        if (e.key === "]") {
+          dispatch?.({ type: "TOGGLE_ASIDE" });
+        }
+      };
+      document.addEventListener("keydown", handleKeydown);
+      return () => document.removeEventListener("keydown", handleKeydown);
     }
   }, [selected]);
 
@@ -130,7 +140,7 @@ const Discovery = () => {
                 <li
                   className={styles[`item${t === selected ? "-selected" : ""}`]}
                   key={i}
-                  onClick={() => setSelected(t)}
+                  onClick={() => handleClick(t)}
                 >
                   <span className={styles.title} title={summary}>
                     {summary}

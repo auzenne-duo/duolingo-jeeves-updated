@@ -3,10 +3,8 @@
 .item {
   color: $juicy-eel;
   display: flex;
-  font-size: 19px;
   font-weight: 700;
-  line-height: 27px;
-  padding: 18px (2 * $juicy-length);
+  padding: 14px $juicy-margin;
   transition: color $duration-fade;
 
   &:not(:last-child) {
@@ -25,11 +23,6 @@
 }
 
 .language {
-  padding: 18px (2 * $juicy-length);
+  padding: 18px $juicy-margin;
   width: 100%;
-}
-
-.wrap {
-  border: $juicy-border;
-  border-radius: 12px;
 }

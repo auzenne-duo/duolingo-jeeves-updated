@@ -10,9 +10,11 @@ import {
 } from "react-router-dom";
 import { Input, LoadingDots, Select } from "web-ui";
 
+import { AppDispatch } from "components/App";
 import DateRangeInput, {
   DateRangeChangeEvent,
 } from "components/DateRangeInput";
+import Hamburger from "components/Hamburger";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useSearchParams from "components/useSearchParams";
 import imageLogo from "images/logo.svg";
@@ -20,9 +22,10 @@ import styles from "styles/Topbar.scss";
 
 interface Props {
   isLoading: boolean;
+  showMenu: boolean;
 }
 
-const Topbar: React.FC<Props> = ({ isLoading }) => {
+const Topbar: React.FC<Props> = ({ isLoading, showMenu }) => {
   const { from, to } = useDateRangeFilter({
     daysAgo: useRouteMatch("/:lang/spike") ? 3 : 0,
   });
@@ -35,6 +38,7 @@ const Topbar: React.FC<Props> = ({ isLoading }) => {
   const filter = search.get("filter");
   const query = search.get("q") ?? "";
 
+  const dispatch = React.useContext(AppDispatch);
   const [input, setInput] = React.useState(query);
 
   const applyFilters = (params: URLSearchParams) =>
@@ -73,6 +77,8 @@ const Topbar: React.FC<Props> = ({ isLoading }) => {
     applyFilters(params);
   };
 
+  const handleHamburgerClick = () => dispatch?.({ type: "TOGGLE_MENU" });
+
   const handleSearchInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       const params = new URLSearchParams(location.search);
@@ -84,6 +90,8 @@ const Topbar: React.FC<Props> = ({ isLoading }) => {
       }
       applyFilters(params);
     }
+    // Do not trigger shortcuts.
+    e.stopPropagation();
   };
 
   React.useEffect(() => {
@@ -93,71 +101,68 @@ const Topbar: React.FC<Props> = ({ isLoading }) => {
   }, [query]);
 
   return (
-    <div className={styles.container}>
-      <nav className={styles.wrap}>
-        <NavLink className={styles["logo-link"]} to={`/${lang}`}>
-          <img
-            alt="Duolingo"
-            className={styles[`logo${isLoading ? "-invisible" : ""}`]}
-            src={imageLogo}
+    <div className={styles.wrap}>
+      <Hamburger isOpen={showMenu} onClick={handleHamburgerClick} />
+      <NavLink className={styles["logo-link"]} to={`/${lang}`}>
+        <img
+          alt="Duolingo Jeeves"
+          className={styles[`logo${isLoading ? "-invisible" : ""}`]}
+          src={imageLogo}
+        />
+        {isLoading ? <LoadingDots type="button" /> : null}
+      </NavLink>
+      <div className={styles[`filters${showSearchInput ? "-search" : ""}`]}>
+        {showSearchInput ? (
+          <Input
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleSearchInputKeyDown}
+            placeholder="Search"
+            type="search"
+            value={input}
           />
-          {isLoading ? <LoadingDots type="button" /> : null}
-        </NavLink>
-        <Route path="/:lang/(analysis|discovery|spike)">
-          <div className={styles[`filters${showSearchInput ? "-search" : ""}`]}>
-            {showSearchInput ? (
-              <Input
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleSearchInputKeyDown}
-                placeholder="Search"
-                type="search"
-                value={input}
-              />
-            ) : null}
-            <Route path="/:lang/(analysis|spike)">
-              <DateRangeInput
-                alignPopover="end"
-                from={from}
-                onChange={handleDateRangeChange}
-                to={to}
-              />
-            </Route>
-            <Route path="/:lang/discovery">
-              <Select
-                onChange={handleFilterChange}
-                options={[
-                  { text: "All sources", value: "" },
-                  { text: "Admin reports", value: "INTERNAL" },
-                  { text: "Beta program", value: "EXTERNAL" },
-                  { text: "CS reports", value: "NON_STR_EXTERNAL" },
-                ]}
-                value={filter ?? ""}
-              />
-            </Route>
-            <Route path="/:lang/spike">
-              <Select
-                onChange={handleFilterChange}
-                options={[
-                  { text: "All sources", value: "ALL_SPIKES" },
-                  { text: "All dogfooding", value: "ALL_STR_SPIKES" },
-                  { text: "External dogfooding", value: "EXTERNAL_STR_SPIKES" },
-                  {
-                    text: "External non-dogfooding",
-                    value: "EXTERNAL_NON_STR_SPIKES",
-                  },
-                  { text: "Internal dogfooding", value: "INTERNAL_STR_SPIKES" },
-                  {
-                    text: "Internal non-dogfooding",
-                    value: "INTERNAL_NON_STR_SPIKES",
-                  },
-                  { text: "Non-dogfooding", value: "ALL_NON_STR_SPIKES" },
-                ]}
-                value={filter ?? "ALL_SPIKES"}
-              />
-            </Route>
-          </div>
+        ) : null}
+        <Route path="/:lang/(analysis|spike)">
+          <DateRangeInput
+            alignPopover="end"
+            from={from}
+            onChange={handleDateRangeChange}
+            to={to}
+          />
         </Route>
-      </nav>
+        <Route path="/:lang/discovery">
+          <Select
+            onChange={handleFilterChange}
+            options={[
+              { text: "All sources", value: "" },
+              { text: "Admin reports", value: "INTERNAL" },
+              { text: "Beta program", value: "EXTERNAL" },
+              { text: "CS reports", value: "NON_STR_EXTERNAL" },
+            ]}
+            value={filter ?? ""}
+          />
+        </Route>
+        <Route path="/:lang/spike">
+          <Select
+            onChange={handleFilterChange}
+            options={[
+              { text: "All sources", value: "ALL_SPIKES" },
+              { text: "All dogfooding", value: "ALL_STR_SPIKES" },
+              { text: "External dogfooding", value: "EXTERNAL_STR_SPIKES" },
+              {
+                text: "External non-dogfooding",
+                value: "EXTERNAL_NON_STR_SPIKES",
+              },
+              { text: "Internal dogfooding", value: "INTERNAL_STR_SPIKES" },
+              {
+                text: "Internal non-dogfooding",
+                value: "INTERNAL_NON_STR_SPIKES",
+              },
+              { text: "Non-dogfooding", value: "ALL_NON_STR_SPIKES" },
+            ]}
+            value={filter ?? "ALL_SPIKES"}
+          />
+        </Route>
+      </div>
     </div>
   );
 };

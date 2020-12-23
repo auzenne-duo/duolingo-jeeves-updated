@@ -1,19 +1,19 @@
 @import "constants";
 
-.container {
-  background: $juicy-snow;
-  border-bottom: $juicy-border;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
+$mq-show-filters: (
+  min-width: 768px,
+); // iPad
 
 .filters {
   align-items: end;
-  display: grid;
+  display: none;
   grid-gap: 2 * $juicy-length;
   grid-template-columns: min-content min-content;
   margin-left: auto;
+
+  @media #{$mq-show-filters} {
+    display: grid;
+  }
 }
 
 .filters-search {
@@ -24,6 +24,7 @@
 
 .logo {
   height: 29px;
+  width: 203.31px;
 }
 
 .logo-invisible {
@@ -34,16 +35,28 @@
 .logo-link {
   color: $juicy-owl;
   display: flex;
-  position: relative;
+
+  @media #{$mq-show-filters} {
+    // Center loading dots within logo container.
+    position: relative;
+  }
 }
 
 .wrap {
+  background: $juicy-snow;
+  border-bottom: $juicy-border;
+  position: fixed;
   align-items: center;
   display: grid;
   grid-gap: $juicy-margin;
-  grid-template-columns: 240px 1fr;
-  height: $height-topbar - $juicy-border-width;
-  margin: 0 auto;
-  max-width: $width-app-max;
-  padding: 0 (2 * $juicy-length);
+  grid-template-columns: repeat(2, min-content);
+  height: $height-topbar;
+  padding: 0 $juicy-margin;
+  top: 0;
+  width: 100%;
+  z-index: 1;
+
+  @media #{$mq-show-filters} {
+    grid-template-columns: repeat(2, min-content) 1fr;
+  }
 }

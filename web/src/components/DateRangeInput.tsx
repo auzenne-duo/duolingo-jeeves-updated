@@ -45,6 +45,11 @@ const DateRangeInput: React.FC<Props> = ({
     onChange?.({ from: e.other, to: e.newValue });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Do not trigger shortcuts.
+    e.stopPropagation();
+  };
+
   const handleStartChange = (e: DatePickerChangeEvent) => {
     onChange?.({ from: e.newValue, to: e.other });
     endRef.current?.focus();
@@ -57,7 +62,7 @@ const DateRangeInput: React.FC<Props> = ({
   };
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} onKeyDown={handleKeyDown}>
       <DateInput
         formatDate={formatDate}
         mode="range-start"

@@ -150,21 +150,25 @@ const TrendGraph: React.FC<Props> = ({
   }, [data, zoomFrom?.valueOf(), zoomTo?.valueOf]);
 
   return (
-    <Plot
-      className={styles.plot}
-      config={plotState.config}
-      data={plotState.data}
-      frames={plotState.frames}
-      layout={plotState.layout}
-      onInitialized={(figure: Partial<PlotState>) =>
-        setPlotState(value => ({ ...value, figure }))
-      }
-      onRelayout={handleRelayout}
-      onUpdate={(figure: Partial<PlotState>) =>
-        setPlotState(value => ({ ...value, figure }))
-      }
-      useResizeHandler={true}
-    />
+    <div className={styles.container}>
+      <div className={styles.inner}>
+        <Plot
+          className={styles.plot}
+          config={plotState.config}
+          data={plotState.data}
+          frames={plotState.frames}
+          layout={plotState.layout}
+          onInitialized={(figure: Partial<PlotState>) =>
+            setPlotState(value => ({ ...value, figure }))
+          }
+          onRelayout={handleRelayout}
+          onUpdate={(figure: Partial<PlotState>) =>
+            setPlotState(value => ({ ...value, figure }))
+          }
+          useResizeHandler={true}
+        />
+      </div>
+    </div>
   );
 };
 

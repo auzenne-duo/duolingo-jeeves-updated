@@ -1,46 +1,58 @@
 @import "constants";
 
-$gap: $juicy-margin;
-$padding-x: 2 * $juicy-length;
-$padding-y: $juicy-margin;
-$width-left: 240px;
-$width-right: 400px;
+$gap: 2 * $juicy-length;
 
-.content {
-  display: grid;
-  grid-gap: $juicy-margin;
-  justify-items: start;
-}
-
-.main {
-  align-items: start;
-  display: grid;
-  grid-gap: $gap;
-  grid-template-columns: $width-left calc(100% - #{$width-left} - #{$gap}) $width-right;
-  padding: $padding-y $padding-x;
+// By making individual elements shiftable rather than the
+// entire parent, they can be positioned relative to the
+// outer parent rather than to the first elements with a
+// transform.
+._shiftable {
   transition: transform $duration-slide;
+
+  // Shift the layout left if the right edge between the contents
+  // and the viewport edge cannot fit the aside panel.
+  @media (max-width: #{$width-app-max + 2 * $width-aside + 2 * $juicy-margin - ($juicy-margin - $gap)}) {
+    .wrap-shifted & {
+      transform: translateX(calc(-100vw + #{2 * $juicy-margin - $gap}));
+
+      @media (min-width: #{$width-aside}) {
+        transform: translateX(-$width-aside - $gap);
+      }
+    }
+  }
 
   @media (prefers-reduced-motion) {
     transition: none;
   }
 }
 
-.main-shifted {
-  composes: main;
-  transform: translateX(-$width-right - $gap);
-}
-
-.sidebar {
-  position: sticky;
+.aside {
+  composes: _shiftable;
+  height: calc(100vh - #{$height-topbar} - 2 * #{$juicy-margin});
+  left: calc(100vw + #{-$juicy-margin + $gap});
+  max-width: calc(100% - #{2 * $juicy-margin});
+  position: fixed;
   top: $height-topbar + $juicy-margin;
+  width: $width-aside;
+
+  @media (min-width: $width-app-max) {
+    left: calc(50vw + #{$width-app-max / 2 - $juicy-margin + $gap});
+  }
 }
 
-.sidebar-right {
-  composes: sidebar;
-  height: calc(100vh - #{$height-topbar} - 2 * #{$padding-y});
+.content {
+  composes: _shiftable;
+  display: grid;
+  grid-gap: $juicy-margin;
+  justify-items: start;
 }
 
 .wrap {
-  margin: 0 auto;
+  margin: $height-topbar auto 0;
   max-width: $width-app-max;
+  padding: $juicy-margin;
+}
+
+.wrap-shifted {
+  composes: wrap;
 }

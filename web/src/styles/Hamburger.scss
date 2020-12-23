@@ -1,0 +1,44 @@
+@import "constants";
+
+.hamburger {
+  height: 14px;
+  width: $width-hamburger;
+
+  .bar {
+    background: $juicy-owl;
+    border-radius: $juicy-radius;
+    height: 2px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    transform-origin: left center;
+    transition: all $transition-short;
+    width: 100%;
+
+    &:nth-child(2) {
+      transform: translateY(6px);
+    }
+
+    &:nth-child(3) {
+      transform: translateY(12px);
+    }
+  }
+}
+
+.hamburger-open {
+  composes: hamburger;
+
+  .bar {
+    &:nth-child(1) {
+      transform: translateX(3px) translateY(-1px) rotate(45deg);
+    }
+
+    &:nth-child(2) {
+      opacity: 0;
+    }
+
+    &:nth-child(3) {
+      transform: translateX(3px) translateY(13px) rotate(-45deg);
+    }
+  }
+}

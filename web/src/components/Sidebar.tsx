@@ -18,7 +18,11 @@ const LinkItem: React.FC<React.ComponentProps<typeof NavLink>> = ({
   </NavLink>
 );
 
-const Sidebar = () => {
+interface Props {
+  onItemClick?: React.MouseEventHandler;
+}
+
+const Sidebar: React.FC<Props> = ({ onItemClick }) => {
   const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
@@ -41,15 +45,21 @@ const Sidebar = () => {
           value={lang}
         />
       </div>
-      <LinkItem to={`/${lang}`}>Dashboard</LinkItem>
-      <LinkItem to={`/${lang}/discovery`}>Issue Discovery</LinkItem>
+      <LinkItem onClick={onItemClick} to={`/${lang}`}>
+        Dashboard
+      </LinkItem>
+      <LinkItem onClick={onItemClick} to={`/${lang}/discovery`}>
+        Issue Discovery
+      </LinkItem>
       <LinkItem
+        onClick={onItemClick}
         title="Browse the list of trending words where the volume of matched tickets spiked."
         to={`/${lang}/spike`}
       >
         Spike Detector
       </LinkItem>
       <LinkItem
+        onClick={onItemClick}
         title="Visualize Zendesk tickets over time with a keyword filter."
         to={`/${lang}/analysis`}
       >
