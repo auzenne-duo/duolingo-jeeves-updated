@@ -15,7 +15,7 @@
   left: 0;
   overflow-y: auto;
   position: fixed;
-  top: $height-topbar;
+  top: var(--height-topbar);
   transform: translateX(-100%);
   transition: transform $transition-short;
   z-index: 1;

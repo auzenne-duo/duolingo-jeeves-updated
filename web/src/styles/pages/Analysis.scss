@@ -4,10 +4,14 @@
   display: grid;
   font-size: 15px;
   grid-gap: 2 * $juicy-length;
+
+  ul {
+    margin: 0;
+  }
 }
 
 .tickets-after-hidden-trend {
-  margin-top: -$juicy-margin;
+  margin-top: calc(-1 * var(--margin));
 }
 
 .trend {
@@ -23,7 +27,7 @@
 
 .trend-header {
   display: grid;
-  grid-gap: $juicy-margin;
+  grid-gap: var(--margin);
   grid-template-columns: 1fr min-content;
   width: 100%;
 }

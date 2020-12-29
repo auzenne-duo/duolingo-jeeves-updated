@@ -1,3 +1,4 @@
+import cn from "classnames";
 import { endOfDay } from "date-fns";
 import * as React from "react";
 import {
@@ -101,14 +102,10 @@ const Topbar: React.FC<Props> = ({ isLoading, showMenu }) => {
   }, [query]);
 
   return (
-    <div className={styles.wrap}>
+    <div className={cn(styles.wrap, { [styles.loading]: isLoading })}>
       <Hamburger isOpen={showMenu} onClick={handleHamburgerClick} />
       <NavLink className={styles["logo-link"]} to={`/${lang}`}>
-        <img
-          alt="Duolingo Jeeves"
-          className={styles[`logo${isLoading ? "-invisible" : ""}`]}
-          src={imageLogo}
-        />
+        <img alt="Duolingo Jeeves" className={styles.logo} src={imageLogo} />
         {isLoading ? <LoadingDots type="button" /> : null}
       </NavLink>
       <div className={styles[`filters${showSearchInput ? "-search" : ""}`]}>
@@ -162,6 +159,9 @@ const Topbar: React.FC<Props> = ({ isLoading, showMenu }) => {
             value={filter ?? "ALL_SPIKES"}
           />
         </Route>
+      </div>
+      <div className={styles["loading-dots"]}>
+        <LoadingDots type="button" />
       </div>
     </div>
   );

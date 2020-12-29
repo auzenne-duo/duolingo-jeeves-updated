@@ -1,6 +1,17 @@
 @import "constants";
 @import "mixins";
 
+:root {
+  --height-topbar: 58px;
+  --margin: #{2 * $juicy-length};
+  --width-aside: min(#{$width-aside}, calc(100vw - 2 * var(--margin)));
+
+  @media (min-width: $width-ipad) {
+    --height-topbar: 80px;
+    --margin: #{$juicy-margin};
+  }
+}
+
 *,
 *::before,
 *::after {
