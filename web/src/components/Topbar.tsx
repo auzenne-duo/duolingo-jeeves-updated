@@ -11,22 +11,17 @@ import {
 } from "react-router-dom";
 import { Input, LoadingDots, Select } from "web-ui";
 
-import { AppDispatch } from "components/App";
 import DateRangeInput, {
   DateRangeChangeEvent,
 } from "components/DateRangeInput";
 import Hamburger from "components/Hamburger";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useSearchParams from "components/useSearchParams";
+import AppStateContext from "contexts/AppStateContext";
 import imageLogo from "images/logo.svg";
 import styles from "styles/Topbar.scss";
 
-interface Props {
-  isLoading: boolean;
-  showMenu: boolean;
-}
-
-const Topbar: React.FC<Props> = ({ isLoading, showMenu }) => {
+const Topbar = () => {
   const { from, to } = useDateRangeFilter({
     daysAgo: useRouteMatch("/:lang/spike") ? 3 : 0,
   });
@@ -39,7 +34,7 @@ const Topbar: React.FC<Props> = ({ isLoading, showMenu }) => {
   const filter = search.get("filter");
   const query = search.get("q") ?? "";
 
-  const dispatch = React.useContext(AppDispatch);
+  const [state, dispatch] = React.useContext(AppStateContext);
   const [input, setInput] = React.useState(query);
 
   const applyFilters = (params: URLSearchParams) =>
@@ -102,11 +97,11 @@ const Topbar: React.FC<Props> = ({ isLoading, showMenu }) => {
   }, [query]);
 
   return (
-    <div className={cn(styles.wrap, { [styles.loading]: isLoading })}>
-      <Hamburger isOpen={showMenu} onClick={handleHamburgerClick} />
+    <div className={cn(styles.wrap, { [styles.loading]: state.loading })}>
+      <Hamburger isOpen={state.showMenu} onClick={handleHamburgerClick} />
       <NavLink className={styles["logo-link"]} to={`/${lang}`}>
         <img alt="Duolingo Jeeves" className={styles.logo} src={imageLogo} />
-        {isLoading ? <LoadingDots type="button" /> : null}
+        {state.loading ? <LoadingDots type="button" /> : null}
       </NavLink>
       <div className={styles[`filters${showSearchInput ? "-search" : ""}`]}>
         {showSearchInput ? (

@@ -3,17 +3,17 @@ import * as React from "react";
 import { useParams } from "react-router-dom";
 
 import { getInfo, getSpikes } from "api";
-import { AppDispatch } from "components/App";
 import SpikeTable from "components/SpikeTable";
 import Table from "components/Table";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import usePageView from "components/usePageView";
+import AppStateContext from "contexts/AppStateContext";
 import { formatReadableDate } from "util";
 
 const Dashboard = () => {
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
 
-  const dispatch = React.useContext(AppDispatch);
+  const [, dispatch] = React.useContext(AppStateContext);
 
   const [info, isLoadingInfo] = useAwaitedValue(
     undefined,

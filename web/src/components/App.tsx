@@ -7,55 +7,14 @@ import Analysis from "components/pages/Analysis";
 import Dashboard from "components/pages/Dashboard";
 import Discovery from "components/pages/Discovery";
 import Spike from "components/pages/Spike";
+import AppStateContext, {
+  initialState,
+  reducer,
+} from "contexts/AppStateContext";
 import styles from "styles/App.scss";
 
-type Action =
-  | { type: "HIDE_ASIDE" }
-  | { type: "HIDE_MENU" }
-  | { type: "LOADED" }
-  | { type: "LOADING" }
-  | { type: "SHOW_ASIDE" }
-  | { type: "SHOW_MENU" }
-  | { type: "TOGGLE_ASIDE" }
-  | { type: "TOGGLE_MENU" };
-
-interface State {
-  loading: boolean;
-  showAside: boolean;
-  showMenu: boolean;
-}
-
-export const AppDispatch = React.createContext<React.Dispatch<Action> | null>(
-  null,
-);
-
-const appStateReducer: React.Reducer<State, Action> = (state, action) => {
-  switch (action.type) {
-    case "HIDE_ASIDE":
-      return { ...state, showAside: false };
-    case "HIDE_MENU":
-      return { ...state, showMenu: false };
-    case "LOADED":
-      return { ...state, loading: false };
-    case "LOADING":
-      return { ...state, loading: true };
-    case "SHOW_ASIDE":
-      return { ...state, showAside: true };
-    case "SHOW_MENU":
-      return { ...state, showMenu: true };
-    case "TOGGLE_ASIDE":
-      return { ...state, showAside: !state.showAside };
-    case "TOGGLE_MENU":
-      return { ...state, showMenu: !state.showMenu };
-  }
-};
-
 const App = () => {
-  const [state, dispatch] = React.useReducer(appStateReducer, {
-    loading: false,
-    showAside: false,
-    showMenu: canFitMenuAndContent(),
-  });
+  const [state, dispatch] = React.useReducer(reducer, initialState);
 
   React.useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -74,8 +33,8 @@ const App = () => {
   }, [state.showMenu]);
 
   return (
-    <AppDispatch.Provider value={dispatch}>
-      <Topbar isLoading={state.loading} showMenu={state.showMenu} />
+    <AppStateContext.Provider value={[state, dispatch]}>
+      <Topbar />
       <div className={styles[`wrap${state.showAside ? "-shifted" : ""}`]}>
         <div className={styles.content}>
           <Switch>
@@ -99,7 +58,7 @@ const App = () => {
         isOpen={state.showMenu}
         onRequestClose={() => dispatch({ type: "HIDE_MENU" })}
       />
-    </AppDispatch.Provider>
+    </AppStateContext.Provider>
   );
 };
 

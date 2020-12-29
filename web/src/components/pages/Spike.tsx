@@ -2,20 +2,20 @@ import * as React from "react";
 import { useParams } from "react-router-dom";
 
 import { getSpikes } from "api";
-import { AppDispatch } from "components/App";
 import SpikeTable from "components/SpikeTable";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
+import AppStateContext from "contexts/AppStateContext";
 
 const Spike = () => {
   const { from, to } = useDateRangeFilter({ daysAgo: 3 });
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
   const search = useSearchParams();
 
-  const dispatch = React.useContext(AppDispatch);
+  const [, dispatch] = React.useContext(AppStateContext);
 
   const filter = search.get("filter") ?? "ALL_SPIKES";
 

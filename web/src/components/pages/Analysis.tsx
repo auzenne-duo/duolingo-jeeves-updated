@@ -4,7 +4,6 @@ import { useHistory, useLocation, useParams } from "react-router-dom";
 import { Button } from "web-ui";
 
 import { getTickets } from "api";
-import { AppDispatch } from "components/App";
 import Pagination from "components/Pagination";
 import SearchExample from "components/SearchExample";
 import TicketTable from "components/TicketTable";
@@ -14,6 +13,7 @@ import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
+import AppStateContext from "contexts/AppStateContext";
 import styles from "styles/pages/Analysis.scss";
 import { encodeURLSearchParams, getPaginationString } from "util";
 
@@ -52,7 +52,7 @@ const Analysis = () => {
   }>();
   const search = useSearchParams();
 
-  const dispatch = React.useContext(AppDispatch);
+  const [, dispatch] = React.useContext(AppStateContext);
   const [showTrend, setShowTrend] = React.useState(true);
 
   const page = search.get("page")

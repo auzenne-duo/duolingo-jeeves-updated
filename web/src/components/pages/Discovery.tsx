@@ -4,7 +4,6 @@ import { createPortal } from "react-dom";
 import { useLocation, useParams } from "react-router-dom";
 
 import { getTickets } from "api";
-import { AppDispatch } from "components/App";
 import Pagination from "components/Pagination";
 import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
@@ -13,6 +12,7 @@ import { useAwaitedValue } from "components/useAwaitedValue";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
+import AppStateContext from "contexts/AppStateContext";
 import styles from "styles/pages/Discovery.scss";
 import {
   encodeURLSearchParams,
@@ -41,7 +41,7 @@ const Discovery = () => {
   }>();
   const search = useSearchParams();
 
-  const dispatch = React.useContext(AppDispatch);
+  const [, dispatch] = React.useContext(AppStateContext);
   const [selected, setSelected] = React.useState<JSONAPI.Ticket>();
 
   const filter = search.get("filter");
