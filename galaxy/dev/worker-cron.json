@@ -20,7 +20,8 @@
         "options": {
         "awslogs-region": "${region}",
         "awslogs-group": "${service}",
-        "awslogs-stream-prefix": "${service}"
+        "awslogs-stream-prefix": "${service}",
+        "mode": "non-blocking"
       }
     }
   }
