@@ -2,10 +2,11 @@
 Interface for interacting with the Slack and JIRA managers for shakira routes.
 """
 
-from typing import Union, List, Optional, Dict
+from typing import Union, List, Optional, Dict, Tuple
 
 from jeeves.manager.shakira_jira import ShakiraJiraClient
 from jeeves.manager.shakira_slack import ShakiraSlackClient, SlackChannel
+from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM
 
 SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "Visual polish": SlackChannel.VISUAL_POLISH,
@@ -16,6 +17,16 @@ SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
 
 
 class ShakiraManager:
+    def get_project_error_message(self, project: str) -> Optional[str]:
+        """
+        If the project is invalid, return an error message. Otherwise return None.
+        """
+        return (
+            f"Invalid project - must be one of {list(JIRA_PROJ_TO_PLATFORM.keys())}"
+            if project not in JIRA_PROJ_TO_PLATFORM.keys()
+            else None
+        )
+
     def get_features(self, projects: Union[str, List[str]]) -> List[str]:
         """
         Get possible values for the "Feature" issue field in a project.
@@ -29,21 +40,21 @@ class ShakiraManager:
         self,
         project: str,
         feature: Optional[str],
-        slack_channel: Optional[str],
+        client_specified_slack_channel_name: Optional[str],
         summary: str,
         description: str,
         generated_description: Optional[str],
         reporter_email: Optional[str],
         pre_release: bool,
         files: Dict[str, "FileStorage"],
-    ) -> Dict[str, str]:
+    ) -> Dict[str, Union[str, Tuple[str, int]]]:
         """
-        Either create an issue in JIRA or post the screenshot to slack, depending on the feature.
+        Either create an issue in Jira or post the screenshot to slack, depending on the feature.
 
         parameters:
             project: e.g. DLAI, DLAA
             feature: e.g. Achievements
-            slack_channel: e.g. #visual-polish. If this is set, override the feature and post in this channel.
+            client_specified_slack_channel_name: e.g. #visual-polish. If this is set, override the feature and post in this channel.
             summary: Rougly one-sentence summary of issue.
             description: Longer issue description.
             generated_description: Generated information such as app version, fullstory url, session type, etc.
@@ -51,17 +62,42 @@ class ShakiraManager:
             pre_release: Whether the bug is being reported from pre-release app version.
             files: MultiDict of form name to file. The screenshot file should have the form name "screenshot".
 
-        returns: Dict[str, str] containing one of the following fields:
-            - "issueKey" if an issue was created in JIRA
-            - "slackChannel" if it was posted to Slack
+        returns: Dict[str, ?] containing one of the following fields:
+            - "issueKey": str if an issue was created in JIRA
+            - "slackChannel": str if it was posted to Slack
+            - "error": Tuple[message: str, code: int] if there was an error creating the issue.
 
         """
-        slack_channel_from_feature = SHAKIRA_FEATURES_TO_SLACK_CHANNEL.get(feature)
+        project_error_message = self.get_project_error_message(project)
+        if project_error_message:
+            return {
+                "error": (
+                    project_error_message,
+                    400,
+                )
+            }
+
         client_specified_slack_channel = (
-            SlackChannel.from_name_or_id(slack_channel) if slack_channel else None
+            SlackChannel.from_name_or_id(client_specified_slack_channel_name)
+            if client_specified_slack_channel_name
+            else None
         )
+        slack_channel_from_feature = SHAKIRA_FEATURES_TO_SLACK_CHANNEL.get(feature)
         channel = client_specified_slack_channel or slack_channel_from_feature
         screenshot = files.get("screenshot")
+
+        if client_specified_slack_channel_name and not client_specified_slack_channel:
+            return {
+                "error": (
+                    f"Invalid slack channel - must be one of {[c.name for c in list(SlackChannel)]}",
+                    400,
+                )
+            }
+        if client_specified_slack_channel_name and not screenshot:
+            return {
+                "error": (f"Must provide a screenshot file in order to post issue in Slack.", 400)
+            }
+
         if channel and screenshot:
             post_id = ShakiraSlackClient.post_screenshot(
                 project=project,
@@ -77,7 +113,11 @@ class ShakiraManager:
                     description=description,
                     generated_description=generated_description,
                 )
-            return {"slackChannel": channel.name if post_id else None}
+            return (
+                {"slackChannel": channel.name}
+                if post_id
+                else {"error": ("There was an issue posting to Slack.", 500)}
+            )
         else:
             issue_key = ShakiraJiraClient.create_issue(
                 project=project,
@@ -90,7 +130,11 @@ class ShakiraManager:
             )
             if issue_key:
                 ShakiraJiraClient.upload_attachments(project, issue_key, files)
-            return {"issueKey": issue_key}
+            return (
+                {"issueKey": issue_key}
+                if issue_key
+                else {"error": ("There was an issue posting to Jira.", 500)}
+            )
 
 
 Shakira = ShakiraManager()

@@ -12,4 +12,4 @@ def format_description(description: str, generated_description: Optional[str]):
     return "\n".join(description_blocks)
 
 
-JIRA_PROJ_TO_PLATFORM = {"DLAA": "Android", "DLAI": "iOS", "DLAW": "Web"}
+JIRA_PROJ_TO_PLATFORM = {"DLAA": "Android", "DLAI": "iOS"}

@@ -179,10 +179,16 @@ def get_shake_to_report_tokens():
 def get_jira_project_features():
     project = request.args.get("project")
     if project:
+        project_error_message = Shakira.get_project_error_message(project)
+        if project_error_message:
+            abort(make_response(project_error_message, 400))
         features = Shakira.get_features(project)
     else:
-        features = Shakira.get_features(["DLAI", "DLAA", "DLAW"])
-    return json.jsonify({"features": features if features else []})
+        features = Shakira.get_features(["DLAI", "DLAA"])
+    if features and len(features) > 0:
+        return json.jsonify({"features": features})
+    else:
+        abort(make_response("Something went wrong retrieving feature options from Jira", 500))
 
 
 @blueprint_api.route("/api/1/shakira/report_issue", methods=["POST"])
@@ -192,19 +198,22 @@ def report_issue():
     """
     try:
         issue_data = json.loads(request.form["issueData"])
-        return json.jsonify(
-            Shakira.report_issue(
-                project=issue_data["project"],
-                feature=issue_data.get("feature"),
-                slack_channel=issue_data.get("slack_channel"),
-                summary=issue_data["summary"],
-                description=issue_data["description"],
-                generated_description=issue_data.get("generatedDescription"),
-                reporter_email=issue_data.get("reporterEmail"),
-                pre_release=issue_data.get("preRelease", False),
-                files=request.files,
-            )
+        issue_status = Shakira.report_issue(
+            project=issue_data["project"],
+            feature=issue_data.get("feature"),
+            client_specified_slack_channel_name=issue_data.get("slack_channel"),
+            summary=issue_data["summary"],
+            description=issue_data["description"],
+            generated_description=issue_data.get("generatedDescription"),
+            reporter_email=issue_data.get("reporterEmail"),
+            pre_release=issue_data.get("preRelease", False),
+            files=request.files,
         )
+        if "error" in issue_status:
+            message, code = issue_status["error"]
+            abort(make_response(message, code))
+        else:
+            return json.jsonify(issue_status)
     except KeyError:
         abort(make_response("Missing required field(s)", 400))
 

@@ -23,7 +23,7 @@ class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
 
     @classmethod
     def from_name_or_id(cls, name_or_id: str) -> Optional["SlackChannel"]:
-        for channel in cls.values():
+        for channel in list(cls):
             if channel.name == name_or_id or channel.channel_id == name_or_id:
                 return channel
         return None

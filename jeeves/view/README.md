@@ -7,7 +7,7 @@ Get a list of possible values for the "feature" field for the project.
 ### Parameters
 
 ```
-project: DLAA, DLAI or DLAW
+project: DLAA, DLAI
 ```
 
 ### Response
@@ -41,7 +41,7 @@ example:
     set this and include this information in the "description" field.
     "feature" optional: Feature affected by the issue; e.g. Achievements, Stories, Leaderboards. Must be a value sent by the shakira/features endpoint.
     "slack_channel" optional: e.g. #visual-polish. If this is set, override the feature and post in this channel.
-    "project" required: "DLAA", "DLAI" or "DLAW".
+    "project" required: "DLAA", "DLAI".
     "preRelease" optional: Boolean; Should be "True" if reporting from TestFlight or Android pre-release build. Default value is "False".
 }
 ```
