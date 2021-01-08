@@ -14,7 +14,7 @@ from jeeves.util.error_util import print_request_exception
 from jeeves.util.shakira import format_description
 
 _HOST = "https://duolingo.atlassian.net"
-_API = "{_HOST}/rest/api/2"
+_API = f"{_HOST}/rest/api/2"
 
 _USERNAME_ANDROID = os.environ.get("SHAKIRA_JIRA_USERNAME_ANDROID")
 _API_TOKEN_ANDROID = os.environ.get("SHAKIRA_JIRA_API_TOKEN_ANDROID")
