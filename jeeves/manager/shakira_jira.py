@@ -13,7 +13,8 @@ from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.util.error_util import print_request_exception
 from jeeves.util.shakira import format_description
 
-_API = "https://duolingo.atlassian.net/rest/api/2"
+_HOST = "https://duolingo.atlassian.net"
+_API = "{_HOST}/rest/api/2"
 
 _USERNAME_ANDROID = os.environ.get("SHAKIRA_JIRA_USERNAME_ANDROID")
 _API_TOKEN_ANDROID = os.environ.get("SHAKIRA_JIRA_API_TOKEN_ANDROID")
@@ -26,6 +27,12 @@ _ALL_ISSUE_TYPES = [_ISSUE_TYPE_BUG, _ISSUE_TYPE_STORY]
 
 
 class ShakiraJiraApiClient:
+    def issue_url(self, issue_key: str) -> str:
+        """
+        URL to issue in Jira.
+        """
+        return f"{_HOST}/browse/{issue_key}"
+
     def _get_jira_auth(self, project: Optional[str] = None) -> HTTPBasicAuth:
         """
         Returns authentication for the appropriate service account. If no project

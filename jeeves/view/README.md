@@ -60,5 +60,6 @@ _Include any other files you want to attach in this form as well_
 {
     "issueKey": key of the created issue; e.g. "DLAI-5467"
     "slackChannel": Channel the screenshot and info was posted in; e.g. #visual-polish
+    "url" URL to view the created issue in Jira or Slack.
 }
 ```

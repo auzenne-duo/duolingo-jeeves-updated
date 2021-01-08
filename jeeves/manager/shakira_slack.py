@@ -20,6 +20,7 @@ class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
     FEEDBACK_LANGUAGE = "#feedback-language", "C0KHQRPDZ"
     FEEDBACK_PRODUCT = "#feedback-product", "C013VGDCU5R"
     FEEDBACK_TTS = "#feedback-tts", "C01FWHDCLP4"
+    POST_TEST_RESULTS = "#post-test-results", "CJNN7RJBD"
 
     @classmethod
     def from_name_or_id(cls, name_or_id: str) -> Optional["SlackChannel"]:
@@ -27,6 +28,9 @@ class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
             if channel.name == name_or_id or channel.channel_id == name_or_id:
                 return channel
         return None
+
+    def url(self):
+        return f"https://duolingo.slack.com/archives/{self.channel_id}"
 
 
 _API = "https://slack.com/api/"

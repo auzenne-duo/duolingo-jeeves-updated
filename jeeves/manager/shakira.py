@@ -62,9 +62,10 @@ class ShakiraManager:
             pre_release: Whether the bug is being reported from pre-release app version.
             files: MultiDict of form name to file. The screenshot file should have the form name "screenshot".
 
-        returns: Dict[str, ?] containing one of the following fields:
+        returns: Dict[str, ?] containing one or more of the following fields:
             - "issueKey": str if an issue was created in JIRA
             - "slackChannel": str if it was posted to Slack
+            - "url": URL to view the created issue
             - "error": Tuple[message: str, code: int] if there was an error creating the issue.
 
         """
@@ -114,7 +115,7 @@ class ShakiraManager:
                     generated_description=generated_description,
                 )
             return (
-                {"slackChannel": channel.name}
+                {"slackChannel": channel.name, "url": channel.url()}
                 if post_id
                 else {"error": ("There was an issue posting to Slack.", 500)}
             )
@@ -131,7 +132,7 @@ class ShakiraManager:
             if issue_key:
                 ShakiraJiraClient.upload_attachments(project, issue_key, files)
             return (
-                {"issueKey": issue_key}
+                {"issueKey": issue_key, "url": ShakiraJiraClient.issue_url(issue_key)}
                 if issue_key
                 else {"error": ("There was an issue posting to Jira.", 500)}
             )
