@@ -201,7 +201,7 @@ def report_issue():
         issue_status = Shakira.report_issue(
             project=issue_data["project"],
             feature=issue_data.get("feature"),
-            client_specified_slack_channel_name=issue_data.get("slack_channel"),
+            client_specified_slack_channel_name=issue_data.get("slackChannel"),
             summary=issue_data["summary"],
             description=issue_data["description"],
             generated_description=issue_data.get("generatedDescription"),
