@@ -73,6 +73,9 @@ def manage_tickets(lang):
             lang, word, page, limit, start_time, end_time, beta_filter
         )
 
+        if "ERROR" in paginated_info:
+            return paginated_info
+
         values = [ticket.serialize_to_json(ticket) for ticket in paginated_info["data"]]
 
         return_packet = {"data": values}
@@ -104,6 +107,9 @@ def get_time_series_data(lang):
         abort(make_response("Please provide `word` parameter", 500))
 
     response_buckets = ElasticDAL.aggregate_time_series(lang, word)
+
+    if "ERROR" in response_buckets:
+        return json.jsonify(response_buckets)
 
     def bucket_to_value(bucket):
         date_val = str_to_datetime(bucket["key_as_string"])

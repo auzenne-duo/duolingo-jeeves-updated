@@ -18,21 +18,17 @@ import styles from "styles/pages/Analysis.scss";
 import { encodeURLSearchParams, getPaginationString } from "util";
 
 const EXAMPLES = [
-  "crash(es|ing|ed)|freez(e|es|ing)|frozen|stop(s|ping|ped)|unresponsive|unusable|slow",
-  "lost .+? streak",
-  "I (hate|don't like)",
-  "refund(ed)?|money back",
-  "unlock(ed)?",
+  "/crash(es|ing|ed)/ OR /freez(e|es|ing)/ OR frozen OR /stop(s|ping|ped)/ unresponsive OR unusable OR slow",
+  'I (hate OR "don\'t like")',
+  '/refund(ed)?/ OR "money back"',
+  "/unlock(ed)?/",
   "fix",
-  "how (do I|can I|to)",
-  "why|how come",
-  "latest (update|version)|last update",
-  "please (include|add)|lack(ing|s)|limited",
-  "inappropriate|offensive",
-  "stuck|I (can't|couldn't)",
-  "(chat)?bot(s)?|tutor",
-  "pearson|class(room|rooms)?|(student|teacher|assignment|homework|school)(s)?",
-  "(disappoint|annoy|frustrat|irritat)(ed|ing)|terrible|horrible|worst|bad|unfortunately|ridiculous|sad(ly)?",
+  'how ("do I" OR "can I" OR to)',
+  '(latest (update OR version)) OR "last update"',
+  "(please (include OR add)) OR /lack(ing|s)/ OR limited",
+  "/(chat)?bot(s)?/ OR tutor",
+  "pearson OR /class(room|rooms)?/ OR /(student|teacher|assignment|homework|school)(s)?/",
+  "/(disappoint|annoy|frustrat|irritat)(ed|ing)/ OR terrible OR horrible OR worst OR bad OR unfortunately OR ridiculous OR /sad(ly)?/",
 ];
 
 const PER_PAGE = 10;
@@ -185,19 +181,63 @@ const Analysis = () => {
         </>
       ) : (
         <div className={styles.explanation}>
-          <span>You can use regular expressions, for example:</span>
+          <span>
+            You can use AND/OR with parentheses to specify queries with multiple
+            words:
+          </span>
           <ul>
             <li>
-              <SearchExample query="(freeze|frozen|stopped|unresponsive)" />
+              <SearchExample query="inappropriate OR offensive" />
             </li>
             <li>
-              <SearchExample query="[0-9]{(3, 4)}.day[s]? streak" />
-            </li>
-            <li>
-              <SearchExample query="lost.+?streak" />
+              <SearchExample query="stuck OR (I AND (can't OR couldn't))" />
             </li>
           </ul>
-          <span>Or try one of these suggestions:</span>
+          <span>Use + and - to force a word to be included or excluded:</span>
+          <ul>
+            <li>
+              <SearchExample query="+please add -Icelandic language" />
+            </li>
+          </ul>
+          <span>
+            Forward slashes will let you specify regular expressions, but they
+            can only match single words:
+          </span>
+          <ul>
+            <li>
+              <SearchExample query="/(freeze|frozen|stopped|unresponsive)/" />
+            </li>
+            <li>
+              <SearchExample query="/[0-9]{3,4}/ AND /day[s]?/ AND streak" />
+            </li>
+          </ul>
+          <span>
+            Since Jeeves searches per-word at word level, the following are
+            equivalent:
+          </span>
+          <ul>
+            <li>
+              <SearchExample query="like need want" />
+            </li>
+            <li>
+              <SearchExample query="like OR need OR want" />
+            </li>
+            <li>
+              <SearchExample query="/(like|need|want)/" />
+            </li>
+          </ul>
+          <span>
+            Double quotes will let you search for a specific sequence of words:
+          </span>
+          <ul>
+            <li>
+              <SearchExample query='"lost my streak"' />
+            </li>
+            <li>
+              <SearchExample query='"how come"' />
+            </li>
+          </ul>
+          <span>Here are some other search suggestions:</span>
           <ul>
             {EXAMPLES.map((q, i) => (
               <li key={i}>

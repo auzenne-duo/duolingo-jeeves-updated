@@ -3,6 +3,7 @@ import sys
 from typing import Dict, Iterator, List, Optional, Set, Union
 
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import RequestError
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl import Mapping, Q, Search
 from elasticsearch_dsl.query import MoreLikeThis
@@ -103,6 +104,42 @@ class ElasticsearchDAL:
         s = s.update_from_dict(jsn)
         return self._execute_search_for_documents(s)
 
+    def _handle_es_request_errors(self, e: RequestError) -> JSON:
+        """
+        Interprets and gives response values for RequestErrors returned by
+        Elasticsearch. Currently this is only expected to happen for malformed
+        query_string inputs, but we can extend this function in the future as
+        necessary.
+
+        For reference, request errors appear to be of the form:
+        RequestError(<status code>, <error cause>, <error details>)
+
+        Returns:
+            A JSON object containing information about the error. This object
+            should be returned in place of the normal return value of the
+            calling function, since if a RequestError occured, obtaining a
+            proper return value is likely not possible. This also lets us
+            communicate with the user about the nature of the error.
+        """
+
+        if e.args[1] == "search_phase_execution_exception":
+            # Splitting this conditional from the outer one is cleaner in case
+            # we want to add more cases later
+            if (
+                e.args[2]
+                .get("error", {})
+                .get("root_cause", [{}])[0]
+                .get("reason", "")
+                .startswith("Failed to parse")
+            ):
+                return {
+                    "ERROR": "Your query appears to be malformed. Please check your query and try resubmitting."
+                }
+
+        return {
+            "ERROR": "Elasticsearch encountered an unknown error. Please report this behavior to the repo owner."
+        }
+
     def get_recent_paginated_tickets(
         self,
         lang: str,
@@ -122,7 +159,7 @@ class ElasticsearchDAL:
         Parameters:
             lang (str): Language to search for tickets in.
             word (str): Query to search against in Elasticsearch. An empty string
-                        will match to all documents.
+                        will match to all documents. Uses regular expressions.
             page (int): Desired page number of results.
                         Used when multiple pages of results are needed.
             limit (int): The maximum number of results per page.
@@ -160,26 +197,30 @@ class ElasticsearchDAL:
         )
 
         if word:
-            s = s.query("match", body_text=word)
+            s = s.query("query_string", default_field="body_text", query=word, lenient=True)
         else:
             s = s.query("match_all")
 
         if beta_filter_category:
             s = s.filter("term", shake_to_report_category=beta_filter_category)
 
-        total_records = s.count()
+        try:
+            total_records = s.count()
 
-        retval = {"total_records": total_records}
+            retval = {"total_records": total_records}
 
-        lower_limit = limit * page
-        upper_limit = lower_limit + limit
-        s = s[lower_limit:upper_limit]
+            lower_limit = limit * page
+            upper_limit = lower_limit + limit
+            s = s[lower_limit:upper_limit]
 
-        retval.update({"deepest_index": upper_limit})
+            retval.update({"deepest_index": upper_limit})
 
-        retval.update({"data": self._execute_search_for_documents(s)})
+            retval.update({"data": self._execute_search_for_documents(s)})
 
-        return retval
+            return retval
+
+        except RequestError as e:
+            return self._handle_es_request_errors(e)
 
     def aggregate_time_series(self, lang: str, word: str) -> List[Dict[str, Union[str, int]]]:
         """
@@ -187,7 +228,7 @@ class ElasticsearchDAL:
 
         Parameters:
             lang (str): Language to search tickets in.
-            word (str): Term to search against.
+            word (str): Term to search against. Supports regular expressions.
 
         Returns:
             A list of dicts, where each dict contains a string reprseneting a
@@ -202,7 +243,7 @@ class ElasticsearchDAL:
 
         s = (
             Search(using=self._es, index=self._indexname)
-            .query("match", body_text=word)
+            .query("query_string", default_field="body_text", query=word, lenient=True)
             .filter("term", language=lang)
         )
 
@@ -218,14 +259,17 @@ class ElasticsearchDAL:
             format="yyyy-MM-dd'T'HH:mm:ssxx",
         )
 
-        response = s.execute()
-        if not response.success():
-            print("Attempt to aggregate time series failed.", file=sys.stderr)
-            print("Here's what the call to execute() returned:", file=sys.stderr)
-            print(response.to_dict(), file=sys.stderr)
-        response_buckets = response.aggregations.replacementtimeseries.buckets
+        try:
+            response = s.execute()
+            if not response.success():
+                print("Attempt to aggregate time series failed.", file=sys.stderr)
+                print("Here's what the call to execute() returned:", file=sys.stderr)
+                print(response.to_dict(), file=sys.stderr)
+            response_buckets = response.aggregations.replacementtimeseries.buckets
+            return response_buckets
 
-        return response_buckets
+        except RequestError as e:
+            return self._handle_es_request_errors(e)
 
     def bulk_index_tickets(self, json_tickets: List[JSON]) -> None:
         """
