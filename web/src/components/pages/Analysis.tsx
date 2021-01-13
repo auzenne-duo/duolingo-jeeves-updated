@@ -237,6 +237,20 @@ const Analysis = () => {
               <SearchExample query='"how come"' />
             </li>
           </ul>
+          <span>
+            You can specify a field to search by, if you have the full name of
+            the field. For example, these queries will find beta feedback with
+            particular app versions on Android and iOS, respectively:
+            <ul>
+              <li>
+                <SearchExample query='beta_feedback_metadata.app_information.app_version_code:"4.91.1"' />
+              </li>
+              <li>
+                <SearchExample query='beta_feedback_metadata.system_information.app_version:"6.99.0.2"' />
+              </li>
+            </ul>
+          </span>
+
           <span>Here are some other search suggestions:</span>
           <ul>
             {EXAMPLES.map((q, i) => (
