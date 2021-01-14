@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Union
 from requests import get, post
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
+from werkzeug.datastructures import FileStorage
 
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.util.error_util import print_request_exception
@@ -202,8 +203,21 @@ class ShakiraJiraApiClient:
         headers = {"X-Atlassian-Token": "no-check"}  # header required by JIRA API
         auth = auth = self._get_jira_auth(project)
         jira_files = [
-            ("file", f) for f in files.values()
-        ]  # The JIRA API requires every file to have the form name 'file'
+            (
+                "file",  # The JIRA API requires every file to have the form name 'file'
+                FileStorage(
+                    stream=f.stream,
+                    content_type=f.content_type,
+                    content_length=f.content_length,
+                    filename=f.filename,
+                    # This property seems to get set as the filename by the JIRA API, so we want it to
+                    # be the filename and not the form name.
+                    name=f.filename,
+                ),
+            )
+            for l in files.listvalues()
+            for f in l
+        ]
         try:
             r = post(url, auth=auth, headers=headers, files=jira_files)
             r.raise_for_status()
