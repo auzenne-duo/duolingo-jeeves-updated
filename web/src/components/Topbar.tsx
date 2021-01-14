@@ -137,19 +137,14 @@ const Topbar = () => {
           <Select
             onChange={handleFilterChange}
             options={[
-              { text: "All sources", value: "ALL_SPIKES" },
+              { text: "All feedback", value: "ALL_SPIKES" },
               { text: "All dogfooding", value: "ALL_STR_SPIKES" },
-              { text: "External dogfooding", value: "EXTERNAL_STR_SPIKES" },
+              { text: "Beta feedback", value: "EXTERNAL_STR_SPIKES" },
               {
-                text: "External non-dogfooding",
+                text: "CS reports",
                 value: "EXTERNAL_NON_STR_SPIKES",
               },
-              { text: "Internal dogfooding", value: "INTERNAL_STR_SPIKES" },
-              {
-                text: "Internal non-dogfooding",
-                value: "INTERNAL_NON_STR_SPIKES",
-              },
-              { text: "Non-dogfooding", value: "ALL_NON_STR_SPIKES" },
+              { text: "Admin reports", value: "INTERNAL_STR_SPIKES" },
             ]}
             value={filter ?? "ALL_SPIKES"}
           />
