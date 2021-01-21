@@ -52,6 +52,8 @@ def manage_tickets(lang):
     if not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
 
+    jeeves_id = request.args.get("jeeves_id", None)
+
     page = int(request.args.get("page", "0"))
     word = request.args.get("word", "")
 
@@ -70,7 +72,7 @@ def manage_tickets(lang):
         limit = int(request.args.get("limit", "10"))
 
         paginated_info = ElasticDAL.get_recent_paginated_tickets(
-            lang, word, page, limit, start_time, end_time, beta_filter
+            lang, word, page, limit, start_time, end_time, beta_filter, jeeves_id
         )
 
         if "ERROR" in paginated_info:

@@ -149,6 +149,7 @@ class ElasticsearchDAL:
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
         beta_filter_category: Optional[str] = False,
+        jeeves_id: Optional[str] = None,
     ) -> Dict[str, Union[int, List[JeevesDocument]]]:
         """
         Returns stored user tickets from Elasticsearch in a paginated manner.
@@ -173,36 +174,48 @@ class ElasticsearchDAL:
             beta_filter_category (str): How we should filter results to
                                         have specific values related to release
                                         candidates, if at all. Optional value.
+            jeeves_id (str): Unique ID of a specific document. A unique ID is
+                             assigned to every document at index time, in
+                             bulk_index_tickets. Providing this value overrides
+                             all other arguments because no additional filtering
+                             should be performed if the user already knows which
+                             document they want. Optional value.
 
         Returns:
             A dictionary containing the following:
             - data: A list of support ticket objects, representing the requested
               page of results. Results are sorted, larger timestamps first.
-            - total_recoreds: An integer representing the total number of hits
+            - total_records: An integer representing the total number of hits
               for the search criteria
             - deepest_index: An integer representing the index in the search
               of the last expected element
         """
-        timestamp_dict = {"time_zone": "America/New_York"}
-        if start_time:
-            timestamp_dict.update({"gte": start_time.date()})
-        if end_time:
-            timestamp_dict.update({"lte": end_time.date()})
 
-        s = (
-            Search(using=self._es, index=self._indexname)
-            .filter("range", date_time=timestamp_dict)
-            .filter("term", language=lang)
-            .sort("-date_time")
-        )
+        s = Search(using=self._es, index=self._indexname)
 
-        if word:
-            s = s.query("query_string", default_field="body_text", query=word, lenient=True)
+        if jeeves_id:
+            s = s.query("ids", values=[jeeves_id])
+
         else:
-            s = s.query("match_all")
+            timestamp_dict = {"time_zone": "America/New_York"}
+            if start_time:
+                timestamp_dict.update({"gte": start_time.date()})
+            if end_time:
+                timestamp_dict.update({"lte": end_time.date()})
 
-        if beta_filter_category:
-            s = s.filter("term", shake_to_report_category=beta_filter_category)
+            s = (
+                s.filter("range", date_time=timestamp_dict)
+                .filter("term", language=lang)
+                .sort("-date_time")
+            )
+
+            if word:
+                s = s.query("query_string", default_field="body_text", query=word, lenient=True)
+            else:
+                s = s.query("match_all")
+
+            if beta_filter_category:
+                s = s.filter("term", shake_to_report_category=beta_filter_category)
 
         try:
             total_records = s.count()
