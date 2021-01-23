@@ -83,6 +83,20 @@ export const getSpikes = async (
   }));
 };
 
+export const getTicket = async (
+  lang: JSONAPI.LanguageId,
+  id: string,
+): Promise<JSONAPI.Ticket | undefined> => {
+  const data = ((await get(
+    `/${lang}/tickets?jeeves_id=${encodeURIComponent(id)}`,
+  )) as JSONAPI.Tickets).data[0];
+  if (!data) {
+    throw Error("Ticket not found.");
+  }
+  loadTicketMetadata(data);
+  return data;
+};
+
 export const getTickets = async (
   lang: JSONAPI.LanguageId,
   {
@@ -142,6 +156,7 @@ export const getTimeSeries = async (
 
 // TODO: move this to the backend.
 const loadTicketMetadata = (ticket: JSONAPI.Ticket) => {
+  ticket.jeeves_id = `${ticket.data_source}_${ticket.document_id}`;
   try {
     const d = ticket.beta_feedback_metadata;
     const app_version =
@@ -213,5 +228,6 @@ const loadTicketMetadata = (ticket: JSONAPI.Ticket) => {
     };
   } catch (ex) {
     console.error(ex);
+    ticket.metadata = { raw: "" };
   }
 };

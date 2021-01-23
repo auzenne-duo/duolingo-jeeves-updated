@@ -96,18 +96,20 @@ declare namespace JSONAPI {
     };
     /** Main content of the ticket. This is what we search against and perform spike detection on. */
     body_text?: string;
-    /** String identifying where we got this ticket. */
-    data_source?: "AppFigures" | "JIRA" | "Zendesk" | string;
+    /** String identifying where we got the ticket. */
+    data_source: "AppFigures" | "JIRA" | "Zendesk" | string;
     /** The date and time the ticket was submitted to its respective service. */
     date_time?: string;
-    /** An identifier for this ticket, assigned by the API we got the ticket from. */
-    document_id?: string;
+    /** An identifier for the ticket, assigned by the API we got the ticket from. */
+    document_id: string;
     /** Title, subject line, etc. */
     header_text?: string;
     /** The issue key of a Jira ticket. */
     issue_key?: string;
     /** Linked Jira issues. */
     issue_links?: JiraIssueLink[];
+    /** A globally unique identifier for the ticket. */
+    jeeves_id: string;
     /** URLs we compute on the backend to direct the user to the original ticket/submitter. */
     links?: string[];
     metadata?: {
@@ -125,7 +127,7 @@ declare namespace JSONAPI {
     };
     /** Field assigned by Zendesk. */
     priority?: string;
-    /** ID assigned to the user on Zendesk that submitted this ticket. */
+    /** ID assigned to the user on Zendesk that submitted the ticket. */
     requester_id?: number;
     store?: string;
     tags?: string[];

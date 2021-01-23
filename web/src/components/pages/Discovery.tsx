@@ -1,9 +1,9 @@
 import { format, formatISO, isThisYear, isToday } from "date-fns";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { useLocation, useParams } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
 
-import { getTickets } from "api";
+import { getTicket, getTickets } from "api";
 import Pagination from "components/Pagination";
 import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
@@ -34,6 +34,7 @@ const formatDate = (date: Date) => {
 };
 
 const Discovery = () => {
+  const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{
     lang: JSONAPI.LanguageId;
@@ -42,9 +43,10 @@ const Discovery = () => {
   const search = useSearchParams();
 
   const [, dispatch] = React.useContext(AppStateContext);
-  const [selected, setSelected] = React.useState<JSONAPI.Ticket>();
+  const lastSelectedRef = React.useRef<JSONAPI.Ticket>();
 
   const filter = search.get("filter");
+  const id = search.get("id");
   const page = search.get("page")
     ? parseInt(search.get("page") as string, 10)
     : 1;
@@ -71,47 +73,68 @@ const Discovery = () => {
     [filter, lang, page, query],
   );
 
+  const [selected, isLoadingSelected] = useAwaitedValue(
+    undefined,
+    async () => {
+      // If we've already fetched the ticket, return the
+      // previous result to avoid extra API calls.
+      if (id === lastSelectedRef.current?.jeeves_id) {
+        return lastSelectedRef.current;
+      } else if (id) {
+        return (
+          // If the ticket exists on the current page, return
+          // the existing result to avoid extra API calls.
+          tickets?.find(t => t.jeeves_id === id) || (await getTicket(lang, id))
+        );
+      }
+      return undefined;
+    },
+    [id, lang, tickets],
+  );
+
   const handleClick = (t: JSONAPI.Ticket) => {
     if (selected === t) {
       dispatch?.({ type: "TOGGLE_ASIDE" });
     } else {
-      setSelected(t);
+      setId(t.jeeves_id);
     }
+  };
+
+  const setId = (id: string | undefined) => {
+    const params = new URLSearchParams(location.search);
+    if (id === undefined) {
+      params.delete("id");
+    } else {
+      params.set("id", id);
+    }
+    history.push({
+      ...location,
+      search: params.toString(),
+    });
   };
 
   useDocumentTitle("Issue Discovery");
   usePageView();
 
   React.useEffect(() => {
-    setSelected(undefined);
-  }, [filter]);
+    lastSelectedRef.current = selected;
+  });
 
   React.useEffect(() => {
-    if (!isLoading) {
-      window.scrollTo(0, 0);
-    }
-  }, [isLoading]);
+    dispatch?.({ type: "HIDE_ASIDE" });
+  }, [filter, query]);
 
   React.useEffect(() => {
-    if (isLoading) {
-      dispatch?.({ type: "LOADING" });
-      return () => {
-        dispatch?.({ type: "LOADED" });
-      };
-    }
-  }, [isLoading]);
-
-  React.useEffect(() => {
-    if (selected) {
+    if (id) {
       dispatch?.({ type: "SHOW_ASIDE" });
       return () => {
         dispatch?.({ type: "HIDE_ASIDE" });
       };
     }
-  }, [selected]);
+  }, [id]);
 
   React.useEffect(() => {
-    if (selected) {
+    if (id) {
       const handleKeydown = (e: KeyboardEvent) => {
         if (e.key === "]") {
           dispatch?.({ type: "TOGGLE_ASIDE" });
@@ -120,7 +143,22 @@ const Discovery = () => {
       document.addEventListener("keydown", handleKeydown);
       return () => document.removeEventListener("keydown", handleKeydown);
     }
-  }, [selected]);
+  }, [id]);
+
+  React.useEffect(() => {
+    if (!isLoading) {
+      window.scrollTo(0, 0);
+    }
+  }, [isLoading]);
+
+  React.useEffect(() => {
+    if (isLoading || isLoadingSelected) {
+      dispatch?.({ type: "LOADING" });
+      return () => {
+        dispatch?.({ type: "LOADED" });
+      };
+    }
+  }, [isLoading, isLoadingSelected]);
 
   return (
     <>
@@ -208,7 +246,7 @@ const Discovery = () => {
         ? createPortal(
             <Ticket
               className={styles.ticket}
-              onRequestClose={() => setSelected(undefined)}
+              onRequestClose={() => setId(undefined)}
               ticket={selected}
             />,
             document.getElementById("aside") as HTMLElement,
