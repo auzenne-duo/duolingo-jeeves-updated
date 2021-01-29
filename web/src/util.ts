@@ -44,8 +44,15 @@ export const formatAttachment = (url: string) => {
   return url;
 };
 
-export const formatCourseId = (courseId: string) =>
-  courseId.slice("DUOLINGO_".length).split(" ")[0].replace("_", "<");
+export const formatCourseId = (courseId: string) => {
+  if (courseId.startsWith("DUOLINGO_")) {
+    return courseId.slice("DUOLINGO_".length).replace("_", "<");
+  }
+  if (courseId.includes(" <- ")) {
+    return courseId.replace(" <- ", "<");
+  }
+  return courseId;
+};
 
 export const formatReadableDate = (date: Date) =>
   format(date, "eee, d MMM yyyy HH:mm:ss z");
