@@ -141,6 +141,8 @@ def _get_word_to_date_to_count(lang, new_ticket_ids):
     for t in terms:
         word_date_count[t] = {}
         buckets = ElasticDAL.aggregate_time_series(lang, t)
+        if "ERROR" in buckets:
+            continue
         for val in [_bucket_to_value(b) for b in buckets]:
             word_date_count[t].update(val)
 
