@@ -10,8 +10,9 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.classify import detect_language
-from jeeves.util.cleanup import extract_beta_feedback_metadata
+from jeeves.util.cleanup import extract_duolingo_metadata
 from jeeves.util.date_util import parse_external_datetime
+from jeeves.util.metadata_standardizer import MetaStdizer
 
 _SHAKE_TO_REPORT_MARKER = "Reported with shake-to-report"
 
@@ -146,13 +147,16 @@ class JiraDocument(JeevesDocument):
 
         is_shake_to_report = _SHAKE_TO_REPORT_MARKER in body_text
 
-        beta_feedback_metadata = {}
+        duolingo_metadata = {}
         if is_shake_to_report:
-            body_text, beta_feedback_metadata = extract_beta_feedback_metadata(body_text)
+            body_text, duolingo_metadata = extract_duolingo_metadata(body_text)
+
+        std_metadata = MetaStdizer.get_standardized_metadata(duolingo_metadata)
 
         return cls(
             data_source=cls.get_data_source_identifier(),
             document_id=external_json["id"],
+            jeeves_uid=f"{cls.get_data_source_identifier()}_{external_json['id']}",
             date_time=parse_external_datetime(external_fields["updated"]),
             header_text=external_fields["summary"],
             body_text=body_text,
@@ -162,7 +166,16 @@ class JiraDocument(JeevesDocument):
             if is_shake_to_report
             else ShakeToReportCategory.NON_STR_INTERNAL,
             attachments=external_json.get("attachments", []),
-            beta_feedback_metadata=beta_feedback_metadata,
+            duolingo_metadata=duolingo_metadata,
+            app_version=std_metadata["app_version"],
+            course=std_metadata["course"],
+            fullstory_url=std_metadata["fullstory_url"],
+            os_version=std_metadata["os_version"],
+            platform=std_metadata["platform"],
+            screen_size=std_metadata["screen_size"],
+            screen_content=std_metadata["screen_content"],
+            ui_language=std_metadata["ui_language"],
+            username=std_metadata["username"],
             issue_key=external_json["key"],
             issue_links=external_fields.get("issuelinks", []),
             issue_type=external_fields.get("issuetype", {}).get("name", ""),
@@ -200,6 +213,7 @@ class JiraDocument(JeevesDocument):
         return cls(
             data_source=internal_json["data_source"],
             document_id=internal_json["document_id"],
+            jeeves_uid=internal_json["jeeves_uid"],
             date_time=internal_json["date_time"],
             header_text=internal_json["header_text"],
             body_text=internal_json["body_text"],
@@ -209,7 +223,16 @@ class JiraDocument(JeevesDocument):
                 internal_json["shake_to_report_category"]
             ],
             attachments=internal_json["attachments"],
-            beta_feedback_metadata=internal_json["beta_feedback_metadata"],
+            duolingo_metadata=internal_json["duolingo_metadata"],
+            app_version=internal_json["app_version"],
+            course=internal_json["course"],
+            fullstory_url=internal_json["fullstory_url"],
+            os_version=internal_json["os_version"],
+            platform=internal_json["platform"],
+            screen_size=internal_json["screen_size"],
+            screen_content=internal_json["screen_content"],
+            ui_language=internal_json["ui_language"],
+            username=internal_json["username"],
             issue_key=internal_json["issue_key"],
             issue_links=internal_json["issue_links"],
             issue_type=internal_json["issue_type"],

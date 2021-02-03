@@ -18,6 +18,7 @@ class JeevesDocument(ABC):
 
     data_source: str = attr.ib()
     document_id: str = attr.ib()
+    jeeves_uid: str = attr.ib()
     date_time: datetime.datetime = attr.ib()
     header_text: str = attr.ib(default="")
     body_text: str = attr.ib()
@@ -25,7 +26,16 @@ class JeevesDocument(ABC):
     links: List[str] = attr.ib(default=[])
     shake_to_report_category: ShakeToReportCategory = attr.ib()
     attachments: List[str] = attr.ib()
-    beta_feedback_metadata: Dict[str, JSON] = attr.ib()
+    duolingo_metadata: Dict[str, JSON] = attr.ib()
+    app_version: str = attr.ib()
+    course: str = attr.ib()
+    fullstory_url: str = attr.ib()
+    os_version: str = attr.ib()
+    platform: str = attr.ib()
+    screen_size: str = attr.ib()
+    screen_content: str = attr.ib()
+    ui_language: str = attr.ib()
+    username: str = attr.ib()
 
     # It is VERY IMPORTANT, when you add attributes to a subclass of this class,
     # that the attribute names are distinct from each other attribute name across

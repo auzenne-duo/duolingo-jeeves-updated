@@ -10,8 +10,9 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.classify import detect_language, detect_product
-from jeeves.util.cleanup import clean_and_parse_description, extract_beta_feedback_metadata
+from jeeves.util.cleanup import clean_and_parse_description, extract_duolingo_metadata
 from jeeves.util.date_util import parse_external_datetime
+from jeeves.util.metadata_standardizer import MetaStdizer
 
 
 @attr.s(kw_only=True)
@@ -48,9 +49,9 @@ class ZendeskDocument(JeevesDocument):
             )
 
         body_text = external_json["description"]
-        beta_feedback_metadata = {}
+        duolingo_metadata = {}
         if is_shake_to_report:
-            body_text, beta_feedback_metadata = extract_beta_feedback_metadata(body_text)
+            body_text, duolingo_metadata = extract_duolingo_metadata(body_text)
 
         body, metadata = clean_and_parse_description(body_text)
         header = external_json["subject"] if external_json["subject"] else ""
@@ -59,9 +60,26 @@ class ZendeskDocument(JeevesDocument):
         ticket_link = f"{link_url_base}/tickets/{external_json['id']}"
         user_link = f"{link_url_base}/users/{external_json['requester_id']}"
 
+        aux_platform_information = ""
+        android_platform_indicators = ["androidapp", "bug_report_android"]
+        ios_platform_indicators = ["iphoneapp", "bug_report_ios"]
+        web_platform_indicators = ["bug_report_web"]
+        tags_set = set(external_json["tags"])
+        if tags_set.intersection(android_platform_indicators):
+            aux_platform_information = "Android"
+        elif tags_set.intersection(ios_platform_indicators):
+            aux_platform_information = "iOS"
+        elif tags_set.intersection(web_platform_indicators):
+            aux_platform_information = "Web"
+
+        std_metadata = MetaStdizer.get_standardized_metadata(
+            duolingo_metadata, aux_platform_information
+        )
+
         return cls(
             data_source=cls.get_data_source_identifier(),
             document_id=str(external_json["id"]),
+            jeeves_uid=f"{cls.get_data_source_identifier()}_{external_json['id']}",
             date_time=parse_external_datetime(external_json["created_at"]),
             header_text=header,
             body_text=body_text,
@@ -71,7 +89,16 @@ class ZendeskDocument(JeevesDocument):
             if is_shake_to_report
             else ShakeToReportCategory.NON_STR_EXTERNAL,
             attachments=external_json["attachments"],
-            beta_feedback_metadata=beta_feedback_metadata,
+            duolingo_metadata=duolingo_metadata,
+            app_version=std_metadata["app_version"],
+            course=std_metadata["course"],
+            fullstory_url=std_metadata["fullstory_url"],
+            os_version=std_metadata["os_version"],
+            platform=std_metadata["platform"],
+            screen_size=std_metadata["screen_size"],
+            screen_content=std_metadata["screen_content"],
+            ui_language=std_metadata["ui_language"],
+            username=std_metadata["username"],
             product=detect_product(external_json["tags"], header).name,
             priority=external_json["priority"],
             via=external_json["via"],
@@ -90,6 +117,7 @@ class ZendeskDocument(JeevesDocument):
         return cls(
             data_source=internal_json["data_source"],
             document_id=internal_json["document_id"],
+            jeeves_uid=internal_json["jeeves_uid"],
             date_time=internal_json["date_time"],
             header_text=header,
             body_text=internal_json["body_text"],
@@ -99,7 +127,16 @@ class ZendeskDocument(JeevesDocument):
                 internal_json["shake_to_report_category"]
             ],
             attachments=internal_json["attachments"],
-            beta_feedback_metadata=internal_json["beta_feedback_metadata"],
+            duolingo_metadata=internal_json["duolingo_metadata"],
+            app_version=internal_json["app_version"],
+            course=internal_json["course"],
+            fullstory_url=internal_json["fullstory_url"],
+            os_version=internal_json["os_version"],
+            platform=internal_json["platform"],
+            screen_size=internal_json["screen_size"],
+            screen_content=internal_json["screen_content"],
+            ui_language=internal_json["ui_language"],
+            username=internal_json["username"],
             product=internal_json["product"],
             priority=internal_json["priority"],
             via=internal_json["via"],

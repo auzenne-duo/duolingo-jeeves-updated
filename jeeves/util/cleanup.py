@@ -73,7 +73,7 @@ def clean_and_parse_description(desc):
     return _EMPTY_STRING_PATTERN.sub("", _CLEANUP_PATTERN.sub("", cutDesc.strip())), mdict
 
 
-def extract_beta_feedback_metadata(body_text: str) -> Tuple[str, JSON]:
+def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
     """
     Separates beta feedback metadata from the downloaded body text of a record
     and returns them as separate objects.
@@ -90,12 +90,13 @@ def extract_beta_feedback_metadata(body_text: str) -> Tuple[str, JSON]:
 
     extracted_metadata = {}
 
-    single_value_headers = ["Report method:", "View Controller Name:", "FullStory:"]
+    single_value_headers = ["Report method:", "View Controller Name:"]
     multi_value_headers = [
         "System Information:",
         "User Information:",
         "App information:",
         "Session information:",
+        "FullStory:",
     ]
     known_headers = single_value_headers + multi_value_headers
 
@@ -149,8 +150,11 @@ def extract_beta_feedback_metadata(body_text: str) -> Tuple[str, JSON]:
 
                 colon_idx = line.find(":")
                 if colon_idx < 0:
-                    print("Error occured during subdata parsing, aborting.")
-                    return (body_text, {})
+                    if header == "FullStory:" and "No session recorded" in line:
+                        sub_dict["fullstory"] = line
+                    else:
+                        print("Error occured during subdata parsing, aborting.")
+                        return (body_text, {})
 
                 key_str = (
                     line[:colon_idx].replace(" ", "_").replace("(", "").replace(")", "").lower()
@@ -177,6 +181,9 @@ def extract_beta_feedback_metadata(body_text: str) -> Tuple[str, JSON]:
     filtered_body_text = ""
     if rover_idx > 0:
         # We have actual body text
-        filtered_body_text = "\n".join(body_lines[:rover_idx])
+        filtered_body_text = "\n".join(body_lines[: rover_idx - 1])
+
+    raw_metadata_text = "\n".join(body_lines[rover_idx:])
+    extracted_metadata["raw"] = raw_metadata_text
 
     return (filtered_body_text, extracted_metadata)

@@ -47,6 +47,14 @@ class ElasticsearchDAL:
             m.field("data_source", "keyword")
             m.field("document_id", "keyword")
             m.field("shake_to_report_category", "keyword")
+            m.field("app_version", "keyword")
+            m.field("course", "keyword")
+            m.field("os_version", "keyword")
+            m.field("platform", "keyword")
+            m.field("screen_size", "keyword")
+            m.field("screen_content", "keyword")
+            m.field("ui_language", "keyword")
+            m.field("username", "keyword")
             m.save(self._indexname, using=self._es)
 
         if not self._es.indices.exists(index=self._spikename):
@@ -295,7 +303,7 @@ class ElasticsearchDAL:
             {
                 "_index": self._indexname,
                 "_source": ticket,
-                "_id": f"{ticket['data_source']}_{ticket['document_id']}",
+                "_id": ticket["jeeves_uid"],
             }
             for ticket in json_tickets
         ]
