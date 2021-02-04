@@ -1,8 +1,10 @@
 import * as React from "react";
+import { Link, useParams } from "react-router-dom";
 
 import Table from "components/Table";
 import Tag from "components/Tag";
 import renderTicketSource from "components/renderTicketSource";
+import imageCaretRight from "images/caret-right.svg";
 import styles from "styles/TicketTable.scss";
 import {
   escapeHTML,
@@ -17,6 +19,8 @@ interface Props {
 }
 
 const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
+  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
+
   let body = normalizeNewLines(escapeHTML(ticket.body_text ?? ""))
     .trim()
     .replace(/\n/g, "<br />");
@@ -27,7 +31,24 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
       <tbody>
         <tr>
           <th>Subject</th>
-          <td>{ticket.header_text}</td>
+          <td>
+            <span className={styles.subject}>
+              {ticket.header_text}
+              <Link
+                className={styles["icon-link"]}
+                to={`/${lang}/discovery?id=${encodeURIComponent(
+                  ticket.jeeves_uid,
+                )}`}
+              >
+                <img
+                  className={styles.icon}
+                  alt="Open in Issue Discovery"
+                  src={imageCaretRight}
+                  title="Open in Issue Discovery"
+                />
+              </Link>
+            </span>
+          </td>
         </tr>
         <tr>
           <th>Date</th>
