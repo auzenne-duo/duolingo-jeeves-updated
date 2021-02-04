@@ -18,6 +18,7 @@ import {
   encodeURLSearchParams,
   formatCourseId,
   formatReadableDate,
+  formatScreen,
   getPaginationString,
 } from "util";
 
@@ -78,13 +79,13 @@ const Discovery = () => {
     async () => {
       // If we've already fetched the ticket, return the
       // previous result to avoid extra API calls.
-      if (id === lastSelectedRef.current?.jeeves_id) {
+      if (id === lastSelectedRef.current?.jeeves_uid) {
         return lastSelectedRef.current;
       } else if (id) {
         return (
           // If the ticket exists on the current page, return
           // the existing result to avoid extra API calls.
-          tickets?.find(t => t.jeeves_id === id) || (await getTicket(lang, id))
+          tickets?.find(t => t.jeeves_uid === id) || (await getTicket(lang, id))
         );
       }
       return undefined;
@@ -96,7 +97,7 @@ const Discovery = () => {
     if (selected === t) {
       dispatch?.({ type: "TOGGLE_ASIDE" });
     } else {
-      setId(t.jeeves_id);
+      setId(t.jeeves_uid);
     }
   };
 
@@ -184,20 +185,24 @@ const Discovery = () => {
                     {summary}
                   </span>
                   <div className={styles.tags}>
-                    {t.metadata?.app_version ? (
-                      <Tag value={t.metadata?.app_version} />
-                    ) : null}
-                    {t.metadata?.screen_name ? (
-                      <Tag value={t.metadata?.screen_name} />
-                    ) : null}
-                    {t.metadata?.course ? (
-                      <Tag value={formatCourseId(t.metadata?.course)} />
-                    ) : null}
                     {t.issue_key ? <Tag value={t.issue_key} /> : null}
-                    {t.metadata?.platform ? (
+                    {t.course ? <Tag value={formatCourseId(t.course)} /> : null}
+                    {t.screen_content ? (
+                      <Tag value={formatScreen(t.screen_content)} />
+                    ) : null}
+                    {t.app_version ? (
+                      <Tag
+                        value={
+                          t.platform === "Web"
+                            ? t.app_version.slice(0, 7)
+                            : t.app_version
+                        }
+                      />
+                    ) : null}
+                    {t.platform ? (
                       <PlatformIcon
                         className={styles.icon}
-                        platform={t.metadata.platform}
+                        platform={t.platform}
                       />
                     ) : null}
                     {date ? (

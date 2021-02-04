@@ -48,23 +48,16 @@ export const formatCourseId = (courseId: string) => {
   if (courseId.startsWith("DUOLINGO_")) {
     return courseId.slice("DUOLINGO_".length).replace("_", "<");
   }
-  if (courseId.includes(" <- ")) {
-    return courseId.replace(" <- ", "<");
-  }
   return courseId;
 };
 
 export const formatReadableDate = (date: Date) =>
   format(date, "eee, d MMM yyyy HH:mm:ss z");
 
-export const formatPlatform = (platform: "android" | "ios" | "web") =>
-  platform === "android"
-    ? "Android"
-    : platform === "ios"
-    ? "iOS"
-    : platform === "web"
-    ? "Web"
-    : "";
+export const formatScreen = (screen: string) =>
+  screen.startsWith("com.duolingo.")
+    ? screen.replace("com.duolingo.", "")
+    : screen.replace(/^https?:\/\/(.+\.)?duolingo\.com/, "");
 
 export const getPaginationString = ({
   page,

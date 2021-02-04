@@ -1,4 +1,16 @@
 declare namespace JSONAPI {
+  interface DuolingoMetadata {
+    app_version?: string;
+    course?: string;
+    fullstory_url?: string;
+    os_version?: string;
+    platform?: "Android" | "iOS" | "Web";
+    screen_content?: string;
+    screen_size?: string;
+    ui_language?: string;
+    username?: string;
+  }
+
   interface Info {
     /** The time that the current Jeeves instance was created. */
     deployed_timestamp: string;
@@ -60,40 +72,9 @@ declare namespace JSONAPI {
       | undefined;
   }
 
-  interface Ticket {
+  interface Ticket extends DuolingoMetadata {
     /** URLs to file attachments. Currently only available for Jira tickets. */
     attachments?: string[];
-    /** @deprecated This will be moved to the backend. Use the metadata field instead. */
-    beta_feedback_metadata?: {
-      app_information?: {
-        api_level?: string;
-        app_version?: string;
-        app_version_code?: string;
-        course?: string;
-        os?: string;
-        os_version?: string;
-        screen?: string;
-        username?: string;
-      };
-      fullstory?: string;
-      session_information?: {
-        activity?: string;
-        fullstory_session?: string;
-        fullstory_session_if_recording?: string;
-        url?: string;
-      };
-      system_information?: {
-        app_version?: string;
-        ios_version?: string;
-        screen?: string;
-        ui_language?: string;
-      };
-      user_information?: {
-        current_course?: string;
-        username?: string;
-      };
-      view_controller_name?: string;
-    };
     /** Main content of the ticket. This is what we search against and perform spike detection on. */
     body_text?: string;
     /** String identifying where we got the ticket. */
@@ -102,6 +83,9 @@ declare namespace JSONAPI {
     date_time?: string;
     /** An identifier for the ticket, assigned by the API we got the ticket from. */
     document_id: string;
+    duolingo_metadata: {
+      raw?: string;
+    };
     /** Title, subject line, etc. */
     header_text?: string;
     /** The issue key of a Jira ticket. */
@@ -109,22 +93,9 @@ declare namespace JSONAPI {
     /** Linked Jira issues. */
     issue_links?: JiraIssueLink[];
     /** A globally unique identifier for the ticket. */
-    jeeves_id: string;
+    jeeves_uid: string;
     /** URLs we compute on the backend to direct the user to the original ticket/submitter. */
     links?: string[];
-    metadata?: {
-      app_version?: string;
-      course?: string;
-      full_story_url?: string;
-      os_version?: string;
-      platform?: "android" | "ios" | "web";
-      raw: string;
-      screen?: string;
-      screen_name?: string;
-      screenshot_url?: string;
-      ui_language?: string;
-      username?: string;
-    };
     /** Field assigned by Zendesk. */
     priority?: string;
     /** ID assigned to the user on Zendesk that submitted the ticket. */

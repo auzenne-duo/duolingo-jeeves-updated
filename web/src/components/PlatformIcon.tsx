@@ -3,25 +3,24 @@ import * as React from "react";
 import imagePlatformAndroid from "images/android.svg";
 import imagePlatformApple from "images/apple.svg";
 import imagePlatformWeb from "images/web.svg";
-import { formatPlatform } from "util";
 
 interface Props {
   className?: string;
-  platform: "android" | "ios" | "web";
+  platform: "Android" | "iOS" | "Web";
 }
 
 const PlatformIcon: React.FC<Props> = ({ className, platform }) => (
   <img
-    alt={formatPlatform(platform)}
+    alt={platform}
     className={className}
     src={
-      platform === "android"
+      platform === "Android"
         ? imagePlatformAndroid
-        : platform === "ios"
+        : platform === "iOS"
         ? imagePlatformApple
         : imagePlatformWeb
     }
-    title={formatPlatform(platform)}
+    title={platform}
   />
 );
 

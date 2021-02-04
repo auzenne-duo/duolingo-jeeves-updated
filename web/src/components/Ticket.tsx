@@ -15,6 +15,7 @@ import {
   formatAttachment,
   formatCourseId,
   formatReadableDate,
+  formatScreen,
   highlightWord,
   normalizeNewLines,
 } from "util";
@@ -66,18 +67,15 @@ const Ticket: React.FC<Props> = ({
               />
             </section>
           ) : null}
-          {ticket.metadata?.app_version ? (
+          {ticket.app_version ? (
             <section className={styles.section}>
               <span className={styles.label}>App version</span>
               <div>
-                <Tag
-                  className={styles.tag}
-                  value={ticket.metadata.app_version}
-                />
+                <Tag className={styles.tag} value={ticket.app_version} />
               </div>
             </section>
           ) : null}
-          {ticket.attachments?.length || ticket.metadata?.full_story_url ? (
+          {ticket.attachments?.length || ticket.fullstory_url ? (
             <section className={styles.section}>
               <span className={styles.label}>Attachments</span>
               <div>
@@ -86,24 +84,21 @@ const Ticket: React.FC<Props> = ({
                     {formatAttachment(url)}
                   </a>
                 ))}
-                {ticket.metadata?.full_story_url ? (
-                  <a
-                    className={styles.attachment}
-                    href={ticket.metadata.full_story_url}
-                  >
+                {ticket.fullstory_url ? (
+                  <a className={styles.attachment} href={ticket.fullstory_url}>
                     FullStory recording
                   </a>
                 ) : null}
               </div>
             </section>
           ) : null}
-          {ticket.metadata?.course ? (
+          {ticket.course ? (
             <section className={styles.section}>
               <span className={styles.label}>Course</span>
               <div>
                 <Tag
                   className={styles.tag}
-                  value={formatCourseId(ticket.metadata.course)}
+                  value={formatCourseId(ticket.course)}
                 />
               </div>
             </section>
@@ -121,24 +116,21 @@ const Ticket: React.FC<Props> = ({
               </div>
             </section>
           ) : null}
-          {ticket.metadata?.os_version ? (
+          {ticket.os_version ? (
             <section className={styles.section}>
               <span className={styles.label}>OS version</span>
               <div>
-                <Tag
-                  className={styles.tag}
-                  value={ticket.metadata.os_version}
-                />
+                <Tag className={styles.tag} value={ticket.os_version} />
               </div>
             </section>
           ) : null}
-          {ticket.metadata?.platform ? (
+          {ticket.platform ? (
             <section className={styles.section}>
               <span className={styles.label}>Platform</span>
               <div>
                 <PlatformIcon
                   className={styles.icon}
-                  platform={ticket.metadata.platform}
+                  platform={ticket.platform}
                 />
               </div>
             </section>
@@ -194,21 +186,21 @@ const Ticket: React.FC<Props> = ({
               <div>{formatReadableDate(new Date(ticket.date_time))}</div>
             </section>
           ) : null}
-          {ticket.metadata?.screen_name ? (
+          {ticket.screen_content ? (
             <section className={styles.section}>
               <span className={styles.label}>Screen</span>
               <div>
                 <Tag
                   className={styles.tag}
-                  value={ticket.metadata.screen_name}
+                  value={formatScreen(ticket.screen_content)}
                 />
               </div>
             </section>
           ) : null}
-          {ticket.metadata?.screen ? (
+          {ticket.screen_size ? (
             <section className={styles.section}>
               <span className={styles.label}>Screen dimensions</span>
-              <div>{ticket.metadata.screen}</div>
+              <div>{ticket.screen_size}</div>
             </section>
           ) : null}
           <section className={styles.section}>
@@ -226,21 +218,21 @@ const Ticket: React.FC<Props> = ({
               <span className={styles.label}>Tags</span>
               <div className={styles.tags}>
                 {ticket.tags?.map(tag => (
-                  <Tag className={styles.tag} value={tag} key={tag} />
+                  <Tag className={styles.tag} key={tag} value={tag} />
                 ))}
               </div>
             </section>
           ) : null}
-          {ticket.metadata?.ui_language ? (
+          {ticket.ui_language ? (
             <section className={styles.section}>
               <span className={styles.label}>UI language</span>
-              <div>{ticket.metadata.ui_language}</div>
+              <div>{ticket.ui_language}</div>
             </section>
           ) : null}
-          {ticket.metadata?.username ? (
+          {ticket.username ? (
             <section className={styles.section}>
               <span className={styles.label}>User</span>
-              <div>{ticket.metadata.username}</div>
+              <div>{ticket.username}</div>
             </section>
           ) : null}
           {onRequestClose ? <CloseButton onClick={onRequestClose} /> : null}

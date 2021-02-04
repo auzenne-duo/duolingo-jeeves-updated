@@ -239,14 +239,14 @@ const Analysis = () => {
           </ul>
           <span>
             You can specify a field to search by, if you have the full name of
-            the field. For example, these queries will find beta feedback with
-            particular app versions on Android and iOS, respectively:
+            the field. For example, these queries will find tickets for
+            particular app versions on iOS and Web, respectively:
             <ul>
               <li>
-                <SearchExample query='beta_feedback_metadata.app_information.app_version_code:"4.91.1"' />
+                <SearchExample query='app_version:"6.100.0.3"' />
               </li>
               <li>
-                <SearchExample query='beta_feedback_metadata.system_information.app_version:"6.99.0.2"' />
+                <SearchExample query='app_version:"1d5ab12bdfe724c626843f3db7b29bcb0e52618a"' />
               </li>
             </ul>
           </span>

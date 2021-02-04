@@ -23,13 +23,10 @@ const get = async (url: string) =>
 
 export const getJiraDuplicates = async (
   issue_key: string,
-): Promise<JSONAPI.Ticket[]> => {
-  const data = (await get(
+): Promise<JSONAPI.Ticket[]> =>
+  (await get(
     `/detect_duplicates?issue_key=${encodeURIComponent(issue_key)}`,
   )) as JSONAPI.Ticket[];
-  data.forEach(ticket => loadTicketMetadata(ticket));
-  return data;
-};
 
 export const getInfo = async (
   lang: JSONAPI.LanguageId,
@@ -93,7 +90,6 @@ export const getTicket = async (
   if (!data) {
     throw Error("Ticket not found.");
   }
-  loadTicketMetadata(data);
   return data;
 };
 
@@ -124,12 +120,9 @@ export const getTickets = async (
   start_time && params.set("start_time", formatDateTime(start_time));
   word && params.set("word", word);
 
-  const data = (await get(
+  return (await get(
     `/${lang}/tickets?${params.toString()}`,
   )) as JSONAPI.Tickets;
-  data.data.forEach(ticket => loadTicketMetadata(ticket));
-
-  return data;
 };
 
 export const getTimeSeries = async (
@@ -152,82 +145,4 @@ export const getTimeSeries = async (
     date: convertTimeZone(parseISO(`${date}T00:00:00`), "America/New_York"),
     value: value ?? 0,
   }));
-};
-
-// TODO: move this to the backend.
-const loadTicketMetadata = (ticket: JSONAPI.Ticket) => {
-  ticket.jeeves_id = `${ticket.data_source}_${ticket.document_id}`;
-  try {
-    const d = ticket.beta_feedback_metadata;
-    const app_version =
-      // Web reports the commit hash.
-      d?.app_information?.app_version?.slice(0, 7) ??
-      d?.app_information?.app_version_code ??
-      d?.system_information?.app_version;
-    const course =
-      d?.app_information?.course ??
-      d?.user_information?.current_course?.split(" ")[0];
-    const full_story_url =
-      d?.fullstory && d?.fullstory !== "No session recorded"
-        ? d.fullstory.replace("- session url: ", "")
-        : (d?.session_information?.fullstory_session ??
-            d?.session_information?.fullstory_session_if_recording) !==
-          "unavailable"
-        ? d?.session_information?.fullstory_session ??
-          d?.session_information?.fullstory_session_if_recording
-        : undefined;
-    const os_version =
-      d?.system_information?.ios_version ??
-      d?.app_information?.os ??
-      d?.app_information?.os_version;
-    const platform = (() => {
-      if (d?.app_information) {
-        return d.app_information.api_level ? "android" : "web";
-      }
-      if (d?.system_information) {
-        return "ios";
-      }
-      for (const tag of ticket.tags ?? []) {
-        switch (tag) {
-          case "android":
-          case "androidapp":
-          case "bug_report_android":
-            return "android";
-          case "bug_report_web":
-            return "web";
-          case "bug_report_ios":
-          case "device_type__ios":
-          case "iphone":
-          case "iphoneapp":
-            return "ios";
-        }
-      }
-    })();
-    const screen = d?.app_information?.screen ?? d?.system_information?.screen;
-    const screen_name =
-      d?.session_information?.activity?.replace("com.duolingo.", "") ??
-      d?.session_information?.url?.replace(
-        /https:\/\/(.+\.)?duolingo\.com/,
-        "",
-      ) ??
-      d?.view_controller_name;
-    const ui_language = d?.system_information?.ui_language;
-    const username =
-      d?.app_information?.username ?? d?.user_information?.username;
-    ticket.metadata = {
-      app_version,
-      course,
-      full_story_url,
-      os_version,
-      platform,
-      raw: "",
-      screen,
-      screen_name,
-      ui_language,
-      username,
-    };
-  } catch (ex) {
-    console.error(ex);
-    ticket.metadata = { raw: "" };
-  }
 };
