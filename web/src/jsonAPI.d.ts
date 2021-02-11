@@ -77,6 +77,8 @@ declare namespace JSONAPI {
     attachments?: string[];
     /** Main content of the ticket. This is what we search against and perform spike detection on. */
     body_text?: string;
+    /** Currently only available for Jira tickets. */
+    creation_date?: string;
     /** String identifying where we got the ticket. */
     data_source: "AppFigures" | "JIRA" | "Zendesk" | string;
     /** The date and time the ticket was submitted to its respective service. */

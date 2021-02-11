@@ -174,7 +174,12 @@ const Discovery = () => {
                 (t.data_source === "Zendesk" && t.via?.channel === "mobile_sdk")
                   ? t.body_text?.trim().split(/\n|\.\s/)[0]
                   : t.header_text;
-              const date = t.date_time ? new Date(t.date_time) : undefined;
+              const date =
+                t.data_source === "JIRA" && t.creation_date
+                  ? new Date(t.creation_date)
+                  : t.date_time
+                  ? new Date(t.date_time)
+                  : undefined;
               return (
                 <li
                   className={styles[`item${t === selected ? "-selected" : ""}`]}
