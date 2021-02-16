@@ -1,7 +1,7 @@
 --extra-index-url https://pypi.duolingo.com/pypi/
 
 attrs==20.2.0
-duolingo-base==0.9.66
+duolingo-base==0.13.7
 elasticsearch
 elasticsearch-dsl
 futures==3.1.1  # 3.2.0 doesn't work yet

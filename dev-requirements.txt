@@ -18,8 +18,8 @@ coverage==4.4.2           # via pytest-cov
 decorator==4.2.1
 deprecation==2.0.2
 docutils==0.13.1
-duolingo-base==0.9.66
-duolingo-proto==2018.4.18.0
+duolingo-base==0.13.7
+duolingo-proto==2021.2.8.0
 elasticsearch-dsl==7.3.0
 elasticsearch==7.9.1
 execnet==1.5.0            # via pytest-xdist
