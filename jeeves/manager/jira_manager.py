@@ -6,7 +6,7 @@ import json
 import os
 from typing import Iterator, Optional
 
-from requests import get, Session
+from requests import get, post, Session
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 
@@ -114,3 +114,55 @@ class JiraManager(JeevesManager):
         except RequestException as e:
             print_request_exception(e)
             return None
+
+    @staticmethod
+    def mark_duplicate_remote(outward_key: str, inward_key: str) -> bool:
+        """
+        Given two issue keys, one outward and one inward, marks them as
+        duplicates of each other on JIRA. We distinguish between outward and
+        inward here because JIRA's architecture does not consider the relation
+        to be symmetric. To my knowledge, all other parts of Jeeves discard
+        this directionality information and treat the relationship as though
+        it were symmetric, so flipping the order of the parameters here should
+        not matter.
+
+        Parameters:
+            outward_key: Issue key on the "outward" side of the duplicate link.
+            inward_key: Issue key on the "inward" side of the duplicate link.
+
+        Returns:
+            True if the link is created, otherwise False. This is actually as
+            informative of a return value as we're able to provide. JIRA's API
+            has three failure response codes on the relevant route, those being
+            400 (comment not created), 401 (Unauthorized), and 404 (Other). We
+            are not using comments here so 400 will never be returned. The
+            credentials used here are identical to those used on other JIRA API
+            functionality in this file, so if this request would generate a 401,
+            so would a lot of other, much more visible requests. That only
+            leaves 404 as a failure condition, and JIRA explicitly states that
+            they do not define a response schema for 404 on this route. As a
+            result, we do not have any information beyond "the request failed".
+
+        Note: We do not need to explicitly update Elasticsearch with the link
+              created in this function, since creating the duplicate relation
+              should trigger an update on both of the issues, which will be
+              later picked up by the normal document downloader.
+        """
+
+        issue_link_url = "https://duolingo.atlassian.net/rest/api/3/issueLink"
+        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        data = {
+            "outwardIssue": {"key": outward_key},
+            "inwardIssue": {"key": inward_key},
+            "type": {"name": "Duplicate"},
+        }
+
+        try:
+            r = post(issue_link_url, auth=auth, headers=headers, data=json.dumps(data))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e)
+            return False
+
+        return True

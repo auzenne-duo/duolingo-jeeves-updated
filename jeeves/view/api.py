@@ -18,6 +18,7 @@ import logging
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.lib.duplicate_detector import calculate_duplicates_for_JIRA_issue
+from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.shakira import Shakira
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
@@ -268,6 +269,26 @@ def execute_arbitrary_query():
     return json.jsonify(
         [doc.serialize_to_json(doc) for doc in ElasticDAL.execute_arbitrary_query(json_data)]
     )
+
+
+@blueprint_api.route("/api/1/mark_jira_duplicates", methods=["POST"])
+def cement_duplicates():
+    out_key = request.args.get("outward_key", "")
+    in_key = request.args.get("inward_key", "")
+
+    if not out_key or not in_key:
+        abort(make_response("Please provide both `outward_key` and `inward_key`.", 400))
+
+    remote_success = JiraManager.mark_duplicate_remote(out_key, in_key)
+    if not remote_success:
+        abort(
+            make_response(
+                "The JIRA API returned an error. Please make sure both of your keys exist and try again later. If this error persists, please contact the repository owner.",
+                400,
+            )
+        )
+
+    return json.jsonify({"Link": "Created"})
 
 
 @blueprint_api.route("/", defaults={"path": ""})
