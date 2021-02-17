@@ -28,7 +28,8 @@ const Topbar = () => {
   const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
-  const showSearchInput = useRouteMatch("/:lang/(analysis|discovery)");
+  const isAnalysisPage = useRouteMatch("/:lang/analysis");
+  const isDiscoveryPage = useRouteMatch("/:lang/discovery");
   const search = useSearchParams();
 
   const filter = search.get("filter");
@@ -103,8 +104,16 @@ const Topbar = () => {
         <img alt="Duolingo Jeeves" className={styles.logo} src={imageLogo} />
         {state.loading ? <LoadingDots type="button" /> : null}
       </NavLink>
-      <div className={styles[`filters${showSearchInput ? "-search" : ""}`]}>
-        {showSearchInput ? (
+      <div
+        className={
+          styles[
+            `filters${
+              isAnalysisPage ? "-analysis" : isDiscoveryPage ? "-discovery" : ""
+            }`
+          ]
+        }
+      >
+        {isAnalysisPage || isDiscoveryPage ? (
           <Input
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleSearchInputKeyDown}
@@ -121,7 +130,7 @@ const Topbar = () => {
             to={to}
           />
         </Route>
-        <Route path="/:lang/discovery">
+        {isAnalysisPage || isDiscoveryPage ? (
           <Select
             onChange={handleFilterChange}
             options={[
@@ -132,7 +141,7 @@ const Topbar = () => {
             ]}
             value={filter ?? ""}
           />
-        </Route>
+        ) : null}
         <Route path="/:lang/spike">
           <Select
             onChange={handleFilterChange}

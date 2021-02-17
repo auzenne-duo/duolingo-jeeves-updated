@@ -9,10 +9,17 @@ interface Props {
   date: Date | undefined;
   isLoading?: boolean;
   language: JSONAPI.LanguageId;
+  linkFilter?: JSONAPI.ShakeToReportCategory;
   spikes: [number, string][];
 }
 
-const SpikeTable: React.FC<Props> = ({ date, isLoading, language, spikes }) => (
+const SpikeTable: React.FC<Props> = ({
+  date,
+  isLoading,
+  language,
+  linkFilter,
+  spikes,
+}) => (
   <Table className={styles.table}>
     <thead>
       <tr>
@@ -27,16 +34,23 @@ const SpikeTable: React.FC<Props> = ({ date, isLoading, language, spikes }) => (
       </tr>
     </thead>
     <tbody>
-      {spikes.map(([value, word]) => (
-        <tr key={word}>
-          <td>{value.toFixed(1)}</td>
-          <td>
-            <Link to={`/${language}/analysis?q=${encodeURIComponent(word)}`}>
-              {word}
-            </Link>
-          </td>
-        </tr>
-      ))}
+      {spikes.map(([value, word]) => {
+        const params = new URLSearchParams();
+        if (linkFilter) {
+          params.set("filter", linkFilter);
+        }
+        params.set("q", word);
+        return (
+          <tr key={word}>
+            <td>{value.toFixed(1)}</td>
+            <td>
+              <Link to={`/${language}/analysis?${params.toString()}`}>
+                {word}
+              </Link>
+            </td>
+          </tr>
+        );
+      })}
       {!spikes.length && !isLoading ? (
         <tr>
           <td colSpan={2}>No data is available for this date.</td>

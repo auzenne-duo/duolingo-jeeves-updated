@@ -51,6 +51,7 @@ const Analysis = () => {
   const [, dispatch] = React.useContext(AppStateContext);
   const [showTrend, setShowTrend] = React.useState(true);
 
+  const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
   const page = search.get("page")
     ? parseInt(search.get("page") as string, 10)
     : 1;
@@ -70,6 +71,7 @@ const Analysis = () => {
     async () =>
       query
         ? await getTickets(lang, {
+            beta_filter: filter ?? undefined,
             end_time: to,
             limit: PER_PAGE,
             page: page - 1,
@@ -77,7 +79,7 @@ const Analysis = () => {
             word: query,
           })
         : { data: undefined, next_url: undefined, total_records: undefined },
-    [from?.valueOf(), lang, page, query, to?.valueOf()],
+    [filter, from?.valueOf(), lang, page, query, to?.valueOf()],
   );
 
   const handleRangeChange = (e: RangeChangeEvent) => {

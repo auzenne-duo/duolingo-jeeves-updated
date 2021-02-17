@@ -93,3 +93,25 @@ export const normalizeNewLines = (str: string) =>
     .replace(/\r\n/g, "\n")
     .replace(/\n\s+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n");
+
+/**
+ * Gets the shake-to-report category that corresponds
+ * to a spike category, if there's a 1:1 mapping.
+ */
+export const spikeToStrCategory = (
+  category: JSONAPI.SpikeCategory,
+): JSONAPI.ShakeToReportCategory | undefined => {
+  // https://github.com/duolingo/duolingo-jeeves/blob/8ae6871a7cce0a2a5ac775d2aa6e4ea14310ebb9/jeeves/model/spike_categories.py#L37
+  switch (category) {
+    case "EXTERNAL_NON_STR_SPIKES":
+      return "NON_STR_EXTERNAL";
+    case "EXTERNAL_STR_SPIKES":
+      return "EXTERNAL";
+    case "INTERNAL_NON_STR_SPIKES":
+      return "NON_STR_INTERNAL";
+    case "INTERNAL_STR_SPIKES":
+      return "INTERNAL";
+    default:
+      return undefined;
+  }
+};

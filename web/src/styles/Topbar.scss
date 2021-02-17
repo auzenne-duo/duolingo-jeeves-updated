@@ -18,7 +18,13 @@
   }
 }
 
-.filters-search {
+.filters-analysis {
+  composes: filters;
+  grid-template-columns: 1fr min-content min-content;
+  margin-left: 0;
+}
+
+.filters-discovery {
   composes: filters;
   grid-template-columns: 1fr min-content;
   margin-left: 0;

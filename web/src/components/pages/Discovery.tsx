@@ -46,7 +46,7 @@ const Discovery = () => {
   const [, dispatch] = React.useContext(AppStateContext);
   const lastSelectedRef = React.useRef<JSONAPI.Ticket>();
 
-  const filter = search.get("filter");
+  const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
   const id = search.get("id");
   const page = search.get("page")
     ? parseInt(search.get("page") as string, 10)
@@ -66,7 +66,7 @@ const Discovery = () => {
     { data: undefined, next_url: undefined, total_records: undefined },
     () =>
       getTickets(lang, {
-        beta_filter: filter as JSONAPI.ShakeToReportCategory,
+        beta_filter: filter ?? undefined,
         limit: PER_PAGE,
         page: page - 1,
         word: query,

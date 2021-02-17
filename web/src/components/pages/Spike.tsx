@@ -9,6 +9,7 @@ import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
+import { spikeToStrCategory } from "util";
 
 const Spike = () => {
   const { from, to } = useDateRangeFilter({ daysAgo: 3 });
@@ -17,7 +18,8 @@ const Spike = () => {
 
   const [, dispatch] = React.useContext(AppStateContext);
 
-  const filter = search.get("filter") ?? "ALL_SPIKES";
+  const filter = (search.get("filter") ??
+    "ALL_SPIKES") as JSONAPI.SpikeCategory;
 
   const [spikes, isLoading] = useAwaitedValue(
     undefined,
@@ -25,7 +27,7 @@ const Spike = () => {
       (
         await getSpikes(lang, {
           end_date: to,
-          spike_category: filter as JSONAPI.SpikeCategory,
+          spike_category: filter,
           start_date: from,
         })
       ).reverse(),
@@ -47,7 +49,13 @@ const Spike = () => {
   return (
     <>
       {spikes?.map((o, i) => (
-        <SpikeTable date={o.date} key={i} language={lang} spikes={o.spikes} />
+        <SpikeTable
+          date={o.date}
+          key={i}
+          language={lang}
+          linkFilter={spikeToStrCategory(filter)}
+          spikes={o.spikes}
+        />
       ))}
     </>
   );
