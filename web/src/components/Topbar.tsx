@@ -86,6 +86,7 @@ const Topbar = () => {
         params.delete("q");
       }
       applyFilters(params);
+      e.preventDefault();
     }
     // Do not trigger shortcuts.
     e.stopPropagation();

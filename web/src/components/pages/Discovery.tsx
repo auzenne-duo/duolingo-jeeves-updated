@@ -94,7 +94,7 @@ const Discovery = () => {
   );
 
   const handleClick = (t: JSONAPI.Ticket) => {
-    if (selected === t) {
+    if (t.jeeves_uid === selected?.jeeves_uid) {
       dispatch?.({ type: "TOGGLE_ASIDE" });
     } else {
       setId(t.jeeves_uid);
@@ -139,12 +139,51 @@ const Discovery = () => {
       const handleKeydown = (e: KeyboardEvent) => {
         if (e.key === "]") {
           dispatch?.({ type: "TOGGLE_ASIDE" });
+          e.preventDefault();
         }
       };
       document.addEventListener("keydown", handleKeydown);
       return () => document.removeEventListener("keydown", handleKeydown);
     }
   }, [id]);
+
+  React.useEffect(() => {
+    if (tickets?.length) {
+      const next = () =>
+        setId(
+          tickets[
+            Math.min(
+              tickets.findIndex(t => t.jeeves_uid === id) + 1,
+              tickets.length - 1,
+            )
+          ].jeeves_uid,
+        );
+
+      const prev = () => {
+        const currentIndex = tickets.findIndex(t => t.jeeves_uid === id);
+        setId(
+          tickets[
+            Math.max(
+              currentIndex > -1 ? currentIndex - 1 : tickets.length - 1,
+              0,
+            )
+          ].jeeves_uid,
+        );
+      };
+
+      const handleKeydown = (e: KeyboardEvent) => {
+        if (e.key === "j") {
+          next();
+          e.preventDefault();
+        } else if (e.key === "k") {
+          prev();
+          e.preventDefault();
+        }
+      };
+      document.addEventListener("keydown", handleKeydown);
+      return () => document.removeEventListener("keydown", handleKeydown);
+    }
+  }, [id, setId, tickets]);
 
   React.useEffect(() => {
     if (!isLoading) {
@@ -182,13 +221,17 @@ const Discovery = () => {
                   : undefined;
               return (
                 <li
-                  className={styles[`item${t === selected ? "-selected" : ""}`]}
+                  className={
+                    styles[
+                      `item${
+                        t.jeeves_uid === selected?.jeeves_uid ? "-selected" : ""
+                      }`
+                    ]
+                  }
                   key={i}
                   onClick={() => handleClick(t)}
                 >
-                  <span className={styles.title} title={summary}>
-                    {summary}
-                  </span>
+                  <span className={styles.title}>{summary}</span>
                   <div className={styles.tags}>
                     {t.issue_key ? <Tag value={t.issue_key} /> : null}
                     {t.course ? (

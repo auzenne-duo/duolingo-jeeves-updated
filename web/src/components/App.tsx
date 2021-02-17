@@ -24,8 +24,10 @@ const App = () => {
         } else {
           dispatch({ type: "HIDE_ASIDE" });
         }
+        e.preventDefault();
       } else if (e.key === "[") {
         dispatch({ type: "TOGGLE_MENU" });
+        e.preventDefault();
       }
     };
     document.addEventListener("keydown", handleKeydown);
