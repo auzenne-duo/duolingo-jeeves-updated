@@ -1,7 +1,9 @@
 @import "constants";
 
-.attachment {
-  display: block;
+.attachments {
+  align-items: start;
+  display: flex;
+  flex-direction: column;
 }
 
 .bordered {

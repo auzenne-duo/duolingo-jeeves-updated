@@ -19,6 +19,16 @@ export const encodeURLSearchParams = (params: URLSearchParams) =>
     )
     .join("&");
 
+/**
+ * Escapes a string for usage in an Elasticsearch query.
+ * See https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_reserved_characters.
+ */
+export const escapeElasticQuery = (query: string) =>
+  query
+    .replace(/([+\-=!(){}[\]^"~*?:\\\/]|&&|\|\|)/g, "\\$1")
+    // Remove characters that cannot be escaped.
+    .replace(/[<>]/g, "");
+
 export const escapeHTML = (unsafe: string) =>
   unsafe
     .replace(/&/g, "&amp;")

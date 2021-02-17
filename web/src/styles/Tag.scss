@@ -6,6 +6,8 @@
   color: $juicy-eel;
   display: inline-flex;
   font-size: 13px;
+  // Tags wrapped in <a> shouldn't be bold.
+  font-weight: 500;
   line-height: 1;
   padding: 5px 9px;
 }

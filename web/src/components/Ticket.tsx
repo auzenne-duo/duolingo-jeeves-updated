@@ -1,16 +1,18 @@
 import cn from "classnames";
 import * as React from "react";
+import { Link, useLocation } from "react-router-dom";
 import { LoadingDots } from "web-ui";
 
 import { getJiraDuplicates } from "api";
 import CloseButton from "components/CloseButton";
 import JiraIssues from "components/JiraIssues";
 import PlatformIcon from "components/PlatformIcon";
-import Tag from "components/Tag";
+import TagFilter from "components/TagFilter";
 import renderTicketSource from "components/renderTicketSource";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/Ticket.scss";
 import {
+  escapeElasticQuery,
   escapeHTML,
   formatAttachment,
   formatCourseId,
@@ -33,6 +35,8 @@ const Ticket: React.FC<Props> = ({
   onRequestClose,
   ticket,
 }) => {
+  const location = useLocation();
+
   let body = normalizeNewLines(escapeHTML(ticket.body_text ?? ""))
     .trim()
     .replace(/\n/g, "<br />");
@@ -55,6 +59,16 @@ const Ticket: React.FC<Props> = ({
     [ticket.issue_key],
   );
 
+  const getFilterLink = (field: string, value: string) => {
+    const params = new URLSearchParams(location.search);
+    params.delete("page");
+    params.set("q", `${field}:"${escapeElasticQuery(value)}"`);
+    return {
+      ...location,
+      search: params.toString(),
+    };
+  };
+
   return (
     <div className={cn(styles.container, className)}>
       <div className={styles.bordered}>
@@ -74,23 +88,25 @@ const Ticket: React.FC<Props> = ({
             <section className={styles.section}>
               <span className={styles.label}>App version</span>
               <div>
-                <Tag className={styles.tag} value={ticket.app_version} />
+                <TagFilter
+                  className={styles.tag}
+                  field="app_version"
+                  value={ticket.app_version}
+                />
               </div>
             </section>
           ) : null}
           {ticket.attachments?.length || ticket.fullstory_url ? (
             <section className={styles.section}>
               <span className={styles.label}>Attachments</span>
-              <div>
+              <div className={styles.attachments}>
                 {ticket.attachments?.map((url, i) => (
-                  <a className={styles.attachment} href={url} key={i}>
+                  <a href={url} key={i}>
                     {formatAttachment(url)}
                   </a>
                 ))}
                 {ticket.fullstory_url ? (
-                  <a className={styles.attachment} href={ticket.fullstory_url}>
-                    FullStory recording
-                  </a>
+                  <a href={ticket.fullstory_url}>FullStory recording</a>
                 ) : null}
               </div>
             </section>
@@ -99,9 +115,11 @@ const Ticket: React.FC<Props> = ({
             <section className={styles.section}>
               <span className={styles.label}>Course</span>
               <div>
-                <Tag
+                <TagFilter
                   className={styles.tag}
-                  value={formatCourseId(ticket.course)}
+                  field="course"
+                  text={formatCourseId(ticket.course)}
+                  value={ticket.course}
                 />
               </div>
             </section>
@@ -123,7 +141,11 @@ const Ticket: React.FC<Props> = ({
             <section className={styles.section}>
               <span className={styles.label}>OS version</span>
               <div>
-                <Tag className={styles.tag} value={ticket.os_version} />
+                <TagFilter
+                  className={styles.tag}
+                  field="os_version"
+                  value={ticket.os_version}
+                />
               </div>
             </section>
           ) : null}
@@ -131,10 +153,12 @@ const Ticket: React.FC<Props> = ({
             <section className={styles.section}>
               <span className={styles.label}>Platform</span>
               <div>
-                <PlatformIcon
-                  className={styles.icon}
-                  platform={ticket.platform}
-                />
+                <Link to={getFilterLink("platform", ticket.platform)}>
+                  <PlatformIcon
+                    className={styles.icon}
+                    platform={ticket.platform}
+                  />
+                </Link>
               </div>
             </section>
           ) : null}
@@ -173,8 +197,9 @@ const Ticket: React.FC<Props> = ({
             <section className={styles.section}>
               <span className={styles.label}>Priority</span>
               <div>
-                <Tag
+                <TagFilter
                   className={styles.tag}
+                  field="priority"
                   isPriority={["high", "highest", "urgent"].includes(
                     ticket.priority.toLowerCase(),
                   )}
@@ -193,9 +218,11 @@ const Ticket: React.FC<Props> = ({
             <section className={styles.section}>
               <span className={styles.label}>Screen</span>
               <div>
-                <Tag
+                <TagFilter
                   className={styles.tag}
-                  value={formatScreen(ticket.screen_content)}
+                  field="screen_content"
+                  text={formatScreen(ticket.screen_content)}
+                  value={ticket.screen_content}
                 />
               </div>
             </section>
@@ -203,7 +230,13 @@ const Ticket: React.FC<Props> = ({
           {ticket.screen_size ? (
             <section className={styles.section}>
               <span className={styles.label}>Screen dimensions</span>
-              <div>{ticket.screen_size}</div>
+              <div>
+                <TagFilter
+                  className={styles.tag}
+                  field="screen_size"
+                  value={ticket.screen_size}
+                />
+              </div>
             </section>
           ) : null}
           <section className={styles.section}>
@@ -221,7 +254,12 @@ const Ticket: React.FC<Props> = ({
               <span className={styles.label}>Tags</span>
               <div className={styles.tags}>
                 {ticket.tags?.map(tag => (
-                  <Tag className={styles.tag} key={tag} value={tag} />
+                  <TagFilter
+                    className={styles.tag}
+                    field="tags"
+                    key={tag}
+                    value={tag}
+                  />
                 ))}
               </div>
             </section>
@@ -229,13 +267,25 @@ const Ticket: React.FC<Props> = ({
           {ticket.ui_language ? (
             <section className={styles.section}>
               <span className={styles.label}>UI language</span>
-              <div>{ticket.ui_language}</div>
+              <div>
+                <TagFilter
+                  className={styles.tag}
+                  field="ui_language"
+                  value={ticket.ui_language}
+                />
+              </div>
             </section>
           ) : null}
           {ticket.username ? (
             <section className={styles.section}>
               <span className={styles.label}>User</span>
-              <div>{ticket.username}</div>
+              <div>
+                <TagFilter
+                  className={styles.tag}
+                  field="username"
+                  value={ticket.username}
+                />
+              </div>
             </section>
           ) : null}
           {onRequestClose ? <CloseButton onClick={onRequestClose} /> : null}

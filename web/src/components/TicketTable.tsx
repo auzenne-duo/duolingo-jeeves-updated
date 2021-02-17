@@ -2,7 +2,7 @@ import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 
 import Table from "components/Table";
-import Tag from "components/Tag";
+import TagFilter from "components/TagFilter";
 import renderTicketSource from "components/renderTicketSource";
 import imageCaretRight from "images/caret-right.svg";
 import styles from "styles/TicketTable.scss";
@@ -67,16 +67,23 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
             <td>
               <div className={styles.tags}>
                 {ticket.priority ? (
-                  <Tag
+                  <TagFilter
                     className={styles.tag}
+                    field="priority"
                     isPriority={["high", "highest", "urgent"].includes(
                       ticket.priority.toLowerCase(),
                     )}
-                    value={`${ticket.priority} priority`}
+                    text={`${ticket.priority} priority`}
+                    value={ticket.priority}
                   />
                 ) : null}
                 {ticket.tags?.map(tag => (
-                  <Tag className={styles.tag} key={tag} value={tag} />
+                  <TagFilter
+                    className={styles.tag}
+                    field="tags"
+                    key={tag}
+                    value={tag}
+                  />
                 ))}
               </div>
             </td>

@@ -191,17 +191,23 @@ const Discovery = () => {
                   </span>
                   <div className={styles.tags}>
                     {t.issue_key ? <Tag value={t.issue_key} /> : null}
-                    {t.course ? <Tag value={formatCourseId(t.course)} /> : null}
+                    {t.course ? (
+                      <Tag text={formatCourseId(t.course)} value={t.course} />
+                    ) : null}
                     {t.screen_content ? (
-                      <Tag value={formatScreen(t.screen_content)} />
+                      <Tag
+                        text={formatScreen(t.screen_content)}
+                        value={t.screen_content}
+                      />
                     ) : null}
                     {t.app_version ? (
                       <Tag
-                        value={
+                        text={
                           t.platform === "Web"
                             ? t.app_version.slice(0, 7)
                             : t.app_version
                         }
+                        value={t.app_version}
                       />
                     ) : null}
                     {t.platform ? (
