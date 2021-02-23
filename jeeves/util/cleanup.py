@@ -1,5 +1,5 @@
 import re
-from typing import Tuple
+from typing import Pattern, Tuple
 
 from jeeves.model.custom_types import JSON
 from jeeves.util.metadata import parse_metadata
@@ -50,11 +50,53 @@ def _compile_cleanup_pattern():
     return CLEANUP
 
 
+_COMMON_ZENDESK_META_HEADER_LIST = [
+    "Username",
+    "Learning language",
+    "Course",
+    "uFlags",
+    "App version",
+    "Device model",
+    "Raw Platform",
+    "Platform",
+    "OS version",
+    "UI language",
+]
+
+
+def _compile_common_zendesk_header_re() -> Pattern:
+    """
+    Compiles regular expression used to search for a sequence of metadata
+    headers that are common to many Zendesk documents. Intended to only be
+    called once, when this module is first loaded.
+
+    Parameters: None
+
+    Returns:
+        Compiled regular expression corresponding to a sequence of common
+        metadata headers
+    """
+
+    # Add a colon, capturing group, and end-of-line check to each header
+    prepared_lines = [f"{header}: (.*?)$" for header in _COMMON_ZENDESK_META_HEADER_LIST]
+
+    # Add arbitrary whitespace and beginning-of-line check between each header.
+    # We put the beginning-of-line check here instead of on every header since
+    # some documents have the first header begin on the same line as text that
+    # isn't metadata, so we don't want a beginning-of-line check on the first
+    # header.
+    complete_pattern = "\s*?^".join(prepared_lines)
+
+    return re.compile(complete_pattern, re.MULTILINE)
+
+
 _CLEANUP_PATTERN = _compile_cleanup_pattern()
 _EMPTY_STRING_PATTERN = re.compile(r'^[\s\.,\?\\\/<>\(\)\+=_`~!@#\$%^&\*\[\]\{\}\|\'";:\-]*$')
 
 
-_HYPHEN_LINE_PATTERN = re.compile("^[-\u2014]*$")
+_HYPHEN_LINE_PATTERN = re.compile("^[-\u2014]+$")
+
+_COMMON_ZENDESK_META_PATTERN = _compile_common_zendesk_header_re()
 
 
 def clean_and_parse_description(desc):
@@ -71,6 +113,24 @@ def clean_and_parse_description(desc):
     # first parse and cut out metadata, then cleanup rest of description for
     cutDesc, mdict = parse_metadata(desc + "\n")
     return _EMPTY_STRING_PATTERN.sub("", _CLEANUP_PATTERN.sub("", cutDesc.strip())), mdict
+
+
+def check_for_hyphen_line(body_text: str) -> bool:
+    """
+    Checks if a string contains a line that consists only of hyphen characters.
+    This will be used as a cheap and reasonably accurate way to check if a
+    document contains metadata information in its description, without needing
+    to fully parse the potential metadata.
+
+    Parameters:
+        body_text: Description string which we wish to check for hypen line.
+
+    Returns:
+        True if the input contains a line of just hyphens, otherwise False.
+    """
+
+    body_lines = [line.strip() for line in body_text.split("\n")]
+    return any([bool(_HYPHEN_LINE_PATTERN.match(line)) for line in body_lines])
 
 
 def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
@@ -94,6 +154,7 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
     multi_value_headers = [
         "System Information:",
         "User Information:",
+        "App Information:",
         "App information:",
         "Session information:",
         "FullStory:",
@@ -111,8 +172,9 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
             present_headers.append(line)
 
     if not present_headers:
-        print("No headers found, aborting.")
         return (body_text, {})
+
+    max_data_idx = 0
 
     # Now we collect the data for each header. For multi-value headers,
     # we know we're done collecting data when we reach another header,
@@ -136,6 +198,8 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
                 if data_idx >= len(body_lines):
                     break
 
+                max_data_idx = data_idx
+
                 line = body_lines[data_idx]
                 if not line:
                     continue
@@ -153,8 +217,8 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
                     if header == "FullStory:" and "No session recorded" in line:
                         sub_dict["fullstory"] = line
                     else:
-                        print("Error occured during subdata parsing, aborting.")
-                        return (body_text, {})
+                        max_data_idx -= 1
+                        break
 
                 key_str = (
                     line[:colon_idx].replace(" ", "_").replace("(", "").replace(")", "").lower()
@@ -178,12 +242,60 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
         rover_idx -= 1
         line = body_lines[rover_idx]
 
-    filtered_body_text = ""
+    filtered_body_text_prologue = ""
     if rover_idx > 0:
         # We have actual body text
-        filtered_body_text = "\n".join(body_lines[: rover_idx - 1])
+        filtered_body_text_prologue = "\n".join(body_lines[: rover_idx - 1]).strip()
 
-    raw_metadata_text = "\n".join(body_lines[rover_idx:])
+    filtered_body_text_epilogue = ""
+    if max_data_idx < len(body_lines):
+        filtered_body_text_epilogue = "\n".join(body_lines[max_data_idx + 1 :]).strip()
+
+    filtered_body_text = f"{filtered_body_text_prologue}\n{filtered_body_text_epilogue}"
+
+    raw_metadata_text = "\n".join(body_lines[rover_idx : max_data_idx + 1])
     extracted_metadata["raw"] = raw_metadata_text
 
     return (filtered_body_text, extracted_metadata)
+
+
+def extract_common_zendesk_headers(body_text: str) -> Tuple[str, JSON]:
+    """
+    Checks for a specific combination and ordering of known metadata headers
+    in provided body text. If found, parses out the metadata and returns the
+    cleaned body text and parsed metadata as separate objects.
+
+    Checking for specific headers in a specific order goes against the spirit
+    of the parsing function I already put in this file. However, in some limited
+    testing, these headers in this order appeared in over 90% of the Zendesk
+    documents we couldn't parse with the existing method, and I would rather
+    Ship It than come up with one method that works on both cases.
+
+    Parameters:
+        body_text: Description section of a document that we wish to clean
+
+    Returns:
+        A two-tuple where the first element is the body text with the metadata
+        removed and the second element is the metadata as JSON. If the body text
+        cannot be parsed, instead the first element will be the unmodified body
+        text and the second element will be an empty dictionary.
+    """
+
+    m = _COMMON_ZENDESK_META_PATTERN.search(body_text)
+
+    if not m:
+        return (body_text, {})
+
+    keys = [header.replace(" ", "_").lower() for header in _COMMON_ZENDESK_META_HEADER_LIST]
+    values = list(m.groups())
+    if len(keys) != len(values):
+        return (body_text, {})
+
+    kv_pairs = zip(keys, values)
+    parsed_metadata = {key: val for (key, val) in kv_pairs}
+
+    prologue = body_text[: m.start()].strip()
+    epilogue = body_text[m.end() :].strip()
+    filtered_body_text = f"{prologue}\n{epilogue}"
+
+    return (filtered_body_text, parsed_metadata)

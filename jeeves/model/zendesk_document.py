@@ -10,7 +10,12 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.classify import detect_language, detect_product
-from jeeves.util.cleanup import clean_and_parse_description, extract_duolingo_metadata
+from jeeves.util.cleanup import (
+    check_for_hyphen_line,
+    clean_and_parse_description,
+    extract_common_zendesk_headers,
+    extract_duolingo_metadata,
+)
 from jeeves.util.date_util import parse_external_datetime
 from jeeves.util.metadata_standardizer import MetaStdizer
 
@@ -23,6 +28,8 @@ class ZendeskDocument(JeevesDocument):
     via: JSON = attr.ib()
     tags: List[str] = attr.ib()
     requester_id: str = attr.ib()
+    # TODO: This metadata field is likely unused due to the introduction of the
+    # duolingo_metadata field. Confirm its disuse and deprecate in future issue.
     metadata: JSON = attr.ib()
 
     @staticmethod
@@ -50,10 +57,12 @@ class ZendeskDocument(JeevesDocument):
 
         body_text = external_json["description"]
         duolingo_metadata = {}
-        if is_shake_to_report:
+        if is_shake_to_report or check_for_hyphen_line(body_text):
             body_text, duolingo_metadata = extract_duolingo_metadata(body_text)
+        if not duolingo_metadata:
+            body_text, duolingo_metadata = extract_common_zendesk_headers(body_text)
 
-        body, metadata = clean_and_parse_description(body_text)
+        _, metadata = clean_and_parse_description(body_text)
         header = external_json["subject"] if external_json["subject"] else ""
 
         link_url_base = "https://duolingotest.zendesk.com/agent"
@@ -83,7 +92,7 @@ class ZendeskDocument(JeevesDocument):
             date_time=parse_external_datetime(external_json["created_at"]),
             header_text=header,
             body_text=body_text,
-            language=detect_language(body),
+            language=detect_language(body_text),
             links=[ticket_link, user_link],
             shake_to_report_category=ShakeToReportCategory.EXTERNAL
             if is_shake_to_report
