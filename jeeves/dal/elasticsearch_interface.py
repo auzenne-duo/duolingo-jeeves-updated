@@ -46,6 +46,7 @@ class ElasticsearchDAL:
             m = Mapping()
             m.field("data_source", "keyword")
             m.field("document_id", "keyword")
+            m.field("jeeves_uid", "keyword")
             m.field("shake_to_report_category", "keyword")
             m.field("app_version", "keyword")
             m.field("course", "keyword")
@@ -202,7 +203,7 @@ class ElasticsearchDAL:
         s = Search(using=self._es, index=self._indexname)
 
         if jeeves_id:
-            s = s.query("ids", values=[jeeves_id])
+            s = s.filter("term", jeeves_uid=jeeves_id)
 
         else:
             timestamp_dict = {"time_zone": "America/New_York"}
@@ -292,20 +293,20 @@ class ElasticsearchDAL:
         except RequestError as e:
             return self._handle_es_request_errors(e)
 
-    def bulk_index_tickets(self, json_tickets: List[JSON]) -> None:
+    def bulk_index_tickets(self, tickets: List[JeevesDocument]) -> None:
         """
         Store multiple tickets into Elasticsearch.
 
         Parameters:
-            json_tickets: JSON representation of tickets to store.
+            tickets: Object representation of tickets to store.
         """
         bulk_actions = [
             {
                 "_index": self._indexname,
-                "_source": ticket,
-                "_id": ticket["jeeves_uid"],
+                "_source": ticket.serialize_to_json(ticket),
+                "_id": ticket.generate_elasticsearch_internal_id(ticket),
             }
-            for ticket in json_tickets
+            for ticket in tickets
         ]
         bulk(self._es, bulk_actions)
 

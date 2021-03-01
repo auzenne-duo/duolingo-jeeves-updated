@@ -71,7 +71,7 @@ def run_spike_detector_for_batch(
     for ticket in new_ticket_batch:
         new_ticket_dates_per_lang[ticket.language].add(ticket.date_time.date())
         new_ticket_ids_per_lang[ticket.language].append(
-            f"{ticket.data_source}_{ticket.document_id}"
+            ticket.generate_elasticsearch_internal_id(ticket)
         )
 
     batch_spike_list = []

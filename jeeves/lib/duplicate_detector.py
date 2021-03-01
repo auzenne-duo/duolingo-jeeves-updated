@@ -44,7 +44,7 @@ def calculate_duplicates_for_JIRA_issue(
     if len(filter_results) == 0:
         jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
         base_document = jira_manager.download_specific_issue(issue_key)
-        ElasticDAL.bulk_index_tickets([base_document.serialize_to_json(base_document)])
+        ElasticDAL.bulk_index_tickets([base_document])
 
     elif len(filter_results) == 1:
         base_document = filter_results[0]

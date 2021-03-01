@@ -1,6 +1,7 @@
 """
 Our model for a ticket from the Zendesk API
 """
+from hashlib import sha1
 from typing import List
 
 import attr
@@ -112,7 +113,7 @@ class ZendeskDocument(JeevesDocument):
             priority=external_json["priority"],
             via=external_json["via"],
             tags=external_json["tags"],
-            requester_id=external_json["requester_id"],
+            requester_id=str(external_json["requester_id"]),
             metadata=metadata,
         )
 
@@ -201,3 +202,19 @@ class ZendeskDocument(JeevesDocument):
             return False
 
         return True
+
+    @classmethod
+    def generate_elasticsearch_internal_id(cls, document: JeevesDocument) -> str:
+        """
+        Please see parent class for documentation
+        """
+
+        # Using an insecure hash like SHA-1 is acceptable because this context
+        # is not security critical
+        hash_generator = sha1()
+
+        hash_generator.update(document.get_data_source_identifier().encode())
+        hash_generator.update(document.body_text.encode())
+        hash_generator.update(document.requester_id.encode())
+
+        return hash_generator.hexdigest()

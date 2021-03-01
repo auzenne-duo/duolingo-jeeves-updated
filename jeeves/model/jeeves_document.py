@@ -136,3 +136,30 @@ class JeevesDocument(ABC):
         """
         # Having non-empty abstract methods is explicitly allowed by the Python spec
         return document.language in SUPPORTED_LANGUAGES.__members__
+
+    @classmethod
+    def generate_elasticsearch_internal_id(cls, document: "JeevesDocument") -> str:
+        """
+        Generates a string to be used as a unique internal identifier for a
+        given document. Previously, the internal identifier in question was
+        re-used from the more human-friendly `jeeves_uid` field, which was in
+        turn generated based on a document's data source and source-specific
+        identifier. However, some data sources were returning documents with
+        nearly identical contents but different source-specific identifiers.
+        After some research, the recommendation in the Elasticsearch
+        community is to leverage the uniqueness of Elasticsearch's internal
+        ID field to prevent duplicates, since attempting to index a document
+        using an internal ID that already exists will just overwrite the
+        existing document instead of creating a new entry. As such, if a data
+        source can potentially return duplicate records with different
+        identifiers in an undesired way, override this method as appropriate
+        to prevent this duplication.
+
+        Parameters:
+            document: The document for which we want to generate an identifer.
+
+        Returns:
+            A string to be used as an identifier that can be leveraged for
+            document de-duplication if needed.
+        """
+        return document.jeeves_uid

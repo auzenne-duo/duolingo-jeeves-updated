@@ -97,9 +97,7 @@ def _perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
     Parameters:
         ticket_list: List of documents to index
     """
-    ElasticDAL.bulk_index_tickets(
-        [document.serialize_to_json(document) for document in ticket_list]
-    )
+    ElasticDAL.bulk_index_tickets(ticket_list)
 
     time.sleep(2)
 
