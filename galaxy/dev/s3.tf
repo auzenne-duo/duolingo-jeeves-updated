@@ -1,3 +1,14 @@
+resource "aws_s3_bucket" "jeeves-document-cache-dev" {
+  bucket = "jeeves-document-cache-dev"
+
+  tags = {
+    product     = var.product
+    service     = var.service
+    environment = var.environment
+    owner       = var.owner
+  }
+}
+
 data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
   statement {
     actions = [
@@ -5,7 +16,10 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
       "s3:GetBucketLocation",
     ]
 
-    resources = [data.aws_s3_bucket.duolingo-jeeves.arn]
+    resources = [
+      data.aws_s3_bucket.duolingo-jeeves.arn,
+      aws_s3_bucket.jeeves-document-cache-dev.arn,
+    ]
   }
 
   statement {
@@ -16,7 +30,10 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
       "s3:GetObjectAcl",
     ]
 
-    resources = ["${data.aws_s3_bucket.duolingo-jeeves.arn}/*"]
+    resources = [
+      "${data.aws_s3_bucket.duolingo-jeeves.arn}/*",
+      "${aws_s3_bucket.jeeves-document-cache-dev.arn}/*"
+    ]
   }
 }
 
