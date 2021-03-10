@@ -132,29 +132,3 @@ resource "aws_sqs_queue" "jeeves-pipeline-break-verify-index-deadletter-dev" {
   }
 
 }
-
-data "aws_iam_policy_document" "sqs-rw-jeeves-pipeline-break" {
-  statement {
-    actions = [
-      "sqs:ListQueues",
-      "sqs:GetQueueAttributes",
-      "sqs:GetQueueUrl",
-      "sqs:ListDeadLetterSourceQueues",
-      "sqs:ReceiveMessage",
-      "sqs:ChangeMessageVisibility",
-      "sqs:ChangeMessageVisibilityBatch",
-      "sqs:DeleteMessage",
-      "sqs:DeleteMessageBatch",
-      "sqs:PurgeQueue",
-      "sqs:SendMessage",
-      "sqs:SendMessageBatch",
-    ]
-
-    resources = [
-      aws_sqs_queue.jeeves-pipeline-break-download-verify-dev.arn,
-      aws_sqs_queue.jeeves-pipeline-break-download-verify-deadletter-dev.arn,
-      aws_sqs_queue.jeeves-pipeline-break-verify-index-dev.arn,
-      aws_sqs_queue.jeeves-pipeline-break-verify-index-deadletter-dev.arn,
-    ]
-  }
-}
