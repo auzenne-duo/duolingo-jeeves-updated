@@ -52,7 +52,9 @@ const DateRangeInput: React.FC<Props> = ({
 
   const handleStartChange = (e: DatePickerChangeEvent) => {
     onChange?.({ from: e.newValue, to: e.other });
-    endRef.current?.focus();
+    if (!e.keepOpen) {
+      endRef.current?.focus();
+    }
   };
 
   const popoverPosition: PopoverPositionProps = {
