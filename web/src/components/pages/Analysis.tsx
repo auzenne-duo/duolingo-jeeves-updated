@@ -242,13 +242,17 @@ const Analysis = () => {
           <span>
             You can specify a field to search by, if you have the full name of
             the field. For example, these queries will find tickets for
-            particular app versions on iOS and Web, respectively:
+            particular app versions on iOS and Web, respectively, and tickets
+            from Luis707110 on iOS:
             <ul>
               <li>
                 <SearchExample query='app_version:"6.100.0.3"' />
               </li>
               <li>
                 <SearchExample query='app_version:"1d5ab12bdfe724c626843f3db7b29bcb0e52618a"' />
+              </li>
+              <li>
+                <SearchExample query='username:"Luis707110" AND platform:"iOS"' />
               </li>
             </ul>
           </span>
