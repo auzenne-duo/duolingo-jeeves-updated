@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
---extra-index-url https://pypi.duolingo.com/pypi/
+--index-url https://pypi.duolingo.com/pypi/
 
 attrs==20.2.0
 boto3==1.5.27             # via duolingo-base

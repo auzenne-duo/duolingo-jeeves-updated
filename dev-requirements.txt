@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file dev-requirements.txt dev-requirements.in
 #
---extra-index-url https://pypi.duolingo.com/pypi/
+--index-url https://pypi.duolingo.com/pypi/
 
 apipkg==1.4               # via execnet
 astroid==1.5.3            # via pylint
