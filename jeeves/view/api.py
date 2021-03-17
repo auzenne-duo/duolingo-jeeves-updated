@@ -291,6 +291,43 @@ def cement_duplicates():
     return json.jsonify({"Link": "Created"})
 
 
+@blueprint_api.route("/api/1/submit_duplicates", methods=["POST"])
+def submit_duplicates():
+    """
+    Wrapper around mark_jira_duplicates that allows submitting multiple duplicates and closes the
+    newly created issue.
+    Post body parameters:
+        newIssue (str): The key of the newly created Jira issue
+        duplicates (list[str]): The keys of Jira issues to be linked
+
+    Returns:
+        {
+            closed (bool): Whether the issue was successfully closed
+        }
+    """
+    try:
+        data = request.get_json()
+        in_key = data["newIssue"]
+        out_keys = data["duplicates"]
+        if not isinstance(out_keys, list):
+            out_keys = [out_keys]
+        elif len(out_keys) == 0:
+            abort(make_response("Please specifify at least one duplicate", 400))
+        remote_successes = [
+            JiraManager.mark_duplicate_remote(out_key, in_key) for out_key in out_keys
+        ]
+        if False in remote_successes:
+            abort(
+                make_response(
+                    "Something went wrong. Make sure your issue keys exist and try again later.",
+                    400,
+                )
+            )
+        return json.jsonify({"closed": JiraManager.close_as_duplicate(in_key)})
+    except KeyError:
+        abort(make_response("Missing required field(s)", 400))
+
+
 @blueprint_api.route("/", defaults={"path": ""})
 @blueprint_api.route("/<path:path>")
 def catch_all(path):

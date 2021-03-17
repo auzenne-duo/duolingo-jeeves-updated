@@ -166,3 +166,26 @@ class JiraManager(JeevesManager):
             return False
 
         return True
+
+    @staticmethod
+    def close_as_duplicate(issue_key: str) -> bool:
+        """
+        Closes the specified issue as a duplicate
+        """
+        url = f"https://duolingo.atlassian.net/rest/api/3/issue/{issue_key}/transitions"
+        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        data = {
+            # This is the close transition ID for a bug issue type. Since Shakira only creates bugs, this is fine.
+            "transition": {"id": "251"},
+            "fields": {"resolution": {"name": "Duplicate"}},
+        }
+        try:
+            r = post(url, auth=auth, headers=headers, data=json.dumps(data))
+            r.raise_for_status()
+
+        except RequestException as e:
+            print_request_exception(e)
+            return False
+
+        return True
