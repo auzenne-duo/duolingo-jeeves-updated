@@ -7,3 +7,16 @@ memcached:
 elasticsearch:
   host: https://vpc-duolingo-jeeves-es-prod-eg2rc47wen2dsgmzunu4whvfju.us-east-1.es.amazonaws.com
   port: 443
+
+sqs_download_verify_pipeline:
+  queue_url: https://sqs.us-east-1.amazonaws.com/940168671796/jeeves-pipeline-break-download-verify
+  region_name: us-east-1
+  endpoint_url: https://sqs.us-east-1.amazonaws.com
+
+sqs_verify_index_pipeline:
+  queue_url: https://sqs.us-east-1.amazonaws.com/940168671796/jeeves-pipeline-break-verify-index
+  region_name: us-east-1
+  endpoint_url: https://sqs.us-east-1.amazonaws.com
+
+s3_document_cache:
+  bucket_name: jeeves-document-cache

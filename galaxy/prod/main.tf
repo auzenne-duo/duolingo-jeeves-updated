@@ -156,3 +156,57 @@ module "duolingo-jeeves-worker-cron" {
   schedule_expression  = "cron(0 8 * * ? *)"
   release_version      = var.release_version
 }
+
+module "duolingo-jeeves-sqs-worker-1" {
+  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  environment          = var.environment
+  service              = var.service
+  subservice           = "sqs-worker-1"
+  cpu                  = 1024 # 1024 equals one core
+  memory               = 4096 # in MB
+  min_count            = 1    # Minimum number of tasks to run in autoscaling group
+  max_count            = 8    # Maximum number of tasks to run in autoscaling group
+  product              = var.product
+  owner                = var.owner       # The name of the owner for this service
+  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  container_definition = "sqs-worker-1.json"
+  release_version      = var.release_version
+
+  environment_vars = [
+    {
+      name  = "PYTHONPATH"
+      value = "/code"
+    },
+  ]
+
+  sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-download-verify.id
+  scale_out_sqs       = 250
+  scale_out_count_sqs = 16
+}
+
+module "duolingo-jeeves-sqs-worker-2" {
+  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  environment          = var.environment
+  service              = var.service
+  subservice           = "sqs-worker-2"
+  cpu                  = 1024 # 1024 equals one core
+  memory               = 4096 # in MB
+  min_count            = 1    # Minimum number of tasks to run in autoscaling group
+  max_count            = 32   # Maximum number of tasks to run in autoscaling group
+  product              = var.product
+  owner                = var.owner       # The name of the owner for this service
+  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  container_definition = "sqs-worker-2.json"
+  release_version      = var.release_version
+
+  environment_vars = [
+    {
+      name  = "PYTHONPATH"
+      value = "/code"
+    },
+  ]
+
+  sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-verify-index.id
+  scale_out_sqs       = 2500
+  scale_out_count_sqs = 32
+}
