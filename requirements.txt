@@ -29,6 +29,7 @@ langid==1.1.6
 markupsafe==1.1.1         # via jinja2
 numpy==1.13.0
 packaging==17.1           # via deprecation
+prometheus-client==0.9.0  # via duolingo-base
 protobuf==3.5.2.post1     # via duolingo-proto
 pyjwt==1.5.0              # via duolingo-base
 pymemcache==1.4.3         # via duolingo-base
@@ -36,7 +37,8 @@ pyparsing==2.2.0          # via packaging
 python-dateutil==2.8.1    # via botocore, elasticsearch-dsl
 pytz==2020.1
 pyyaml==3.12              # via duolingo-base
-redis==2.10.6             # via duolingo-base
+redis-py-cluster==1.3.6   # via duolingo-base
+redis==2.10.6             # via duolingo-base, redis-py-cluster
 requests==2.18.4          # via duolingo-base, rollbar
 rollbar==0.13.17          # via duolingo-base
 s3transfer==0.1.10        # via boto3

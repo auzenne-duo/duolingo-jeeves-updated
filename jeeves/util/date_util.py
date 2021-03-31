@@ -4,6 +4,7 @@ A utility that offers date-related functions.
 import datetime
 from dateutil.parser import parse
 import pytz
+from typing import Iterator
 
 _DATE_FORMAT = "%Y-%m-%d"
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"  # ISO Format https://www.w3.org/TR/NOTE-datetime
@@ -108,3 +109,32 @@ def parse_external_datetime(datetime_str: str) -> datetime.datetime:
     """
 
     return parse(datetime_str).replace(tzinfo=pytz.utc)
+
+
+def yield_intermediate_dates(
+    start_date: datetime.date, end_date: datetime.date
+) -> Iterator[datetime.date]:
+    """
+    Given two dates that represent the endpoints of a range of dates, yield all
+    dates between and including the two provided dates.
+
+    If start_date comes after end_date, a ValueError is raised.
+
+    Parameters:
+        start_date: Start of date range, first value yielded
+        end_date: End of date range, last value yielded
+
+    Yields:
+        datetime.date objects representing dates between start_date and end_date
+        in chronological order.
+    """
+
+    if end_date < start_date:
+        raise ValueError(
+            f"Inappropriate dates, start_date given as {start_date}, end_date given as {end_date}."
+        )
+
+    rover_date = start_date
+    while rover_date <= end_date:
+        yield rover_date
+        rover_date = get_n_days_ago(rover_date, -1)

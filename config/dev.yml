@@ -5,5 +5,25 @@ memcached:
   port: 11211
 
 elasticsearch:
+  #host: host.docker.internal
+  #port: 9200
   host: https://vpc-duolingo-jeeves-es-dev-4xpqalvnvjkuon2qvzqyep3vxa.us-east-1.es.amazonaws.com
   port: 443
+
+sqs_download_verify_pipeline:
+  queue_url: https://sqs.us-east-1.amazonaws.com/940168671796/jeeves-pipeline-break-download-verify-dev
+  #queue_url: http://host.docker.internal:4566/000000000000/my_second_queue
+  region_name: us-east-1
+  endpoint_url: https://sqs.us-east-1.amazonaws.com
+  #endpoint_url: http://host.docker.internal:4566
+
+sqs_verify_index_pipeline:
+  queue_url: https://sqs.us-east-1.amazonaws.com/940168671796/jeeves-pipeline-break-verify-index-dev
+  #queue_url: http://host.docker.internal:4566/000000000000/your_second_queue
+  region_name: us-east-1
+  endpoint_url: https://sqs.us-east-1.amazonaws.com
+  #endpoint_url: http://host.docker.internal:4566
+
+s3_document_cache:
+  #endpoint_url: http://host.docker.internal:4566
+  bucket_name: jeeves-document-cache-dev

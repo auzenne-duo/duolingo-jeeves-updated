@@ -53,6 +53,8 @@ RUN apk add --no-cache --virtual .build-deps \
 COPY . .
 COPY --from=web-builder /code/dist ./web/dist
 
+ENV PYTHONPATH /code
+
 EXPOSE 5000
 
 CMD ["uwsgi", "uwsgi_dev.ini"]

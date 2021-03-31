@@ -11,7 +11,7 @@
         "hardLimit": 65535
     }],
     "environment": ${environment_vars},
-    "command": ["python","./jeeves/scripts/sqs_worker_1.py"],
+    "command": ["python","./jeeves/scripts/sqs_verify_worker.py"],
     "logConfiguration": {
     "logDriver": "awslogs",
         "options": {

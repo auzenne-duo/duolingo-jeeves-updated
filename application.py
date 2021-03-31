@@ -15,7 +15,6 @@ from duolingo_base.view.auth import auth_after_request, requires_auth
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.util.json_encoder import JeevesJSONEncoder
 
 LOG = logging.getLogger("application")
 
@@ -40,8 +39,6 @@ application.before_request(auth_before_request)
 application.after_request(auth_after_request)
 
 application.registry = registry.initialize()
-
-application.json_encoder = JeevesJSONEncoder
 
 # Register blueprints
 

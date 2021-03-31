@@ -7,14 +7,17 @@ from datetime import datetime
 import json
 import os
 import time
-from typing import Iterator, Type
+from typing import Type
 
 from requests import Response, Session
 
+from duolingo_base.dal.s3 import S3Client
+
 from jeeves.manager.jeeves_manager import JeevesManager
+from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.zendesk_document import ZendeskDocument
-from jeeves.util.date_util import datetime_to_str
+from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
 
 
 _USER = os.environ.get("ZENDESK_USER")
@@ -28,6 +31,13 @@ class ZendeskManager(JeevesManager):
         Please see parent class for documentation
         """
         return ZendeskDocument
+
+    @staticmethod
+    def _get_checkpoint_file_name() -> str:
+        """
+        Returns the name of the S3 file used for storing checkpoint data.
+        """
+        return f"{ZendeskManager.get_managed_document_type().get_data_source_identifier()}/checkpoint_data.txt"
 
     @staticmethod
     def _rate_limited_get(s: Session, request_url: str) -> Response:
@@ -67,16 +77,19 @@ class ZendeskManager(JeevesManager):
         return r
 
     @staticmethod
-    def download_documents(start_timestamp: float) -> Iterator[JeevesDocument]:
+    def update_s3_if_necessary(s3_client, bucket_name: str, default_start_timestamp: float) -> None:
         """
         Please see parent class for documentation
         """
 
-        zendesk_host = "https://duolingotest.zendesk.com"
+        _CHECKPOINT_FILE = ZendeskManager._get_checkpoint_file_name()
+        if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
+            new_checkpoint_string = str(int(default_start_timestamp))
+            s3_client.upload(bucket_name, _CHECKPOINT_FILE, new_checkpoint_string)
 
-        next_url = (
-            f"{zendesk_host}/api/v2/incremental/tickets.json?start_time={int(start_timestamp)}"
-        )
+        start_timestamp = int(s3_client.download(bucket_name, _CHECKPOINT_FILE))
+        zendesk_host = "https://duolingotest.zendesk.com"
+        next_url = f"{zendesk_host}/api/v2/incremental/tickets.json?start_time={start_timestamp}"
 
         urls = []
 
@@ -99,41 +112,18 @@ class ZendeskManager(JeevesManager):
                         raise Exception("Error returned from Zendesk")
 
                     for ticket_json in j["tickets"]:
-                        ticket_json.update({"attachments": []})
-                        test_doc = ZendeskDocument.deserialize_from_external_json(ticket_json)
-                        # This is a speedup measure, don't bother downloading attachments
-                        # for otherwise invalid documents.
-                        if not ZendeskDocument.check_should_index_document(test_doc):
-                            continue
-
-                        attachments = []
-
-                        # Only download attachments for beta feedback items until
-                        # we figure out a faster way to do this
-                        if test_doc.shake_to_report_category.name == "EXTERNAL":
-                            ticket_id = ticket_json["id"]
-                            comments_url = (
-                                f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
-                            )
-                            comments_response = ZendeskManager._rate_limited_get(s, comments_url)
-                            comments_structure = json.loads(comments_response.text)
-                            for com in comments_structure.get("comments", {}):
-                                for attach in com.get("attachments", {}):
-                                    attachments.append(attach["content_url"])
-
-                        ticket_json["attachments"] = attachments
-
-                        yield ZendeskDocument.deserialize_from_external_json(ticket_json)
+                        ZendeskManager._store_document_to_s3(s3_client, bucket_name, ticket_json)
 
                     if j["end_time"]:
                         print(
                             f"Downloaded {len(j['tickets'])} tickets until: {datetime_to_str(datetime.fromtimestamp(j['end_time']))}"
                         )
+                        s3_client.upload(bucket_name, _CHECKPOINT_FILE, str(int(j["end_time"])))
 
                     if j["next_page"]:
                         next_url = j["next_page"]
 
-                    if j["count"] < 1000:
+                    if j["end_of_stream"]:
                         break
 
                 except Exception as e:
@@ -152,3 +142,68 @@ class ZendeskManager(JeevesManager):
                         continue
                     # If something non-recoverable has happened, escalate.
                     raise (e)
+
+    @staticmethod
+    def _store_document_to_s3(s3_client: S3Client, bucket_name: str, doc: JSON) -> None:
+        """
+        Stores a given document to a given S3 bucket.
+        File path in bucket is 'Zendesk/<date>/<document ID>'
+
+        Parameters:
+            s3_client: Duolingo base library S3 object. Expected to have write
+                       access to the bucket specified by bucket_name.
+            bucket_name: Name of the bucket we want to store the document to.
+            doc: JSON representation of a document we wish to store.
+        """
+
+        identifier_directory = (
+            ZendeskManager.get_managed_document_type().get_data_source_identifier()
+        )
+        date_directory = date_to_str(parse_external_datetime(doc["created_at"]))
+        full_path = f"{identifier_directory}/{date_directory}/{doc['id']}"
+
+        s3_client.upload(bucket_name, full_path, json.dumps(doc))
+
+    @staticmethod
+    def get_most_recent_s3_populated_date(s3_client: S3Client, bucket_name: str) -> datetime:
+        """
+        Please see parent class for documentation.
+        """
+        checkpoint_timestamp = int(
+            s3_client.download(bucket_name, ZendeskManager._get_checkpoint_file_name())
+        )
+        return datetime.fromtimestamp(checkpoint_timestamp)
+
+    @staticmethod
+    def process_document(doc_json: JSON) -> JeevesDocument:
+        """
+        Please see parent class for documentation.
+        """
+        doc_json.update({"attachments": []})
+        test_doc = ZendeskDocument.deserialize_from_external_json(doc_json)
+        # This is a speedup measure, don't bother downloading attachments
+        # for otherwise invalid documents.
+        if ZendeskDocument.check_should_index_document(test_doc):
+            return test_doc
+
+        """
+        TODO: Keeping this code here so that when I go back later to figure
+              out how to download attachments, I need to do slightly less
+              digging through Zendesk's documentation.
+        """
+        # Only download attachments for beta feedback items until
+        # we figure out a faster way to do this
+        # zendesk_host = "https://duolingotest.zendesk.com"
+        # if test_doc.shake_to_report_category.name == "EXTERNAL":
+        #     ticket_id = ticket_json["id"]
+        #     comments_url = (
+        #         f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
+        #     )
+        #     comments_response = ZendeskManager._rate_limited_get(s, comments_url)
+        #     comments_structure = json.loads(comments_response.text)
+        #     for com in comments_structure.get("comments", {}):
+        #         for attach in com.get("attachments", {}):
+        #             attachments.append(attach["content_url"])
+        # ticket_json["attachments"] = attachments
+
+        return None

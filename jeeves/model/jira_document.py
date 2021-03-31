@@ -126,10 +126,16 @@ class JiraDocument(JeevesDocument):
 
         return {
             "author": comment_json["author"],
-            "body": cls._compress_rich_text(comment_json["body"]),
-            "created": parse_external_datetime(comment_json["created"]),
+            "body": comment_json["body"]
+            if isinstance(comment_json["body"], str)
+            else cls._compress_rich_text(comment_json["body"]),
+            "created": parse_external_datetime(comment_json["created"])
+            if isinstance(comment_json["created"], str)
+            else comment_json["created"],
             "id": comment_json["id"],
-            "updated": parse_external_datetime(comment_json["updated"]),
+            "updated": parse_external_datetime(comment_json["updated"])
+            if isinstance(comment_json["updated"], str)
+            else comment_json["updated"],
         }
 
     @classmethod
@@ -214,7 +220,9 @@ class JiraDocument(JeevesDocument):
             data_source=internal_json["data_source"],
             document_id=internal_json["document_id"],
             jeeves_uid=internal_json["jeeves_uid"],
-            date_time=internal_json["date_time"],
+            date_time=parse_external_datetime(internal_json["date_time"])
+            if isinstance(internal_json["date_time"], str)
+            else internal_json["date_time"],
             header_text=internal_json["header_text"],
             body_text=internal_json["body_text"],
             language=internal_json["language"],
@@ -238,16 +246,22 @@ class JiraDocument(JeevesDocument):
             issue_type=internal_json["issue_type"],
             project=internal_json["project"],
             linked_duplicate_keys=internal_json["linked_duplicate_keys"],
-            creation_date=internal_json["creation_date"],
-            updated_date=internal_json["updated_date"],
-            resolution_date=internal_json["resolution_date"],
+            creation_date=parse_external_datetime(internal_json["creation_date"])
+            if isinstance(internal_json["creation_date"], str)
+            else internal_json["creation_date"],
+            updated_date=parse_external_datetime(internal_json["updated_date"])
+            if isinstance(internal_json["updated_date"], str)
+            else internal_json["updated_date"],
+            resolution_date=parse_external_datetime(internal_json["resolution_date"])
+            if isinstance(internal_json["resolution_date"], str)
+            else internal_json["resolution_date"],
             status=internal_json["status"],
             components=internal_json["components"],
             features=internal_json["features"],
             priority=internal_json["priority"],
             reporter=internal_json["reporter"],
             assignee=internal_json["assignee"],
-            comments=internal_json["comments"],
+            comments=[cls._deserialize_comment(comment) for comment in internal_json["comments"]],
             labels=internal_json["labels"],
         )
 

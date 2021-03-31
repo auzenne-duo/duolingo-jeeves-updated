@@ -1,18 +1,23 @@
 """
 Manager for JIRA documents.
 """
-
+from datetime import datetime
 import json
 import os
-from typing import Iterator, Optional
+from typing import Optional
 
 from requests import get, post, Session
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 
+from duolingo_base.dal.s3 import S3Client
+
 from jeeves.manager.jeeves_manager import JeevesManager
+
+from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
+from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.error_util import print_request_exception
 
 _USERNAME = os.environ.get("JIRA_USERNAME")
@@ -28,19 +33,27 @@ class JiraManager(JeevesManager):
         return JiraDocument
 
     @staticmethod
-    def download_documents(start_timestamp: float) -> Iterator[JeevesDocument]:
+    def _get_checkpoint_file_name() -> str:
+        """
+        Returns the name of the S3 file used for storing checkpoint data.
+        """
+        return f"{JiraManager.get_managed_document_type().get_data_source_identifier()}/checkpoint_data.txt"
+
+    @staticmethod
+    def update_s3_if_necessary(s3_client, bucket_name: str, default_start_timestamp: float) -> None:
         """
         Please see parent class for documentation
         """
 
-        start_timestamp_millis = int(start_timestamp * 1000)
+        _CHECKPOINT_FILE = JiraManager._get_checkpoint_file_name()
+        if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
+            new_checkpoint_string = str(int(default_start_timestamp * 1000))
+            s3_client.upload(bucket_name, _CHECKPOINT_FILE, new_checkpoint_string)
 
+        start_timestamp_millis = int(s3_client.download(bucket_name, _CHECKPOINT_FILE))
         jira_host = "https://duolingo.atlassian.net"
-
         template_url = f"{jira_host}/rest/api/3/search"
-
         headers = {"Accept": "application/json"}
-
         # This is apparently a restriction of the JIRA API; trying to get more
         # than 1000 issues at a time will only return the first 1000.
         max_issues_per_fetch = 1000
@@ -62,20 +75,26 @@ class JiraManager(JeevesManager):
                 url_params["maxResults"] = min(max_issues_per_fetch, response_json["total"])
 
                 while url_params["startAt"] < response_json["total"]:
-
                     r = s.get(template_url, params=url_params)
                     r.raise_for_status()
-
                     response_json = json.loads(r.text)
                     for issue in response_json["issues"]:
                         attachments = []
-
                         if "attachment" in issue["fields"]:
                             for attachment_json in issue["fields"]["attachment"]:
                                 attachments.append(attachment_json["content"])
-
                         issue["attachments"] = attachments
-                        yield JiraDocument.deserialize_from_external_json(issue)
+                        # Store to S3
+                        issue_updated_time = parse_external_datetime(issue["fields"]["updated"])
+                        issue_updated_date = date_to_str(issue_updated_time)
+                        upload_path = f"{JiraManager.get_managed_document_type().get_data_source_identifier()}/{issue_updated_date}/{issue['id']}"
+                        s3_client.upload(bucket_name, upload_path, json.dumps(issue))
+                        issue_updated_millis = int(issue_updated_time.timestamp() * 1000)
+                        if issue_updated_millis > start_timestamp_millis:
+                            start_timestamp_millis = issue_updated_millis
+                            s3_client.upload(
+                                bucket_name, _CHECKPOINT_FILE, f"{start_timestamp_millis}"
+                            )
 
                     url_params["startAt"] += len(response_json["issues"])
 
@@ -168,6 +187,16 @@ class JiraManager(JeevesManager):
         return True
 
     @staticmethod
+    def get_most_recent_s3_populated_date(s3_client: S3Client, bucket_name: str) -> datetime:
+        """
+        Please see parent class for documentation.
+        """
+        checkpoint_timestamp = (
+            int(s3_client.download(bucket_name, JiraManager._get_checkpoint_file_name())) // 1000
+        )
+        return datetime.fromtimestamp(checkpoint_timestamp)
+
+    @staticmethod
     def close_as_duplicate(issue_key: str) -> bool:
         """
         Closes the specified issue as a duplicate
@@ -189,3 +218,13 @@ class JiraManager(JeevesManager):
             return False
 
         return True
+
+    @staticmethod
+    def process_document(doc_json: JSON) -> Optional[JeevesDocument]:
+        """
+        Please see parent class for documentation.
+        """
+        test_doc = JiraDocument.deserialize_from_external_json(doc_json)
+        if JiraDocument.check_should_index_document(test_doc):
+            return test_doc
+        return None

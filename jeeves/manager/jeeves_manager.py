@@ -6,8 +6,12 @@ to download such documents from an external source.
 
 
 from abc import ABC, abstractmethod
-from typing import Any, Iterator, List, Type
+from datetime import datetime
+from typing import List, Optional, Type
 
+from duolingo_base.dal.s3 import S3Client
+
+from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 
 
@@ -44,23 +48,27 @@ class JeevesManager(ABC):
 
     @staticmethod
     @abstractmethod
-    def download_documents(start_timestamp: Any) -> Iterator[JeevesDocument]:
+    def update_s3_if_necessary(
+        s3_client: S3Client, bucket_name: str, default_start_timestamp: float
+    ) -> None:
         """
-        Downloads documents from an external source and yields them.
+        Downloads documents from an external source and stores them to S3.
         The external source specified in this method in subclasses of this class
         should logically match that subclass, i.e., a subclass of this class
         called XYZDocument should download tickets from XYZ source.
 
         Parameters:
-            start_timestamp: Some kind of timestamp to indicate which documents
-                             should be downloaded. Generally, all documents
-                             after this timestamp will be downloaded.
+            s3_client: Duolingo base library S3 DAL object. Expected to have
+                       read/write access to a bucket with name bucket_name.
+            bucket_name: The name of the S3 bucket we should store documents to.
+            default_start_timestamp: Some kind of timestamp to indicate which
+                                     documents should be downloaded. Generally,
+                                     all documents after this timestamp will be
+                                     downloaded.
 
             TODO: REPLACE ABOVE PARAMETER WITH SOMETHING MORE INFORMATIVE
                   TO FACILITATE A BETTER CHECKPOINTING SYSTEM
 
-        Yields:
-            Documents with timestamps later than the given timestamp.
         """
         raise NotImplementedError
 
@@ -78,3 +86,42 @@ class JeevesManager(ABC):
             collected before storing them in a checkpoint.
         """
         return _DEFAULT_CHECKPOINTING_THRESHOLD
+
+    @staticmethod
+    @abstractmethod
+    def get_most_recent_s3_populated_date(s3_client: S3Client, bucket_name: str) -> datetime:
+        """
+        Returns the most recent date for which this manager has data populated
+        in the S3 bucket indicated by the provided client and bucket name.
+
+        Parameters:
+            s3_client: Duolingo base library S3 DAL object. Expected to have
+                       read access to a bucket with name bucket_name.
+            bucket_name: The name of the S3 bucket we want to investigate.
+
+        Returns:
+            A datetime.datetime object representing the most recent date for
+            which this manager has data populated.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
+    def process_document(doc_json: JSON) -> Optional[Type["JeevesDocument"]]:
+        """
+        Convert JSON (representing a document) downloaded from an external
+        source into a JeevesDocument representation of that document.
+        The process by which this conversion happens depends on the type of
+        document being converted, but must at least include some verification
+        that the document is a valid candidate for indexing. If the document
+        fails this verification process, instead return None.
+
+        Parameters:
+            doc_json: JSON downloaded from an external source, representing a
+                      document to be processed.
+
+        Returns:
+            A JeevesDocument representation of the provided JSON document, or
+            None if the document was invalid.
+        """
+        raise NotImplementedError

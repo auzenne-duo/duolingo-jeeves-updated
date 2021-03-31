@@ -128,7 +128,9 @@ class ZendeskDocument(JeevesDocument):
             data_source=internal_json["data_source"],
             document_id=internal_json["document_id"],
             jeeves_uid=internal_json["jeeves_uid"],
-            date_time=internal_json["date_time"],
+            date_time=parse_external_datetime(internal_json["date_time"])
+            if isinstance(internal_json["date_time"], str)
+            else internal_json["date_time"],
             header_text=header,
             body_text=internal_json["body_text"],
             language=internal_json["language"],

@@ -13,12 +13,34 @@ services:
       - .:/code
       - ~/.aws:/root/.aws
 
-  cronworker:
+  s3-worker:
+    image: duolingojeeves_api
+    ports:
+      - "9200:9200"
+    volumes:
+      - .:/code
+      - ~/.aws:/root/.aws
+    command: ["python", "/code/jeeves/scripts/update_jeeves_data.py"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+
+  sqs-worker-1:
     image: duolingojeeves_api
     volumes:
       - .:/code
       - ~/.aws:/root/.aws
-    command: ["python", "/code/jeeves/scripts/slack.py"]
+    command: ["python", "/code/jeeves/scripts/sqs_verify_worker.py"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+
+  sqs-worker-2:
+    image: duolingojeeves_api
+    volumes:
+      - .:/code
+      - ~/.aws:/root/.aws
+    command: ["python", "/code/jeeves/scripts/sqs_index_worker.py"]
     build:
       context: .
       dockerfile: Dockerfile.dev
