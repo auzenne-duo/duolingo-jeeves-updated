@@ -111,6 +111,21 @@ const Ticket: React.FC<Props> = ({
               </div>
             </section>
           ) : null}
+          {ticket.components?.length ? (
+            <section className={styles.section}>
+              <span className={styles.label}>Components</span>
+              <div>
+                {ticket.components?.map(c => (
+                  <TagFilter
+                    className={styles.tag}
+                    field="components"
+                    key={c}
+                    value={c}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
           {ticket.course ? (
             <section className={styles.section}>
               <span className={styles.label}>Course</span>
