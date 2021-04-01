@@ -90,8 +90,7 @@ def perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
     """
     ElasticDAL.bulk_index_tickets(ticket_list)
 
-    split_beta_batches_and_run_detector([])
-    # split_beta_batches_and_run_detector(ticket_list)
+    split_beta_batches_and_run_detector(ticket_list)
 
 
 def _crawl_documents_for_data_source(
