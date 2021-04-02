@@ -4,7 +4,8 @@ Manager for JIRA documents.
 from datetime import datetime
 import json
 import os
-from typing import Optional
+from typing import Optional, List
+
 
 from requests import get, post, Session
 from requests.auth import HTTPBasicAuth
@@ -186,6 +187,15 @@ class JiraManager(JeevesManager):
 
         return True
 
+    @classmethod
+    def are_all_closed(cls, issue_keys: List[str]) -> bool:
+        """
+        Returns True iff every issue in the list is closed
+        """
+        issues = [cls.download_specific_issue(key) for key in issue_keys]
+        issuesOpen = [issue is not None and issue.resolution_date is None for issue in issues]
+        return True not in issuesOpen
+
     @staticmethod
     def get_most_recent_s3_populated_date(s3_client: S3Client, bucket_name: str) -> datetime:
         """
@@ -199,7 +209,8 @@ class JiraManager(JeevesManager):
     @staticmethod
     def close_as_duplicate(issue_key: str) -> bool:
         """
-        Closes the specified issue as a duplicate
+        Closes the specified issue as a duplicate. Returns False if there was an error
+        closing the issue.
         """
         url = f"https://duolingo.atlassian.net/rest/api/3/issue/{issue_key}/transitions"
         auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)

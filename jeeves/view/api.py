@@ -295,7 +295,7 @@ def cement_duplicates():
 def submit_duplicates():
     """
     Wrapper around mark_jira_duplicates that allows submitting multiple duplicates and closes the
-    newly created issue.
+    newly created issue if any of the existing issues are open.
     Post body parameters:
         newIssue (str): The key of the newly created Jira issue
         duplicates (list[str]): The keys of Jira issues to be linked
@@ -319,11 +319,21 @@ def submit_duplicates():
         if False in remote_successes:
             abort(
                 make_response(
-                    "Something went wrong. Make sure your issue keys exist and try again later.",
+                    "Something went wrong. Make sure your issue keys exist or let #team-delight know.",
                     400,
                 )
             )
-        return json.jsonify({"closed": JiraManager.close_as_duplicate(in_key)})
+        if JiraManager.are_all_closed(out_keys):
+            return json.jsonify({"closed": False})
+        closed = JiraManager.close_as_duplicate(in_key)
+        if not closed:
+            abort(
+                make_response(
+                    "Something went wrong. Make sure your created issue is of type Bug or let #team-delight know.",
+                    400,
+                )
+            )
+        return json.jsonify({"closed": True})
     except KeyError:
         abort(make_response("Missing required field(s)", 400))
 
