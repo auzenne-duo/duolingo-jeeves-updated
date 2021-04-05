@@ -35,7 +35,7 @@ class AppfiguresManager(JeevesManager):
         return AppfiguresDocument
 
     @staticmethod
-    def _get_checkpoint_file_name() -> str:
+    def get_checkpoint_file_name() -> str:
         """
         Returns the name of the S3 file used for storing checkpoint data.
         """
@@ -70,7 +70,7 @@ class AppfiguresManager(JeevesManager):
 
         # Update checkpointing information if necessary
         if date_str > checkpoint_date:
-            _CHECKPOINT_FILE = AppfiguresManager._get_checkpoint_file_name()
+            _CHECKPOINT_FILE = AppfiguresManager.get_checkpoint_file_name()
             checkpoint_date = date_str
             s3_client.upload(bucket_name, _CHECKPOINT_FILE, checkpoint_date)
 
@@ -85,7 +85,7 @@ class AppfiguresManager(JeevesManager):
         """
         _DOCUMENTS_PER_PAGE = 500
 
-        _CHECKPOINT_FILE = AppfiguresManager._get_checkpoint_file_name()
+        _CHECKPOINT_FILE = AppfiguresManager.get_checkpoint_file_name()
         if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
             # Create checkpoint file using default timestamp
             new_checkpoint_string = f"{datetime.utcfromtimestamp(default_start_timestamp).date()}"
@@ -164,7 +164,7 @@ class AppfiguresManager(JeevesManager):
         Please see parent class for documentation.
         """
         checkpoint_timestamp = s3_client.download(
-            bucket_name, AppfiguresManager._get_checkpoint_file_name()
+            bucket_name, AppfiguresManager.get_checkpoint_file_name()
         ).decode("utf-8")
         return parse_external_datetime(checkpoint_timestamp)
 

@@ -93,6 +93,46 @@ def perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
     split_beta_batches_and_run_detector(ticket_list)
 
 
+def _send_s3_doc_to_sqs(
+    s3_client: s3.S3Client,
+    s3_bucket_name: str,
+    sqs_client: sqs.SQSClient,
+    manager: JeevesManager,
+    s3_file: str,
+) -> None:
+    """
+    Given an S3 bucket, information on where to find a file in that bucket,
+    an SQS queue, and which manager that file should be associated with,
+    access the file with the given name in the given bucket, and enqueue it in
+    the given SQS queue with the given manager providing an attribute.
+
+    Parameters:
+        s3_client: Duolingo base library S3 DAL object. Expected to have
+                   read/write access to a bucket with name bucket_name.
+        bucket_name: The name of the S3 bucket we should read documents from.
+        sqs_client: Duolingo base library SQS DAL object. Downstream consumers
+                    of the represented queue are responsible for verifying
+                    documents and indexing them into Elasticsearch.
+        manager: A subclass of JeevesManager responsible for managing a given
+                 subclass of JeevesDocuments. In this method, provides a string
+                 to attach as an attribute to the enqueued document.
+        s3_file: File path representing the file we wish to enqueue into SQS.
+    """
+    data_to_enqueue = s3_client.download(s3_bucket_name, s3_file).decode("utf-8")
+    data_source_attribute = sqs.SQSMessageAttribute(
+        "data_source",
+        "String",
+        manager.get_managed_document_type().get_data_source_identifier(),
+    )
+    message_id = uuid4().hex
+    message_to_send = sqs.SQSMessage(
+        message_id=message_id,
+        message_body=data_to_enqueue,
+        message_attributes=[data_source_attribute],
+    )
+    sqs_client.send_messages([message_to_send])
+
+
 def _crawl_documents_for_data_source(
     s3_client: s3.S3Client, s3_bucket_name: str, sqs_client: sqs.SQSClient, manager: JeevesManager
 ) -> None:
@@ -150,19 +190,7 @@ def _crawl_documents_for_data_source(
         date_str = date_to_str(inter_date)
         s3_date_dir = f"{s3_path_stem}/{date_str}"
         for s3_file in s3_client.yield_filenames(s3_bucket_name, path_prefix=s3_date_dir):
-            data_to_enqueue = s3_client.download(s3_bucket_name, s3_file).decode("utf-8")
-            data_source_attribute = sqs.SQSMessageAttribute(
-                "data_source",
-                "String",
-                manager.get_managed_document_type().get_data_source_identifier(),
-            )
-            message_id = uuid4().hex
-            message_to_send = sqs.SQSMessage(
-                message_id=message_id,
-                message_body=data_to_enqueue,
-                message_attributes=[data_source_attribute],
-            )
-            sqs_client.send_messages([message_to_send])
+            _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
 
 
 def crawl_tickets() -> None:
@@ -170,6 +198,8 @@ def crawl_tickets() -> None:
     Runs _crawl_documents_for_data_source on each available data source; see
     that method for more details.
     """
+
+    _FORCE_REFRESH_FILE = "force_refresh_flag"
 
     s3_client = None
     if _config.get_nested(["s3_document_cache", "endpoint_url"]):
@@ -186,6 +216,24 @@ def crawl_tickets() -> None:
 
     for manager in IDManagerMap.get_all_managers():
         _crawl_documents_for_data_source(s3_client, s3_bucket_name, sqs_client, manager)
+
+    # Check if the force refresh file is present, and create it if not
+    force_check_list = list(
+        s3_client.yield_filenames(s3_bucket_name, path_prefix=_FORCE_REFRESH_FILE)
+    )
+    if not force_check_list:
+        s3_client.upload(s3_bucket_name, _FORCE_REFRESH_FILE, "0")
+
+    # If the force refresh flag was found, forcefully refresh all documents
+    refresh_flag_str = s3_client.download(s3_bucket_name, _FORCE_REFRESH_FILE).decode("utf-8")
+    if refresh_flag_str.startswith("1"):
+        s3_client.upload(s3_bucket_name, _FORCE_REFRESH_FILE, "0")
+        print("Forcefully refreshing all documents from S3", flush=True)
+        for manager in IDManagerMap.get_all_managers():
+            s3_path_stem = manager.get_managed_document_type().get_data_source_identifier()
+            for s3_file in s3_client.yield_filenames(s3_bucket_name, path_prefix=s3_path_stem):
+                if s3_file != manager.get_checkpoint_file_name():
+                    _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
 
 
 def load_zh_stop_words() -> List[str]:

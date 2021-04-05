@@ -34,7 +34,7 @@ class JiraManager(JeevesManager):
         return JiraDocument
 
     @staticmethod
-    def _get_checkpoint_file_name() -> str:
+    def get_checkpoint_file_name() -> str:
         """
         Returns the name of the S3 file used for storing checkpoint data.
         """
@@ -46,7 +46,7 @@ class JiraManager(JeevesManager):
         Please see parent class for documentation
         """
 
-        _CHECKPOINT_FILE = JiraManager._get_checkpoint_file_name()
+        _CHECKPOINT_FILE = JiraManager.get_checkpoint_file_name()
         if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
             new_checkpoint_string = str(int(default_start_timestamp * 1000))
             s3_client.upload(bucket_name, _CHECKPOINT_FILE, new_checkpoint_string)
@@ -202,7 +202,7 @@ class JiraManager(JeevesManager):
         Please see parent class for documentation.
         """
         checkpoint_timestamp = (
-            int(s3_client.download(bucket_name, JiraManager._get_checkpoint_file_name())) // 1000
+            int(s3_client.download(bucket_name, JiraManager.get_checkpoint_file_name())) // 1000
         )
         return datetime.fromtimestamp(checkpoint_timestamp)
 

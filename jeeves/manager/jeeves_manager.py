@@ -48,6 +48,14 @@ class JeevesManager(ABC):
 
     @staticmethod
     @abstractmethod
+    def get_checkpoint_file_name() -> str:
+        """
+        Returns the name of the S3 file used for storing checkpoint data.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
     def update_s3_if_necessary(
         s3_client: S3Client, bucket_name: str, default_start_timestamp: float
     ) -> None:

@@ -33,7 +33,7 @@ class ZendeskManager(JeevesManager):
         return ZendeskDocument
 
     @staticmethod
-    def _get_checkpoint_file_name() -> str:
+    def get_checkpoint_file_name() -> str:
         """
         Returns the name of the S3 file used for storing checkpoint data.
         """
@@ -82,7 +82,7 @@ class ZendeskManager(JeevesManager):
         Please see parent class for documentation
         """
 
-        _CHECKPOINT_FILE = ZendeskManager._get_checkpoint_file_name()
+        _CHECKPOINT_FILE = ZendeskManager.get_checkpoint_file_name()
         if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
             new_checkpoint_string = str(int(default_start_timestamp))
             s3_client.upload(bucket_name, _CHECKPOINT_FILE, new_checkpoint_string)
@@ -170,7 +170,7 @@ class ZendeskManager(JeevesManager):
         Please see parent class for documentation.
         """
         checkpoint_timestamp = int(
-            s3_client.download(bucket_name, ZendeskManager._get_checkpoint_file_name())
+            s3_client.download(bucket_name, ZendeskManager.get_checkpoint_file_name())
         )
         return datetime.fromtimestamp(checkpoint_timestamp)
 
