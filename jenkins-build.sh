@@ -8,6 +8,7 @@ MODULE_S3_WORKER=duolingo-jeeves-s3-worker
 MODULE_WORKER_CRON=duolingo-jeeves-worker-cron
 MODULE_SQS_WORKER_1=duolingo-jeeves-sqs-worker-1
 MODULE_SQS_WORKER_2=duolingo-jeeves-sqs-worker-2
+MODULE_SPIKE_WORKER=duolingo-jeeves-spike-worker
 
 DEV_TERRAFORM_ENV=dev
 
@@ -63,6 +64,7 @@ if [[ $TERRAFORM_ENV == "prod" ]]; then
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SQS_WORKER_1" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SQS_WORKER_2" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+  echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SPIKE_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
 else
   echo "No auto-deployment in dev environment."
 fi

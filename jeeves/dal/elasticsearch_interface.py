@@ -476,6 +476,32 @@ class ElasticsearchDAL:
         ]
         bulk(self._es, bulk_actions)
 
+    def get_min_and_max_spike_dates(self) -> Dict[str, str]:
+        """
+        Returns the earliest and latest dates among all spikes in our data.
+        Return value is a dict with keys `min` and `max` and string
+        representations of dates as values.
+
+        This is just the same method as get_min_and_max_document_dates, but for
+        spikes instead of documents.
+        """
+
+        s = Search(using=self._es, index=self._spikename)
+        s.aggs.metric("min_date", "min", field="date", format="yyyy-MM-dd")
+        s.aggs.metric("max_date", "max", field="date", format="yyyy-MM-dd")
+
+        response = s.execute()
+
+        min_date = response.aggregations.min_date.value
+        max_date = response.aggregations.max_date.value
+
+        # We need to divide the return values by 1000 because they will be in
+        # milliseconds instead of seconds.
+        return {
+            "min": date_to_str(date.fromtimestamp(min_date / 1000)) if min_date else None,
+            "max": date_to_str(date.fromtimestamp(max_date / 1000)) if max_date else None,
+        }
+
     def yield_all_spikes(self, lang: str) -> Iterator[Dict[str, Union[str, float]]]:
         """
         Yields all spikes for a given language.

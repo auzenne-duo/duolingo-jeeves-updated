@@ -3,7 +3,8 @@ A script for finding spikes of word occurrences in Zendesk tickets.
 Candidate words are from Zendesk tickets on a target date.
 """
 from collections import defaultdict
-import time
+from datetime import date, datetime, time
+from time import time as tt
 from typing import List
 
 import numpy as np
@@ -45,6 +46,46 @@ def split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument]) -> None:
 
         if group_to_run:
             run_spike_detector_for_batch(group_to_run, spike_group)
+
+
+def split_beta_batches_and_run_for_date(target_date: date) -> None:
+    """
+    Essentially a wrapper around split_beta_batches_and_run_detector that
+    calculates a list of documents on a particular date and uses
+    that list as the list of documents to be considered.
+
+    Parameters:
+        target_date: Date that we want to perform spike detection on. All
+                     documents from this date will be considered in spike
+                     detection.
+    """
+    target_start = datetime.combine(target_date, time.min)
+    target_end = datetime.combine(target_date, time.max)
+
+    doc_batch = []
+    _BATCH_TARGET_SIZE = 1000
+
+    _PAGE_SIZE = 10
+    for lang in SUPPORTED_LANGUAGES.__members__:
+        more_pages = True
+        page_number = 0
+        while more_pages:
+            paginated_info = ElasticDAL.get_recent_paginated_tickets(
+                lang,
+                "",
+                page=page_number,
+                limit=_PAGE_SIZE,
+                start_time=target_start,
+                end_time=target_end,
+            )
+            more_pages = paginated_info["deepest_index"] < paginated_info["total_records"]
+            doc_batch += paginated_info["data"]
+            page_number += 1
+            if len(doc_batch) > _BATCH_TARGET_SIZE:
+                split_beta_batches_and_run_detector(doc_batch)
+                doc_batch = []
+
+    split_beta_batches_and_run_detector(doc_batch)
 
 
 def run_spike_detector_for_batch(
@@ -168,7 +209,7 @@ def _find_spiked_words(lang, word_to_date_to_count, target_dt):
     """
     target_date_str = date_to_str(target_dt)
     print("Spike detection started for", target_date_str)
-    start = time.time()
+    start = tt()
 
     score_word_pairs = [
         (_calculate_spike_score(date_to_count, target_dt), word)
@@ -183,7 +224,7 @@ def _find_spiked_words(lang, word_to_date_to_count, target_dt):
         if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
     ]
     print(f"{len(result)} spiked words found on {target_date_str}:")
-    print(f"Done in {(time.time() - start):.3f} sec.")
+    print(f"Done in {(tt() - start):.3f} sec.")
     return result
 
 

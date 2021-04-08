@@ -1,0 +1,27 @@
+[
+  {
+    "name": "${service}",
+    "image": "${ecr_repo}:${version}",
+    "cpu": ${cpu},
+    "memory": ${memory},
+    "essential": true,
+    "ulimits": [{
+        "name": "nofile",
+        "softLimit": 65535,
+        "hardLimit": 65535
+    }],
+    "command": ["python","./jeeves/scripts/spike_worker.py"],
+    "environment": [
+        {"name": "PYTHONPATH", "value": "/code"}
+    ],
+    "logConfiguration": {
+    "logDriver": "awslogs",
+        "options": {
+        "awslogs-region": "${region}",
+        "awslogs-group": "${service}",
+        "awslogs-stream-prefix": "${service}",
+        "mode": "non-blocking"
+      }
+    }
+  }
+]

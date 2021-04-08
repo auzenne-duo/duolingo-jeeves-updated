@@ -57,10 +57,7 @@ if __name__ == "__main__":
     )
 
     while True:
-        print("Top of inf loop", flush=True)
-        print(sqs_client_input.approximate_count(), flush=True)
         messages = sqs_client_input.receive_messages(MessageAttributeNames=["All"])
-        print(messages, flush=True)
 
         # If one or more received messages are missing their data_source,
         # continue to next loop iteration so we can query this same batch later
@@ -70,7 +67,6 @@ if __name__ == "__main__":
         passable_docs = []
         for m in messages:
             message_attrs = m.message_attributes
-            print(message_attrs, flush=True)
             if not message_attrs:
                 continue
             manager_name = ""

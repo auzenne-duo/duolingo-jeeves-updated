@@ -192,7 +192,7 @@ module "duolingo-jeeves-sqs-worker-2" {
   cpu                  = 1024 # 1024 equals one core
   memory               = 4096 # in MB
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
-  max_count            = 32   # Maximum number of tasks to run in autoscaling group
+  max_count            = 8    # Maximum number of tasks to run in autoscaling group
   product              = var.product
   owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
@@ -208,5 +208,22 @@ module "duolingo-jeeves-sqs-worker-2" {
 
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-verify-index.id
   scale_out_sqs       = 2500
-  scale_out_count_sqs = 32
+  scale_out_count_sqs = 16
+}
+
+module "duolingo-jeeves-spike-worker" {
+  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  environment          = var.environment
+  service              = var.service
+  subservice           = "spike-worker"
+  cpu                  = 1024 # 1024 equals one core
+  memory               = 4096 # in MB
+  min_count            = 1    # Minimum number of tasks to run in autoscaling group
+  max_count            = 1    # Maximum number of tasks to run in autoscaling group
+  product              = var.product
+  owner                = var.owner       # The name of the owner for this service
+  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  container_definition = "spike-worker.json"
+  schedule_expression  = "rate(15 minutes)"
+  release_version      = var.release_version
 }

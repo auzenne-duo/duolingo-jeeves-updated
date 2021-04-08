@@ -10,7 +10,6 @@ from duolingo_base.dal import sqs, s3
 from jeeves.config.config import CRAWL_WINDOW_SIZE
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
-from jeeves.lib.spike_detector import split_beta_batches_and_run_detector
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import (
@@ -89,8 +88,6 @@ def perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
         ticket_list: List of documents to index
     """
     ElasticDAL.bulk_index_tickets(ticket_list)
-
-    split_beta_batches_and_run_detector(ticket_list)
 
 
 def _send_s3_doc_to_sqs(

@@ -41,9 +41,7 @@ if __name__ == "__main__":
 
         if messages:
             sqs_client.delete_messages(messages)
-            print(f"Batch list currently has length {len(batch_list)}", flush=True)
 
         if len(batch_list) >= _BATCH_GROUP_SIZE:
-            print(f"Checkpointing batch list of length {len(batch_list)}", flush=True)
             tc.perform_checkpoint(batch_list)
             batch_list = []
