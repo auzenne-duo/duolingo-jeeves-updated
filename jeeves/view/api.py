@@ -294,16 +294,12 @@ def cement_duplicates():
 @blueprint_api.route("/api/1/submit_duplicates", methods=["POST"])
 def submit_duplicates():
     """
-    Wrapper around mark_jira_duplicates that allows submitting multiple duplicates and closes the
-    newly created issue if any of the existing issues are open.
+    Wrapper around mark_jira_duplicates that allows submitting multiple duplicates,
+    for use by Shakira clients.
+
     Post body parameters:
         newIssue (str): The key of the newly created Jira issue
         duplicates (list[str]): The keys of Jira issues to be linked
-
-    Returns:
-        {
-            closed (bool): Whether the issue was successfully closed
-        }
     """
     try:
         data = request.get_json()
@@ -323,17 +319,7 @@ def submit_duplicates():
                     400,
                 )
             )
-        if JiraManager.are_all_closed(out_keys):
-            return json.jsonify({"closed": False})
-        closed = JiraManager.close_as_duplicate(in_key)
-        if not closed:
-            abort(
-                make_response(
-                    "Something went wrong. Make sure your created issue is of type Bug or let #team-delight know.",
-                    400,
-                )
-            )
-        return json.jsonify({"closed": True})
+        return json.jsonify({"Links": "Created"})
     except KeyError:
         abort(make_response("Missing required field(s)", 400))
 

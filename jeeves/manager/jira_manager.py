@@ -4,7 +4,7 @@ Manager for JIRA documents.
 from datetime import datetime
 import json
 import os
-from typing import Optional, List
+from typing import Optional
 
 
 from requests import get, post, Session
@@ -187,15 +187,6 @@ class JiraManager(JeevesManager):
 
         return True
 
-    @classmethod
-    def are_all_closed(cls, issue_keys: List[str]) -> bool:
-        """
-        Returns True iff every issue in the list is closed
-        """
-        issues = [cls.download_specific_issue(key) for key in issue_keys]
-        issuesOpen = [issue is not None and issue.resolution_date is None for issue in issues]
-        return True not in issuesOpen
-
     @staticmethod
     def get_most_recent_s3_populated_date(s3_client: S3Client, bucket_name: str) -> datetime:
         """
@@ -205,30 +196,6 @@ class JiraManager(JeevesManager):
             int(s3_client.download(bucket_name, JiraManager.get_checkpoint_file_name())) // 1000
         )
         return datetime.fromtimestamp(checkpoint_timestamp)
-
-    @staticmethod
-    def close_as_duplicate(issue_key: str) -> bool:
-        """
-        Closes the specified issue as a duplicate. Returns False if there was an error
-        closing the issue.
-        """
-        url = f"https://duolingo.atlassian.net/rest/api/3/issue/{issue_key}/transitions"
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
-        headers = {"Accept": "application/json", "Content-Type": "application/json"}
-        data = {
-            # This is the close transition ID for a bug issue type. Since Shakira only creates bugs, this is fine.
-            "transition": {"id": "251"},
-            "fields": {"resolution": {"name": "Duplicate"}},
-        }
-        try:
-            r = post(url, auth=auth, headers=headers, data=json.dumps(data))
-            r.raise_for_status()
-
-        except RequestException as e:
-            print_request_exception(e)
-            return False
-
-        return True
 
     @staticmethod
     def process_document(doc_json: JSON) -> Optional[JeevesDocument]:
