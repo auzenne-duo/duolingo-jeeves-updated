@@ -8,6 +8,7 @@ import CloseButton from "components/CloseButton";
 import JiraIssues from "components/JiraIssues";
 import PlatformIcon from "components/PlatformIcon";
 import TagFilter from "components/TagFilter";
+import TicketJiraButton from "components/TicketJiraButton";
 import renderTicketSource from "components/renderTicketSource";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/Ticket.scss";
@@ -73,7 +74,13 @@ const Ticket: React.FC<Props> = ({
     <div className={cn(styles.container, className)}>
       <div className={styles.bordered}>
         <div className={styles.content}>
-          {ticket.header_text ? <h2>{ticket.header_text}</h2> : null}
+          {<h2>{ticket.header_text ?? "(No title)"}</h2>}
+          {(ticket.platform === "Android" || ticket.platform === "iOS") &&
+          ticket.shake_to_report_category === "EXTERNAL" ? (
+            <section className={styles.section}>
+              <TicketJiraButton ticket={ticket} />
+            </section>
+          ) : null}
           {body ? (
             <section className={styles.section}>
               <span className={styles.label}>Description</span>
@@ -148,7 +155,14 @@ const Ticket: React.FC<Props> = ({
                 Linked duplicates
               </span>
               <div>
-                <JiraIssues issues={duplicates} />
+                <JiraIssues
+                  issues={duplicates.map(issue => ({
+                    key: (issue.inwardIssue?.key ??
+                      issue.outwardIssue?.key) as string,
+                    summary: (issue.inwardIssue?.fields.summary ??
+                      issue.outwardIssue?.fields.summary) as string,
+                  }))}
+                />
               </div>
             </section>
           ) : null}
@@ -203,7 +217,12 @@ const Ticket: React.FC<Props> = ({
                     ) : null}
                   </div>
                 ) : (
-                  <JiraIssues issues={potentialDuplicates} />
+                  <JiraIssues
+                    issues={potentialDuplicates.map(t => ({
+                      key: t.issue_key as string,
+                      summary: t.header_text as string,
+                    }))}
+                  />
                 )}
               </div>
             </section>
@@ -258,7 +277,14 @@ const Ticket: React.FC<Props> = ({
             <span className={styles.label}>Source</span>
             <div>
               {ticket.data_source === "JIRA" ? (
-                <JiraIssues issues={[ticket]} />
+                <JiraIssues
+                  issues={[
+                    {
+                      key: ticket.issue_key as string,
+                      summary: ticket.header_text as string,
+                    },
+                  ]}
+                />
               ) : (
                 renderTicketSource(ticket)
               )}

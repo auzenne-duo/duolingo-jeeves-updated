@@ -2,25 +2,17 @@ import * as React from "react";
 
 import styles from "styles/JiraIssues.scss";
 
-const isTicket = (
-  issue: JSONAPI.JiraIssueLink | JSONAPI.Ticket,
-): issue is JSONAPI.Ticket => "document_id" in issue;
-
 interface Props {
-  issues: (JSONAPI.JiraIssueLink | JSONAPI.Ticket)[];
+  issues: {
+    key: string;
+    summary: string;
+  }[];
 }
 
 const JiraIssues: React.FC<Props> = ({ issues }) => (
   <div className={styles.wrap}>
     <ul className={styles.list}>
-      {issues.map((issue, i) => {
-        const key = isTicket(issue)
-          ? (issue.issue_key as string)
-          : ((issue.inwardIssue?.key ?? issue.outwardIssue?.key) as string);
-        const title = isTicket(issue)
-          ? issue.header_text
-          : ((issue.inwardIssue?.fields.summary ??
-              issue.outwardIssue?.fields.summary) as string);
+      {issues.map(({ key, summary }, i) => {
         return (
           <li className={styles.item} key={i}>
             <a
@@ -28,10 +20,10 @@ const JiraIssues: React.FC<Props> = ({ issues }) => (
               href={`https://duolingo.atlassian.net/browse/${encodeURIComponent(
                 key,
               )}`}
-              title={title}
+              title={summary}
             >
               <span className={styles.key}>{key}</span>
-              <span className={styles.title}>{title}</span>
+              <span className={styles.title}>{summary}</span>
             </a>
           </li>
         );

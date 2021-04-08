@@ -104,6 +104,7 @@ declare namespace JSONAPI {
     priority?: string;
     /** ID assigned to the user on Zendesk that submitted the ticket. */
     requester_id?: number;
+    shake_to_report_category: ShakeToReportCategory;
     store?: string;
     tags?: string[];
     /** Only applies to Zendesk tickets. */

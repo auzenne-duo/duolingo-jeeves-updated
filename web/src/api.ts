@@ -7,6 +7,36 @@ const API_URL =
     ? "/api/1"
     : "http://localhost:5000/api/1";
 
+export const createJira = async ({
+  description,
+  generated_description,
+  project,
+  summary,
+}: {
+  pre_release?: boolean;
+  description: string;
+  feature?: string;
+  generated_description?: string;
+  project: "DLAA" | "DLAI" | "DLAW";
+  reporter_email?: string;
+  summary: string;
+}) => {
+  const formData = new FormData();
+  formData.set(
+    "issueData",
+    JSON.stringify({
+      description,
+      generatedDescription: generated_description,
+      project,
+      summary,
+    }),
+  );
+  return (await post("/shakira/report_issue", formData)) as {
+    issueKey: string;
+    url: string;
+  };
+};
+
 /** Converts a date and time to a format that the API supports. */
 const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
 
@@ -18,6 +48,20 @@ const get = async (url: string) =>
   await (
     await fetch(`${API_URL}${url}`, {
       credentials: "include",
+    })
+  ).json();
+
+const post = async (url: string, data = {}) =>
+  await (
+    await fetch(`${API_URL}${url}`, {
+      body: data instanceof FormData ? data : JSON.stringify(data),
+      credentials: "include",
+      headers:
+        data instanceof FormData
+          ? // The browser should set this.
+            {}
+          : { "Content-Type": "application/json" },
+      method: "POST",
     })
   ).json();
 
