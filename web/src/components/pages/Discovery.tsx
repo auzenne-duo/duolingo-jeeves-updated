@@ -20,6 +20,7 @@ import {
   formatReadableDate,
   formatScreen,
   getPaginationString,
+  getUntruncatedTitle,
 } from "util";
 
 const PER_PAGE = 50;
@@ -206,13 +207,6 @@ const Discovery = () => {
         <>
           <ul className={styles.list}>
             {tickets?.map((t, i) => {
-              const summary =
-                !t.header_text ||
-                // Header text for tickets reported via the Zendesk mobile SDK
-                // is often truncated after just a few characters.
-                (t.data_source === "Zendesk" && t.via?.channel === "mobile_sdk")
-                  ? t.body_text?.trim().split(/\n|\.\s/)[0]
-                  : t.header_text;
               const date =
                 t.data_source === "JIRA" && t.creation_date
                   ? new Date(t.creation_date)
@@ -231,7 +225,7 @@ const Discovery = () => {
                   key={i}
                   onClick={() => handleClick(t)}
                 >
-                  <span className={styles.title}>{summary}</span>
+                  <span className={styles.title}>{getUntruncatedTitle(t)}</span>
                   <div className={styles.tags}>
                     {t.issue_key ? <Tag value={t.issue_key} /> : null}
                     {t.course ? (

@@ -3,6 +3,7 @@ import { Button } from "web-ui";
 
 import { createJira } from "api";
 import JiraIssues from "components/JiraIssues";
+import { getUntruncatedTitle } from "util";
 
 interface Props {
   ticket: JSONAPI.Ticket;
@@ -24,7 +25,7 @@ const TicketJiraButton = ({ ticket }: Props) => {
             : ticket.platform === "iOS"
             ? "DLAI"
             : "DLAW",
-        summary: ticket.header_text ?? "New issue",
+        summary: getUntruncatedTitle(ticket) ?? "New issue",
       });
       setIssueKey(result.issueKey);
     } finally {
