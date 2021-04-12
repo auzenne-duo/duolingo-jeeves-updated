@@ -163,7 +163,7 @@ class JiraDocument(JeevesDocument):
             data_source=cls.get_data_source_identifier(),
             document_id=external_json["id"],
             jeeves_uid=f"{cls.get_data_source_identifier()}_{external_json['id']}",
-            date_time=parse_external_datetime(external_fields["updated"]),
+            date_time=parse_external_datetime(external_fields["created"]),
             header_text=external_fields["summary"],
             body_text=body_text,
             language=detect_language(body_text if body_text else external_fields["summary"]),
