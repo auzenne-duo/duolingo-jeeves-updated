@@ -6,6 +6,7 @@ import attr
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import detect_language
 from jeeves.util.date_util import parse_external_datetime
 
@@ -42,7 +43,9 @@ class AppfiguresDocument(JeevesDocument):
             date_time=parse_external_datetime(external_json["date"]),
             header_text=external_json["original_title"],
             body_text=external_json["original_review"],
-            language=detect_language(external_json["original_review"]),
+            language=SUPPORTED_LANGUAGES.filter_misc_languages(
+                detect_language(external_json["original_review"])
+            ),
             links=[],
             shake_to_report_category=ShakeToReportCategory.NON_STR_EXTERNAL,
             attachments=[],

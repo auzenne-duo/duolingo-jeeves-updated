@@ -9,6 +9,7 @@ import attr
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import detect_language
 from jeeves.util.cleanup import extract_duolingo_metadata
 from jeeves.util.date_util import parse_external_datetime
@@ -166,7 +167,9 @@ class JiraDocument(JeevesDocument):
             date_time=parse_external_datetime(external_fields["created"]),
             header_text=external_fields["summary"],
             body_text=body_text,
-            language=detect_language(body_text if body_text else external_fields["summary"]),
+            language=SUPPORTED_LANGUAGES.filter_misc_languages(
+                detect_language(body_text if body_text else external_fields["summary"])
+            ),
             links=[],
             shake_to_report_category=ShakeToReportCategory.INTERNAL
             if is_shake_to_report

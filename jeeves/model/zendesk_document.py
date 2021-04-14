@@ -10,6 +10,7 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import detect_language, detect_product
 from jeeves.util.cleanup import (
     check_for_hyphen_line,
@@ -93,7 +94,7 @@ class ZendeskDocument(JeevesDocument):
             date_time=parse_external_datetime(external_json["created_at"]),
             header_text=header,
             body_text=body_text,
-            language=detect_language(body_text),
+            language=SUPPORTED_LANGUAGES.filter_misc_languages(detect_language(body_text)),
             links=[ticket_link, user_link],
             shake_to_report_category=ShakeToReportCategory.EXTERNAL
             if is_shake_to_report
