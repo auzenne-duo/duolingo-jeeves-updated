@@ -151,6 +151,9 @@ class MetadataStandardizer:
         # so we only need to set entries that have values
         std_data = defaultdict(str)
 
+        if aux_platform_information:
+            std_data["platform"] = aux_platform_information
+
         if not duolingo_metadata:
             return std_data
 
@@ -194,9 +197,7 @@ class MetadataStandardizer:
         elif "os" in flat_metadata:
             std_data["os_version"] = flat_metadata["os"]
 
-        if aux_platform_information:
-            std_data["platform"] = aux_platform_information
-        else:
+        if not aux_platform_information:
             if "browser" in flat_metadata:
                 std_data["platform"] = "Web"
             elif "ios_version" in flat_metadata:

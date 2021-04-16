@@ -118,8 +118,10 @@ class Test(unittest.TestCase):
         empty_input = {}
         expected_empty_output = {}
         self.assertEqual(expected_empty_output, MetaStdizer.get_standardized_metadata(empty_input))
+
+        expected_non_empty_output = {"platform": "Web"}
         self.assertEqual(
-            expected_empty_output, MetaStdizer.get_standardized_metadata(empty_input, "Web")
+            expected_non_empty_output, MetaStdizer.get_standardized_metadata(empty_input, "Web")
         )
 
         good_size_input = {"pixels_in_screen": "1920 W x 1080 H"}
