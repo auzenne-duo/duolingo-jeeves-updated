@@ -112,6 +112,16 @@ class ZendeskManager(JeevesManager):
                         raise Exception("Error returned from Zendesk")
 
                     for ticket_json in j["tickets"]:
+                        ticket_id = ticket_json["id"]
+                        comments_url = f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
+                        comments_response = ZendeskManager._rate_limited_get(s, comments_url)
+                        comments_structure = json.loads(comments_response.text)
+                        attachments = []
+                        for com in comments_structure.get("comments", {}):
+                            for attach in com.get("attachments", {}):
+                                attachments.append(attach["content_url"])
+                        ticket_json["attachments"] = attachments
+
                         ZendeskManager._store_document_to_s3(s3_client, bucket_name, ticket_json)
 
                     if j["end_time"]:
@@ -179,31 +189,9 @@ class ZendeskManager(JeevesManager):
         """
         Please see parent class for documentation.
         """
-        doc_json.update({"attachments": []})
+
         test_doc = ZendeskDocument.deserialize_from_external_json(doc_json)
-        # This is a speedup measure, don't bother downloading attachments
-        # for otherwise invalid documents.
         if ZendeskDocument.check_should_index_document(test_doc):
             return test_doc
-
-        """
-        TODO: Keeping this code here so that when I go back later to figure
-              out how to download attachments, I need to do slightly less
-              digging through Zendesk's documentation.
-        """
-        # Only download attachments for beta feedback items until
-        # we figure out a faster way to do this
-        # zendesk_host = "https://duolingotest.zendesk.com"
-        # if test_doc.shake_to_report_category.name == "EXTERNAL":
-        #     ticket_id = ticket_json["id"]
-        #     comments_url = (
-        #         f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
-        #     )
-        #     comments_response = ZendeskManager._rate_limited_get(s, comments_url)
-        #     comments_structure = json.loads(comments_response.text)
-        #     for com in comments_structure.get("comments", {}):
-        #         for attach in com.get("attachments", {}):
-        #             attachments.append(attach["content_url"])
-        # ticket_json["attachments"] = attachments
 
         return None
