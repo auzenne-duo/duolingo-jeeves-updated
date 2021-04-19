@@ -17,7 +17,7 @@ DOCKER_FILE="Dockerfile.dev"
 # ----- build -----
 
 echo "DOCKER_FILE: $DOCKER_FILE"
-IMAGE_HASH="$(docker build -q -f "$DOCKER_FILE" .)"
+IMAGE_HASH="$(docker build -q -f "$DOCKER_FILE" . | head -1)"
 
 # ----- deploy -----
 
