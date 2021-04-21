@@ -1,6 +1,10 @@
 @import "../constants";
 @import "../mixins";
 
+$item-gap: 2 * $juicy-length;
+$item-height: 70px;
+$item-padding-x: 16px;
+
 .date {
   font-size: 13px;
   line-height: 1;
@@ -12,43 +16,47 @@
   width: 16px;
 }
 
+// Loosely based on https://www.figma.com/file/76Dp0p4frjWbVZX9LXVORJ/%E2%9C%85-Schools-V2-HiFi---Q1-%40anna-%40jenny?node-id=442%3A14441.
 .item {
-  align-items: start;
-  border: $juicy-border;
-  border-width: $juicy-border-width $juicy-border-width 0;
+  --item-background: #{$juicy-snow};
+  // The width of an item's inner contents when the list is at its maximum possible width.
+  --width-item-inner: calc(
+    var(--width-app) - 2 * var(--margin) - 2 * #{$juicy-border-width} - 2 * #{$item-padding-x}
+  );
+  align-items: center;
+  background: var(--item-background);
   cursor: pointer;
   display: grid;
-  grid-gap: $juicy-length;
-  grid-template-columns: 40% 60%;
-  padding: 9.5px 16px;
+  grid-template-columns: calc(0.8 * (var(--width-item-inner) - #{$item-gap})) 1fr;
+  height: $item-height;
+  position: relative;
+  // Establish a new stacking context.
+  z-index: 0;
 
-  &:first-child {
-    border-top-left-radius: 14px;
-    border-top-right-radius: 14px;
+  &:not(:last-child) {
+    border-bottom: $juicy-border-width solid $juicy-polar;
   }
 
-  &:last-child {
-    border-bottom-left-radius: 14px;
-    border-bottom-right-radius: 14px;
-    border-bottom-width: $juicy-border-width;
+  @media (min-width: #{$width-ipad}) {
+    grid-template-columns: calc(0.4 * (var(--width-item-inner) - #{$item-gap})) 1fr;
   }
 
   @include hover {
-    background: $juicy-polar;
+    --item-background: #{$juicy-polar};
   }
 }
 
 .item-selected {
   composes: item;
-
-  .title {
-    color: $juicy-macaw;
-  }
+  --item-background: #{$juicy-polar};
 }
 
 .list {
+  border: $juicy-border;
+  border-radius: 14px;
   list-style: none;
   margin: 0;
+  overflow: hidden;
   padding: 0;
   width: 100%;
 }
@@ -57,13 +65,27 @@
   text-align: right;
 }
 
+.tag-ipad {
+  display: none;
+
+  @media (min-width: #{$width-ipad}) {
+    display: inline-flex;
+  }
+}
+
 .tags {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
+  // Two lines.
+  height: 50px + $tag-spacing;
   justify-content: flex-end;
-  margin: -$tag-spacing / 2;
-  min-height: 25px; // Matches the line height.
+  overflow: hidden;
+  position: absolute;
+  right: $item-padding-x;
+  top: 50%;
+  transform: translateY(-50%);
+  width: calc(0.6 * (var(--width-item-inner) - #{$item-gap}));
 
   > * {
     margin: $tag-spacing / 2;
@@ -73,4 +95,24 @@
 
 .ticket {
   max-height: 100%;
+}
+
+.title {
+  // Two lines.
+  max-height: 50px;
+  overflow: hidden;
+}
+
+.title-container {
+  align-items: center;
+  background: linear-gradient(
+    to right,
+    var(--item-background) calc(100% - #{$item-gap}),
+    // `transparent` doesn't work on Safari.
+    rgba(255, 255, 255, 0)
+  );
+  display: flex;
+  height: 100%;
+  padding: 0 $item-gap 0 $item-padding-x;
+  z-index: 1;
 }

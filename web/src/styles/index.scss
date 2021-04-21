@@ -4,7 +4,9 @@
 :root {
   --height-topbar: 58px;
   --margin: #{2 * $juicy-length};
-  --width-aside: min(#{$width-aside}, calc(100vw - 2 * var(--margin)));
+  // This includes horizontal padding of 2 * var(--margin).
+  --width-app: min(1140px, 100vw);
+  --width-aside: min(400px, calc(100vw - 2 * var(--margin)));
 
   @media (min-width: $width-ipad) {
     --height-topbar: 80px;

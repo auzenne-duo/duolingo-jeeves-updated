@@ -23,7 +23,7 @@ import {
   getUntruncatedTitle,
 } from "util";
 
-const PER_PAGE = 50;
+const PER_PAGE = 30;
 
 const formatDate = (date: Date) => {
   if (isToday(date)) {
@@ -225,20 +225,32 @@ const Discovery = () => {
                   key={i}
                   onClick={() => handleClick(t)}
                 >
-                  <span className={styles.title}>{getUntruncatedTitle(t)}</span>
+                  <div className={styles["title-container"]}>
+                    <span className={styles.title}>
+                      {getUntruncatedTitle(t)}
+                    </span>
+                  </div>
                   <div className={styles.tags}>
-                    {t.issue_key ? <Tag value={t.issue_key} /> : null}
+                    {t.issue_key ? (
+                      <Tag className={styles["tag-ipad"]} value={t.issue_key} />
+                    ) : null}
                     {t.course ? (
-                      <Tag text={formatCourseId(t.course)} value={t.course} />
+                      <Tag
+                        className={styles["tag-ipad"]}
+                        text={formatCourseId(t.course)}
+                        value={t.course}
+                      />
                     ) : null}
                     {t.screen_content ? (
                       <Tag
+                        className={styles["tag-ipad"]}
                         text={formatScreen(t.screen_content)}
                         value={t.screen_content}
                       />
                     ) : null}
                     {t.app_version ? (
                       <Tag
+                        className={styles["tag-ipad"]}
                         text={
                           t.platform === "Web"
                             ? t.app_version.slice(0, 7)

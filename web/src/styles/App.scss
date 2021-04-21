@@ -2,50 +2,60 @@
 
 $gap: 2 * $juicy-length;
 
-// By making individual elements shiftable rather than the
-// entire parent, they can be positioned relative to the
-// outer parent rather than to the first elements with a
-// transform.
-._shiftable {
-  transition: transform $duration-slide;
+// Shift the layout left if the right edge between the contents
+// and the viewport edge cannot fit the aside panel.
+$transform-shifted: translateX(
+  Min(
+    calc(-1 * (#{$gap} + var(--width-aside)) + (50vw - var(--width-app) / 2)),
+    0px
+  )
+);
 
-  // Shift the layout left if the right edge between the contents
-  // and the viewport edge cannot fit the aside panel.
-  @media (max-width: #{$width-app-max + 2 * $width-aside + 2 * $juicy-margin - ($juicy-margin - $gap)}) {
-    .wrap-shifted & {
-      transform: translateX(calc(-1 * var(--width-aside) - #{$gap}));
-    }
-  }
+.aside {
+  height: calc(100vh - var(--height-topbar) - 2 * var(--margin));
+  // Margin is subtracted because it serves as padding for the content section.
+  left: calc(50vw + var(--width-app) / 2 - var(--margin) + #{$gap});
+  position: fixed;
+  top: calc(var(--height-topbar) + var(--margin));
+  transition: transform $duration-slide;
+  width: var(--width-aside);
 
   @media (prefers-reduced-motion) {
     transition: none;
   }
-}
 
-.aside {
-  composes: _shiftable;
-  height: calc(100vh - var(--height-topbar) - 2 * var(--margin));
-  left: calc(100vw - var(--margin) + #{$gap});
-  position: fixed;
-  top: calc(var(--height-topbar) + var(--margin));
-  width: var(--width-aside);
-
-  @media (min-width: $width-app-max) {
-    left: calc(50vw + #{$width-app-max / 2} - var(--margin) + #{$gap});
+  .wrap-shifted & {
+    transform: $transform-shifted;
   }
 }
 
 .content {
-  composes: _shiftable;
   display: grid;
   grid-gap: var(--margin);
   justify-items: start;
+  transition: padding-right $duration-slide, transform $duration-slide;
+
+  @media (prefers-reduced-motion) {
+    transition: none;
+  }
+
+  .wrap-shifted & {
+    transform: $transform-shifted;
+
+    @media (min-width: #{$width-ipad}) {
+      // Shrink instead of shift.
+      padding-right: calc(
+        #{$gap} + var(--width-aside) - (50vw - var(--width-app) / 2)
+      );
+      transform: none;
+    }
+  }
 }
 
 .wrap {
   margin: var(--height-topbar) auto 0;
-  max-width: $width-app-max;
   padding: var(--margin);
+  width: var(--width-app);
 }
 
 .wrap-shifted {
