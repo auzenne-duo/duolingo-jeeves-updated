@@ -3,7 +3,6 @@ import { endOfDay } from "date-fns";
 import * as React from "react";
 import {
   NavLink,
-  Route,
   useHistory,
   useLocation,
   useParams,
@@ -30,6 +29,7 @@ const Topbar = () => {
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
   const isAnalysisPage = useRouteMatch("/:lang/analysis");
   const isDiscoveryPage = useRouteMatch("/:lang/discovery");
+  const isSpikePage = useRouteMatch("/:lang/spike");
   const search = useSearchParams();
 
   const filter = search.get("filter");
@@ -109,13 +109,20 @@ const Topbar = () => {
         className={
           styles[
             `filters${
-              isAnalysisPage ? "-analysis" : isDiscoveryPage ? "-discovery" : ""
+              isAnalysisPage
+                ? "-analysis"
+                : isDiscoveryPage
+                ? "-discovery"
+                : isSpikePage
+                ? "-spike"
+                : ""
             }`
           ]
         }
       >
         {isAnalysisPage || isDiscoveryPage ? (
           <Input
+            className={styles.search}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleSearchInputKeyDown}
             placeholder="Search"
@@ -123,16 +130,18 @@ const Topbar = () => {
             value={input}
           />
         ) : null}
-        <Route path="/:lang/(analysis|spike)">
+        {isAnalysisPage || isSpikePage ? (
           <DateRangeInput
+            className={styles["hide-on-mobile"]}
             alignPopover="end"
             from={from}
             onChange={handleDateRangeChange}
             to={to}
           />
-        </Route>
+        ) : null}
         {isAnalysisPage || isDiscoveryPage ? (
           <Select
+            className={styles["hide-on-mobile"]}
             onChange={handleFilterChange}
             options={[
               { text: "All sources", value: "" },
@@ -143,8 +152,9 @@ const Topbar = () => {
             value={filter ?? ""}
           />
         ) : null}
-        <Route path="/:lang/spike">
+        {isSpikePage ? (
           <Select
+            className={styles["hide-on-mobile"]}
             onChange={handleFilterChange}
             options={[
               { text: "All feedback", value: "ALL_SPIKES" },
@@ -158,7 +168,7 @@ const Topbar = () => {
             ]}
             value={filter ?? "ALL_SPIKES"}
           />
-        </Route>
+        ) : null}
       </div>
       <div className={styles["loading-dots"]}>
         <LoadingDots type="button" />

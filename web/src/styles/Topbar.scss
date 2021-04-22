@@ -2,14 +2,9 @@
 
 .filters {
   align-items: end;
-  display: none;
+  display: grid;
   grid-gap: 2 * $juicy-length;
-  grid-template-columns: min-content min-content;
-  margin-left: auto;
-
-  @media (min-width: $width-ipad) {
-    display: grid;
-  }
+  grid-template-columns: 1fr;
 
   @media not screen and (min-width: $width-laptop) {
     .loading & {
@@ -20,14 +15,33 @@
 
 .filters-analysis {
   composes: filters;
-  grid-template-columns: 1fr min-content min-content;
-  margin-left: 0;
+
+  @media (min-width: $width-ipad) {
+    grid-template-columns: 1fr min-content min-content;
+  }
 }
 
 .filters-discovery {
   composes: filters;
-  grid-template-columns: 1fr min-content;
-  margin-left: 0;
+
+  @media (min-width: $width-ipad) {
+    grid-template-columns: 1fr min-content;
+  }
+}
+
+.filters-spike {
+  composes: filters;
+
+  @media (min-width: $width-ipad) {
+    grid-template-columns: min-content min-content;
+    margin-left: auto;
+  }
+}
+
+.hide-on-mobile {
+  @media not screen and (min-width: $width-ipad) {
+    display: none;
+  }
 }
 
 .loading-dots {
@@ -65,6 +79,14 @@
   }
 }
 
+.search {
+  @media not screen and (min-width: $width-ipad) {
+    border: none !important;
+    border-radius: 0 !important;
+    height: calc(var(--height-topbar) - #{$juicy-border-width}) !important;
+  }
+}
+
 .wrap {
   background: $juicy-snow;
   border-bottom: $juicy-border;
@@ -72,15 +94,15 @@
   align-items: center;
   display: grid;
   grid-gap: $juicy-margin;
-  grid-template-columns: min-content;
+  grid-template-columns: min-content 1fr;
   height: var(--height-topbar);
-  padding: 0 $juicy-margin;
+  padding: 0 0 0 $juicy-margin;
   top: 0;
   width: 100%;
   z-index: 1;
 
   @media (min-width: $width-ipad) {
-    grid-template-columns: min-content 1fr;
+    padding: 0 var(--margin) 0 $juicy-margin;
   }
 
   @media (min-width: $width-laptop) {

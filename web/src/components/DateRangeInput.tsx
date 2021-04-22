@@ -1,3 +1,4 @@
+import cn from "classnames";
 import { formatISO, parse, startOfToday } from "date-fns";
 import * as React from "react";
 import { DateInput } from "web-ui";
@@ -26,6 +27,7 @@ export interface Props
     "alignPopover" | "mode" | "onChange" | "other" | "value"
   > {
   alignPopover: "start" | "end";
+  className?: string;
   from?: Date;
   onChange?: (e: DateRangeChangeEvent) => void;
   to?: Date;
@@ -33,6 +35,7 @@ export interface Props
 
 const DateRangeInput: React.FC<Props> = ({
   alignPopover,
+  className,
   from,
   onChange,
   to,
@@ -64,7 +67,7 @@ const DateRangeInput: React.FC<Props> = ({
   };
 
   return (
-    <div className={styles.wrap} onKeyDown={handleKeyDown}>
+    <div className={cn(styles.wrap, className)} onKeyDown={handleKeyDown}>
       <DateInput
         formatDate={formatDate}
         mode="range-start"
