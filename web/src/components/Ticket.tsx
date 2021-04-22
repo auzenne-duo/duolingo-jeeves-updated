@@ -43,9 +43,6 @@ const Ticket: React.FC<Props> = ({
     .replace(/\n/g, "<br />");
   body = highlight ? highlightWord(body, highlight) : body;
 
-  const dateTime =
-    ticket.data_source === "JIRA" ? ticket.creation_date : ticket.date_time;
-
   const duplicates = ticket.issue_links?.filter(
     link => link.type.name === "Duplicate",
   );
@@ -242,10 +239,10 @@ const Ticket: React.FC<Props> = ({
               </div>
             </section>
           ) : null}
-          {dateTime ? (
+          {ticket.date_time ? (
             <section className={styles.section}>
               <span className={styles.label}>Reported at</span>
-              <div>{formatReadableDate(new Date(dateTime))}</div>
+              <div>{formatReadableDate(new Date(ticket.date_time))}</div>
             </section>
           ) : null}
           {ticket.screen_content ? (

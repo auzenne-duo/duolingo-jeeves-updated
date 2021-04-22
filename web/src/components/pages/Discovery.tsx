@@ -207,12 +207,7 @@ const Discovery = () => {
         <>
           <ul className={styles.list}>
             {tickets?.map((t, i) => {
-              const date =
-                t.data_source === "JIRA" && t.creation_date
-                  ? new Date(t.creation_date)
-                  : t.date_time
-                  ? new Date(t.date_time)
-                  : undefined;
+              const date = t.date_time ? new Date(t.date_time) : undefined;
               return (
                 <li
                   className={

@@ -26,9 +26,6 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
     .replace(/\n/g, "<br />");
   body = highlight ? highlightWord(body, highlight) : body;
 
-  const dateTime =
-    ticket.data_source === "JIRA" ? ticket.creation_date : ticket.date_time;
-
   return (
     <Table className={styles.table}>
       <tbody>
@@ -55,7 +52,11 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
         </tr>
         <tr>
           <th>Date</th>
-          <td>{dateTime ? formatReadableDate(new Date(dateTime)) : null}</td>
+          <td>
+            {ticket.date_time
+              ? formatReadableDate(new Date(ticket.date_time))
+              : null}
+          </td>
         </tr>
         <tr>
           <th>Source</th>
