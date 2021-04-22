@@ -45,7 +45,16 @@ declare namespace JSONAPI {
     };
   }
 
-  type LanguageId = "en" | "es" | "ja" | "zh";
+  type LanguageId =
+    | "de"
+    | "fr"
+    | "en"
+    | "es"
+    | "it"
+    | "ja"
+    | "ru"
+    | "xx"
+    | "zh";
 
   type ShakeToReportCategory =
     | "EXTERNAL"

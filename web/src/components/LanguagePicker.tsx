@@ -2,9 +2,14 @@ import * as React from "react";
 import { Select } from "web-ui";
 
 const LANGUAGES: Record<JSONAPI.LanguageId, string> = {
+  fr: "French",
+  de: "German",
   en: "English",
   es: "Spanish",
+  it: "Italian",
   ja: "Japanese",
+  ru: "Russian",
+  xx: "Other",
   zh: "Chinese",
 };
 
