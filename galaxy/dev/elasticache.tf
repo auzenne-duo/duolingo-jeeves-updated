@@ -12,13 +12,14 @@ resource "aws_route53_record" "duolingo-jeeves-memcache-vpc-record" {
 }
 
 module "duolingo-jeeves-memcache" {
-  source          = "github.com/duolingo/infra-galaxy//modules/memcache_cluster"
-  identifier      = "duolingo-jeeves-dev"
-  product         = var.product
-  owner           = var.owner
-  service         = var.service
-  subservice      = "memcache"
-  environment     = var.environment
-  node_type       = "cache.t2.small"
-  num_cache_nodes = 3
+  source             = "github.com/duolingo/infra-galaxy//modules/memcache_cluster"
+  identifier         = "duolingo-jeeves-dev"
+  product            = var.product
+  owner              = var.owner
+  service            = var.service
+  subservice         = "memcache"
+  environment        = var.environment
+  node_type          = "cache.t2.small"
+  num_cache_nodes    = 3
+  office_cidr_blocks = var.office_cidr_blocks
 }
