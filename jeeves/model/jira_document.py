@@ -199,7 +199,9 @@ class JiraDocument(JeevesDocument):
             if external_fields["resolutiondate"]
             else None,
             status=external_fields["status"]["statusCategory"]["name"],
-            resolution=external_fields["resolution"] if external_fields["resolution"] else "",
+            resolution=external_fields["resolution"]["name"]
+            if external_fields["resolution"]
+            else "",
             components=[comp["name"] for comp in external_fields["components"]],
             features=[],
             priority=external_fields["priority"]["name"]
