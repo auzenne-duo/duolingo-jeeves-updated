@@ -6,7 +6,6 @@ import json
 import os
 from typing import Optional
 
-
 from requests import get, post, Session
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
@@ -14,7 +13,6 @@ from requests.exceptions import RequestException
 from duolingo_base.dal.s3 import S3Client
 
 from jeeves.manager.jeeves_manager import JeevesManager
-
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument

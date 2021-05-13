@@ -24,8 +24,13 @@ else
   DOCKER_FILE="Dockerfile.dev"
 fi
 
+S3_FILE_STORAGE="s3://jeeves-document-cache"
+DUPLICATE_DETECTOR_REMOTE_PATH="$S3_FILE_STORAGE/duplicate-detector-model"
+
 # ----- build -----
 
+mkdir ./duplicate-detector-model
+aws s3 sync --quiet "$DUPLICATE_DETECTOR_REMOTE_PATH" ./duplicate-detector-model/
 echo "DOCKER_FILE: $DOCKER_FILE"
 IMAGE_HASH="$(docker build -q -f "$DOCKER_FILE" . | head -1)"
 

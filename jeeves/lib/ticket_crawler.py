@@ -1,6 +1,5 @@
 from collections import defaultdict
 from datetime import datetime
-import re
 from typing import Any, DefaultDict, List
 from uuid import uuid4
 
@@ -231,36 +230,3 @@ def crawl_tickets() -> None:
             for s3_file in s3_client.yield_filenames(s3_bucket_name, path_prefix=s3_path_stem):
                 if s3_file != manager.get_checkpoint_file_name():
                     _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
-
-
-def load_zh_stop_words() -> List[str]:
-    """
-    Loads a list of Chinese words from a static file that should not be
-        considered for spikiness analysis.
-
-    Returns:
-        List[str]: A list of strings representing Chinese stop words, with
-            one stop word per line.
-    """
-    with open("jeeves/resources/zh_stop_words.txt", "r") as stop_word_file:
-        stripped_lines = [line.strip() for line in stop_word_file]
-        stop_words = [word for word in stripped_lines if word]
-        return stop_words
-
-
-# The list of Chinese stop words is VERY LARGE so we don't want to load it
-# every time we check a word. Instead, load it once and use that copy.
-_ZH_STOP_WORDS = load_zh_stop_words()
-
-
-def _valid_word(lang, word):
-    if lang == "en":
-        # Word should be at least 3 letters and can have chars [a-zA-Z] only.
-        return bool(re.search(r"^[a-zA-Z]{3,}$", word))
-    elif lang == "es":
-        # Same as the English filter but also include diacritic characters
-        return bool(re.search(r"^[a-zA-ZÁáÉéÍíÓóÚúÜüÑñ]{3,}$", word))
-    elif lang == "zh":
-        return word not in _ZH_STOP_WORDS
-    else:
-        return True

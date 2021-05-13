@@ -14,12 +14,13 @@ RUN rm -rf dist && \
   "$(npm bin)/tsc" -p config && \
   "$(npm bin)/webpack" --config config/webpack.config.js --mode production
 
-FROM 940168671796.dkr.ecr.us-east-1.amazonaws.com/duolingo/base/py3:0.1.0
+FROM ubuntu:18.04
 
 ENV INSTALL_PATH /code
 ENV REQ_TXT requirements.txt
 ENV PYTHONIOENCODING UTF-8
 ENV DUOLINGO_CONFIG=${INSTALL_PATH}/config/prod.yml
+ENV DUPLICATE_DETECTOR_MODEL=${INSTALL_PATH}/duplicate-detector-model/
 
 WORKDIR $INSTALL_PATH
 
@@ -30,25 +31,22 @@ COPY $REQ_TXT $REQ_TXT
 
 RUN mkdir -p data/zendesk
 
-RUN apk add --no-cache --virtual .build-deps \
-  g++ linux-headers musl-dev \
-    && ln -s /usr/include/locale.h /usr/include/xlocale.h \
-    && pip3 install numpy==1.13.0 \
-    && pip3 install -r "$REQ_TXT" \
-    && find /usr/local \
-        \( -type d -a -name test -o -name tests \) \
-        -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
-        -exec rm -rf '{}' + \
-    && runDeps="$( \
-        scanelf --needed --nobanner --recursive /usr/local \
-                | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-                | sort -u \
-                | xargs -r apk info --installed \
-                | sort -u \
-    )" \
-    && apk add --virtual .rundeps $runDeps \
-    && apk del .build-deps \
-    && rm -rf /root/.cache
+RUN apt-get update \
+ && apt-get -y --no-install-recommends install \
+      build-essential \
+      python3-dev \
+      python3-pip \
+#     libpq-dev is a postgres library needed by sqlalchemy
+      libpq-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && ln -s /usr/bin/python3 /usr/bin/python
+
+RUN pip3 install -U pip pip-tools wheel \
+ && pip3 install setuptools==49.6.0
+
+ARG REQUIREMENTS=requirements.txt
+COPY $REQUIREMENTS $REQUIREMENTS
+RUN pip3 install -r "$REQUIREMENTS" --src /usr/local/src
 
 COPY . .
 COPY --from=web-builder /code/dist ./web/dist

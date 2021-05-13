@@ -15,8 +15,6 @@ services:
 
   s3-worker:
     image: duolingojeeves_api
-    ports:
-      - "9200:9200"
     volumes:
       - .:/code
       - ~/.aws:/root/.aws

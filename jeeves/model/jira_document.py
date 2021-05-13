@@ -6,6 +6,7 @@ from typing import Dict, List, Union
 
 import attr
 
+from jeeves.lib.duplicate_detector import DuplicateDetector
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
@@ -30,6 +31,7 @@ class JiraDocument(JeevesDocument):
     updated_date: datetime.datetime = attr.ib()
     resolution_date: datetime.datetime = attr.ib()
     status: str = attr.ib()
+    resolution: str = attr.ib()
     components: List[str] = attr.ib()
     features: List[str] = attr.ib()
     priority: str = attr.ib()
@@ -40,6 +42,7 @@ class JiraDocument(JeevesDocument):
     # author: str, body: str, created: datetime, id: str, updated: datetime
     comments: List[Dict[str, Union[str, datetime.datetime]]] = attr.ib()
     labels: List[str] = attr.ib()
+    embedding_vector: List[float] = attr.ib()
 
     @staticmethod
     def get_data_source_identifier() -> str:
@@ -196,6 +199,7 @@ class JiraDocument(JeevesDocument):
             if external_fields["resolutiondate"]
             else None,
             status=external_fields["status"]["statusCategory"]["name"],
+            resolution=external_fields["resolution"] if external_fields["resolution"] else "",
             components=[comp["name"] for comp in external_fields["components"]],
             features=[],
             priority=external_fields["priority"]["name"]
@@ -212,6 +216,9 @@ class JiraDocument(JeevesDocument):
             if "comment" in external_fields
             else [],
             labels=external_fields["labels"],
+            embedding_vector=DuplicateDetector.calculate_embedding_vector(
+                external_fields["summary"]
+            ),
         )
 
     @classmethod
@@ -259,6 +266,7 @@ class JiraDocument(JeevesDocument):
             if isinstance(internal_json["resolution_date"], str)
             else internal_json["resolution_date"],
             status=internal_json["status"],
+            resolution=internal_json["resolution"],
             components=internal_json["components"],
             features=internal_json["features"],
             priority=internal_json["priority"],
@@ -266,6 +274,7 @@ class JiraDocument(JeevesDocument):
             assignee=internal_json["assignee"],
             comments=[cls._deserialize_comment(comment) for comment in internal_json["comments"]],
             labels=internal_json["labels"],
+            embedding_vector=internal_json["embedding_vector"],
         )
 
     @classmethod

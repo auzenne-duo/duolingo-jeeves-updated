@@ -7,8 +7,9 @@ elasticsearch-dsl
 futures==3.1.1  # 3.2.0 doesn't work yet
 langid
 Flask
-numpy==1.13.0
+numpy
 pytz
+sentence-transformers
 simplejson
 tqdm
 uwsgi
@@ -16,5 +17,5 @@ uwsgi
 #### Following are not yet used in this codebase.
 #### Also, `docker-compose build` doesn't pass for them right now.
 
-# scikit-learn
-# scipy
+#scikit-learn
+#scipy

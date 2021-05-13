@@ -17,7 +17,6 @@ import logging
 
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
-from jeeves.lib.duplicate_detector import calculate_duplicates_for_JIRA_issue
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.shakira import Shakira
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
@@ -249,12 +248,16 @@ def perform_duplicate_jira_detection():
 
     num_results = int(request.args.get("num_results", "5"))
     should_filter_project = request.args.get("should_filter_by_project", "0") != "0"
+    max_search_depth = int(request.args.get("max_search_depth", "50"))
 
     return json.jsonify(
         [
             issue.serialize_to_json(issue)
-            for issue in calculate_duplicates_for_JIRA_issue(
-                issue_key, num_results=num_results, should_filter_project=should_filter_project
+            for issue in ElasticDAL.find_potential_jira_duplicates(
+                issue_key,
+                num_results=num_results,
+                should_filter_project=should_filter_project,
+                max_search_depth=max_search_depth,
             )
         ]
     )

@@ -10,7 +10,6 @@ from elasticsearch_dsl.query import MoreLikeThis
 
 from duolingo_base.config import Config
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
-
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
@@ -19,6 +18,10 @@ from jeeves.util.date_util import date_to_str, datetime_to_str
 
 
 _config = Config.load_config()
+
+# If we ever change the duplicate detection model, make sure this value is
+# updated appropriately
+_SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
 
 
 class ElasticsearchDAL:
@@ -38,7 +41,6 @@ class ElasticsearchDAL:
         """
 
         if not self._es.indices.exists(index=self._indexname):
-            self._es.indices.create(index=self._indexname)
 
             # We need to explicitly set these types because Elasticsearch will
             # otherwise misinterpret them. In the future we may want to set more
@@ -56,7 +58,30 @@ class ElasticsearchDAL:
             m.field("screen_content", "keyword")
             m.field("ui_language", "keyword")
             m.field("username", "keyword")
-            m.save(self._indexname, using=self._es)
+
+            # We now need to pivot into a different structure to add the
+            # mapping for the duplicate detector's embedding vector. This format
+            # is more annoying to work with so it is only being used here
+            # because I couldn't get it to work in the above format.
+            mapping_dict = m.to_dict()
+            mapping_dict["properties"]["embedding_vector"] = {
+                "type": "knn_vector",
+                "dimension": _SENTENCE_TRANSFORMERS_VECTOR_SIZE,
+            }
+
+            settings_dict = {
+                "index": {
+                    "knn": True,
+                    "knn.space_type": "cosinesimil",
+                }
+            }
+
+            index_creation_structure = {
+                "mappings": mapping_dict,
+                "settings": settings_dict,
+            }
+
+            self._es.indices.create(index=self._indexname, body=index_creation_structure)
 
         if not self._es.indices.exists(index=self._spikename):
             self._es.indices.create(index=self._spikename)
@@ -713,6 +738,121 @@ class ElasticsearchDAL:
                 return output_list
 
             results_page_start += results_page_size
+
+    def ensure_specific_jira_issue(self, issue_key: str) -> Optional[JeevesDocument]:
+        """
+        Determines if we have a particular JIRA issue indexed already.
+
+        If we don't have it, an attempt will be made to download and index it.
+        If this attempt succeeds or if we have the issue indexed initially,
+        return a JeevesDocument representation of the issue. If we can't find
+        the requested issue even after a download attempt, return None.
+
+        Parameters:
+            issue_key: A string representing the issue key that we wish to
+                       ensure the presence of.
+
+        Returns:
+            A JeevesDocument object representing the requested document as it
+            exists in Elasticsearch, or None if we can't find the document.
+        """
+
+        # First, determine if we already have the requested document.
+        # We could do a call to count_by_arbitrary_keywords here but if we have
+        # the document then we'll need to call this anyway.
+        filter_results = list(self.filter_by_arbitrary_keywords({"issue_key.keyword": issue_key}))
+
+        base_document = None
+
+        # If Python had switch statements I would use one but here we are.
+        # I'm explicitly checking the length of the list against 0 to emulate a
+        # switch statement structure.
+        if len(filter_results) == 0:
+            jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
+            base_document = jira_manager.download_specific_issue(issue_key)
+            self.bulk_index_tickets([base_document])
+
+        elif len(filter_results) == 1:
+            base_document = filter_results[0]
+
+        else:
+            # There is no way we should ever get here and if we do something
+            # very broken has happened.
+            raise Exception(
+                f"Filtering to find issue {issue_key} somehow returned {len(filter_results)} results. Please investigate."
+            )
+
+        return base_document
+
+    def find_potential_jira_duplicates(
+        self,
+        issue_key: str,
+        num_results: int = 5,
+        should_filter_project: bool = True,
+        max_search_depth: int = 50,
+    ) -> List[JeevesDocument]:
+        """
+        Given a JIRA issue key, ensure we have the corresponding document, and
+        identify other documents that represent potential duplicates of the
+        provided document.
+
+        If requested document is not found, return an empty list.
+
+        Parameters:
+            issue_key (str): The issue key of the JIRA issue we wish to find
+                             duplicates of. If this issue is not already in
+                             Elasticsearch, we attempt to download it.
+            num_results (int): Optional, upper bound of how many results we
+                               should return
+            should_filter_project (bool): Optional. If True, results will be
+                                          filtered to only those with the same
+                                          project as the requested document.
+            max_search_depth (int): Optional. Maximum number of documents to
+                                    search through to find num_results results
+
+        Returns:
+            A list of issue keys of suspected duplicate issues.
+        """
+
+        target_doc = self.ensure_specific_jira_issue(issue_key)
+
+        if not target_doc:
+            print(f"Requested issue with key {issue_key} could not be found.")
+            return []
+
+        query_body = {
+            "size": max_search_depth,
+            "query": {
+                "knn": {
+                    "embedding_vector": {
+                        "k": max_search_depth,
+                        "vector": target_doc.embedding_vector,
+                    }
+                }
+            },
+        }
+
+        response = self._es.search(index=self._indexname, body=query_body)
+        result_docs = [
+            IDManagerMap.get_manager_for_identifier(hit["_source"]["data_source"])
+            .get_managed_document_type()
+            .deserialize_from_internal_json(hit["_source"])
+            for hit in response["hits"]["hits"]
+        ]
+        if should_filter_project:
+            result_docs = [doc for doc in result_docs if doc.project == target_doc.project]
+        # Filter out issue from its own duplicate list
+        result_docs = [doc for doc in result_docs if doc.issue_key != target_doc.issue_key]
+        # Filter out known duplicates and clonse from duplicate list
+        known_duplicates = []
+        for link in target_doc.issue_links:
+            if "Clone" in link["type"]["name"] or "Duplicate" in link["type"]["name"]:
+                if "inwardIssue" in link:
+                    known_duplicates.append(link["inwardIssue"]["key"])
+                if "outwardIssue" in link:
+                    known_duplicates.append(link["outwardIssue"]["key"])
+        result_docs = [doc for doc in result_docs if doc.issue_key not in known_duplicates]
+        return result_docs[:num_results]
 
 
 ElasticDAL = ElasticsearchDAL()
