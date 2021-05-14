@@ -34,14 +34,15 @@ example:
 
 ```
 {
-    "reporterEmail" optional: Admin email of the user submitting the issue.
+    "project" required: "DLAA", "DLAI".
     "summary" required: Rougly one-sentence summary of the issue.
-    "description" required: Longer user-provided description.
+
+    "reporterEmail" optional: Admin email of the user submitting the issue.
+    "description" optional: Longer user-provided description.
     "generatedDescription" optional: Generated information such as app version, fullstory url, session type, etc. It's a valid option to not
     set this and include this information in the "description" field.
     "feature" optional: Feature affected by the issue; e.g. Achievements, Stories, Leaderboards. Must be a value sent by the shakira/features endpoint.
     "slackChannel" optional: e.g. #visual-polish. If this is set, override the feature and post in this channel.
-    "project" required: "DLAA", "DLAI".
     "preRelease" optional: Boolean; Should be "True" if reporting from TestFlight or Android pre-release build. Default value is "False".
 }
 ```

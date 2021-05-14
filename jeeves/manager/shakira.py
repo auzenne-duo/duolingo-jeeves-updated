@@ -42,7 +42,7 @@ class ShakiraManager:
         feature: Optional[str],
         client_specified_slack_channel_name: Optional[str],
         summary: str,
-        description: str,
+        description: Optional[str],
         generated_description: Optional[str],
         reporter_email: Optional[str],
         pre_release: bool,
@@ -100,17 +100,20 @@ class ShakiraManager:
             }
 
         if channel and screenshot:
+            post_info_in_reply = (description or generated_description) is not None
             post_id = ShakiraSlackClient.post_screenshot(
                 project=project,
                 slack_channel=channel,
                 summary=summary,
                 reporter_email=reporter_email,
+                post_info_in_reply=post_info_in_reply,
                 screenshot=screenshot,
             )
-            if post_id:
+            if post_info_in_reply and post_id:
                 ShakiraSlackClient.post_info_in_reply(
                     slack_channel=channel,
                     original_post_id=post_id,
+                    summary=summary,
                     description=description,
                     generated_description=generated_description,
                 )

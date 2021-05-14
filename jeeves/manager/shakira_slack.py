@@ -12,7 +12,6 @@ from requests import post
 
 from jeeves.util.error_util import print_request_exception
 from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM
-from jeeves.util.shakira import format_description
 
 
 class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
@@ -44,6 +43,7 @@ class ShakiraSlackApiClient:
         slack_channel: SlackChannel,
         summary: str,
         reporter_email: Optional[str],
+        post_info_in_reply: bool,
         screenshot: "FileStorage",
     ) -> Optional[str]:
         """
@@ -62,10 +62,13 @@ class ShakiraSlackApiClient:
         """
         url = f"{_API}/files.upload"
         headers = {"Authorization": f"Bearer {_API_TOKEN}"}
-        reporter_username = reporter_email.split("@")[0] if reporter_email else "unknown user"
+        reporter_username = (
+            f'<@{reporter_email.split("@")[0]}>' if reporter_email else "unknown user"
+        )
         platform = JIRA_PROJ_TO_PLATFORM.get(project, "unknown platform")
+        see_thread_for_details = "\n_See thread for details._" if post_info_in_reply else ""
         initial_comment = (
-            f"*{summary}*\nReported by {reporter_username} on {platform}\n_See thread for details._"
+            f"*{summary}*\nReported by {reporter_username} on {platform}{see_thread_for_details}"
         )
         try:
             r = post(
@@ -100,7 +103,8 @@ class ShakiraSlackApiClient:
         self,
         slack_channel: SlackChannel,
         original_post_id: str,
-        description: str,
+        summary: str,
+        description: Optional[str],
         generated_description: Optional[str],
     ):
         """
@@ -110,22 +114,36 @@ class ShakiraSlackApiClient:
         parameters:
             original_post_id: ID returned by post_screenshot
             slack_channel: Channel to post the screenshot to.
+            summary: Roughly one-sentence summary of the issue.
             description: Longer issue description.
             generated_description: Generated information such as app version, fullstory url, session type, etc.
         """
         url = f"{_API}/chat.postMessage"
         headers = {"Authorization": f"Bearer {_API_TOKEN}", "Content-Type": "application/json"}
+        blocks = [{"type": "header", "text": {"type": "plain_text", "text": summary}}]
+        if description:
+            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": description}})
+        data = {
+            "channel": slack_channel.channel_id,
+            "thread_ts": original_post_id,
+            "blocks": blocks,
+        }
+        if generated_description:
+            data["attachments"] = [
+                {
+                    "blocks": [
+                        {
+                            "type": "section",
+                            "text": {"type": "mrkdwn", "text": generated_description},
+                        }
+                    ]
+                }
+            ]
         try:
             r = post(
                 url,
                 headers=headers,
-                data=json.dumps(
-                    {
-                        "channel": slack_channel.channel_id,
-                        "thread_ts": original_post_id,
-                        "text": format_description(description, generated_description),
-                    }
-                ),
+                data=json.dumps(data),
             )
             r.raise_for_status()
         except RequestException as e:

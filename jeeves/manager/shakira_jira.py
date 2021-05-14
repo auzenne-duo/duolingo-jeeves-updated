@@ -12,7 +12,6 @@ from werkzeug.datastructures import FileStorage
 
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.util.error_util import print_request_exception
-from jeeves.util.shakira import format_description
 
 _HOST = "https://duolingo.atlassian.net"
 _API = f"{_HOST}/rest/api/2"
@@ -120,7 +119,7 @@ class ShakiraJiraApiClient:
         project: str,
         feature: Optional[str],
         summary: str,
-        description: str,
+        description: Optional[str],
         generated_description: Optional[str],
         reporter_email: Optional[str],
         pre_release: bool,
@@ -150,7 +149,9 @@ class ShakiraJiraApiClient:
             fields = {
                 "project": {"key": project},
                 "summary": summary,
-                "description": format_description(description, generated_description),
+                "description": "\n".join(
+                    [desc for desc in [description, generated_description] if desc]
+                ),
                 "issuetype": {"id": issuetype.id},
             }
 

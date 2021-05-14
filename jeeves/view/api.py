@@ -211,7 +211,7 @@ def report_issue():
             feature=issue_data.get("feature"),
             client_specified_slack_channel_name=issue_data.get("slackChannel"),
             summary=issue_data["summary"],
-            description=issue_data["description"],
+            description=issue_data.get("description"),
             generated_description=issue_data.get("generatedDescription"),
             reporter_email=issue_data.get("reporterEmail"),
             pre_release=issue_data.get("preRelease", False),
