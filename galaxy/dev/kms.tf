@@ -53,7 +53,7 @@ data "aws_kms_secrets" "secrets" {
 
   secret {
     name    = "zendesk_password"
-    payload = "AQICAHiv5congEi5VHdDF3fTx4DjYoVhEMedwW8dwYVWCwNFnwEucUbkaFvPFTFIb+okmLfFAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMNflUlY+4Q1G/ZE48AgEQgDsgZ738EuK1uaa3Jfzp83Ptz5+ghku1pCgHnSpsvJ3OrXYqsFx5iBfLZ3JVA9ZPMSVUKpgwUozgZyH9lQ=="
+    payload = "AQICAHiv5congEi5VHdDF3fTx4DjYoVhEMedwW8dwYVWCwNFnwEP+oxpxEcPQCB1ltoB8ONgAAAAhjCBgwYJKoZIhvcNAQcGoHYwdAIBADBvBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDKJCVDNHFBSvWUgHQAIBEIBCShC5SuoaRI4ThTwnnjha0SY/vCF/JNOIoPoBKfxV0WiAFrrdjQEi+T92FjKiOd0jM4Cc/RwepQfX2dLwzvjdxxEJ"
 
     context = {
       product     = var.product

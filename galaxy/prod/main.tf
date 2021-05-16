@@ -108,7 +108,7 @@ module "duolingo-jeeves-s3-worker" {
     },
     {
       name  = "ZENDESK_USER"
-      value = "community-team@duolingo.com"
+      value = "jeeves-automation@duolingo.com"
     },
     {
       name  = "ZENDESK_PASSWORD"
