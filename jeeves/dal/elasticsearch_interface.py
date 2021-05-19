@@ -843,10 +843,10 @@ class ElasticsearchDAL:
             result_docs = [doc for doc in result_docs if doc.project == target_doc.project]
         # Filter out issue from its own duplicate list
         result_docs = [doc for doc in result_docs if doc.issue_key != target_doc.issue_key]
-        # Filter out known duplicates and clonse from duplicate list
-        known_duplicates = []
+        # Filter out known duplicates and clones from duplicate list
+        known_duplicates = target_doc.linked_duplicate_keys
         for link in target_doc.issue_links:
-            if "Clone" in link["type"]["name"] or "Duplicate" in link["type"]["name"]:
+            if "Clone" in link["type"]["name"]:
                 if "inwardIssue" in link:
                     known_duplicates.append(link["inwardIssue"]["key"])
                 if "outwardIssue" in link:

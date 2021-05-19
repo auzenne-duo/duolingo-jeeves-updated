@@ -143,6 +143,30 @@ class JiraDocument(JeevesDocument):
         }
 
     @classmethod
+    def get_duplicate_keys_from_issue_links(cls, issue_links: JSON) -> List[str]:
+        """
+        Given a JSON data structure from Jira representing issue links, extract
+        the issue keys of issues that are considered duplicate issues according
+        to that data structure.
+
+        Parameters:
+            issue_links: JSON from the 'issuelinks' field of an issue's data
+
+        Returns:
+            A list of strings, where each string is the issue key of a duplicate
+            issue according to the input link structure.
+        """
+
+        known_duplicates = []
+        for link in issue_links:
+            if "Duplicate" in link["type"]["name"]:
+                if "inwardIssue" in link:
+                    known_duplicates.append(link["inwardIssue"]["key"])
+                if "outwardIssue" in link:
+                    known_duplicates.append(link["outwardIssue"]["key"])
+        return known_duplicates
+
+    @classmethod
     def deserialize_from_external_json(cls, external_json: JSON) -> JeevesDocument:
         """
         Please see parent class for documentation
@@ -192,7 +216,9 @@ class JiraDocument(JeevesDocument):
             issue_links=external_fields.get("issuelinks", []),
             issue_type=external_fields.get("issuetype", {}).get("name", ""),
             project=external_fields["project"]["key"],
-            linked_duplicate_keys=[],
+            linked_duplicate_keys=cls.get_duplicate_keys_from_issue_links(
+                external_fields.get("issuelinks", [])
+            ),
             creation_date=parse_external_datetime(external_fields["created"]),
             updated_date=parse_external_datetime(external_fields["updated"]),
             resolution_date=parse_external_datetime(external_fields["resolutiondate"])

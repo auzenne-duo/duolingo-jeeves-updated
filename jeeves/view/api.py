@@ -17,6 +17,7 @@ import logging
 
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.lib.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.shakira import Shakira
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
@@ -325,6 +326,40 @@ def submit_duplicates():
         return json.jsonify({"Links": "Created"})
     except KeyError:
         abort(make_response("Missing required field(s)", 400))
+
+
+@blueprint_api.route("/api/1/fully_connect_duplicates", methods=["POST"])
+def fully_connect_duplicates():
+    """
+    API wrapper around DuplicateGraphResolver.connect_duplicates_remote().
+    Will add duplicate relations between issues until the degree of separation
+    every issue with a finite degree of separation from any issue listed in the
+    input becomes at most 1 (an issue is separated from itself by degree 0).
+    Although the code supporting this route is tolerant to empty input, I can't
+    think of a situation where an end user would intentionally submit empty
+    input to this route, so empty input is considered an error. Submitting input
+    of size 1 is NOT an error, in case an end user wants to make the duplicate
+    graph of an arbitrary issue become fully connected.
+
+    POST Body Parameters:
+        issue_keys: Required; a list of issue keys around which we want to
+                    create a fully connected duplicate graph. These issues
+                    will be included in the final graph, as well as any
+                    duplicates of these issues, as well as any duplicates of
+                    those duplicates, and so on.
+    """
+
+    data = request.get_json()
+    if ("issue_keys" not in data) or (not data["issue_keys"]):
+        abort(make_response("Please provide a list of issue_keys to interconnect.", 400))
+    issue_keys = data["issue_keys"]
+    if isinstance(issue_keys, str):
+        issue_keys = [issue_keys]
+
+    result_manifest = DuplicateGraphResolver.connect_duplicates_remote(issue_keys)
+    first_line = result_manifest.split("\n")[0]
+    result_dict = {"overall": first_line, "manifest": result_manifest}
+    return json.jsonify(result_dict)
 
 
 @blueprint_api.route("/", defaults={"path": ""})
