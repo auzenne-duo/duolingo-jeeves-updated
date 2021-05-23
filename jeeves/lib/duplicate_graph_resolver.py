@@ -4,13 +4,44 @@ of one. This code is in its own file because putting it anywhere else wouldn't
 make sense or would cause a circular dependency.
 """
 
+from collections import defaultdict
 from typing import List
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.manager.jira_manager import JiraManager
+from jeeves.model.jira_document import JiraDocument
 
 
 class DuplicateGraphResolver:
+    @staticmethod
+    def _update_local_links_from_manifest(manifest: List[str]) -> None:
+        """
+        Given a list of manifest results (see connect_duplicates_remote),
+        modify our locally stored information to include the links successfully
+        created according to the manifest.
+
+        Parameters:
+            manifest: A results manifest generated in connect_duplicates_remote
+        """
+
+        issues_to_link = defaultdict(list)
+        for line in manifest:
+            line_items = line.strip().split(" ")
+            if line_items[0] != "S":
+                continue
+            # Add 1 to 2 and 2 to 1
+            for i in range(2):
+                issues_to_link[line_items[i + 1]].append(line_items[2 - i])
+
+        updated_docs = []
+        docs = [ElasticDAL.find_jira_by_key(key) for key in issues_to_link]
+        for target_doc in docs:
+            target_json = target_doc.serialize_to_json(target_doc)
+            for key in issues_to_link[target_doc.issue_key]:
+                target_json["linked_duplicate_keys"].append(key)
+            updated_docs.append(JiraDocument.deserialize_from_internal_json(target_json))
+        ElasticDAL.bulk_index_tickets(updated_docs)
+
     @staticmethod
     def connect_duplicates_remote(issue_keys: List[str]) -> str:
         """
@@ -18,7 +49,8 @@ class DuplicateGraphResolver:
         Jira, and ensures that any issues with a finite degree of separation
         via duplicate relation from any of the provided issues become marked
         as duplicates such that the maximum degree of separation via duplicate
-        relation is 1.
+        relation is 1. Also enforces the presence of exactly one parent issue in
+        the resulting group.
 
         For example, say we have the following situation, where letters
         represent issues and hyphens represent that two issues are duplicates:
@@ -37,11 +69,20 @@ class DuplicateGraphResolver:
         attempting to add all other edges. The return value of this function
         indicates which edge additions succeeded and which did not.
 
+        Enforcement of exactly one parent issue is performed by checking all
+        documents that will become part of the group for the parent property.
+        If exactly 0 such documents are found, a new document is created and
+        added to the existing set of documents. If exactly 1 document is found,
+        it will be used as the parent issue for the whole group. If 2 or more
+        documents are found, an exception will be thrown.
+
         Parameters:
             existing_keys: A list of issue keys of issues that we want to
                            include in our fully duplicate graph. All duplicates
                            of these issues will also be included in the graph,
                            as well as all duplicates of those issues, and so on.
+                           If no parent issue is found in any of these duplicates,
+                           a new issue will be created as the parent issue.
 
         Returns:
             A string, indicating which edge additions succeeded and which
@@ -55,7 +96,8 @@ class DuplicateGraphResolver:
             its two issue keys were successfully marked as duplicates. We
             attach a trailing newline at the end of the final line so that every
             line is parsed identically. If no new duplicate links were added,
-            we consider the operation a success.
+            we consider the operation a success. If we attempt to merge two or
+            more parent issues into the same group, an exception will be thrown.
         """
 
         # I'm writing this from scratch but this is probably just Dijkstra's?
@@ -72,6 +114,29 @@ class DuplicateGraphResolver:
                 existing_links.add(existing_pair)
             visited.add(target_key)
 
+        doc_reps = [ElasticDAL.find_jira_by_key(key) for key in visited]
+        group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
+
+        parent_key = None
+        if len(group_parents) == 1:
+            parent_key = group_parents[0].issue_key
+        elif len(group_parents) == 0:
+            parent_project = doc_reps[0].project
+            combined_headers = "|".join([doc.header_text for doc in doc_reps])
+            # Jira issue titles have a hard 255 character limit
+            parent_header_text = f"PARENT FOR [{combined_headers}]"[:255]
+            parent_key = JiraManager.upload_template_parent_issue(
+                parent_project, parent_header_text
+            )
+            visited.add(parent_key)
+        else:
+            raise Exception(
+                f"Attempting to fully connect keys [{', '.join(issue_keys)}] into a single group found returned {len(group_parents)} parent issues; please investigate."
+            )
+
+        parent_doc = ElasticDAL.ensure_specific_jira_issue(parent_key)
+        parent_data = JiraManager.parse_parent_description(parent_doc.body_text)
+
         # The set visited should now contain all issues we want to fully connect
         # The set existing_links should now contain all existing links
         all_possible_links = set()
@@ -85,13 +150,25 @@ class DuplicateGraphResolver:
         any_failure = False
         result_list = []
         for (outward_end, inward_end) in remaining_links:
+            # We don't need to edit our documents here because the changes will
+            # get pulled in from Jira later anyway.
             link_created = JiraManager.mark_duplicate_remote(outward_end, inward_end)
             if link_created:
                 any_success = True
                 result_list.append(f"S {outward_end} {inward_end}\n")
+                if outward_end == parent_key:
+                    child_issue = ElasticDAL.find_jira_by_key(inward_end)
+                    JiraManager.update_parent_data_from_child(parent_data, child_issue)
+                elif inward_end == parent_key:
+                    child_issue = ElasticDAL.find_jira_by_key(outward_end)
+                    JiraManager.update_parent_data_from_child(parent_data, child_issue)
             else:
                 any_failure = True
                 result_list.append(f"F {outward_end} {inward_end}\n")
+
+        JiraManager.set_remote_parent_body(parent_key, parent_data)
+        ElasticDAL.ensure_specific_jira_issue(parent_key, force_download=True)
+        DuplicateGraphResolver._update_local_links_from_manifest(result_list)
 
         result_manifest = "".join(result_list)
         # If we had no successes and no failures, then we didn't create any new

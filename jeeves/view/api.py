@@ -251,6 +251,8 @@ def perform_duplicate_jira_detection():
     should_filter_project = request.args.get("should_filter_by_project", "0") != "0"
     max_search_depth = int(request.args.get("max_search_depth", "50"))
 
+    include_parent_issues = request.args.get("include_parent_issues", "0") != "0"
+
     return json.jsonify(
         [
             issue.serialize_to_json(issue)
@@ -259,6 +261,7 @@ def perform_duplicate_jira_detection():
                 num_results=num_results,
                 should_filter_project=should_filter_project,
                 max_search_depth=max_search_depth,
+                use_parent_issues=include_parent_issues,
             )
         ]
     )

@@ -739,7 +739,9 @@ class ElasticsearchDAL:
 
             results_page_start += results_page_size
 
-    def ensure_specific_jira_issue(self, issue_key: str) -> Optional[JeevesDocument]:
+    def ensure_specific_jira_issue(
+        self, issue_key: str, force_download: bool = False
+    ) -> Optional[JeevesDocument]:
         """
         Determines if we have a particular JIRA issue indexed already.
 
@@ -751,6 +753,9 @@ class ElasticsearchDAL:
         Parameters:
             issue_key: A string representing the issue key that we wish to
                        ensure the presence of.
+            force_download: Optional parameter, defaults to False. When True,
+                            forces a re-download of the requested issue, even
+                            if we already have a copy in Elasticsearch.
 
         Returns:
             A JeevesDocument object representing the requested document as it
@@ -767,7 +772,7 @@ class ElasticsearchDAL:
         # If Python had switch statements I would use one but here we are.
         # I'm explicitly checking the length of the list against 0 to emulate a
         # switch statement structure.
-        if len(filter_results) == 0:
+        if force_download or len(filter_results) == 0:
             jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
             base_document = jira_manager.download_specific_issue(issue_key)
             self.bulk_index_tickets([base_document])
@@ -790,6 +795,7 @@ class ElasticsearchDAL:
         num_results: int = 5,
         should_filter_project: bool = True,
         max_search_depth: int = 50,
+        use_parent_issues: bool = False,
     ) -> List[JeevesDocument]:
         """
         Given a JIRA issue key, ensure we have the corresponding document, and
@@ -809,6 +815,14 @@ class ElasticsearchDAL:
                                           project as the requested document.
             max_search_depth (int): Optional. Maximum number of documents to
                                     search through to find num_results results
+            use_parent_issues (bool): Optional. If True, then issues that have
+                                      parent issues will be substituted with
+                                      their parents, and additional filtering
+                                      will be performed to ensure that a given
+                                      parent does not appear twice in the list
+                                      of results. If False, parents will be
+                                      excluded, and no additional filtering will
+                                      be applied.
 
         Returns:
             A list of issue keys of suspected duplicate issues.
@@ -851,8 +865,86 @@ class ElasticsearchDAL:
                     known_duplicates.append(link["inwardIssue"]["key"])
                 if "outwardIssue" in link:
                     known_duplicates.append(link["outwardIssue"]["key"])
-        result_docs = [doc for doc in result_docs if doc.issue_key not in known_duplicates]
-        return result_docs[:num_results]
+        non_parent_result = [
+            doc
+            for doc in result_docs
+            if (doc.issue_key not in known_duplicates) and (not doc.is_group_parent(doc))
+        ]
+        if not use_parent_issues:
+            return non_parent_result[:num_results]
+
+        excluded_keys = set()
+        result_docs = []
+        roving_index = 0
+        while len(result_docs) < num_results and roving_index < len(non_parent_result):
+            doc = non_parent_result[roving_index]
+            roving_index += 1
+            if doc.issue_key in excluded_keys:
+                continue
+            possible_parent = self.get_parent_for_jira(doc)
+            if possible_parent:
+                doc = possible_parent
+            result_docs.append(doc)
+            excluded_keys.add(doc.issue_key)
+            excluded_keys.update(doc.linked_duplicate_keys)
+
+        return result_docs
+
+    def find_jira_by_key(self, issue_key: str) -> Optional[JeevesDocument]:
+        """
+        Queries for a particular Jira issue using an issue key.
+
+        If found, returns an object representation of the document,
+        otherwise returns None.
+
+        Parameters:
+            issue_key: The issue key of the document we want to query.
+
+        Returns:
+            An object representation of the queried document, or None.
+        """
+
+        s = Search(using=self._es, index=self._indexname).filter(
+            "term", issue_key__keyword=issue_key
+        )
+        results = self.execute_arbitrary_query(s.to_dict())
+        if len(results) == 0:
+            return None
+        elif len(results) == 1:
+            return results[0]
+        else:
+            raise Exception(
+                f"Found two documents with identical issue_key value {issue_key}, please investigate."
+            )
+
+    def get_parent_for_jira(self, target_doc: JeevesDocument) -> Optional[JeevesDocument]:
+        """
+        Given a document, determines if it is a Jira document that has a parent
+        and returns that parent if possible.
+
+        Parameters:
+            target_doc: The document whose parent we wish to return.
+
+        Returns:
+            A JeevesDocument representing the parent issue of the input if it
+            was found, otherwise None.
+        """
+
+        # This seems very roundabout but if we ever change the Jira identifier
+        # then we'll remember to change this line because it will start erroring
+        if (
+            target_doc.data_source
+            != IDManagerMap.get_manager_for_identifier("JIRA")
+            .get_managed_document_type()
+            .get_data_source_identifier()
+        ):
+            return None
+
+        for family_member_key in target_doc.linked_duplicate_keys:
+            family_member = self.find_jira_by_key(family_member_key)
+            if family_member.is_group_parent(family_member):
+                return family_member
+        return None
 
 
 ElasticDAL = ElasticsearchDAL()

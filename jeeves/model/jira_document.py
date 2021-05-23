@@ -312,3 +312,44 @@ class JiraDocument(JeevesDocument):
         """
         # One-line solution for JEEVES-92
         return document.issue_type == "Bug" and super().check_should_index_document(document)
+
+    @classmethod
+    def get_parent_category_mappings(cls) -> Dict[str, str]:
+        """
+        Returns a mapping of category names used in parent documents, and which
+        field names those category names represent.
+
+        Returns:
+            A dictionary from strings to strings, representing the above mapping
+        """
+
+        parent_category_mapping = {
+            "APP VERSIONS": "app_version",
+            "PLATFORMS": "platform",
+            "COURSES": "course",
+            "INTERFACE LANGUAGES": "ui_language",
+            "OPERATING SYSTEMS": "os_version",
+            "AREAS": "components",
+        }
+        return parent_category_mapping
+
+    @classmethod
+    def is_group_parent(cls, target: JeevesDocument) -> bool:
+        """
+        Given a JeevesDocument object, determines if it should be considered
+        a parent issue of some group of duplicate issues.
+
+        Parameters:
+            target: The JeevesDocument object we want to test
+
+        Returns:
+            True if the input should be considered a parent issue, else False.
+        """
+
+        # First we need to check that the generic JeevesDocument is for Jira.
+        # Using an isinstance test here is annoying because we're inside the
+        # class we're testing for, so we check the data_source instead.
+        if target.data_source != cls.get_data_source_identifier():
+            return False
+
+        return "parent_bug" in target.labels
