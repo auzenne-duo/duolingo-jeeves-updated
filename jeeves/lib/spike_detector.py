@@ -4,11 +4,9 @@ Candidate words are from Zendesk tickets on a target date.
 """
 from collections import defaultdict
 from datetime import date, datetime, time
-from time import time as tt
 from typing import List
 
 import numpy as np
-from tqdm import tqdm
 
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
 from jeeves.dal.elasticsearch_interface import ElasticDAL
@@ -208,14 +206,10 @@ def _find_spiked_words(lang, word_to_date_to_count, target_dt):
         - lang (str): Language of tickets used in spike calculation
     """
     target_date_str = date_to_str(target_dt)
-    print("Spike detection started for", target_date_str)
-    start = tt()
 
     score_word_pairs = [
         (_calculate_spike_score(date_to_count, target_dt), word)
-        for word, date_to_count in tqdm(
-            word_to_date_to_count.items(), desc="Calculate spikiness scores"
-        )
+        for word, date_to_count in word_to_date_to_count.items()
     ]
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
     result = [
@@ -223,8 +217,6 @@ def _find_spiked_words(lang, word_to_date_to_count, target_dt):
         for score, word in score_word_pairs
         if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
     ]
-    print(f"{len(result)} spiked words found on {target_date_str}:")
-    print(f"Done in {(tt() - start):.3f} sec.")
     return result
 
 
