@@ -17,7 +17,11 @@ const TicketJiraButton = ({ ticket }: Props) => {
     setSubmitting(true);
     try {
       const result = await createJira({
-        description: ticket.body_text ?? "",
+        description: `${ticket.body_text ?? ""}${
+          ticket.attachments?.length
+            ? `\n\nAttachments:\n${ticket.attachments.join("\n")}`
+            : ""
+        }`,
         generated_description: ticket.duolingo_metadata.raw,
         project:
           ticket.platform === "Android"
