@@ -4,7 +4,7 @@ Technology-driven user support.
 
 ## Owner
 
-- Peter Pearson, ppearson@duolingo.com
+- Peter Chapman, peter@duolingo.com
 
 ## Badges
 

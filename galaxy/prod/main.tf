@@ -56,7 +56,7 @@ module "duolingo-jeeves" {
   environment_vars = [
     {
       name  = "JIRA_USERNAME"
-      value = "ppearson@duolingo.com"
+      value = "peter@duolingo.com"
     },
     {
       name  = "JIRA_API_TOKEN"
@@ -116,7 +116,7 @@ module "duolingo-jeeves-s3-worker" {
     },
     {
       name  = "JIRA_USERNAME"
-      value = "ppearson@duolingo.com"
+      value = "peter@duolingo.com"
     },
     {
       name  = "JIRA_API_TOKEN"

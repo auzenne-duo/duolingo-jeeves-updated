@@ -296,7 +296,7 @@ class Test(unittest.TestCase):
             "components": ["Circle Area", "Circle Perimeter"],
             "features": [],
             "priority": "Unprioritized",
-            "reporter": "Peter Pearson",
+            "reporter": "Peter Chapman",
             "assignee": "UNASSIGNED",
             "comments": [],
             "labels": [],
