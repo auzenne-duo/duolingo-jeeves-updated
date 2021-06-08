@@ -41,7 +41,7 @@ data "aws_kms_secrets" "secrets" {
 
   secret {
     name    = "jira_api_token"
-    payload = "AQICAHiv5congEi5VHdDF3fTx4DjYoVhEMedwW8dwYVWCwNFnwGG7AdA56xRdoY8BksP56lbAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMswvalebouW6f5kKUAgEQgDOG0FyQpucbikUSQwi4dWwHUJbt/ZIrweIU8BTZKQtdtULEcSjuq+3G2dE6jW4rsWgjGOU="
+    payload = "AQICAHi8VJKHFYAxFeUp4dS+8Aw/C0l5T9o3fMCTutWJlPq2MgF6bD6m4W6iINwMK7D21h8zAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMtPnd+oRk6hNorXb9AgEQgDPpQAHewoarnEDOdPN71/bREgBFruTQ6cHPc3AblIrUwUVxx6HrxQi4XMYvr/msu49eKjg="
 
     context = {
       product     = var.product
@@ -78,7 +78,7 @@ data "aws_kms_secrets" "secrets" {
 
   secret {
     name    = "jira_api_token_general"
-    payload = "AQICAHiv5congEi5VHdDF3fTx4DjYoVhEMedwW8dwYVWCwNFnwE/QBkYWBSP5LQRzy/F9qs4AAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMQIYef98Vy7VZDgSjAgEQgDOn23tnr4RUAgt843SiulNX7gh4dPvDc0lpydE2AciaPW3EFcijRayhcS9XVMgtgn4Tk5I="
+    payload = "AQICAHi8VJKHFYAxFeUp4dS+8Aw/C0l5T9o3fMCTutWJlPq2MgFkrNor5k3GY9kkgWSedg/sAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMGa0G3EGOkq+KDGvXAgEQgDPBBIqmILw6848rsaHaXezU7rngkK/goYERsxmBcMoRMQfJeK72YA9EFDNwsRJSaBerJ2w="
 
     context = {
       product     = var.product
