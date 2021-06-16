@@ -25,6 +25,9 @@ declare namespace JSONAPI {
   interface JiraIssueLink {
     inwardIssue?: {
       fields: {
+        status: {
+          name: string;
+        };
         summary: string;
       };
       id: string;
@@ -32,6 +35,9 @@ declare namespace JSONAPI {
     };
     outwardIssue?: {
       fields: {
+        status: {
+          name: string;
+        };
         summary: string;
       };
       id: string;
@@ -114,6 +120,8 @@ declare namespace JSONAPI {
     /** ID assigned to the user on Zendesk that submitted the ticket. */
     requester_id?: number;
     shake_to_report_category: ShakeToReportCategory;
+    /** The status of a Jira ticket. */
+    status?: string;
     store?: string;
     tags?: string[];
     /** Only applies to Zendesk tickets. */

@@ -1,10 +1,12 @@
 import * as React from "react";
 
+import JiraStatus from "components/JiraStatus";
 import styles from "styles/JiraIssues.scss";
 
 interface Props {
   issues: {
     key: string;
+    status?: string;
     summary: string;
   }[];
 }
@@ -12,7 +14,7 @@ interface Props {
 const JiraIssues: React.FC<Props> = ({ issues }) => (
   <div className={styles.wrap}>
     <ul className={styles.list}>
-      {issues.map(({ key, summary }, i) => {
+      {issues.map(({ key, status, summary }, i) => {
         return (
           <li className={styles.item} key={i}>
             <a
@@ -24,6 +26,9 @@ const JiraIssues: React.FC<Props> = ({ issues }) => (
             >
               <span className={styles.key}>{key}</span>
               <span className={styles.title}>{summary}</span>
+              {status ? (
+                <JiraStatus className={styles.status} status={status} />
+              ) : null}
             </a>
           </li>
         );

@@ -156,6 +156,8 @@ const Ticket: React.FC<Props> = ({
                   issues={duplicates.map(issue => ({
                     key: (issue.inwardIssue?.key ??
                       issue.outwardIssue?.key) as string,
+                    status: (issue.inwardIssue?.fields.status.name ??
+                      issue.outwardIssue?.fields.status.name) as string,
                     summary: (issue.inwardIssue?.fields.summary ??
                       issue.outwardIssue?.fields.summary) as string,
                   }))}
@@ -217,6 +219,7 @@ const Ticket: React.FC<Props> = ({
                   <JiraIssues
                     issues={potentialDuplicates.map(t => ({
                       key: t.issue_key as string,
+                      status: t.status as string,
                       summary: t.header_text as string,
                     }))}
                   />
@@ -278,6 +281,7 @@ const Ticket: React.FC<Props> = ({
                   issues={[
                     {
                       key: ticket.issue_key as string,
+                      status: ticket.status as string,
                       summary: ticket.header_text as string,
                     },
                   ]}

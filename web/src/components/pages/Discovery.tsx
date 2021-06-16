@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 
 import { getTicket, getTickets } from "api";
+import JiraStatus from "components/JiraStatus";
 import Pagination from "components/Pagination";
 import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
@@ -252,6 +253,12 @@ const Discovery = () => {
                             : t.app_version
                         }
                         value={t.app_version}
+                      />
+                    ) : null}
+                    {t.data_source === "JIRA" ? (
+                      <JiraStatus
+                        className={styles["tag-ipad"]}
+                        status={t.status as string}
                       />
                     ) : null}
                     {t.platform ? (
