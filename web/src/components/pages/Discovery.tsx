@@ -1,13 +1,14 @@
 import { format, formatISO, isThisYear, isToday } from "date-fns";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { useHistory, useLocation, useParams } from "react-router-dom";
+import { Link, useHistory, useLocation, useParams } from "react-router-dom";
 
 import { getTicket, getTickets } from "api";
 import JiraStatus from "components/JiraStatus";
 import Pagination from "components/Pagination";
 import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
+import TagFilter from "components/TagFilter";
 import Ticket from "components/Ticket";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import useDocumentTitle from "components/useDocumentTitle";
@@ -20,6 +21,7 @@ import {
   formatCourseId,
   formatReadableDate,
   formatScreen,
+  getFilterLink,
   getPaginationString,
   getUntruncatedTitle,
 } from "util";
@@ -231,22 +233,25 @@ const Discovery = () => {
                       <Tag className={styles["tag-ipad"]} value={t.issue_key} />
                     ) : null}
                     {t.course ? (
-                      <Tag
+                      <TagFilter
                         className={styles["tag-ipad"]}
+                        field="course"
                         text={formatCourseId(t.course)}
                         value={t.course}
                       />
                     ) : null}
                     {t.screen_content ? (
-                      <Tag
+                      <TagFilter
                         className={styles["tag-ipad"]}
+                        field="screen_content"
                         text={formatScreen(t.screen_content)}
                         value={t.screen_content}
                       />
                     ) : null}
                     {t.app_version ? (
-                      <Tag
+                      <TagFilter
                         className={styles["tag-ipad"]}
+                        field="app_version"
                         text={
                           t.platform === "Web"
                             ? t.app_version.slice(0, 7)
@@ -255,17 +260,27 @@ const Discovery = () => {
                         value={t.app_version}
                       />
                     ) : null}
-                    {t.data_source === "JIRA" ? (
-                      <JiraStatus
-                        className={styles["tag-ipad"]}
-                        status={t.status as string}
-                      />
+                    {t.data_source === "JIRA" && t.status ? (
+                      <Link
+                        onClick={e => e.stopPropagation()}
+                        to={getFilterLink(location, "status", t.status)}
+                      >
+                        <JiraStatus
+                          className={styles["tag-ipad"]}
+                          status={t.status}
+                        />
+                      </Link>
                     ) : null}
                     {t.platform ? (
-                      <PlatformIcon
-                        className={styles.icon}
-                        platform={t.platform}
-                      />
+                      <Link
+                        onClick={e => e.stopPropagation()}
+                        to={getFilterLink(location, "platform", t.platform)}
+                      >
+                        <PlatformIcon
+                          className={styles.icon}
+                          platform={t.platform}
+                        />
+                      </Link>
                     ) : null}
                     {date ? (
                       <span

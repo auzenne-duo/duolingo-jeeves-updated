@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import type { Location } from "history";
 
 export const convertTimeZone = (date: Date, tz: string) =>
   new Date(
@@ -23,7 +24,7 @@ export const encodeURLSearchParams = (params: URLSearchParams) =>
  * Escapes a string for usage in an Elasticsearch query.
  * See https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_reserved_characters.
  */
-export const escapeElasticQuery = (query: string) =>
+const escapeElasticQuery = (query: string) =>
   query
     .replace(/([+\-=!(){}[\]^"~*?:\\\/]|&&|\|\|)/g, "\\$1")
     // Remove characters that cannot be escaped.
@@ -68,6 +69,20 @@ export const formatScreen = (screen: string) =>
   screen.startsWith("com.duolingo.")
     ? screen.replace("com.duolingo.", "")
     : screen.replace(/^https?:\/\/(.+\.)?duolingo\.com/, "");
+
+export const getFilterLink = (
+  location: Location,
+  field: string,
+  value: string,
+) => {
+  const params = new URLSearchParams(location.search);
+  params.delete("page");
+  params.set("q", `${field}:"${escapeElasticQuery(value)}"`);
+  return {
+    ...location,
+    search: params.toString(),
+  };
+};
 
 export const getPaginationString = ({
   page,

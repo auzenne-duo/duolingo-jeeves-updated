@@ -13,12 +13,12 @@ import renderTicketSource from "components/renderTicketSource";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/Ticket.scss";
 import {
-  escapeElasticQuery,
   escapeHTML,
   formatAttachment,
   formatCourseId,
   formatReadableDate,
   formatScreen,
+  getFilterLink,
   highlightWord,
   normalizeNewLines,
 } from "util";
@@ -56,16 +56,6 @@ const Ticket: React.FC<Props> = ({
       ticket.issue_key ? await getJiraDuplicates(ticket.issue_key) : [],
     [ticket.issue_key],
   );
-
-  const getFilterLink = (field: string, value: string) => {
-    const params = new URLSearchParams(location.search);
-    params.delete("page");
-    params.set("q", `${field}:"${escapeElasticQuery(value)}"`);
-    return {
-      ...location,
-      search: params.toString(),
-    };
-  };
 
   return (
     <div className={cn(styles.container, className)}>
@@ -181,7 +171,7 @@ const Ticket: React.FC<Props> = ({
             <section className={styles.section}>
               <span className={styles.label}>Platform</span>
               <div>
-                <Link to={getFilterLink("platform", ticket.platform)}>
+                <Link to={getFilterLink(location, "platform", ticket.platform)}>
                   <PlatformIcon
                     className={styles.icon}
                     platform={ticket.platform}
