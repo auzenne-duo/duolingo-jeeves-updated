@@ -2,6 +2,7 @@
 *.pem
 *.pyc
 *.pyo
+*.pyenv
 *~
 .*.swp
 /.duolingo_authtkt

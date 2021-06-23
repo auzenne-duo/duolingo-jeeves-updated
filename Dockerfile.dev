@@ -20,8 +20,6 @@ ENV INSTALL_PATH /code
 ENV DEV_REQ_TXT dev-requirements.txt
 ENV PYTHONIOENCODING UTF-8
 ENV DUOLINGO_CONFIG=${INSTALL_PATH}/config/dev.yml
-ENV DUPLICATE_DETECTOR_MODEL=${INSTALL_PATH}/duplicate-detector-model/
-
 ENV PYTHONPATH /code
 
 WORKDIR $INSTALL_PATH
@@ -40,6 +38,8 @@ RUN apt-get update \
       python3-pip \
 #     libpq-dev is a postgres library needed by sqlalchemy
       libpq-dev \
+      curl \
+      unzip \
  && rm -rf /var/lib/apt/lists/* \
  && ln -s /usr/bin/python3 /usr/bin/python
 
@@ -49,6 +49,20 @@ RUN pip3 install -U pip pip-tools wheel \
 ARG REQUIREMENTS=dev-requirements.txt
 COPY $REQUIREMENTS $REQUIREMENTS
 RUN pip3 install -r "$REQUIREMENTS" --src /usr/local/src
+
+# Import duplicate detector model
+ENV DUPLICATE_DETECTOR_MODEL=/opt/jeeves/duplicate-detector-model/
+ENV S3_FILE_STORAGE="s3://jeeves-document-cache"
+ENV DUPLICATE_DETECTOR_REMOTE_PATH="$S3_FILE_STORAGE/duplicate-detector-model"
+ENV AWS_CONFIG_FILE="/root/.aws/config"
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+RUN unzip /tmp/awscliv2.zip -d /tmp
+RUN /tmp/aws/install
+ARG aws_access_key
+ARG aws_secret_key
+ENV AWS_ACCESS_KEY_ID $aws_access_key
+ENV AWS_SECRET_ACCESS_KEY $aws_secret_key
+RUN aws s3 sync "$DUPLICATE_DETECTOR_REMOTE_PATH" $DUPLICATE_DETECTOR_MODEL
 
 COPY . .
 COPY --from=web-builder /code/dist ./web/dist

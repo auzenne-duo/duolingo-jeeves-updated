@@ -29,7 +29,7 @@ Look into the [Microservice Review](docs/microservice-review.md) for details.
 
 ### Backend
 
-Make sure to set up Python3 virtual environment, or pylint would fail when trying to commit.
+Make sure to set up Python 3 virtual environment, or pylint would fail when trying to commit.
 
 - Run `virtualenv -p python3 env`
 - Run `export PYTHONPATH=$(pwd)`
@@ -38,12 +38,15 @@ Make sure to set up Python3 virtual environment, or pylint would fail when tryin
 - Run `pip3 install -r dev-requirements.txt`
 - Run `npm install`
 
-The following are required when you updated requirements.
+The following are required when you update requirements.
 
 - Run `pip-compile --output-file requirements.txt requirements.in`
 - Run `pip-compile --output-file dev-requirements.txt dev-requirements.in`
 
 The data versioning number in `jeeves/config/config.py` should be updated whenever data should be backfilled. Changing this number to a previously unused value will create new data indices in Elasticsearch and the data update scripts will automatically fill them in. As a convention, we have been incrementing the "major" data version number (i.e. before the decimal point) for adding entirely new data sources and for major structural changes, and incrementing the "minor" data version number (i.e. after the decimal point) for smaller changes to existing structures.
+
+To use the Docker Compose environments that depend on the duplicate detection model,
+set the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.
 
 ### Frontend
 

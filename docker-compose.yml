@@ -18,7 +18,7 @@ services:
     volumes:
       - .:/code
       - ~/.aws:/root/.aws
-    command: ["python", "/code/jeeves/scripts/update_jeeves_data.py"]
+    command: ["python", "./jeeves/scripts/update_jeeves_data.py"]
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -39,6 +39,16 @@ services:
       - .:/code
       - ~/.aws:/root/.aws
     command: ["python", "/code/jeeves/scripts/sqs_index_worker.py"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+
+  spike-worker:
+    image: duolingojeeves_api
+    volumes:
+      - .:/code
+      - ~/.aws:/root/.aws
+    command: ["python", "/code/jeeves/scripts/spike_worker.py"]
     build:
       context: .
       dockerfile: Dockerfile.dev
