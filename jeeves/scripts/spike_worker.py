@@ -1,19 +1,26 @@
+from datetime import datetime, timedelta, timezone
+
 from duolingo_base.config import Config
 from duolingo_base.dal import s3
 
-from jeeves.dal.elasticsearch_interface import ElasticDAL
-from jeeves.lib.spike_detector import (
+from jeeves.dal.elasticsearch_interface import ElasticDAL  # pylint: disable=E0401
+from jeeves.lib.spike_detector import (  # pylint: disable=E0401
     split_beta_batches_and_run_detector,
     split_beta_batches_and_run_for_date,
 )
-from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.util.date_util import get_utc_today, str_to_date, yield_intermediate_dates
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES  # pylint: disable=E0401
+from jeeves.util.date_util import (  # pylint: disable=E0401
+    get_utc_today,
+    str_to_date,
+    yield_intermediate_dates,
+)
 
 
 _config = Config.load_config()
 
 _FORCE_SPIKE_REFRESH_FILE = "force_spike_refresh_flag"
 _SPIKE_CALCULATOR_LOCK_FILE = "spike_calculator_lock"
+_LOCK_TIMEOUT = 12
 
 
 def force_recalculate_all_spikes(s3_client: s3.S3Client, s3_bucket_name: str) -> None:
@@ -77,7 +84,12 @@ def run_spike_worker() -> None:
         .decode("utf-8")
         .startswith("1")
     )
-    if is_lock_held:
+    lock_summary = s3_client.get_object_summary(s3_bucket_name, _SPIKE_CALCULATOR_LOCK_FILE)
+    is_lock_expired = datetime.now(timezone.utc) - lock_summary.last_modified > timedelta(
+        hours=_LOCK_TIMEOUT
+    )
+
+    if is_lock_held and not is_lock_expired:
         print("Lock already held, exiting early")
         return
     # Lock was not held, claim the lock.
