@@ -7,6 +7,7 @@ type Action =
   | { type: "HIDE_MENU" }
   | { type: "LOADED" }
   | { type: "LOADING" }
+  | { query: string; type: "SEARCH" }
   | { type: "SHOW_ASIDE" }
   | { type: "SHOW_MENU" }
   | { type: "TOGGLE_ASIDE" }
@@ -14,12 +15,14 @@ type Action =
 
 interface State {
   loading: boolean;
+  searchHistory: string[];
   showAside: boolean;
   showMenu: boolean;
 }
 
 export const initialState: State = {
   loading: false,
+  searchHistory: JSON.parse(localStorage.getItem("searchHistory") ?? "[]"),
   showAside: false,
   showMenu: canFitMenuAndContent(),
 };
@@ -34,6 +37,19 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
       return { ...state, loading: false };
     case "LOADING":
       return { ...state, loading: true };
+    case "SEARCH":
+      if (action.query.trim() === "") {
+        return state;
+      }
+      return {
+        ...state,
+        searchHistory: [
+          action.query.trim(),
+          ...state.searchHistory
+            .filter(q => q !== action.query.trim())
+            .slice(0, 20),
+        ],
+      };
     case "SHOW_ASIDE":
       return { ...state, showAside: true };
     case "SHOW_MENU":

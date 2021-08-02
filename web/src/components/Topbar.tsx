@@ -98,6 +98,11 @@ const Topbar = () => {
     setInput(query);
   }, [query]);
 
+  React.useEffect(() => {
+    // Keep search history.
+    dispatch({ query, type: "SEARCH" });
+  }, [query]);
+
   return (
     <div className={cn(styles.wrap, { [styles.loading]: state.loading })}>
       <Hamburger isOpen={state.showMenu} onClick={handleHamburgerClick} />
@@ -121,14 +126,23 @@ const Topbar = () => {
         }
       >
         {isAnalysisPage || isDiscoveryPage ? (
-          <Input
-            className={styles.search}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleSearchInputKeyDown}
-            placeholder="Search"
-            type="search"
-            value={input}
-          />
+          <>
+            <Input
+              autoComplete="off"
+              className={styles.search}
+              list="search-history"
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleSearchInputKeyDown}
+              placeholder="Search"
+              type="search"
+              value={input}
+            />
+            <datalist id="search-history">
+              {state.searchHistory.map((q, i) => (
+                <option key={i} value={q} />
+              ))}
+            </datalist>
+          </>
         ) : null}
         {isAnalysisPage || isSpikePage ? (
           <DateRangeInput

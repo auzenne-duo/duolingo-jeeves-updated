@@ -17,6 +17,10 @@ const App = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
   React.useEffect(() => {
+    localStorage.setItem("searchHistory", JSON.stringify(state.searchHistory));
+  }, [state.searchHistory]);
+
+  React.useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (state.showMenu && !canFitMenuAndContent()) {

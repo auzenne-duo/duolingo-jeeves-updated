@@ -85,6 +85,11 @@
     border-radius: 0 !important;
     height: calc(var(--height-topbar) - #{$juicy-border-width}) !important;
   }
+
+  // Hide the datalist dropdown arrow.
+  input::-webkit-calendar-picker-indicator {
+    display: none !important;
+  }
 }
 
 .wrap {
