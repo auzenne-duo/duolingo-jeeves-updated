@@ -1,12 +1,14 @@
+import "whatwg-fetch";
+
 import "normalize.css";
 import "web-ui/styles/fonts.scss";
 
 import * as React from "react";
 import { render } from "react-dom";
 import {
-  BrowserRouter as Router,
   Redirect,
   Route,
+  BrowserRouter as Router,
   Switch,
 } from "react-router-dom";
 

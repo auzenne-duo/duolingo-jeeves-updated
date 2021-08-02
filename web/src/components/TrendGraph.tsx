@@ -8,10 +8,10 @@ import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/TrendGraph.scss";
 
 interface PlotState {
-  config: any;
-  data: any[];
-  frames: any[];
-  layout: any;
+  config: unknown;
+  data: unknown[];
+  frames: unknown[];
+  layout: unknown;
 }
 
 export interface RangeChangeEvent {
@@ -42,13 +42,13 @@ interface Props {
   zoomTo?: Date;
 }
 
-const TrendGraph: React.FC<Props> = ({
+const TrendGraph = ({
   language: lang,
   onRangeChange,
   query,
   zoomFrom,
   zoomTo,
-}) => {
+}: Props) => {
   const [data] = useAwaitedValue(
     undefined,
     async () => {

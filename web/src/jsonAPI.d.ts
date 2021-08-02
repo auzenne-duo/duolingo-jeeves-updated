@@ -79,13 +79,13 @@ declare namespace JSONAPI {
     | "INTERNAL_NON_STR_SPIKES"
     | "INTERNAL_STR_SPIKES";
 
-  interface Spikes {
-    [date: string]:
-      | {
-          spike: [number, string][];
-        }
-      | undefined;
-  }
+  type Spikes = Record<
+    string,
+    | {
+        spike: [number, string][];
+      }
+    | undefined
+  >;
 
   interface Ticket extends DuolingoMetadata {
     /** URLs to file attachments. Currently only available for Jira tickets. */
@@ -143,8 +143,6 @@ declare namespace JSONAPI {
   }
 
   interface TimeSeries {
-    values: {
-      [date: string]: number | undefined;
-    };
+    values: Record<string, number | undefined>;
   }
 }

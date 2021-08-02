@@ -9,7 +9,7 @@ interface Props {
   platform: "Android" | "iOS" | "Web";
 }
 
-const PlatformIcon: React.FC<Props> = ({ className, platform }) => (
+const PlatformIcon = ({ className, platform }: Props) => (
   <img
     alt={platform}
     className={className}

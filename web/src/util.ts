@@ -26,7 +26,7 @@ export const encodeURLSearchParams = (params: URLSearchParams) =>
  */
 const escapeElasticQuery = (query: string) =>
   query
-    .replace(/([+\-=!(){}[\]^"~*?:\\\/]|&&|\|\|)/g, "\\$1")
+    .replace(/([+\-=!(){}[\]^"~*?:\\/]|&&|\|\|)/g, "\\$1")
     // Remove characters that cannot be escaped.
     .replace(/[<>]/g, "");
 
@@ -42,7 +42,7 @@ export const escapeHTML = (unsafe: string) =>
 const fixedEncodeURIComponent = (str: string) =>
   encodeURIComponent(str).replace(
     /[!'()*]/g,
-    c => "%" + c.charCodeAt(0).toString(16),
+    c => `%${c.charCodeAt(0).toString(16)}`,
   );
 
 export const formatAttachment = (url: string) => {

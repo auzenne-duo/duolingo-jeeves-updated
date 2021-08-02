@@ -1,3 +1,10 @@
+import {
+  escapeHTML,
+  formatReadableDate,
+  highlightWord,
+  normalizeNewLines,
+} from "util";
+
 import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -6,19 +13,13 @@ import TagFilter from "components/TagFilter";
 import renderTicketSource from "components/renderTicketSource";
 import imageCaretRight from "images/caret-right.svg";
 import styles from "styles/TicketTable.scss";
-import {
-  escapeHTML,
-  formatReadableDate,
-  highlightWord,
-  normalizeNewLines,
-} from "util";
 
 interface Props {
   highlight?: string;
   ticket: JSONAPI.Ticket;
 }
 
-const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
+const TicketTable = ({ highlight, ticket }: Props) => {
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
 
   let body = normalizeNewLines(escapeHTML(ticket.body_text ?? ""))
@@ -41,8 +42,8 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
                 )}`}
               >
                 <img
-                  className={styles.icon}
                   alt="Open in Issue Discovery"
+                  className={styles.icon}
                   src={imageCaretRight}
                   title="Open in Issue Discovery"
                 />
@@ -94,6 +95,7 @@ const TicketTable: React.FC<Props> = ({ highlight, ticket }) => {
           <td
             colSpan={2}
             dangerouslySetInnerHTML={{
+              // eslint-disable-next-line @typescript-eslint/naming-convention
               __html: body,
             }}
           />

@@ -8,7 +8,7 @@ interface Props {
   onClick?: React.MouseEventHandler;
 }
 
-const Hamburger: React.FC<Props> = ({ isOpen, onClick }) => (
+const Hamburger = ({ isOpen, onClick }: Props) => (
   <Button
     className={styles[`hamburger${isOpen ? "-open" : ""}`]}
     onClick={onClick}

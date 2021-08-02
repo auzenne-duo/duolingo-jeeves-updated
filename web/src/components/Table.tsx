@@ -1,13 +1,14 @@
-import cn from "classnames";
 import * as React from "react";
 
+import cn from "classnames";
 import styles from "styles/Table.scss";
 
 interface Props {
+  children: React.ReactNode;
   className?: string;
 }
 
-const Table: React.FC<Props> = ({ children, className }) => (
+const Table = ({ children, className }: Props) => (
   <table className={cn(styles.table, className)}>{children}</table>
 );
 

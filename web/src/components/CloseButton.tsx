@@ -8,7 +8,7 @@ interface Props {
   onClick?: React.MouseEventHandler;
 }
 
-const CloseButton: React.FC<Props> = ({ onClick }) => (
+const CloseButton = ({ onClick }: Props) => (
   <Button className={styles.close} onClick={onClick}>
     <img src={imageClose} />
   </Button>

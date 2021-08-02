@@ -1,4 +1,3 @@
-import cn from "classnames";
 import { endOfDay } from "date-fns";
 import * as React from "react";
 import {
@@ -10,9 +9,9 @@ import {
 } from "react-router-dom";
 import { Input, LoadingDots, Select } from "web-ui";
 
-import DateRangeInput, {
-  DateRangeChangeEvent,
-} from "components/DateRangeInput";
+import cn from "classnames";
+import type { DateRangeChangeEvent } from "components/DateRangeInput";
+import DateRangeInput from "components/DateRangeInput";
 import Hamburger from "components/Hamburger";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useSearchParams from "components/useSearchParams";
@@ -146,8 +145,8 @@ const Topbar = () => {
         ) : null}
         {isAnalysisPage || isSpikePage ? (
           <DateRangeInput
-            className={styles["hide-on-mobile"]}
             alignPopover="end"
+            className={styles["hide-on-mobile"]}
             from={from}
             onChange={handleDateRangeChange}
             to={to}

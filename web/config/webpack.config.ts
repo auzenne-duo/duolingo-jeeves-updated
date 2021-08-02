@@ -1,7 +1,7 @@
 import * as path from "path";
 
 import * as HtmlWebpackPlugin from "html-webpack-plugin";
-import * as webpack from "webpack";
+import type * as webpack from "webpack";
 
 const webpackConfig: webpack.Configuration = {
   context: path.resolve(__dirname, "../src"),
@@ -29,7 +29,9 @@ const webpackConfig: webpack.Configuration = {
         test: /\.css$/,
       },
       {
-        include: path => /web-ui/.test(path),
+        // This check is permissive by design, as the web-ui library
+        // may be symlinked when using the local development build.
+        include: path => path.includes("web-ui"),
         loader: "css-loader",
         options: {
           importLoaders: 1,
@@ -40,7 +42,7 @@ const webpackConfig: webpack.Configuration = {
         test: /\.scss$/,
       },
       {
-        include: path => !/web-ui/.test(path),
+        include: path => !path.includes("web-ui"),
         loader: "css-loader",
         options: {
           importLoaders: 1,

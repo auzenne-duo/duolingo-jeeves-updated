@@ -1,3 +1,5 @@
+import { spikeToStrCategory } from "util";
+
 import * as React from "react";
 import { useParams } from "react-router-dom";
 
@@ -9,7 +11,6 @@ import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
-import { spikeToStrCategory } from "util";
 
 const Spike = () => {
   const { from, to } = useDateRangeFilter({ daysAgo: 3 });
@@ -44,6 +45,7 @@ const Spike = () => {
         dispatch?.({ type: "LOADED" });
       };
     }
+    return undefined;
   }, [isLoading]);
 
   return (

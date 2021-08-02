@@ -1,6 +1,6 @@
-import { format, formatISO, parseISO } from "date-fns";
-
 import { convertTimeZone } from "util";
+
+import { format, formatISO, parseISO } from "date-fns";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -45,14 +45,14 @@ const formatLocalDate = (date: Date) =>
   formatISO(date, { representation: "date" });
 
 const get = async (url: string) =>
-  await (
+  (
     await fetch(`${API_URL}${url}`, {
       credentials: "include",
     })
   ).json();
 
 const post = async (url: string, data = {}) =>
-  await (
+  (
     await fetch(`${API_URL}${url}`, {
       body: data instanceof FormData ? data : JSON.stringify(data),
       credentials: "include",
@@ -66,10 +66,10 @@ const post = async (url: string, data = {}) =>
   ).json();
 
 export const getJiraDuplicates = async (
-  issue_key: string,
+  issueKey: string,
 ): Promise<JSONAPI.Ticket[]> =>
   (await get(
-    `/detect_duplicates?issue_key=${encodeURIComponent(issue_key)}`,
+    `/detect_duplicates?issue_key=${encodeURIComponent(issueKey)}`,
   )) as JSONAPI.Ticket[];
 
 export const getInfo = async (

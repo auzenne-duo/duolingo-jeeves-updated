@@ -1,3 +1,5 @@
+import { encodeURLSearchParams, getPaginationString } from "util";
+
 import { debounce } from "lodash";
 import * as React from "react";
 import { useHistory, useLocation, useParams } from "react-router-dom";
@@ -7,7 +9,8 @@ import { getTickets } from "api";
 import Pagination from "components/Pagination";
 import SearchExample from "components/SearchExample";
 import TicketTable from "components/TicketTable";
-import TrendGraph, { RangeChangeEvent } from "components/TrendGraph";
+import type { RangeChangeEvent } from "components/TrendGraph";
+import TrendGraph from "components/TrendGraph";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";
@@ -15,7 +18,6 @@ import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
 import styles from "styles/pages/Analysis.scss";
-import { encodeURLSearchParams, getPaginationString } from "util";
 
 const EXAMPLES = [
   "/crash(es|ing|ed)/ OR /freez(e|es|ing)/ OR frozen OR /stop(s|ping|ped)/ unresponsive OR unusable OR slow",
@@ -34,7 +36,7 @@ const EXAMPLES = [
 const PER_PAGE = 10;
 
 const handleRangeChangeDebouncer = debounce(
-  (callback: Function) => callback(),
+  (callback: () => void) => callback(),
   500,
 );
 
@@ -70,7 +72,7 @@ const Analysis = () => {
     { data: undefined, next_url: undefined, total_records: undefined },
     async () =>
       query
-        ? await getTickets(lang, {
+        ? getTickets(lang, {
             beta_filter: filter ?? undefined,
             end_time: to,
             limit: PER_PAGE,
@@ -96,8 +98,8 @@ const Analysis = () => {
     if (e.from || e.to) {
       search.delete("page");
       ga("send", "event", {
-        eventCategory: "Tickets",
         eventAction: "modify_range",
+        eventCategory: "Tickets",
       });
     }
     history.push({
@@ -116,6 +118,7 @@ const Analysis = () => {
         dispatch?.({ type: "LOADED" });
       };
     }
+    return undefined;
   }, [isLoading]);
 
   React.useEffect(() => {
@@ -130,8 +133,8 @@ const Analysis = () => {
 
   React.useEffect(() => {
     ga("send", "event", {
-      eventCategory: "Tickets",
       eventAction: "search",
+      eventCategory: "Tickets",
       eventLabel: query,
     });
   }, [query]);

@@ -59,10 +59,12 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
     case "TOGGLE_MENU":
       return { ...state, showMenu: !state.showMenu };
   }
+  return state;
 };
 
 const AppStateContext = React.createContext<[State, React.Dispatch<Action>]>([
   initialState,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   () => {},
 ]);
 

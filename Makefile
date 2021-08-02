@@ -2,6 +2,14 @@
 %.txt : %.in
 	pip-compile $<
 
+.PHONY: eslint
+eslint:
+	cd web && "$$(npm bin)/eslint" --ext=.ts,.tsx src
+
+.PHONY: eslint-fix
+eslint-fix:
+	cd web && "$$(npm bin)/eslint" --ext=.ts,.tsx --fix src
+
 # Installs the requirements to the local environment.
 .PHONY: install
 install:

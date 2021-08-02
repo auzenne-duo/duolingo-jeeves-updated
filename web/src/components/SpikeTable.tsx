@@ -13,13 +13,13 @@ interface Props {
   spikes: [number, string][];
 }
 
-const SpikeTable: React.FC<Props> = ({
+const SpikeTable = ({
   date,
   isLoading,
   language,
   linkFilter,
   spikes,
-}) => (
+}: Props) => (
   <Table className={styles.table}>
     <thead>
       <tr>

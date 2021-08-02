@@ -1,8 +1,9 @@
+import { getFilterLink } from "util";
+
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import Tag from "components/Tag";
-import { getFilterLink } from "util";
 
 interface Props extends React.ComponentProps<typeof Tag> {
   field: string;

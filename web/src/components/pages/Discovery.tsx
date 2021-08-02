@@ -1,3 +1,13 @@
+import {
+  encodeURLSearchParams,
+  formatCourseId,
+  formatReadableDate,
+  formatScreen,
+  getFilterLink,
+  getPaginationString,
+  getUntruncatedTitle,
+} from "util";
+
 import { format, formatISO, isThisYear, isToday } from "date-fns";
 import * as React from "react";
 import { createPortal } from "react-dom";
@@ -16,15 +26,6 @@ import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
 import styles from "styles/pages/Discovery.scss";
-import {
-  encodeURLSearchParams,
-  formatCourseId,
-  formatReadableDate,
-  formatScreen,
-  getFilterLink,
-  getPaginationString,
-  getUntruncatedTitle,
-} from "util";
 
 const PER_PAGE = 30;
 
@@ -89,7 +90,7 @@ const Discovery = () => {
         return (
           // If the ticket exists on the current page, return
           // the existing result to avoid extra API calls.
-          tickets?.find(t => t.jeeves_uid === id) || (await getTicket(lang, id))
+          tickets?.find(t => t.jeeves_uid === id) ?? (await getTicket(lang, id))
         );
       }
       return undefined;
@@ -105,12 +106,12 @@ const Discovery = () => {
     }
   };
 
-  const setId = (id: string | undefined) => {
+  const setId = (newId: string | undefined) => {
     const params = new URLSearchParams(location.search);
-    if (id === undefined) {
+    if (newId === undefined) {
       params.delete("id");
     } else {
-      params.set("id", id);
+      params.set("id", newId);
     }
     history.push({
       ...location,
@@ -136,6 +137,7 @@ const Discovery = () => {
         dispatch?.({ type: "HIDE_ASIDE" });
       };
     }
+    return undefined;
   }, [id]);
 
   React.useEffect(() => {
@@ -149,6 +151,7 @@ const Discovery = () => {
       document.addEventListener("keydown", handleKeydown);
       return () => document.removeEventListener("keydown", handleKeydown);
     }
+    return undefined;
   }, [id]);
 
   React.useEffect(() => {
@@ -187,6 +190,7 @@ const Discovery = () => {
       document.addEventListener("keydown", handleKeydown);
       return () => document.removeEventListener("keydown", handleKeydown);
     }
+    return undefined;
   }, [id, setId, tickets]);
 
   React.useEffect(() => {
@@ -202,6 +206,7 @@ const Discovery = () => {
         dispatch?.({ type: "LOADED" });
       };
     }
+    return undefined;
   }, [isLoading, isLoadingSelected]);
 
   return (

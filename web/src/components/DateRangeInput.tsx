@@ -1,8 +1,8 @@
-import cn from "classnames";
 import { formatISO, parse, startOfToday } from "date-fns";
 import * as React from "react";
 import { DateInput } from "web-ui";
 
+import cn from "classnames";
 import styles from "styles/DateRangeInput.scss";
 
 type DateInputProps = React.ComponentProps<typeof DateInput>;
@@ -11,7 +11,10 @@ type DatePickerChangeEvent = Parameters<
   Exclude<DateInputProps["onChange"], undefined>
 >[0];
 
-export type DateRangeChangeEvent = { from?: Date; to?: Date };
+export interface DateRangeChangeEvent {
+  from?: Date;
+  to?: Date;
+}
 
 type PopoverPositionProps = DateInputProps["popoverPosition"];
 
@@ -33,14 +36,14 @@ export interface Props
   to?: Date;
 }
 
-const DateRangeInput: React.FC<Props> = ({
+const DateRangeInput = ({
   alignPopover,
   className,
   from,
   onChange,
   to,
   ...dateInputProps
-}) => {
+}: Props) => {
   const endRef = React.useRef<HTMLInputElement>(null);
   const startRef = React.useRef<HTMLInputElement>(null);
 

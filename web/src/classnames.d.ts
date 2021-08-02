@@ -1,5 +1,5 @@
 declare module "classnames" {
-  import { ClassNamesFn } from "classnames/types";
+  import type { ClassNamesFn } from "classnames/types";
 
   const cn: ClassNamesFn;
 

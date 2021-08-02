@@ -28,7 +28,7 @@ const renderTicketSource = (
       {showUser && user ? (
         <>
           <a href={ticket.links?.[1]}>{user}</a>
-          {` via `}
+          {" via "}
         </>
       ) : null}
       <a href={ticket.links?.[0]}>

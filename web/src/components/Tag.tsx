@@ -1,6 +1,6 @@
-import cn from "classnames";
 import * as React from "react";
 
+import cn from "classnames";
 import styles from "styles/Tag.scss";
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
   value: string;
 }
 
-const Tag: React.FC<Props> = ({ className, isPriority, text, value }) => (
+const Tag = ({ className, isPriority, text, value }: Props) => (
   <span
     className={cn(styles[`tag${isPriority ? "-priority" : ""}`], className)}
     title={value}

@@ -1,7 +1,11 @@
 /** Google Analytics */
-declare var ga: Function;
+declare let ga: (
+  action: string,
+  type: string,
+  data: Record<string, unknown> | string,
+) => void;
 
-declare var process: {
+declare let process: {
   env: {
     NODE_ENV: "development" | "production";
   };

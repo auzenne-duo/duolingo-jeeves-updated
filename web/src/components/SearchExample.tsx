@@ -7,7 +7,7 @@ interface Props {
   query: string;
 }
 
-const SearchExample: React.FC<Props> = ({ query }) => (
+const SearchExample = ({ query }: Props) => (
   <Link className={styles.link} to={`?q=${encodeURIComponent(query)}`}>
     <code>{query}</code>
   </Link>

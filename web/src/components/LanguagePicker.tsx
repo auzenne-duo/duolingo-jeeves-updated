@@ -2,10 +2,10 @@ import * as React from "react";
 import { Select } from "web-ui";
 
 const LANGUAGES: Record<JSONAPI.LanguageId, string> = {
-  fr: "French",
   de: "German",
   en: "English",
   es: "Spanish",
+  fr: "French",
   it: "Italian",
   ja: "Japanese",
   ru: "Russian",
@@ -19,12 +19,12 @@ interface Props {
   value: JSONAPI.LanguageId;
 }
 
-const LanguagePicker: React.FC<Props> = ({ className, onChange, value }) => (
+const LanguagePicker = ({ className, onChange, value }: Props) => (
   <Select
     className={className}
     onChange={e => onChange(e.target.value as JSONAPI.LanguageId)}
     options={Object.entries(LANGUAGES)
-      .map(([key, value]) => ({ text: value, value: key }))
+      .map(([k, v]) => ({ text: v, value: k }))
       .sort((a, b) => a.text.localeCompare(b.text))}
     text={`${LANGUAGES[value]} tickets`}
     type="secondary"

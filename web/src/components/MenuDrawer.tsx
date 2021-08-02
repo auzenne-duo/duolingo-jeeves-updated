@@ -15,7 +15,7 @@ interface Props {
   onRequestClose?: () => void;
 }
 
-const MenuDrawer: React.FC<Props> = ({ isOpen, onRequestClose }) => {
+const MenuDrawer = ({ isOpen, onRequestClose }: Props) => {
   const ref = React.useRef<HTMLDivElement>(null);
 
   const handleImplicitClose = () => {

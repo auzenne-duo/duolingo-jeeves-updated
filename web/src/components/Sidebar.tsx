@@ -4,10 +4,10 @@ import { NavLink, useHistory, useLocation, useParams } from "react-router-dom";
 import LanguagePicker from "components/LanguagePicker";
 import styles from "styles/Sidebar.scss";
 
-const LinkItem: React.FC<React.ComponentProps<typeof NavLink>> = ({
+const LinkItem = ({
   children,
   ...rest
-}) => (
+}: React.ComponentProps<typeof NavLink>) => (
   <NavLink
     activeClassName={styles["item-active"]}
     className={styles.item}
@@ -22,7 +22,7 @@ interface Props {
   onItemClick?: React.MouseEventHandler;
 }
 
-const Sidebar: React.FC<Props> = ({ onItemClick }) => {
+const Sidebar = ({ onItemClick }: Props) => {
   const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();

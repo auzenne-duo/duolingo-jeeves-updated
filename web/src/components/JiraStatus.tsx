@@ -1,6 +1,6 @@
-import cn from "classnames";
 import * as React from "react";
 
+import cn from "classnames";
 import styles from "styles/JiraStatus.scss";
 
 const getColor = (status: string): "blue" | "gray" | "green" => {
@@ -27,7 +27,7 @@ interface Props {
   status: string;
 }
 
-const JiraStatus: React.FC<Props> = ({ className, status }) => (
+const JiraStatus = ({ className, status }: Props) => (
   <span className={cn(styles[getColor(status)], className)}>{status}</span>
 );
 

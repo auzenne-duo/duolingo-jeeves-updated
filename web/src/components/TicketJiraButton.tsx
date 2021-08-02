@@ -1,9 +1,10 @@
+import { getUntruncatedTitle } from "util";
+
 import * as React from "react";
 import { Button } from "web-ui";
 
 import { createJira } from "api";
 import JiraIssues from "components/JiraIssues";
-import { getUntruncatedTitle } from "util";
 
 interface Props {
   ticket: JSONAPI.Ticket;

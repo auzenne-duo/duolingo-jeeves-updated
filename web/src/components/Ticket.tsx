@@ -1,17 +1,3 @@
-import cn from "classnames";
-import * as React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { LoadingDots } from "web-ui";
-
-import { getJiraDuplicates } from "api";
-import CloseButton from "components/CloseButton";
-import JiraIssues from "components/JiraIssues";
-import PlatformIcon from "components/PlatformIcon";
-import TagFilter from "components/TagFilter";
-import TicketJiraButton from "components/TicketJiraButton";
-import renderTicketSource from "components/renderTicketSource";
-import { useAwaitedValue } from "components/useAwaitedValue";
-import styles from "styles/Ticket.scss";
 import {
   escapeHTML,
   formatAttachment,
@@ -23,6 +9,21 @@ import {
   normalizeNewLines,
 } from "util";
 
+import * as React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { LoadingDots } from "web-ui";
+
+import { getJiraDuplicates } from "api";
+import cn from "classnames";
+import CloseButton from "components/CloseButton";
+import JiraIssues from "components/JiraIssues";
+import PlatformIcon from "components/PlatformIcon";
+import TagFilter from "components/TagFilter";
+import TicketJiraButton from "components/TicketJiraButton";
+import renderTicketSource from "components/renderTicketSource";
+import { useAwaitedValue } from "components/useAwaitedValue";
+import styles from "styles/Ticket.scss";
+
 interface Props {
   className?: string;
   highlight?: string;
@@ -30,12 +31,8 @@ interface Props {
   ticket: JSONAPI.Ticket;
 }
 
-const Ticket: React.FC<Props> = ({
-  className,
-  highlight,
-  onRequestClose,
-  ticket,
-}) => {
+// eslint-disable-next-line complexity
+const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
   const location = useLocation();
 
   let body = normalizeNewLines(escapeHTML(ticket.body_text ?? ""))
@@ -47,13 +44,12 @@ const Ticket: React.FC<Props> = ({
     link => link.type.name === "Duplicate",
   );
 
-  const [
-    potentialDuplicates,
-    isLoadingPotentialDuplicates,
-  ] = useAwaitedValue(
+  const [potentialDuplicates, isLoadingPotentialDuplicates] = useAwaitedValue<
+    JSONAPI.Ticket[],
+    undefined
+  >(
     undefined,
-    async () =>
-      ticket.issue_key ? await getJiraDuplicates(ticket.issue_key) : [],
+    async () => (ticket.issue_key ? getJiraDuplicates(ticket.issue_key) : []),
     [ticket.issue_key],
   );
 
@@ -61,7 +57,7 @@ const Ticket: React.FC<Props> = ({
     <div className={cn(styles.container, className)}>
       <div className={styles.bordered}>
         <div className={styles.content}>
-          {<h2>{ticket.header_text ?? "(No title)"}</h2>}
+          <h2>{ticket.header_text ?? "(No title)"}</h2>
           {(ticket.platform === "Android" || ticket.platform === "iOS") &&
           ticket.shake_to_report_category === "EXTERNAL" ? (
             <section className={styles.section}>
@@ -73,6 +69,7 @@ const Ticket: React.FC<Props> = ({
               <span className={styles.label}>Description</span>
               <div
                 dangerouslySetInnerHTML={{
+                  // eslint-disable-next-line @typescript-eslint/naming-convention
                   __html: body,
                 }}
               />

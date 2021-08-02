@@ -1,3 +1,5 @@
+import { formatReadableDate } from "util";
+
 import { formatDistanceToNow, startOfYesterday } from "date-fns";
 import * as React from "react";
 import { useParams } from "react-router-dom";
@@ -8,7 +10,6 @@ import Table from "components/Table";
 import { useAwaitedValue } from "components/useAwaitedValue";
 import usePageView from "components/usePageView";
 import AppStateContext from "contexts/AppStateContext";
-import { formatReadableDate } from "util";
 
 const Dashboard = () => {
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
@@ -41,6 +42,7 @@ const Dashboard = () => {
         dispatch?.({ type: "LOADED" });
       };
     }
+    return undefined;
   }, [isLoading || isLoadingInfo]);
 
   return (
