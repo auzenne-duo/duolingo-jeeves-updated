@@ -11,6 +11,7 @@
     "react-plotly.js": "2.5.1",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
+    "web-excess": "https://s3.amazonaws.com/duolingo-packages/npm/excess/web-excess-3.4.0.tgz",
     "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.24.17.tgz",
     "whatwg-fetch": "3.6.2"
   },

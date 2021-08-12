@@ -12,6 +12,7 @@ import AppStateContext, {
   reducer,
 } from "contexts/AppStateContext";
 import styles from "styles/App.scss";
+import track from "track";
 
 const App = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
@@ -37,6 +38,19 @@ const App = () => {
     document.addEventListener("keydown", handleKeydown);
     return () => document.removeEventListener("keydown", handleKeydown);
   }, [state.showMenu]);
+
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        track("jeeves_active_user");
+      }
+    };
+    handleVisibilityChange();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   return (
     <AppStateContext.Provider value={[state, dispatch]}>
