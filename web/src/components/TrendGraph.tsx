@@ -1,4 +1,3 @@
-import { startOfDay, subDays } from "date-fns";
 import Plotly from "plotly.js-basic-dist";
 import * as React from "react";
 import createPlotlyComponent from "react-plotly.js/factory";
@@ -55,9 +54,7 @@ const TrendGraph = ({
       if (!query) {
         return [];
       }
-      const unfiltered = await getTimeSeries(lang, { word: query });
-      const origin = startOfDay(subDays(new Date(), 100));
-      return unfiltered.filter(({ date }) => date >= origin);
+      return getTimeSeries(lang, { word: query });
     },
     [lang, query],
   );
@@ -147,7 +144,7 @@ const TrendGraph = ({
         },
       },
     });
-  }, [data, zoomFrom?.valueOf(), zoomTo?.valueOf]);
+  }, [data, zoomFrom?.valueOf(), zoomTo?.valueOf()]);
 
   return (
     <div className={styles.container}>
