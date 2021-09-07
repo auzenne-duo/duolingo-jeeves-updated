@@ -2,9 +2,10 @@
 Manager for interacting with the JIRA API for shakira.
 """
 
-import os
 import json
+import os
 from typing import Dict, List, Optional, Union
+
 from requests import get, post
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException

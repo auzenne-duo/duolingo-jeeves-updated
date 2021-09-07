@@ -1,6 +1,7 @@
 import datetime
-import pytz
 import unittest
+
+import pytz
 
 from jeeves.util.date_util import (
     convert_timezone,

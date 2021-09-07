@@ -1,6 +1,5 @@
 import unittest
 
-
 from jeeves.model.zendesk_document import ZendeskDocument
 
 

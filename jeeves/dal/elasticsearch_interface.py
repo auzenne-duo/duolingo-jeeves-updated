@@ -1,21 +1,20 @@
-from datetime import date, datetime
 import sys
+from datetime import date, datetime
 from typing import Dict, Iterator, List, Optional, Set, Union
 
+from duolingo_base.config import Config
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl import Mapping, Q, Search
 from elasticsearch_dsl.query import MoreLikeThis
 
-from duolingo_base.config import Config
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str
-
 
 _config = Config.load_config()
 

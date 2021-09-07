@@ -1,16 +1,15 @@
 """
 Manager for JIRA documents.
 """
-from datetime import datetime
 import json
 import os
+from datetime import datetime
 from typing import Dict, Optional
 
-from requests import get, post, put, Session
+from duolingo_base.dal.s3 import S3Client
+from requests import Session, get, post, put
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
-
-from duolingo_base.dal.s3 import S3Client
 
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON

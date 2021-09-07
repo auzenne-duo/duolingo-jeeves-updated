@@ -1,6 +1,4 @@
-# PullApprove repo config. https://docs.pullapprove.com/
-version: 2
-extends: standard # https://pullapprove.com/duolingo/
+# https://duo.fyi/pullapprove
 groups:
   repo-checkers:
     users:

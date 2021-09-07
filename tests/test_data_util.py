@@ -1,8 +1,8 @@
 """
 Unit tests for the metrics crawler.
 """
-from datetime import datetime
 import unittest
+from datetime import datetime
 
 from jeeves.util.date_util import date_to_str, get_n_days_ago, str_to_date
 

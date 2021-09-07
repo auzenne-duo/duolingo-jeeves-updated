@@ -3,20 +3,18 @@ Manager for Appfigures documents.
 """
 
 
-from datetime import datetime
 import json
 import os
+from datetime import datetime
 from typing import Optional
 
+from duolingo_base.dal.s3 import S3Client
 from requests import Session
 from requests.exceptions import RequestException
 
-from duolingo_base.dal.s3 import S3Client
-
 from jeeves.manager.jeeves_manager import JeevesManager
-
-from jeeves.model.custom_types import JSON
 from jeeves.model.appfigures_document import AppfiguresDocument
+from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.error_util import print_request_exception

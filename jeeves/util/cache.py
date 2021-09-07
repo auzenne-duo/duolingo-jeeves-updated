@@ -1,9 +1,9 @@
-from abc import ABCMeta, abstractmethod
 import functools
+from abc import ABCMeta, abstractmethod
 
 
 class AbstractCacheHandler(object, metaclass=ABCMeta):
-    """Abstract Cache Handler to manage cache use """
+    """Abstract Cache Handler to manage cache use"""
 
     def __init__(self):
         self._cacheList = []
@@ -29,7 +29,7 @@ class AbstractCacheHandler(object, metaclass=ABCMeta):
 
 
 class LRUCacheHandler(AbstractCacheHandler):
-    """`Least Recently Used Cache` Cache Handler to manage cache use """
+    """`Least Recently Used Cache` Cache Handler to manage cache use"""
 
     @property
     def caching_type(self):

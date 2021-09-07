@@ -1,5 +1,5 @@
-from collections import defaultdict
 import re
+from collections import defaultdict
 from typing import DefaultDict, List, Match, Optional, Pattern
 
 from jeeves.model.custom_types import JSON

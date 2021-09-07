@@ -1,11 +1,11 @@
 import json
 import os
+
 import requests
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.model.spike_categories import SpikeCategory
-from jeeves.util.date_util import get_eastern_today, get_n_days_ago, date_to_str
-
+from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
 
 _SLACK_REPORT_LANG = "en"
 

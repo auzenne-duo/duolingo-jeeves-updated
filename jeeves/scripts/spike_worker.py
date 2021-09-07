@@ -9,12 +9,8 @@ from jeeves.lib.spike_detector import (  # pylint: disable=E0401
     split_beta_batches_and_run_for_date,
 )
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES  # pylint: disable=E0401
-from jeeves.util.date_util import (  # pylint: disable=E0401
-    get_utc_today,
-    str_to_date,
-    yield_intermediate_dates,
-)
-
+from jeeves.util.date_util import get_utc_today  # pylint: disable=E0401
+from jeeves.util.date_util import str_to_date, yield_intermediate_dates
 
 _config = Config.load_config()
 

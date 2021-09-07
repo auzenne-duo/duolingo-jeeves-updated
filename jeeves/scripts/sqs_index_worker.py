@@ -1,12 +1,10 @@
 import json
 
-
 from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 
-from jeeves.lib.identifier_manager_mapping import IDManagerMap
 import jeeves.lib.ticket_crawler as tc
-
+from jeeves.lib.identifier_manager_mapping import IDManagerMap
 
 _config = Config.load_config()
 

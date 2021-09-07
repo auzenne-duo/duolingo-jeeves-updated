@@ -5,8 +5,8 @@ TODO: Support non-English languages.
 TODO: Use existing 3rd party tokenizers.
 """
 import json
-import requests
 
+import requests
 
 _NLP_URL = "https://nlp.duolingo.com/v1/udep"
 

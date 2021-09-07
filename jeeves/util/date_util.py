@@ -2,9 +2,10 @@
 A utility that offers date-related functions.
 """
 import datetime
-from dateutil.parser import parse
-import pytz
 from typing import Iterator
+
+import pytz
+from dateutil.parser import parse
 
 _DATE_FORMAT = "%Y-%m-%d"
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"  # ISO Format https://www.w3.org/TR/NOTE-datetime
@@ -12,7 +13,7 @@ _ELASTICSEARCH_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 
 
 def get_eastern_today():
-    """ Get datetime object representing right now in US/Eastern (Not UTC!) """
+    """Get datetime object representing right now in US/Eastern (Not UTC!)"""
     time = datetime.datetime.utcnow()
     return convert_timezone(time)
 

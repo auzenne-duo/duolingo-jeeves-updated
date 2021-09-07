@@ -16,6 +16,7 @@ TODO: Replace the underlying manager with the implementation in python-duolingo-
 """
 
 import zlib
+
 from jeeves.lib.memcached_client import get_client
 
 _CLIENT_NAME = "default"

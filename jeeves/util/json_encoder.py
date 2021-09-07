@@ -1,5 +1,5 @@
-from datetime import datetime
 import json
+from datetime import datetime
 
 from jeeves.util.date_util import datetime_to_str
 

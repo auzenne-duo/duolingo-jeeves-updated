@@ -3,6 +3,7 @@ Script for evaluating text classification accuracy.
 """
 
 import argparse
+
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
 

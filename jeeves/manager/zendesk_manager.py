@@ -2,23 +2,21 @@
 Manager for Zendesk documents.
 """
 
-from collections import Counter
-from datetime import datetime
 import json
 import os
 import time
+from collections import Counter
+from datetime import datetime
 from typing import Type
 
-from requests import Response, Session
-
 from duolingo_base.dal.s3 import S3Client
+from requests import Response, Session
 
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.zendesk_document import ZendeskDocument
 from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
-
 
 _USER = os.environ.get("ZENDESK_USER")
 _PASSWORD = os.environ.get("ZENDESK_PASSWORD")

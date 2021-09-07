@@ -14,7 +14,6 @@ from duolingo_base.dal.s3 import S3Client
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 
-
 _DEFAULT_CHECKPOINTING_THRESHOLD = 1000
 
 

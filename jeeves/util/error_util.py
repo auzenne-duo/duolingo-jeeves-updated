@@ -1,5 +1,6 @@
-from requests.exceptions import RequestException
 import sys
+
+from requests.exceptions import RequestException
 
 
 def print_request_exception(e: RequestException):

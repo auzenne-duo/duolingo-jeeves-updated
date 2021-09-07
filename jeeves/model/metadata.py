@@ -1,5 +1,5 @@
-from collections import namedtuple
 import json
+from collections import namedtuple
 
 from jeeves.dal.config.metadata import FIELD_TITLES
 from jeeves.model import JeevesObject

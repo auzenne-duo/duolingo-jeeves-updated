@@ -128,9 +128,11 @@ export const getTicket = async (
   lang: JSONAPI.LanguageId,
   id: string,
 ): Promise<JSONAPI.Ticket | undefined> => {
-  const data = ((await get(
-    `/${lang}/tickets?jeeves_id=${encodeURIComponent(id)}`,
-  )) as JSONAPI.Tickets).data[0];
+  const data = (
+    (await get(
+      `/${lang}/tickets?jeeves_id=${encodeURIComponent(id)}`,
+    )) as JSONAPI.Tickets
+  ).data[0];
   if (!data) {
     throw Error("Ticket not found.");
   }
@@ -182,9 +184,9 @@ export const getTimeSeries = async (
     value: number;
   }[]
 > => {
-  const data = ((await get(
-    `/${lang}/time_series?word=${word}`,
-  )) as JSONAPI.TimeSeries).values;
+  const data = (
+    (await get(`/${lang}/time_series?word=${word}`)) as JSONAPI.TimeSeries
+  ).values;
   return Object.entries(data).map(([date, value]) => ({
     date: convertTimeZone(parseISO(`${date}T00:00:00`), "America/New_York"),
     value: value ?? 0,

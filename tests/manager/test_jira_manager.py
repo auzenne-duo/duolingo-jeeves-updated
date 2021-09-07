@@ -1,6 +1,5 @@
 import unittest
 
-
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.model.jira_document import JiraDocument
 

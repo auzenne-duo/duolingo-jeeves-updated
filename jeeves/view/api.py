@@ -2,19 +2,11 @@
 APIs.
 """
 
+import logging
 import os
 from datetime import datetime
 
-from flask import (
-    Blueprint,
-    abort,
-    json,
-    make_response,
-    request,
-    send_from_directory,
-)
-import logging
-
+from flask import Blueprint, abort, json, make_response, request, send_from_directory
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.lib.duplicate_graph_resolver import DuplicateGraphResolver
@@ -23,12 +15,8 @@ from jeeves.manager.shakira import Shakira
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.util.date_util import (
-    date_to_str,
-    datetime_to_str,
-    get_utc_today,
-    time_series_str_to_datetime as str_to_datetime,
-)
+from jeeves.util.date_util import date_to_str, datetime_to_str, get_utc_today
+from jeeves.util.date_util import time_series_str_to_datetime as str_to_datetime
 
 # This is being referenced by the application.py
 blueprint_api = Blueprint("api", __name__)

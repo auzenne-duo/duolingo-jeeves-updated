@@ -2,8 +2,8 @@
 Our model for a general, abstract document
 """
 
-from abc import ABC, abstractmethod
 import datetime
+from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
 import attr

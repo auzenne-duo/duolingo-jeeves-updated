@@ -2,19 +2,20 @@
 Main entry point for running the service, through command line or mod_wsgi.
 """
 
-from flask import Flask, request
 import logging
 import os
-
-# import rollbar
-# import rollbar.contrib.flask
 
 from duolingo_base.config import Config
 from duolingo_base.util import registry
 from duolingo_base.view.auth import auth_after_request, requires_auth
+from flask import Flask, request
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
+
+# import rollbar
+# import rollbar.contrib.flask
+
 
 LOG = logging.getLogger("application")
 

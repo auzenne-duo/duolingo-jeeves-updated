@@ -2,13 +2,14 @@
 Manager for interacting with the Slack API for shakira.
 """
 
-import os
 import json
-from typing import Optional
-from enum import Enum
+import os
 from collections import namedtuple
-from requests.exceptions import RequestException
+from enum import Enum
+from typing import Optional
+
 from requests import post
+from requests.exceptions import RequestException
 
 from jeeves.util.error_util import print_request_exception
 from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM

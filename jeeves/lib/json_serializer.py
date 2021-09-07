@@ -1,7 +1,8 @@
-from dateutil.parser import parse
 import functools
+
 import pytz
 import simplejson as json
+from dateutil.parser import parse
 
 from jeeves.dal.category_annotations import CategoryAnnotationDAL
 from jeeves.model.support_ticket import SupportTicket

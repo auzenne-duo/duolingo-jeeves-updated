@@ -4,7 +4,7 @@ from typing import Any, DefaultDict, List
 from uuid import uuid4
 
 from duolingo_base.config import Config
-from duolingo_base.dal import sqs, s3
+from duolingo_base.dal import s3, sqs
 
 from jeeves.config.config import CRAWL_WINDOW_SIZE
 from jeeves.dal.elasticsearch_interface import ElasticDAL
@@ -17,7 +17,6 @@ from jeeves.util.date_util import (
     get_utc_today,
     yield_intermediate_dates,
 )
-
 
 _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
 

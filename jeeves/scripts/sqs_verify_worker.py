@@ -8,7 +8,6 @@ from duolingo_base.dal import sqs
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.util.json_encoder import JeevesJSONEncoder
 
-
 _config = Config.load_config()
 
 """

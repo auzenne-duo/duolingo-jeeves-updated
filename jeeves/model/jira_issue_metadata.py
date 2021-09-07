@@ -1,5 +1,7 @@
 from typing import List, Optional
+
 import attr
+
 from jeeves.model.custom_types import JSON
 
 
