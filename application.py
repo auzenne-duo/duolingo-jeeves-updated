@@ -9,6 +9,7 @@ from duolingo_base.config import Config
 from duolingo_base.util import registry
 from duolingo_base.view.auth import auth_after_request, requires_auth
 from flask import Flask, request
+from flask_cors import CORS
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
@@ -22,6 +23,10 @@ LOG = logging.getLogger("application")
 config = Config.load_config()
 
 application = Flask(__name__)
+
+# Allow cross-subdomain API calls
+cors_origins = [r".*\.duolingo\.(com|cn)$", r"^https?:\/\/(localhost|10\.1\.\d+\.\d+):\d+$"]
+CORS(application, supports_credentials=True, origins=cors_origins, max_age=1728000)
 
 
 def auth_before_request():
