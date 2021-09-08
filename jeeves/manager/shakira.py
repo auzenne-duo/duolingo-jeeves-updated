@@ -32,7 +32,7 @@ class ShakiraManager:
         Get possible values for the "Feature" issue field in a project.
 
         parameters
-            projects: e.g. DLAA, DLAI
+            projects: e.g. DLAA, DLAI, DLAW
         """
         return ShakiraJiraClient.get_features(projects)
 
@@ -52,7 +52,7 @@ class ShakiraManager:
         Either create an issue in Jira or post the screenshot to slack, depending on the feature.
 
         parameters:
-            project: e.g. DLAI, DLAA
+            project: e.g. DLAA, DLAI, DLAW
             feature: e.g. Achievements
             client_specified_slack_channel_name: e.g. #visual-polish. If this is set, override the feature and post in this channel.
             summary: Rougly one-sentence summary of issue.

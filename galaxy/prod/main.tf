@@ -82,6 +82,14 @@ module "duolingo-jeeves" {
       name  = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
       value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_android"]
     },
+    {
+      name  = "SHAKIRA_JIRA_USERNAME_WEB"
+      value = "jira-automation@duolingo.com"
+    },
+    {
+      name  = "SHAKIRA_JIRA_API_TOKEN_WEB"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_web"]
+    },
   ]
 }
 

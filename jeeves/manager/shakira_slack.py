@@ -52,7 +52,7 @@ class ShakiraSlackApiClient:
         For reference: https://api.slack.com/methods/files.upload
 
         parameters:
-            project: e.g. DLAI, DLAA
+            project: e.g. DLAA, DLAI, DLAW
             slack_channel: Channel to post the screenshot to.
             summary: Rougly one-sentence summary of issue.
             reporter_emai: Email of the user reporting the issue.

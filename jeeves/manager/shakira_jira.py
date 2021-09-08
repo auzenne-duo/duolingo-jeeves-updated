@@ -21,6 +21,8 @@ _USERNAME_ANDROID = os.environ.get("SHAKIRA_JIRA_USERNAME_ANDROID")
 _API_TOKEN_ANDROID = os.environ.get("SHAKIRA_JIRA_API_TOKEN_ANDROID")
 _USERNAME_IOS = os.environ.get("SHAKIRA_JIRA_USERNAME_IOS")
 _API_TOKEN_IOS = os.environ.get("SHAKIRA_JIRA_API_TOKEN_IOS")
+_USERNAME_WEB = os.environ.get("SHAKIRA_JIRA_USERNAME_WEB")
+_API_TOKEN_WEB = os.environ.get("SHAKIRA_JIRA_API_TOKEN_WEB")
 
 _ISSUE_TYPE_BUG = "Bug"
 _ISSUE_TYPE_STORY = "Story"
@@ -41,6 +43,8 @@ class ShakiraJiraApiClient:
         """
         if project == "DLAA":
             return HTTPBasicAuth(_USERNAME_ANDROID, _API_TOKEN_ANDROID)
+        elif project == "DLAW":
+            return HTTPBasicAuth(_USERNAME_WEB, _API_TOKEN_WEB)
         else:
             return HTTPBasicAuth(_USERNAME_IOS, _API_TOKEN_IOS)
 
@@ -60,11 +64,15 @@ class ShakiraJiraApiClient:
         Get possible values for the "Feature" issue field in a project.
 
         parameters
-            projects: e.g. DLAA, DLAI
+            projects: e.g. DLAA, DLAI, DLAW
         """
         url, params = self._get_metadata_url_and_params(projects, _ALL_ISSUE_TYPES)
         headers = {"Accept": "application/json"}
-        auth = self._get_jira_auth()
+        # TODO: The DLAW service account is the only one with which retrieving
+        #  features for all projects has been tested. It has too much permissions
+        #  so should be swapped out with a single service account with the correct
+        #  permissions that works for all projects.
+        auth = self._get_jira_auth("DLAW")
         try:
             r = get(url, auth=auth, headers=headers, params=params)
             r.raise_for_status()
@@ -130,7 +138,7 @@ class ShakiraJiraApiClient:
         For reference: https://docs.atlassian.com/software/jira/docs/api/REST/8.13.1/#api/2/issue
 
         parameters:
-            project: e.g. DLAI, DLAA
+            project: e.g. DLAA, DLAI, DLAW
             feature: e.g. Achievements
             summary: Rougly one-sentence summary of issue.
             description: Longer issue description.

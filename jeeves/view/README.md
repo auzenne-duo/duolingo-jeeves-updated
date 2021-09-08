@@ -7,7 +7,7 @@ Get a list of possible values for the "feature" field for the project.
 ### Parameters
 
 ```
-project: DLAA, DLAI
+project: DLAA, DLAI, DLAW
 ```
 
 ### Response
@@ -34,7 +34,7 @@ example:
 
 ```
 {
-    "project" required: "DLAA", "DLAI".
+    "project" required: "DLAA", "DLAI", "DLAW".
     "summary" required: Rougly one-sentence summary of the issue.
 
     "reporterEmail" optional: Admin email of the user submitting the issue.

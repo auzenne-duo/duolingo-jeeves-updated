@@ -181,7 +181,7 @@ def get_jira_project_features():
             abort(make_response(project_error_message, 400))
         features = Shakira.get_features(project)
     else:
-        features = Shakira.get_features(["DLAI", "DLAA"])
+        features = Shakira.get_features(["DLAA", "DLAI", "DLAW"])
     if features and len(features) > 0:
         return json.jsonify({"features": features})
     else:
