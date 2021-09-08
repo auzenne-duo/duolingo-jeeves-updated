@@ -30,10 +30,13 @@ CORS(application, supports_credentials=True, origins=cors_origins, max_age=17280
 
 
 def auth_before_request():
+    # Don't require authentication on CORS preflight.
+    if request.method == "OPTIONS":
+        return None
     # We want health checks to not need authentication, and I don't think
     # anyone has set up auth credentials for the update script yet, so in the
     # meantime we just allow all the routes it uses to be serviced without auth
-    if request.path in {"/health"} | {f"/api/1/{lang.name}/init" for lang in SUPPORTED_LANGUAGES}:
+    elif request.path in {"/health"} | {f"/api/1/{lang.name}/init" for lang in SUPPORTED_LANGUAGES}:
         return None
     elif request.path == "/api/1/shake_to_report_tokens":
         return requires_auth(permission="unlock-skill-tree")(lambda: None)()
