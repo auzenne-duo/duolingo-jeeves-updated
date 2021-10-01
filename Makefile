@@ -18,11 +18,13 @@ install:
 # Starts a local microservice.
 .PHONY: web
 web:
-	docker-compose build
+# TODO don't use build args for secrets (See https://docs.docker.com/engine/reference/builder/#arg
+	docker-compose build --build-arg aws_access_key=${AWS_ACCESS_KEY_ID} --build-arg aws_secret_key=${AWS_SECRET_ACCESS_KEY}
 	docker-compose up
 
 spike-worker:
-	docker compose build spike-worker --build-arg aws_access_key=$AWS_ACCESS_KEY_ID --build-arg aws_secret_key=$AWS_SECRET_ACCESS_KEY
+# TODO don't use build args for secrets (See https://docs.docker.com/engine/reference/builder/#arg
+	docker compose build spike-worker --build-arg aws_access_key=${AWS_ACCESS_KEY_ID} --build-arg aws_secret_key=${AWS_SECRET_ACCESS_KEY}
 	docker compose up spike-worker
 
 .PHONY: web-build

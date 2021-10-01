@@ -15,28 +15,30 @@ Technology-driven user support.
 
 Look into the [Microservice Review](docs/microservice-review.md) for details.
 
-## Set up
-
-- Run `make web` to start a microservice locally on [Install Docker](https://docs.docker.com/docker-for-mac/install/).
-- Open [`http://localhost:5000/`](http://localhost:5000/)
-
 ## How to deploy
 
 - Use this Jenkins job [`https://jenkins-ci.duolingo.com/job/duolingo-jeeves-deploy-galaxy-dev/`](https://jenkins-ci.duolingo.com/job/duolingo-jeeves-deploy-galaxy-dev/) to deploy to the dev cluster at [`https://duolingo-jeeves-dev.duolingo.com`](https://duolingo-jeeves-dev.duolingo.com)
-- Merging a PR will automatically trigger deployment to [`https://duolingo-jeeves-prod.duolingo.com`](https://duolingo-jeeves-prod.duolingo.com)
+- Merging a PR will automatically trigger deployment to [`https://jeeves.duolingo.com`](https://jeeves.duolingo.com)
 
 ## How to contribute
 
-### Backend
-
 Make sure to set up Python 3 virtual environment, or pylint would fail when trying to commit.
 
-- Run `virtualenv -p python3 env`
+- Run `virtualenv -p python3 env` (If that doesn't work, try `python3 -m venv env`)
 - Run `export PYTHONPATH=$(pwd)`
 - Run `source env/bin/activate`
 - Run `pip3 install -r requirements.txt`
 - Run `pip3 install -r dev-requirements.txt`
-- Run `npm install`
+
+### Backend
+
+To run the microservice locally:
+
+- [Install Docker](https://docs.docker.com/docker-for-mac/install/) and increase the memory limit to 8GB if you haven't already.
+- Comment out the auth requirement in `application.py: auth_before_request()` and make it return `None`.
+- Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables.
+- Run `make web` to start a microservice locally on Docker.
+- Open [`http://localhost:5000/`](http://localhost:5000/).
 
 The following are required when you update requirements.
 
@@ -45,18 +47,24 @@ The following are required when you update requirements.
 
 The data versioning number in `jeeves/config/config.py` should be updated whenever data should be backfilled. Changing this number to a previously unused value will create new data indices in Elasticsearch and the data update scripts will automatically fill them in. As a convention, we have been incrementing the "major" data version number (i.e. before the decimal point) for adding entirely new data sources and for major structural changes, and incrementing the "minor" data version number (i.e. after the decimal point) for smaller changes to existing structures.
 
-To use the Docker Compose environments that depend on the duplicate detection model,
-set the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.
-
 ### Frontend
 
-To start a local webpack development server and proxy API requests to https://jeeves.duolingo.com:
+To start a local webpack development server on [`http://localhost:8080/`](http://localhost:8080/)
 
 ```
 make install
 make web-dev
-make web-proxy
 ```
+
+This will use the local microservice for the backend.
+
+To proxy API requests to https://jeeves.duolingo.com, run `make web-proxy`.
+
+### Slack Reporting
+
+- Set the `SLACK_POST_URL` environment variable, or comment out the code that makes the request to the Slack API.
+- Run the steps above to set up the Python virtual environment
+- Run `./env/bin/python ./jeeves/scripts/slack.py`
 
 ## Links
 
