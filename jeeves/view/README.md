@@ -36,13 +36,12 @@ example:
 {
     "project" required: "DLAA", "DLAI", "DLAW".
     "summary" required: Rougly one-sentence summary of the issue.
-
     "reporterEmail" optional: Admin email of the user submitting the issue.
     "description" optional: Longer user-provided description.
     "generatedDescription" optional: Generated information such as app version, fullstory url, session type, etc. It's a valid option to not
     set this and include this information in the "description" field.
-    "feature" optional: Feature affected by the issue; e.g. Achievements, Stories, Leaderboards. Must be a value sent by the shakira/features endpoint.
-    "slackChannel" optional: e.g. #visual-polish. If this is set, override the feature and post in this channel.
+    "feature" optional: Feature affected by the issue; e.g. Achievements, Stories, Leaderboards. Must be a value sent by the shakira/features endpoint. This is required for Shakira clients, and is used to determine whether to post to Slack, Jira or both. For example, if the value is "Visual polish", we create a Jira and post to the #visual-polish slack channel.
+    "slackChannel" optional: e.g. #visual-polish. If this is set, override the feature and post in this channel. This should not be included by Shakira clients, and is intended for posting Jeeves issues to slack from the Jeeves web interface.
     "preRelease" optional: Boolean; Should be "True" if reporting from TestFlight or Android pre-release build. Default value is "False".
 }
 ```
@@ -64,3 +63,40 @@ _Include any other files you want to attach in this form as well_
     "url" URL to view the created issue in Jira or Slack.
 }
 ```
+
+---
+
+`POST /api/1/fully_connect_duplicates`
+
+### Parameters
+
+```
+issue_keys: A list of Jira issue keys whose neighborhoods we want to combine into a fully connected graph.
+```
+
+This route does quite a number of things. The primary use is to take contiguous groups of duplicate issues and link them into a single fully-connected graph, ensuring there is exactly one parent issue in that graph.
+
+In this context, a fully-connected graph of issues is a group of issues where every issue in the group is marked as a duplicate of every other issue in the group. This route constructs such a group, using not only the issues passed in via the input, but also all issues that are duplicates of the input issues, as well as all issues that are duplicates of duplicates of the input issues, and so on. If there is a way to link issue A to issue Z by following any number of intermediate statements like "A is a duplicate of B", "B is a duplicate of C", ..., "Y is a duplicate of Z", and issue A is passed as one of the arguments to this route, then issues A, Z, and all of the intermediate links will become part of the fully-connected graph and will thus all be marked duplicates of each other and all other issues (and their duplicates) in the input list.
+
+A _parent issue_ is a special type of issue that's created by Jeeves; it serves as a singular point of reference for all other duplicates in the fully-connected graph (since if they're all duplicates of each other they theoretically represent the same bug). Parent issues are denoted by having the label "parent-bug". When this route is called, all of the networks of duplicates specified by the input issues are checked for parent issues. If exactly one parent issue is found amongst all of them, then no further action is taken and that parent issue becomes the parent issue for the resulting fully-connected graph. If no parent issue is found, then a new one will be created and incuded in the graph. If two or more are found, the operation will be aborted and an error will be thrown.
+
+---
+
+`GET /api/1/detect_duplicates`
+
+### Required parameters
+
+```
+issue_key: An issue key that we wish to detect duplicates for
+```
+
+### Optional parameters
+
+```
+num_results: The number of duplicate results we want the route to return. Defaults to 5 if no value is provided.
+should_filter_project: If a value other than the string "0" is provided, then results returned by this call will be filtered such that they must be in the same project as the input issue. Defaults to "0", or no filtering.
+max_search_depth: The maximum number of issues to be checked internally during the duplicate detection process. Defaults to 50. If no filtering is done then you can probably leave this alone.
+include_parent_issues: If the string "0" is provided as the value of this argument, then parent issues will be excluded from the output, and issues within the output list may be duplicates of each other. If a value other than the string "0" is provided, then any issues in the output that are linked to a parent issue will be replaced by that parent issue, and any other issues later in the returned list that are linked to that parent issue will be removed. If this happens, more issues will be checked, up until we check max_search_depth issues or until we are able to construct a list of num_results to return under these considerations.
+```
+
+This route performs duplicate detection on our downloaded Jira issues. Given an issue key of a Jira issue, this route will return other issues that it believes could be duplicate issues of the provided issue.
