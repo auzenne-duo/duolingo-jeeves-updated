@@ -30,6 +30,9 @@ CORS(application, supports_credentials=True, origins=cors_origins, max_age=17280
 
 
 def auth_before_request():
+    # TODO this should only apply to local dev, not duolingo-jeeves-dev
+    if config.get_nested(["environment"]) == "dev":
+        return None
     # Don't require authentication on CORS preflight.
     if request.method == "OPTIONS":
         return None

@@ -24,7 +24,7 @@ example:
 
 `POST api/1/shakira/report_issue`
 
-Either create an issue in JIRA or post the screenshot to slack, depending on the feature and slack_channel fields. If neither field is set, the default behavior is to post to JIRA. Content-type is `multipart/form-data`
+Create an issue in JIRA and/or post the screenshot to slack, depending on the feature and slack_channel fields. If neither field is set, the default behavior is to post to JIRA. Content-type is `multipart/form-data`
 
 ### Form parameters
 
@@ -60,7 +60,9 @@ _Include any other files you want to attach in this form as well_
 {
     "issueKey": key of the created issue; e.g. "DLAI-5467"
     "slackChannel": Channel the screenshot and info was posted in; e.g. #visual-polish
-    "url" URL to view the created issue in Jira or Slack.
+    "url": DEPRECATED; use "slackUrl" and "jiraUrl" instead, as it is undefined whether this URL points to Jira Slack. URL to view the created issue in Jira or Slack.
+    "slackUrl": URL to the Slack channel to view the reported issue.
+    "jiraUrl": URL to the created issue in Jira.
 }
 ```
 

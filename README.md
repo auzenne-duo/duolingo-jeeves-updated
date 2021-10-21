@@ -30,12 +30,13 @@ Make sure to set up Python 3 virtual environment, or pylint would fail when tryi
 - Run `pip3 install -r requirements.txt`
 - Run `pip3 install -r dev-requirements.txt`
 
+TODO localstack for sqs queues on local dev
+
 ### Backend
 
 To run the microservice locally:
 
 - [Install Docker](https://docs.docker.com/docker-for-mac/install/) and increase the memory limit to 8GB if you haven't already.
-- Comment out the auth requirement in `application.py: auth_before_request()` and make it return `None`.
 - Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables.
 - Run `make web` to start a microservice locally on Docker.
 - Open [`http://localhost:5000/`](http://localhost:5000/).

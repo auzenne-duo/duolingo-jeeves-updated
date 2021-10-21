@@ -28,6 +28,10 @@ _ISSUE_TYPE_BUG = "Bug"
 _ISSUE_TYPE_STORY = "Story"
 _ALL_ISSUE_TYPES = [_ISSUE_TYPE_BUG, _ISSUE_TYPE_STORY]
 
+_DESCRIPTION_FOR_ISSUES_SENT_TO_SLACK = (
+    "This issue will be shared to a feature-specific Slack channel."
+)
+
 
 class ShakiraJiraApiClient:
     def issue_url(self, issue_key: str) -> str:
@@ -132,6 +136,7 @@ class ShakiraJiraApiClient:
         generated_description: Optional[str],
         reporter_email: Optional[str],
         pre_release: bool,
+        will_post_to_slack: Optional[bool],
     ) -> Optional[str]:
         """
         Create an issue in JIRA.
@@ -143,8 +148,9 @@ class ShakiraJiraApiClient:
             summary: Rougly one-sentence summary of issue.
             description: Longer issue description.
             generated_description: Generated information such as app version, fullstory url, session type, etc.
-            reporter_emai: Email of the duo reporting the issue.
+            reporter_email: Email of the duo reporting the issue.
             pre_release: Whether the bug is being reported from pre-release app version.
+            will_post_to_slack: Whether jeeves will post the issue link to Slack itself.
 
         returns:
             issue key: str e.g. DLAA-2508
@@ -159,7 +165,15 @@ class ShakiraJiraApiClient:
                 "project": {"key": project},
                 "summary": summary,
                 "description": "\n".join(
-                    [desc for desc in [description, generated_description] if desc]
+                    [
+                        desc
+                        for desc in [
+                            description,
+                            generated_description,
+                            _DESCRIPTION_FOR_ISSUES_SENT_TO_SLACK if will_post_to_slack else None,
+                        ]
+                        if desc
+                    ]
                 ),
                 "issuetype": {"id": issuetype.id},
             }

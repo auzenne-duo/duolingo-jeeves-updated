@@ -44,6 +44,7 @@ class ShakiraSlackApiClient:
         slack_channel: SlackChannel,
         summary: str,
         reporter_email: Optional[str],
+        jira_issue_url: Optional[str],
         post_info_in_reply: bool,
         screenshot: "FileStorage",
     ) -> Optional[str]:
@@ -55,7 +56,9 @@ class ShakiraSlackApiClient:
             project: e.g. DLAA, DLAI, DLAW
             slack_channel: Channel to post the screenshot to.
             summary: Rougly one-sentence summary of issue.
-            reporter_emai: Email of the user reporting the issue.
+            reporter_email: Email of the user reporting the issue.
+            jira_issue_url: URL to the related Jira issue.
+            post_info_in_reply: Whether details will be posted in a reply.
             screenshot: Screenshot taken when the phone was shook.
 
         returns:
@@ -67,10 +70,17 @@ class ShakiraSlackApiClient:
             f'<@{reporter_email.split("@")[0]}>' if reporter_email else "unknown user"
         )
         platform = JIRA_PROJ_TO_PLATFORM.get(project, "unknown platform")
-        see_thread_for_details = "\n_See thread for details._" if post_info_in_reply else ""
+        additional_details = ""
+        if jira_issue_url:
+            additional_details += f"\n<{jira_issue_url}>"
+        elif post_info_in_reply:
+            additional_details += "\n_See thread for details._"
+
         initial_comment = (
-            f"*{summary}*\nReported by {reporter_username} on {platform}{see_thread_for_details}"
+            f"*{summary}*\nReported by {reporter_username} on {platform}{additional_details}"
         )
+
+        screenshot.seek(0)
         try:
             r = post(
                 url,
@@ -95,6 +105,7 @@ class ShakiraSlackApiClient:
                 if len(public_shares) > 0:
                     return public_shares[0]["ts"]
             else:
+                print(f"Could not post screenshot to Slack: {response_json['error']}")
                 return None
         except RequestException as e:
             print_request_exception(e)
