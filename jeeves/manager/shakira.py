@@ -97,12 +97,8 @@ class ShakiraManager:
                     400,
                 )
             }
-        if client_specified_slack_channel_name and not screenshot:
-            return {
-                "error": (f"Must provide a screenshot file in order to post issue in Slack.", 400)
-            }
 
-        should_post_to_slack = (channel and screenshot) is not None
+        should_post_to_slack = channel is not None
         should_post_to_jira = should_also_post_to_jira or not should_post_to_slack
 
         issue_key = None
@@ -133,7 +129,7 @@ class ShakiraManager:
             post_info_in_reply = (
                 issue_url is None and (description or generated_description) is not None
             )
-            post_id = ShakiraSlackClient.post_screenshot(
+            post_id = ShakiraSlackClient.post_issue(
                 project=project,
                 slack_channel=channel,
                 summary=summary,
@@ -154,7 +150,7 @@ class ShakiraManager:
             return (
                 {
                     "slackChannel": channel.name if post_id else None,
-                    "url": channel.url() if post_id else issue_url,
+                    "url": issue_url,
                     "issueKey": issue_key,
                     "slackUrl": channel.url() if post_id else None,
                     "jiraUrl": issue_url,

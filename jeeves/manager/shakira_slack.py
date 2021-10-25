@@ -4,6 +4,7 @@ Manager for interacting with the Slack API for shakira.
 
 import json
 import os
+import sys
 from collections import namedtuple
 from enum import Enum
 from typing import Optional
@@ -38,14 +39,54 @@ _API_TOKEN = os.environ.get("SHAKIRA_SLACK_API_TOKEN")
 
 
 class ShakiraSlackApiClient:
-    def post_screenshot(
+    def _post_chat_message(
         self,
-        project: str,
         slack_channel: SlackChannel,
         summary: str,
-        reporter_email: Optional[str],
-        jira_issue_url: Optional[str],
-        post_info_in_reply: bool,
+        caption: str,
+    ) -> Optional[str]:
+        """
+        Post a chat message in the appropriate slack channel along with a brief summary.
+        For reference: https://api.slack.com/methods/chat.postMessage
+
+        parameters:
+            slack_channel: Channel to post the screenshot to.
+            summary: Roughly one-sentence summary of issue.
+            caption: Additional information about the issue.
+        returns:
+            post id: str API ID of the created slack post.
+        """
+        url = f"{_API}/chat.postMessage"
+        headers = {"Authorization": f"Bearer {_API_TOKEN}", "Content-Type": "application/json"}
+
+        blocks = [{"type": "header", "text": {"type": "plain_text", "text": summary}}]
+        data = {
+            "channel": slack_channel.channel_id,
+            "blocks": blocks,
+        }
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": caption}})
+
+        try:
+            r = post(
+                url,
+                headers=headers,
+                data=json.dumps(data),
+            )
+            r.raise_for_status()
+            response_json = json.loads(r.text)
+            if response_json["ok"]:
+                return response_json["ts"]
+            else:
+                print(f"Could not post message to Slack: {response_json['error']}", file=sys.stderr)
+                return None
+        except RequestException as e:
+            print_request_exception(e)
+
+    def _post_screenshot(
+        self,
+        slack_channel: SlackChannel,
+        summary: str,
+        caption: str,
         screenshot: "FileStorage",
     ) -> Optional[str]:
         """
@@ -55,10 +96,8 @@ class ShakiraSlackApiClient:
         parameters:
             project: e.g. DLAA, DLAI, DLAW
             slack_channel: Channel to post the screenshot to.
-            summary: Rougly one-sentence summary of issue.
-            reporter_email: Email of the user reporting the issue.
-            jira_issue_url: URL to the related Jira issue.
-            post_info_in_reply: Whether details will be posted in a reply.
+            summary: Roughly one-sentence summary of issue.
+            caption: Additional information about the issue.
             screenshot: Screenshot taken when the phone was shook.
 
         returns:
@@ -66,19 +105,7 @@ class ShakiraSlackApiClient:
         """
         url = f"{_API}/files.upload"
         headers = {"Authorization": f"Bearer {_API_TOKEN}"}
-        reporter_username = (
-            f'<@{reporter_email.split("@")[0]}>' if reporter_email else "unknown user"
-        )
-        platform = JIRA_PROJ_TO_PLATFORM.get(project, "unknown platform")
-        additional_details = ""
-        if jira_issue_url:
-            additional_details += f"\n<{jira_issue_url}>"
-        elif post_info_in_reply:
-            additional_details += "\n_See thread for details._"
-
-        initial_comment = (
-            f"*{summary}*\nReported by {reporter_username} on {platform}{additional_details}"
-        )
+        initial_comment = f"*{summary}*\n{caption}"
 
         screenshot.seek(0)
         try:
@@ -110,6 +137,47 @@ class ShakiraSlackApiClient:
         except RequestException as e:
             print_request_exception(e)
             return None
+
+    def post_issue(
+        self,
+        project: str,
+        slack_channel: SlackChannel,
+        summary: str,
+        reporter_email: Optional[str],
+        jira_issue_url: Optional[str],
+        post_info_in_reply: bool,
+        screenshot: Optional["FileStorage"],
+    ) -> Optional[str]:
+        """
+        Post a message (including screenshots, if applicable) in the appropriate slack channel along with a brief summary.
+
+        parameters:
+            project: e.g. DLAA, DLAI, DLAW
+            slack_channel: Channel to post the screenshot to.
+            summary: Rougly one-sentence summary of issue.
+            reporter_email: Email of the user reporting the issue.
+            jira_issue_url: URL to the related Jira issue, if applicable.
+            post_info_in_reply: Whether details will be posted in a reply.
+            screenshot: Screenshot taken when the phone was shook, if available.
+
+        returns:
+            post id: str API ID of the created slack post.
+        """
+        reporter_username = (
+            f'<@{reporter_email.split("@")[0]}>' if reporter_email else "unknown user"
+        )
+        platform = JIRA_PROJ_TO_PLATFORM.get(project, "unknown platform")
+        additional_details = ""
+        if jira_issue_url:
+            additional_details += f"\n<{jira_issue_url}>"
+        elif post_info_in_reply:
+            additional_details += "\n_See thread for details._"
+        caption = f"Reported by {reporter_username} on {platform}{additional_details}"
+
+        if screenshot:
+            return self._post_screenshot(slack_channel, summary, caption, screenshot)
+        else:
+            return self._post_chat_message(slack_channel, summary, caption)
 
     def post_info_in_reply(
         self,
