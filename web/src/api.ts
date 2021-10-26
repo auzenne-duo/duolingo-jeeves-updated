@@ -33,7 +33,7 @@ export const createJira = async ({
   );
   return (await post("/shakira/report_issue", formData)) as {
     issueKey: string;
-    url: string;
+    jiraUrl: string;
   };
 };
 
