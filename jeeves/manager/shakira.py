@@ -147,12 +147,14 @@ class ShakiraManager:
                     description=description,
                     generated_description=generated_description,
                 )
+
+            optional_channel_url = channel.url() if post_id else None
             return (
                 {
                     "slackChannel": channel.name if post_id else None,
-                    "url": issue_url,
+                    "url": issue_url or optional_channel_url,
                     "issueKey": issue_key,
-                    "slackUrl": channel.url() if post_id else None,
+                    "slackUrl": optional_channel_url,
                     "jiraUrl": issue_url,
                 }
                 if post_id or issue_key
