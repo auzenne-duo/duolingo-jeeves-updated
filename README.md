@@ -67,6 +67,15 @@ To proxy API requests to https://jeeves.duolingo.com, run `make web-proxy`.
 - Run the steps above to set up the Python virtual environment
 - Run `./env/bin/python ./jeeves/scripts/slack.py`
 
+## Import Infrastructure
+
+See yml files in `/config` to get exact s3 bucket/queue names.
+Galaxy module (`/galaxy`) | Python script (`/jeeves/scripts`) | Description | Reads from | Outputs to
+------------ | ------------- | ------------- | ------------- | -------------
+s3-worker.json | update_jeeves_data.py | Calls `ticket_crawler.crawl_tickets()`, which also calls methods in each `jeeves_manager` implementation in order to make API calls to pull individual documents. | Individual sources (AppFigures, Jira, Zendesk) | S3 bucket: `config.s3_document_cache`, SQS queue: `config.sqs_download_verify_pipeline`
+sqs-worker-1.json | sqs_verify_worker.py | Calls `process_document()` from the relevant `jeeves_manager` implementation. This method returns `None` if the corresponding `jeeves_document.check_should_index_document()` method returns `False`. | SQS queue: `config.sqs_download_verify_pipeline` | SQS queue: `config.sqs_verify_index_pipeline`
+sqs-worker-2.json | sqs_index_worker.py | Calls `check_should_index_document()` from the relevant `jeeves_document` implementation to determine if a document should be indexed. For Zendesk email documents, checks for duplicates before indexing. | SQS queue: `config.sqs_verify_index_pipeline` | Document gets indexed in ElasticSearch
+
 ## Links
 
 - [Jeeves Documentation](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/644121212/Jeeves)

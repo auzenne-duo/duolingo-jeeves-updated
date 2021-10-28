@@ -173,12 +173,16 @@ class ZendeskDocument(JeevesDocument):
             "luis@duolingotest.zendesk.com",
             "luis@duolingo.com",
             "institution@testcenter.zendesk.com",
+            "institutional@testcenter.zendesk.com",
             "testcenter-support@duolingo.com",
         }
         # Also also ignore tickets with one or more of the following tags
-        _TAGS_TO_IGNORE = {"duolingo_english_test___appeal_results"}
+        _TAGS_TO_IGNORE = {"appeal__r_flag_session", "duolingo_english_test___appeal_results"}
 
         if document.via["channel"] == "chat":
+            return False
+
+        if document.via["source"]["rel"] == "follow_up":
             return False
 
         # Ignore a ticket if a sender email is on a blocklist
