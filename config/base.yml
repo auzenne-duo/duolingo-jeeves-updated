@@ -1,3 +1,7 @@
+rollbar:
+  access_token: d706122c96ae40a79f2542e0e0cab6bb
+  enabled: False
+
 blueprints:
   - jeeves.view.api.blueprint_api
   - jeeves.view.health.blueprint_health

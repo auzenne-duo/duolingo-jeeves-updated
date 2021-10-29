@@ -1,6 +1,7 @@
 --index-url https://pypi.duolingo.com/pypi/
 
 attrs==20.2.0
+blinker
 duolingo-base==0.13.7
 elasticsearch
 elasticsearch-dsl

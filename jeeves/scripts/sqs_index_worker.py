@@ -9,6 +9,8 @@ from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.manager.jeeves_duplicate_manager import JeevesDuplicateManager
 
 _config = Config.load_config()
+_config.apply_logging()
+_config.apply_rollbar()
 
 _BATCH_GROUP_SIZE = 100
 

@@ -9,6 +9,9 @@ from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.util.json_encoder import JeevesJSONEncoder
 
 _config = Config.load_config()
+_config.apply_logging()
+_config.apply_rollbar()
+
 
 """
 This script is responsible for receiving JSON representing raw external

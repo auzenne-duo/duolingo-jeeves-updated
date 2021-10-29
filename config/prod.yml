@@ -20,3 +20,7 @@ sqs_verify_index_pipeline:
 
 s3_document_cache:
   bucket_name: jeeves-document-cache
+
+rollbar:
+  enabled: True
+  environment: production

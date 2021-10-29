@@ -27,3 +27,7 @@ sqs_verify_index_pipeline:
 s3_document_cache:
   #endpoint_url: http://host.docker.internal:4566
   bucket_name: jeeves-document-cache-dev
+
+rollbar:
+  enabled: True
+  environment: development

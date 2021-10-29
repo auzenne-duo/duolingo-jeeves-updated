@@ -13,6 +13,8 @@ from jeeves.util.date_util import get_utc_today  # pylint: disable=E0401
 from jeeves.util.date_util import str_to_date, yield_intermediate_dates
 
 _config = Config.load_config()
+_config.apply_logging()
+_config.apply_rollbar()
 
 _FORCE_SPIKE_REFRESH_FILE = "force_spike_refresh_flag"
 _SPIKE_CALCULATOR_LOCK_FILE = "spike_calculator_lock"

@@ -2,10 +2,15 @@ import json
 import os
 
 import requests
+from duolingo_base.config import Config
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
+
+_config = Config.load_config()
+_config.apply_logging()
+_config.apply_rollbar()
 
 _SLACK_REPORT_LANG = "en"
 
