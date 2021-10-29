@@ -13,7 +13,7 @@ terraform {
     dynamodb_table = "infra-galaxy-lock"
   }
 
-  required_version = "0.12.29"
+  required_version = "0.12.31"
 }
 
 # Get the zone information for the duolingo.com domain
