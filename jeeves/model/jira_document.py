@@ -6,7 +6,7 @@ from typing import Dict, List, Union
 
 import attr
 
-from jeeves.lib.duplicate_detector import DuplicateDetector
+from jeeves.lib.duplicate_detector import DuplicateIssueDetector
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
@@ -21,6 +21,7 @@ _SHAKE_TO_REPORT_MARKER = "Reported with shake-to-report"
 
 @attr.s(kw_only=True)
 class JiraDocument(JeevesDocument):
+    _duplicate_detector = None
 
     issue_key: str = attr.ib()
     issue_links: List[str] = attr.ib()
@@ -43,6 +44,11 @@ class JiraDocument(JeevesDocument):
     comments: List[Dict[str, Union[str, datetime.datetime]]] = attr.ib()
     labels: List[str] = attr.ib()
     embedding_vector: List[float] = attr.ib()
+
+    @classmethod
+    def _initialize_duplicate_detector(cls):
+        if cls._duplicate_detector is None:
+            cls._duplicate_detector = DuplicateIssueDetector()
 
     @staticmethod
     def get_data_source_identifier() -> str:
@@ -171,6 +177,8 @@ class JiraDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
+        cls._initialize_duplicate_detector()
+
         external_fields = external_json["fields"]
 
         body_text = (
@@ -244,9 +252,11 @@ class JiraDocument(JeevesDocument):
             if "comment" in external_fields
             else [],
             labels=external_fields["labels"],
-            embedding_vector=DuplicateDetector.calculate_embedding_vector(
+            embedding_vector=cls._duplicate_detector.calculate_embedding_vector(
                 external_fields["summary"]
-            ),
+            )
+            if cls._duplicate_detector is not None
+            else [],
         )
 
     @classmethod

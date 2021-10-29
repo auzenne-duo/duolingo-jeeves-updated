@@ -34,6 +34,3 @@ class DuplicateIssueDetector:
         raw_model_output = self.sentence_transformer_model.encode([target])
         embedding_vector = raw_model_output[0].tolist()
         return embedding_vector
-
-
-DuplicateDetector = DuplicateIssueDetector()
