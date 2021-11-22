@@ -1,6 +1,9 @@
 import operator
 from typing import Dict, List, Optional
 
+from jeeves.model.custom_types import JSON
+from jeeves.util.cleanup import extract_duolingo_metadata
+
 
 class JiraFeatureManager:
     def __init__(self, features_config: Dict[str, Dict[str, Dict[str, List[str]]]]):
@@ -50,6 +53,18 @@ class JiraFeatureManager:
 
         return uppercase_term_to_feature
 
+    @staticmethod
+    def _get_leaf_values(json: JSON) -> str:
+        if isinstance(json, str):
+            return json
+        if isinstance(json, list):
+            return ",".join(json)
+        if isinstance(json, dict):
+            res = ""
+            for value in json.values():
+                res = res + JiraFeatureManager._get_leaf_values(value) + "\n"
+            return res
+
     def get_suggested_features(
         self,
         summary: str,
@@ -74,7 +89,15 @@ class JiraFeatureManager:
         if description:
             search_text_uppercase = search_text_uppercase + "\n" + description.upper()
         if generated_description:
-            search_text_uppercase = search_text_uppercase + "\n" + generated_description.upper()
+            _, metadata = extract_duolingo_metadata(generated_description)
+            if metadata:
+                metadata.pop("raw")
+            search_text_uppercase = (
+                search_text_uppercase + "\n" + JiraFeatureManager._get_leaf_values(metadata).upper()
+            )
+
+        search_text_uppercase = search_text_uppercase.replace("REPORTED WITH SHAKE-TO-REPORT", "")
+        search_text_uppercase = search_text_uppercase.replace("FULLSTORY", "")
 
         feature_count = {}
         # Note: this counts substrings that are parts of words

@@ -6,7 +6,7 @@ from jeeves.manager.jira_feature_manager import JiraFeatureManager
 
 mock_jira_features = {
     "Area A": {
-        "Team 1": {"Leaderboard": ["League"], "Streak": []},
+        "Team 1": {"Leaderboard": ["League"], "Streak": [], "Stories": ["Story"]},
     },
     "Area B": {
         "Team 2": {
@@ -16,11 +16,16 @@ mock_jira_features = {
             "Skill tree": ["Home"],
         },
     },
+    "Area C": {
+        "Team 4": {
+            "Shake-to-report": [],
+        },
+    },
 }
 
 feature_manager = JiraFeatureManager(mock_jira_features)
 
-# Feature name capitalization should match capitalization in mock_jira_features
+# Feature name capitalization should match capitalization in mock_jira_features.
 test_cases = [
     # feature name in summary is detected.
     (
@@ -28,7 +33,7 @@ test_cases = [
         "Please fix.",
         "",
         ["Leaderboard"],
-        ["Streak", "Kudos", "Skill tree"],
+        ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
     # works with feature that has a space and different capitalization in the description.
     (
@@ -36,15 +41,47 @@ test_cases = [
         "Please fix the skill tree.",
         "",
         ["Skill tree"],
-        ["Leaderboard", "Streak", "Kudos"],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Shake-to-report"],
     ),
-    # synonym is detected in part of a word in generated_description; case-insensitive.
+    # synonym is detected in part of a word in description; case-insensitive.
     (
         "Bug",
-        "Please fix.",
-        "leagues",
+        "Please fix leagues.",
+        "",
         ["Leaderboard"],
-        ["Streak", "Kudos", "Skill tree"],
+        ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
+    # terms that appear in the field keys of the generated_description should be ignored.
+    (
+        "",
+        "",
+        "Session information:\nSkill tree id: 1234abcd",
+        [],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
+    # terms that appear in the field values of the generated_description should be detected.
+    (
+        "",
+        "",
+        "Session information:\nField name: Leaderboard",
+        ["Leaderboard"],
+        ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
+    # auto-generated "Reported with shake-to-report" message is not detected.
+    (
+        "Bug",
+        "Please fix\n-\nReported with shake-to-report",
+        "Reported with shake-to-report",
+        [],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
+    # FullStory does not get detected as "story".
+    (
+        "",
+        "",
+        "FullStory:\n- session url: https://app.fullstory.com/asdf",
+        [],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
     # multiple features are detected, no tie.
     (
@@ -52,7 +89,7 @@ test_cases = [
         "Please fix.",
         "",
         ["Leaderboard", "Skill tree"],
-        ["Streak", "Kudos"],
+        ["Streak", "Stories", "Kudos", "Shake-to-report"],
     ),
     # more than three features are detected, no tie.
     (
@@ -60,7 +97,7 @@ test_cases = [
         "Leaderboard, League, League, League. Skill tree, home, home. Streak, streak. Kudos.",
         "",
         ["Leaderboard", "Skill tree", "Streak"],
-        ["Kudos"],
+        ["Stories", "Kudos", "Shake-to-report"],
     ),
     # empty strings.
     (
@@ -68,7 +105,7 @@ test_cases = [
         "",
         "",
         [],
-        ["Leaderboard", "Streak", "Kudos", "Skill tree"],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
 ]
 
