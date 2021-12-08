@@ -202,6 +202,7 @@ def report_issue():
         issue_status = Shakira.report_issue(
             project=issue_data["project"],
             feature=issue_data.get("feature"),
+            slack_report_type=None,
             client_specified_slack_channel_name=issue_data.get("slackChannel"),
             summary=issue_data["summary"],
             description=issue_data.get("description"),
@@ -357,6 +358,18 @@ def fully_connect_duplicates():
     return json.jsonify(result_dict)
 
 
+@blueprint_api.route("/api/2/shakira/slack_report_types")
+def get_slack_report_types():
+    """
+    Returns information about report types that can be sent to Slack.
+
+    Returns a list of JSON objects with the following fields:
+        name (str): The name of the Slack report type.
+        alsoPostsToJira (bool): Whether this Slack report type also creates an associated Jira issue.
+    """
+    return json.jsonify(Shakira.get_slack_report_types())
+
+
 @blueprint_api.route("/api/2/shakira/suggested_features")
 def get_suggested_features():
     """
@@ -384,6 +397,34 @@ def get_suggested_features():
     )
 
     return json.jsonify(features)
+
+
+@blueprint_api.route("/api/2/shakira/report_issue", methods=["POST"])
+def report_issue_v2():
+    """
+    Create an issue in JIRA and/or post the issue to Slack, depending on the feature and slackReportType fields.
+    """
+    try:
+        issue_data = json.loads(request.form["issueData"])
+        issue_status = Shakira.report_issue(
+            project=issue_data["project"],
+            feature=issue_data.get("feature"),
+            slack_report_type=issue_data.get("slackReportType"),
+            client_specified_slack_channel_name=None,
+            summary=issue_data["summary"],
+            description=issue_data.get("description"),
+            generated_description=issue_data.get("generatedDescription"),
+            reporter_email=issue_data.get("reporterEmail"),
+            pre_release=issue_data.get("preRelease", False),
+            files=request.files,
+        )
+        if "error" in issue_status:
+            message, code = issue_status["error"]
+            abort(make_response(message, code))
+        else:
+            return json.jsonify(issue_status)
+    except KeyError:
+        abort(make_response("Missing required field(s)", 400))
 
 
 @blueprint_api.route("/", defaults={"path": ""})
