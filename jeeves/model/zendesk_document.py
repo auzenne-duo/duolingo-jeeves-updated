@@ -175,9 +175,17 @@ class ZendeskDocument(JeevesDocument):
             "institution@testcenter.zendesk.com",
             "institutional@testcenter.zendesk.com",
             "testcenter-support@duolingo.com",
+            "privacy@duolingotest.zendesk.com",
         }
         # Also also ignore tickets with one or more of the following tags
-        _TAGS_TO_IGNORE = {"appeal__r_flag_session", "duolingo_english_test___appeal_results"}
+        _TAGS_TO_IGNORE = {
+            "appeal__r_flag_session",
+            "appeal__m_flag_session",
+            "duolingo_english_test___appeal_results",
+            "closed_by_merge",
+            "accommodation",
+            "accommodation_request",
+        }
 
         if document.via["channel"] == "chat":
             return False
