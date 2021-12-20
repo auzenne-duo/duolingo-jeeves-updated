@@ -41,7 +41,7 @@ const handleRangeChangeDebouncer = debounce(
 );
 
 const Analysis = () => {
-  const { from, to } = useDateRangeFilter();
+  const { from, to } = useDateRangeFilter({ monthsAgo: 3 });
   const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{

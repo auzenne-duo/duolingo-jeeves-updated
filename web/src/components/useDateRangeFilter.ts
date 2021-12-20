@@ -1,14 +1,19 @@
-import { endOfToday, startOfDay, subDays } from "date-fns";
+import { endOfToday, startOfDay, subDays, subMonths } from "date-fns";
 
 import useSearchParams from "components/useSearchParams";
 
-const useDateRangeFilter = ({ daysAgo }: { daysAgo?: number } = {}) => {
+const useDateRangeFilter = ({
+  daysAgo,
+  monthsAgo,
+}: { daysAgo?: number; monthsAgo?: number } = {}) => {
   const search = useSearchParams();
 
   const from = search.get("from")
     ? new Date(search.get("from") as string)
     : daysAgo
     ? startOfDay(subDays(new Date(), daysAgo))
+    : monthsAgo
+    ? startOfDay(subMonths(new Date(), monthsAgo))
     : undefined;
 
   const to = search.get("to")

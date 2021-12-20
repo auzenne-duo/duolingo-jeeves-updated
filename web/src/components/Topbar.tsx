@@ -22,6 +22,7 @@ import styles from "styles/Topbar.scss";
 const Topbar = () => {
   const { from, to } = useDateRangeFilter({
     daysAgo: useRouteMatch("/:lang/spike") ? 3 : 0,
+    monthsAgo: useRouteMatch("/:lang/analysis") ? 3 : 0,
   });
   const history = useHistory();
   const location = useLocation();
