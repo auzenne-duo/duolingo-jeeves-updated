@@ -34,7 +34,10 @@ const TicketTable = ({ highlight, ticket }: Props) => {
           <th>Subject</th>
           <td>
             <span className={styles.subject}>
-              {ticket.header_text}
+              {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                ticket.header_text || "(None)"
+              }
               <Link
                 className={styles["icon-link"]}
                 to={`/${lang}/discovery?id=${encodeURIComponent(

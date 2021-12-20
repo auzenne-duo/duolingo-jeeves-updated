@@ -90,6 +90,8 @@ declare namespace JSONAPI {
   interface Ticket extends DuolingoMetadata {
     /** URLs to file attachments. Currently only available for Jira tickets. */
     attachments?: string[];
+    /** Review author for AppFigures tickets. */
+    author?: string;
     /** Main content of the ticket. This is what we search against and perform spike detection on. */
     body_text?: string;
     /** Jira components. */
