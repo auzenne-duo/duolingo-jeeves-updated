@@ -10,6 +10,7 @@ import {
 } from "util";
 
 import * as React from "react";
+import { useQuery } from "react-query";
 import { Link, useLocation } from "react-router-dom";
 import { LoadingDots } from "web-ui";
 
@@ -21,7 +22,6 @@ import PlatformIcon from "components/PlatformIcon";
 import TagFilter from "components/TagFilter";
 import TicketJiraButton from "components/TicketJiraButton";
 import renderTicketSource from "components/renderTicketSource";
-import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/Ticket.scss";
 
 interface Props {
@@ -44,14 +44,14 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
     link => link.type.name === "Duplicate",
   );
 
-  const [potentialDuplicates, isLoadingPotentialDuplicates] = useAwaitedValue<
-    JSONAPI.Ticket[],
-    undefined
-  >(
-    undefined,
-    async () => (ticket.issue_key ? getJiraDuplicates(ticket.issue_key) : []),
-    [ticket.issue_key],
-  );
+  const { data: potentialDuplicates, isLoading: isLoadingPotentialDuplicates } =
+    useQuery(
+      ["jira-duplicates", { issueKey: ticket.issue_key }],
+      () => getJiraDuplicates(ticket.issue_key as string),
+      {
+        enabled: !!ticket.issue_key,
+      },
+    );
 
   return (
     <div className={cn(styles.container, className)}>

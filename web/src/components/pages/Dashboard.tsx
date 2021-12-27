@@ -2,48 +2,39 @@ import { formatReadableDate } from "util";
 
 import { formatDistanceToNow, startOfYesterday } from "date-fns";
 import * as React from "react";
+import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 
 import { getInfo, getSpikes } from "api";
 import SpikeTable from "components/SpikeTable";
 import Table from "components/Table";
-import { useAwaitedValue } from "components/useAwaitedValue";
 import usePageView from "components/usePageView";
-import AppStateContext from "contexts/AppStateContext";
 
 const Dashboard = () => {
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
 
-  const [, dispatch] = React.useContext(AppStateContext);
+  const spikesStartDate = startOfYesterday();
 
-  const [info, isLoadingInfo] = useAwaitedValue(
-    undefined,
+  const { data: info, isLoading: isLoadingInfo } = useQuery(
+    ["info", { lang }],
     () => getInfo(lang),
-    [lang],
+    {
+      staleTime: 60000, // 1m
+    },
   );
 
-  const [spikes, isLoading] = useAwaitedValue(
-    undefined,
-    async () =>
-      (
-        await getSpikes(lang, {
-          start_date: startOfYesterday(),
-        })
-      ).reverse(),
-    [lang],
+  const { data: spikes, isLoading } = useQuery(
+    ["spikes", { lang, spikesStartDate }],
+    () =>
+      getSpikes(lang, {
+        start_date: spikesStartDate,
+      }),
+    {
+      select: d => d.slice().reverse(),
+    },
   );
 
   usePageView();
-
-  React.useEffect(() => {
-    if (isLoading || isLoadingInfo) {
-      dispatch?.({ type: "LOADING" });
-      return () => {
-        dispatch?.({ type: "LOADED" });
-      };
-    }
-    return undefined;
-  }, [isLoading || isLoadingInfo]);
 
   return (
     <>
@@ -57,19 +48,23 @@ const Dashboard = () => {
         <tbody>
           <tr>
             <th>Most recent ticket</th>
-            {isLoadingInfo || !info ? null : (
+            {info ? (
               <td>
                 {formatDistanceToNow(info.latest_ticket_timestamp, {
                   addSuffix: true,
                   includeSeconds: true,
                 })}
               </td>
+            ) : isLoadingInfo ? null : (
+              <td>Failed to retrieve data.</td>
             )}
           </tr>
           <tr>
             <th>Last Jeeves deployment</th>
-            {isLoadingInfo || !info ? null : (
+            {info ? (
               <td>{formatReadableDate(info.deployed_timestamp)}</td>
+            ) : isLoadingInfo ? null : (
+              <td>Failed to retrieve data.</td>
             )}
           </tr>
         </tbody>

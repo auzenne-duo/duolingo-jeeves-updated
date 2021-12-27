@@ -3,11 +3,9 @@ import { convertTimeZone } from "util";
 import { format, formatISO, parseISO } from "date-fns";
 
 const API_URL =
-  process.env.NODE_ENV === "production"
-    ? "/api/1"
-    : "http://localhost:5000/api/1";
+  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5000/api";
 
-export const createJira = async ({
+export const createJira = ({
   description,
   generated_description,
   project,
@@ -31,10 +29,10 @@ export const createJira = async ({
       summary,
     }),
   );
-  return (await post("/shakira/report_issue", formData)) as {
+  return post<{
     issueKey: string;
     jiraUrl: string;
-  };
+  }>("/1/shakira/report_issue", formData);
 };
 
 /** Converts a date and time to a format that the API supports. */
@@ -44,33 +42,37 @@ const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
 const formatLocalDate = (date: Date) =>
   formatISO(date, { representation: "date" });
 
-const get = async (url: string) =>
-  (
-    await fetch(`${API_URL}${url}`, {
-      credentials: "include",
-    })
-  ).json();
+const get = async <T>(url: string): Promise<T> => {
+  const response = await fetch(`${API_URL}${url}`, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw Error(`Request failed with status ${response.status}.`);
+  }
+  return response.json();
+};
 
-const post = async (url: string, data = {}) =>
-  (
-    await fetch(`${API_URL}${url}`, {
-      body: data instanceof FormData ? data : JSON.stringify(data),
-      credentials: "include",
-      headers:
-        data instanceof FormData
-          ? // The browser should set this.
-            {}
-          : { "Content-Type": "application/json" },
-      method: "POST",
-    })
-  ).json();
+const post = async <T>(url: string, data = {}): Promise<T> => {
+  const response = await fetch(`${API_URL}${url}`, {
+    body: data instanceof FormData ? data : JSON.stringify(data),
+    credentials: "include",
+    headers:
+      data instanceof FormData
+        ? // The browser should set this.
+          {}
+        : { "Content-Type": "application/json" },
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw Error(`Request failed with status ${response.status}.`);
+  }
+  return response.json();
+};
 
-export const getJiraDuplicates = async (
-  issueKey: string,
-): Promise<JSONAPI.Ticket[]> =>
-  (await get(
-    `/detect_duplicates?issue_key=${encodeURIComponent(issueKey)}`,
-  )) as JSONAPI.Ticket[];
+export const getJiraDuplicates = (issueKey: string) =>
+  get<JSONAPI.Ticket[]>(
+    `/1/detect_duplicates?issue_key=${encodeURIComponent(issueKey)}`,
+  );
 
 export const getInfo = async (
   lang: JSONAPI.LanguageId,
@@ -79,7 +81,7 @@ export const getInfo = async (
   initialized_timestamp: Date;
   latest_ticket_timestamp: Date;
 }> => {
-  const data = (await get(`/${lang}/info`)) as JSONAPI.Info;
+  const data = await get<JSONAPI.Info>(`/1/${lang}/info`);
   return {
     deployed_timestamp: new Date(data.deployed_timestamp),
     initialized_timestamp: new Date(data.initialized_timestamp),
@@ -111,9 +113,9 @@ export const getSpikes = async (
   spike_category && params.set("spike_category", spike_category);
   start_date && params.set("start_date", formatLocalDate(start_date));
 
-  const data = (await get(
-    `/${lang}/spikes?${params.toString()}`,
-  )) as JSONAPI.Spikes;
+  const data = await get<JSONAPI.Spikes>(
+    `/1/${lang}/spikes?${params.toString()}`,
+  );
 
   return Object.entries(data).map(([date, value]) => ({
     // Spikes are actually computed on EST date grouping, but
@@ -129,9 +131,9 @@ export const getTicket = async (
   id: string,
 ): Promise<JSONAPI.Ticket | undefined> => {
   const data = (
-    (await get(
-      `/${lang}/tickets?jeeves_id=${encodeURIComponent(id)}`,
-    )) as JSONAPI.Tickets
+    await get<JSONAPI.Tickets>(
+      `/1/${lang}/tickets?jeeves_id=${encodeURIComponent(id)}`,
+    )
   ).data[0];
   if (!data) {
     throw Error("Ticket not found.");
@@ -139,7 +141,7 @@ export const getTicket = async (
   return data;
 };
 
-export const getTickets = async (
+export const getTickets = (
   lang: JSONAPI.LanguageId,
   {
     beta_filter,
@@ -156,7 +158,7 @@ export const getTickets = async (
     start_time?: Date;
     word?: string;
   } = {},
-): Promise<JSONAPI.Tickets> => {
+) => {
   const params = new URLSearchParams();
 
   beta_filter && params.set("beta_filter", beta_filter);
@@ -166,9 +168,7 @@ export const getTickets = async (
   start_time && params.set("start_time", formatDateTime(start_time));
   word && params.set("word", word);
 
-  return (await get(
-    `/${lang}/tickets?${params.toString()}`,
-  )) as JSONAPI.Tickets;
+  return get<JSONAPI.Tickets>(`/1/${lang}/tickets?${params.toString()}`);
 };
 
 export const getTimeSeries = async (
@@ -185,7 +185,9 @@ export const getTimeSeries = async (
   }[]
 > => {
   const data = (
-    (await get(`/${lang}/time_series?word=${word}`)) as JSONAPI.TimeSeries
+    await get<JSONAPI.TimeSeries>(
+      `/1/${lang}/time_series?word=${encodeURIComponent(word)}`,
+    )
   ).values;
   return Object.entries(data).map(([date, value]) => ({
     date: convertTimeZone(parseISO(`${date}T00:00:00`), "America/New_York"),

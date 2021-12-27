@@ -1,9 +1,9 @@
 import Plotly from "plotly.js-basic-dist";
 import * as React from "react";
 import createPlotlyComponent from "react-plotly.js/factory";
+import { useQuery } from "react-query";
 
 import { getTimeSeries } from "api";
-import { useAwaitedValue } from "components/useAwaitedValue";
 import styles from "styles/TrendGraph.scss";
 
 interface PlotState {
@@ -48,15 +48,12 @@ const TrendGraph = ({
   zoomFrom,
   zoomTo,
 }: Props) => {
-  const [data] = useAwaitedValue(
-    undefined,
-    async () => {
-      if (!query) {
-        return [];
-      }
-      return getTimeSeries(lang, { word: query });
+  const { data } = useQuery(
+    ["time-series", { lang, query }],
+    () => getTimeSeries(lang, { word: query }),
+    {
+      enabled: !!query,
     },
-    [lang, query],
   );
 
   const [plotState, setPlotState] = React.useState<PlotState>({

@@ -2,6 +2,7 @@ import { encodeURLSearchParams, getPaginationString } from "util";
 
 import { debounce } from "lodash";
 import * as React from "react";
+import { useQuery } from "react-query";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import { Button } from "web-ui";
 
@@ -11,12 +12,10 @@ import SearchExample from "components/SearchExample";
 import TicketTable from "components/TicketTable";
 import type { RangeChangeEvent } from "components/TrendGraph";
 import TrendGraph from "components/TrendGraph";
-import { useAwaitedValue } from "components/useAwaitedValue";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
-import AppStateContext from "contexts/AppStateContext";
 import styles from "styles/pages/Analysis.scss";
 
 const EXAMPLES = [
@@ -50,7 +49,6 @@ const Analysis = () => {
   }>();
   const search = useSearchParams();
 
-  const [, dispatch] = React.useContext(AppStateContext);
   const [showTrend, setShowTrend] = React.useState(true);
 
   const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
@@ -65,23 +63,21 @@ const Analysis = () => {
   const prevQuery = useSearchParams();
   prevQuery.set("page", `${page - 1}`);
 
-  const [
-    { data: tickets, next_url: nextUrl, total_records: totalTickets },
-    isLoading,
-  ] = useAwaitedValue(
-    { data: undefined, next_url: undefined, total_records: undefined },
-    async () =>
-      query
-        ? getTickets(lang, {
-            beta_filter: filter ?? undefined,
-            end_time: to,
-            limit: PER_PAGE,
-            page: page - 1,
-            start_time: from,
-            word: query,
-          })
-        : { data: undefined, next_url: undefined, total_records: undefined },
-    [filter, from?.valueOf(), lang, page, query, to?.valueOf()],
+  const { data, error, isLoading, isPreviousData } = useQuery(
+    ["tickets", { filter, from, lang, page, query, to }],
+    () =>
+      getTickets(lang, {
+        beta_filter: filter ?? undefined,
+        end_time: to,
+        limit: PER_PAGE,
+        page: page - 1,
+        start_time: from,
+        word: query,
+      }),
+    {
+      enabled: !!query,
+      keepPreviousData: true,
+    },
   );
 
   const handleRangeChange = (e: RangeChangeEvent) => {
@@ -112,14 +108,10 @@ const Analysis = () => {
   usePageView();
 
   React.useEffect(() => {
-    if (isLoading) {
-      dispatch?.({ type: "LOADING" });
-      return () => {
-        dispatch?.({ type: "LOADED" });
-      };
+    if (!isPreviousData) {
+      window.scrollTo(0, 0);
     }
-    return undefined;
-  }, [isLoading]);
+  }, [isPreviousData]);
 
   React.useEffect(() => {
     if (page > 1) {
@@ -144,7 +136,7 @@ const Analysis = () => {
     : getPaginationString({
         page,
         perPage: PER_PAGE,
-        total: totalTickets,
+        total: data?.total_records,
       });
 
   return (
@@ -176,11 +168,13 @@ const Analysis = () => {
               ? `Showing ${paginationString} tickets`
               : "Tickets"}
           </h2>
-          {isLoading ? null : tickets?.length ? (
-            tickets.map((t, i) => (
+          {data?.data?.length ? (
+            data.data.map((t, i) => (
               <TicketTable highlight={query} key={i} ticket={t} />
             ))
-          ) : (
+          ) : error ? (
+            <span>Failed to retrieve data.</span>
+          ) : isLoading ? null : (
             <span>Your search returned no results.</span>
           )}
         </>
@@ -270,10 +264,10 @@ const Analysis = () => {
           </ul>
         </div>
       )}
-      {nextUrl || page > 1 ? (
+      {(data?.next_url && !isPreviousData) || page > 1 ? (
         <Pagination
           nextLink={
-            nextUrl
+            data?.next_url && !isPreviousData
               ? {
                   ...location,
                   search: encodeURLSearchParams(nextQuery),

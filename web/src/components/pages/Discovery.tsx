@@ -11,6 +11,7 @@ import {
 import { format, formatISO, isThisYear, isToday } from "date-fns";
 import * as React from "react";
 import { createPortal } from "react-dom";
+import { useQuery, useQueryClient } from "react-query";
 import { Link, useHistory, useLocation, useParams } from "react-router-dom";
 
 import { getTicket, getTickets } from "api";
@@ -20,7 +21,6 @@ import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
 import TagFilter from "components/TagFilter";
 import Ticket from "components/Ticket";
-import { useAwaitedValue } from "components/useAwaitedValue";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
@@ -46,10 +46,10 @@ const Discovery = () => {
     lang: JSONAPI.LanguageId;
     page: string | undefined;
   }>();
+  const queryClient = useQueryClient();
   const search = useSearchParams();
 
   const [, dispatch] = React.useContext(AppStateContext);
-  const lastSelectedRef = React.useRef<JSONAPI.Ticket>();
 
   const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
   const id = search.get("id");
@@ -64,11 +64,10 @@ const Discovery = () => {
   const prevQuery = useSearchParams();
   prevQuery.set("page", `${page - 1}`);
 
-  const [
-    { data: tickets, next_url: nextUrl, total_records: totalTickets },
-    isLoading,
-  ] = useAwaitedValue(
-    { data: undefined, next_url: undefined, total_records: undefined },
+  const listQueryKey = ["tickets", { filter, lang, page, query }];
+
+  const { data, error, isLoading, isPreviousData } = useQuery(
+    listQueryKey,
     () =>
       getTickets(lang, {
         beta_filter: filter ?? undefined,
@@ -76,26 +75,23 @@ const Discovery = () => {
         page: page - 1,
         word: query,
       }),
-    [filter, lang, page, query],
+    { keepPreviousData: true },
   );
 
-  const [selected, isLoadingSelected] = useAwaitedValue(
-    undefined,
-    async () => {
-      // If we've already fetched the ticket, return the
-      // previous result to avoid extra API calls.
-      if (id === lastSelectedRef.current?.jeeves_uid) {
-        return lastSelectedRef.current;
-      } else if (id) {
-        return (
-          // If the ticket exists on the current page, return
-          // the existing result to avoid extra API calls.
-          tickets?.find(t => t.jeeves_uid === id) ?? (await getTicket(lang, id))
-        );
-      }
-      return undefined;
+  const tickets = data?.data;
+
+  const { data: selected } = useQuery(
+    ["tickets", id, { lang }],
+    () => getTicket(lang, id as string),
+    {
+      enabled: !!id,
+      initialData: () =>
+        queryClient
+          .getQueryData<JSONAPI.Tickets>(listQueryKey)
+          ?.data.find(t => t.jeeves_uid === id),
+      initialDataUpdatedAt: () =>
+        queryClient.getQueryState(listQueryKey)?.dataUpdatedAt,
     },
-    [id, lang, tickets],
   );
 
   const handleClick = (t: JSONAPI.Ticket) => {
@@ -121,10 +117,6 @@ const Discovery = () => {
 
   useDocumentTitle("Issue Discovery");
   usePageView();
-
-  React.useEffect(() => {
-    lastSelectedRef.current = selected;
-  });
 
   React.useEffect(() => {
     dispatch?.({ type: "HIDE_ASIDE" });
@@ -194,20 +186,10 @@ const Discovery = () => {
   }, [id, setId, tickets]);
 
   React.useEffect(() => {
-    if (!isLoading) {
+    if (!isPreviousData) {
       window.scrollTo(0, 0);
     }
-  }, [isLoading]);
-
-  React.useEffect(() => {
-    if (isLoading || isLoadingSelected) {
-      dispatch?.({ type: "LOADING" });
-      return () => {
-        dispatch?.({ type: "LOADED" });
-      };
-    }
-    return undefined;
-  }, [isLoading, isLoadingSelected]);
+  }, [isPreviousData]);
 
   return (
     <>
@@ -304,31 +286,35 @@ const Discovery = () => {
             {getPaginationString({
               page,
               perPage: PER_PAGE,
-              total: totalTickets,
+              total: data?.total_records,
             })}
           </div>
         </>
+      ) : error ? (
+        <span>Failed to retrieve data.</span>
       ) : isLoading ? null : (
         <span>Your search returned no results.</span>
       )}
-      <Pagination
-        nextLink={
-          nextUrl
-            ? {
-                ...location,
-                search: encodeURLSearchParams(nextQuery),
-              }
-            : undefined
-        }
-        prevLink={
-          page > 1
-            ? {
-                ...location,
-                search: encodeURLSearchParams(prevQuery),
-              }
-            : undefined
-        }
-      />
+      {(data?.next_url && !isPreviousData) || page > 1 ? (
+        <Pagination
+          nextLink={
+            data?.next_url && !isPreviousData
+              ? {
+                  ...location,
+                  search: encodeURLSearchParams(nextQuery),
+                }
+              : undefined
+          }
+          prevLink={
+            page > 1
+              ? {
+                  ...location,
+                  search: encodeURLSearchParams(prevQuery),
+                }
+              : undefined
+          }
+        />
+      ) : null}
       {selected
         ? createPortal(
             <Ticket

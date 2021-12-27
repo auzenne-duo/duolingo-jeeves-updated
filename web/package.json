@@ -9,6 +9,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-plotly.js": "2.5.1",
+    "react-query": "3.34.6",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
     "web-excess": "https://s3.amazonaws.com/duolingo-packages/npm/excess/web-excess-3.4.0.tgz",
