@@ -25,6 +25,45 @@ mock_jira_features = {
 
 feature_manager = JiraFeatureManager(mock_jira_features)
 
+
+def test_get_features_by_team_and_area():
+    actual_result = feature_manager.get_features_by_team_and_area()
+
+    assert actual_result == [
+        {
+            "area_name": "Area A",
+            "teams": [
+                {
+                    "team_name": "Team 1",
+                    "features": ["Leaderboard", "Streak", "Stories"],
+                },
+            ],
+        },
+        {
+            "area_name": "Area B",
+            "teams": [
+                {
+                    "team_name": "Team 2",
+                    "features": ["Kudos"],
+                },
+                {
+                    "team_name": "Team 3",
+                    "features": ["Skill tree"],
+                },
+            ],
+        },
+        {
+            "area_name": "Area C",
+            "teams": [
+                {
+                    "team_name": "Team 4",
+                    "features": ["Shake-to-report"],
+                },
+            ],
+        },
+    ]
+
+
 # Feature name capitalization should match capitalization in mock_jira_features.
 test_cases = [
     # feature name in summary is detected.
@@ -113,7 +152,7 @@ test_cases = [
 @pytest.mark.parametrize(
     "summary,description,generated_description,expected_suggestions,expected_others", test_cases
 )
-def test_dedup_document_batch(
+def test_get_suggested_features(
     summary, description, generated_description, expected_suggestions, expected_others
 ):
     actual_result = feature_manager.get_suggested_features(

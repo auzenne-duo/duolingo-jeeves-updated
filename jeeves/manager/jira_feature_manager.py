@@ -1,7 +1,7 @@
 import operator
 from typing import Dict, List, Optional
 
-from jeeves.model.custom_types import JSON
+from jeeves.model.custom_types import JSON, AreaWithTeamList
 from jeeves.util.cleanup import extract_duolingo_metadata
 
 
@@ -64,6 +64,26 @@ class JiraFeatureManager:
             for value in json.values():
                 res = res + JiraFeatureManager._get_leaf_values(value) + "\n"
             return res
+
+    def get_features_by_team_and_area(
+        self,
+    ) -> List[AreaWithTeamList]:
+        """
+        Returns a list of features organized by area and team.
+        """
+        return [
+            {
+                "area_name": area_name,
+                "teams": [
+                    {
+                        "team_name": team_name,
+                        "features": [feature for (feature, synonyms) in features_dict.items()],
+                    }
+                    for (team_name, features_dict) in teams_dict.items()
+                ],
+            }
+            for (area_name, teams_dict) in self.jira_features_and_synonyms.items()
+        ]
 
     def get_suggested_features(
         self,

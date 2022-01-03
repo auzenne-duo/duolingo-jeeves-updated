@@ -370,6 +370,14 @@ def get_slack_report_types():
     return json.jsonify(Shakira.get_slack_report_types())
 
 
+@blueprint_api.route("/api/2/shakira/features_by_team_and_area")
+def get_features_by_team_and_area():
+    """
+    Returns a list of features, organized by area and team.
+    """
+    return json.jsonify(_jira_feature_manager.get_features_by_team_and_area())
+
+
 @blueprint_api.route("/api/2/shakira/suggested_features")
 def get_suggested_features():
     """

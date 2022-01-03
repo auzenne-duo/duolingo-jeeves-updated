@@ -91,6 +91,46 @@ example:
 
 ---
 
+`GET /api/2/shakira/features_by_team_and_area`
+
+Returns a list of features, organized by area and team.
+
+### Response
+
+example:
+
+```
+[
+    {
+        "area_name": "Growth",
+        "teams": [
+            {
+                "team_name": "China",
+                "features": [ "WeChat", "China Phone number", ... ]
+            },
+            {
+                "team_name": "Connections",
+                "features": [ "Profile", "Referral", ... ]
+            },
+            ...
+        ]
+    },
+    {
+        "area_name": "Product Quality",
+        "teams": [
+            {
+                "team_name": "Delight",
+                "features": [ "Callouts", "Settings", ... ]
+            },
+            ...
+        ]
+    },
+    ...
+]
+```
+
+---
+
 `GET /api/2/shakira/suggested_features`
 
 Suggest Jira features based on a bug report's summary, description, and generated_description.
