@@ -245,7 +245,7 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
     filtered_body_text_prologue = ""
     if rover_idx > 0:
         # We have actual body text
-        filtered_body_text_prologue = "\n".join(body_lines[: rover_idx - 1]).strip()
+        filtered_body_text_prologue = "\n".join(body_lines[:rover_idx]).strip()
 
     filtered_body_text_epilogue = ""
     if max_data_idx < len(body_lines):

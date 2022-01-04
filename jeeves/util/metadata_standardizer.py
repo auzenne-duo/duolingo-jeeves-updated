@@ -204,6 +204,12 @@ class MetadataStandardizer:
                 std_data["platform"] = "iOS"
             elif "api_level" in flat_metadata:
                 std_data["platform"] = "Android"
+            elif "platform" in flat_metadata and flat_metadata["platform"] in [
+                "Android",
+                "iOS",
+                "Web",
+            ]:
+                std_data["platform"] = flat_metadata["platform"]
 
         possible_screen_size_fields = [f for f in flat_metadata if "screen" in f]
         screen_size_match = self._try_ordered_regular_expressions(

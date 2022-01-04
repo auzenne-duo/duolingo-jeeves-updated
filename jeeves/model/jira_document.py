@@ -17,6 +17,7 @@ from jeeves.util.date_util import parse_external_datetime
 from jeeves.util.metadata_standardizer import MetaStdizer
 
 _SHAKE_TO_REPORT_MARKER = "Reported with shake-to-report"
+_BIRDS_EYE_MARKER = "Reported via Bird's Eye, shake-to-report"
 
 
 @attr.s(kw_only=True)
@@ -188,9 +189,10 @@ class JiraDocument(JeevesDocument):
         )
 
         is_shake_to_report = _SHAKE_TO_REPORT_MARKER in body_text
+        is_birds_eye_report = _BIRDS_EYE_MARKER in body_text
 
         duolingo_metadata = {}
-        if is_shake_to_report:
+        if is_shake_to_report or is_birds_eye_report:
             body_text, duolingo_metadata = extract_duolingo_metadata(body_text)
 
         std_metadata = MetaStdizer.get_standardized_metadata(duolingo_metadata)

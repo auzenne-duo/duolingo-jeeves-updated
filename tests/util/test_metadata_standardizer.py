@@ -115,6 +115,25 @@ class Test(unittest.TestCase):
         }
         self.assertEqual(expected_real_2, MetaStdizer.get_standardized_metadata(real_metadata_2))
 
+        real_birdseye_metadata = {
+            "app_information": {
+                "screen": "shop-tab",
+                "app_version": "6.099.0",
+                "platform": "iOS",
+                "device": "iPhone SE",
+                "languages": "en<-dn",
+                "workflow": "shop",
+            },
+        }
+        expected_real_birdseye = {
+            "app_version": "6.099.0",
+            "platform": "iOS",
+            "ui_language": "dn",
+        }
+        self.assertEqual(
+            expected_real_birdseye, MetaStdizer.get_standardized_metadata(real_birdseye_metadata)
+        )
+
         empty_input = {}
         expected_empty_output = {}
         self.assertEqual(expected_empty_output, MetaStdizer.get_standardized_metadata(empty_input))
