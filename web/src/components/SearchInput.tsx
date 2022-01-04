@@ -196,6 +196,7 @@ const SearchInput = (
       onKeyUp={measureCaret}
       onMouseUp={measureCaret}
       onSelect={handleSelect}
+      placeholder="Search"
       query={
         subQuery === undefined
           ? value
