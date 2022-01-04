@@ -6,7 +6,7 @@ import imagePlatformWeb from "images/web.svg";
 
 interface Props {
   className?: string;
-  platform: "Android" | "iOS" | "Web";
+  platform: JSONAPI.Platform;
 }
 
 const PlatformIcon = ({ className, platform }: Props) => (

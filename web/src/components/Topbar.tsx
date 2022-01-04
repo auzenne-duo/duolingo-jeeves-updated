@@ -13,6 +13,8 @@ import cn from "classnames";
 import type { DateRangeChangeEvent } from "components/DateRangeInput";
 import DateRangeInput from "components/DateRangeInput";
 import Hamburger from "components/Hamburger";
+import type { SearchInputChangeEvent } from "components/SearchInput";
+import SearchInput from "components/SearchInput";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
@@ -37,6 +39,11 @@ const Topbar = () => {
 
   const [state, dispatch] = React.useContext(AppStateContext);
   const [input, setInput] = React.useState(query);
+  const [shouldSubmit, setShouldSubmit] = React.useState(false);
+  const [suggestedCaret, setSuggestedCaret] = React.useState<number>();
+
+  const searchInputRef =
+    React.useRef<React.ElementRef<typeof SearchInput>>(null);
 
   const applyFilters = (params: URLSearchParams) =>
     history.push({
@@ -76,16 +83,14 @@ const Topbar = () => {
 
   const handleHamburgerClick = () => dispatch?.({ type: "TOGGLE_MENU" });
 
+  const handleSearchInputChange = (e: SearchInputChangeEvent) => {
+    setInput(e.value);
+    setSuggestedCaret(e.suggestedCaret);
+  };
+
   const handleSearchInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      const params = new URLSearchParams(location.search);
-      params.delete("page");
-      if (input) {
-        params.set("q", input);
-      } else {
-        params.delete("q");
-      }
-      applyFilters(params);
+      setShouldSubmit(true);
       e.preventDefault();
     }
     // Do not trigger shortcuts.
@@ -102,6 +107,29 @@ const Topbar = () => {
     // Keep search history.
     dispatch({ query, type: "SEARCH" });
   }, [query]);
+
+  React.useEffect(() => {
+    if (shouldSubmit) {
+      const params = new URLSearchParams(location.search);
+      params.delete("page");
+      if (input) {
+        params.set("q", input);
+      } else {
+        params.delete("q");
+      }
+      applyFilters(params);
+      // Blur the search input. This also closes the dropdown.
+      (document.activeElement as HTMLElement | null)?.blur?.();
+      setShouldSubmit(false);
+    }
+  }, [input, location, shouldSubmit]);
+
+  React.useEffect(() => {
+    if (suggestedCaret !== undefined) {
+      searchInputRef.current?.setCaret(suggestedCaret);
+      setSuggestedCaret(undefined);
+    }
+  }, [suggestedCaret]);
 
   return (
     <div className={cn(styles.wrap, { [styles.loading]: state.loading })}>
@@ -128,20 +156,20 @@ const Topbar = () => {
         {isAnalysisPage || isDiscoveryPage ? (
           <>
             <Input
-              autoComplete="off"
-              className={styles.search}
-              list="search-history"
+              className={styles["search-mobile"]}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleSearchInputKeyDown}
               placeholder="Search"
               type="search"
               value={input}
             />
-            <datalist id="search-history">
-              {state.searchHistory.map((q, i) => (
-                <option key={i} value={q} />
-              ))}
-            </datalist>
+            <SearchInput
+              className={styles.search}
+              onChange={handleSearchInputChange}
+              onKeyDown={handleSearchInputKeyDown}
+              ref={searchInputRef}
+              value={input}
+            />
           </>
         ) : null}
         {isAnalysisPage || isSpikePage ? (

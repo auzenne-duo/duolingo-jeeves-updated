@@ -9,7 +9,7 @@ declare namespace JSONAPI {
     course?: string;
     fullstory_url?: string;
     os_version?: string;
-    platform?: "Android" | "iOS" | "Web";
+    platform?: Platform;
     screen_content?: string;
     screen_size?: string;
     ui_language?: string;
@@ -66,6 +66,8 @@ declare namespace JSONAPI {
     | "ru"
     | "xx"
     | "zh";
+
+  type Platform = "Android" | "iOS" | "Web";
 
   type ShakeToReportCategory =
     | "EXTERNAL"

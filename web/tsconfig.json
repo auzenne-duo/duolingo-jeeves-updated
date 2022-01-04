@@ -7,8 +7,11 @@
     "moduleResolution": "node",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "paths": {
+      "web-ui/*": ["../node_modules/web-ui/dist/types/*"]
+    },
     "strict": true,
-    "target": "ES2019",
+    "target": "ES2020",
     "types": []
   },
   "exclude": [

@@ -101,7 +101,7 @@ export const transformQuery = (query: string, areas: JSONAPI.Area[]) => {
     if (field === "area" || field === "team") {
       const branch = node === node.parent.left ? "left" : "right";
       const entity = (field === "area" ? getArea : getTeam)(
-        unescapeSpaces(node.term, node),
+        node.quoted ? node.term : unescapeSpaces(node.term),
         areas,
       );
       const features = entity ? getFeatures(entity) : undefined;
@@ -136,8 +136,7 @@ export const transformQuery = (query: string, areas: JSONAPI.Area[]) => {
 };
 
 /** Unescapes spaces in an unquoted term. */
-const unescapeSpaces = (term: string, node: lucene.FieldExpression) =>
-  node.quoted ? term : term.replace(/\\ /g, " ");
+export const unescapeSpaces = (term: string) => term.replace(/\\ /g, " ");
 
 /**
  * Visits each node of a Lucene AST and returns all field expressions.

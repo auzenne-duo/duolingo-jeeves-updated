@@ -80,15 +80,20 @@
 }
 
 .search {
-  @media not screen and (min-width: $width-ipad) {
-    border: none !important;
-    border-radius: 0 !important;
-    height: calc(var(--height-topbar) - #{$juicy-border-width}) !important;
-  }
+  composes: hide-on-mobile;
+  --web-ui_search-suggestions-max-height: min(
+    calc(100vh - 15px - var(--margin)),
+    450px
+  );
+}
 
-  // Hide the datalist dropdown arrow.
-  input::-webkit-calendar-picker-indicator {
-    display: none !important;
+.search-mobile {
+  border: none !important;
+  border-radius: 0 !important;
+  height: calc(var(--height-topbar) - #{$juicy-border-width}) !important;
+
+  @media (min-width: $width-ipad) {
+    display: none;
   }
 }
 
