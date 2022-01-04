@@ -66,11 +66,18 @@ $item-padding-x: 16px;
 }
 
 .tag-ipad {
-  display: none;
-
-  @media (min-width: #{$width-ipad}) {
-    display: inline-flex;
+  @media not screen and (min-width: #{$width-ipad}) {
+    display: none;
   }
+}
+
+.tag-jira {
+  composes: tag-ipad;
+  display: inline-flex;
+}
+
+.tag-platform {
+  display: inline-flex;
 }
 
 .tags {

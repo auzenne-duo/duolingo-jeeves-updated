@@ -3,16 +3,19 @@ import { getFilterLink } from "util";
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 
+import cn from "classnames";
 import Tag from "components/Tag";
+import styles from "styles/TagFilter.scss";
 
 interface Props extends React.ComponentProps<typeof Tag> {
   field: string;
 }
 
-const TagFilter = ({ field, ...tagProps }: Props) => {
+const TagFilter = ({ className, field, ...tagProps }: Props) => {
   const location = useLocation();
   return (
     <Link
+      className={cn(styles.link, className)}
       // Prevent clicking a tag from selecting an item in the Issue Discovery list.
       onClick={e => e.stopPropagation()}
       to={getFilterLink(location, field, tagProps.value)}

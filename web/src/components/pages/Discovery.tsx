@@ -253,17 +253,16 @@ const Discovery = () => {
                     ) : null}
                     {t.data_source === "JIRA" && t.status ? (
                       <Link
+                        className={styles["tag-jira"]}
                         onClick={e => e.stopPropagation()}
                         to={getFilterLink(location, "status", t.status)}
                       >
-                        <JiraStatus
-                          className={styles["tag-ipad"]}
-                          status={t.status}
-                        />
+                        <JiraStatus status={t.status} />
                       </Link>
                     ) : null}
                     {t.platform ? (
                       <Link
+                        className={styles["tag-platform"]}
                         onClick={e => e.stopPropagation()}
                         to={getFilterLink(location, "platform", t.platform)}
                       >
