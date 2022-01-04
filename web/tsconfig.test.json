@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "types": ["jest"]
+  },
+  "exclude": [],
+  "extends": "./tsconfig.json"
+}

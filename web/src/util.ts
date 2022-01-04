@@ -1,6 +1,8 @@
 import { format } from "date-fns";
 import type { Location } from "history";
 
+import { escapeTerm } from "elastic";
+
 export const convertTimeZone = (date: Date, tz: string) =>
   new Date(
     date.toLocaleString("en-US", {
@@ -19,16 +21,6 @@ export const encodeURLSearchParams = (params: URLSearchParams) =>
         `${fixedEncodeURIComponent(key)}=${fixedEncodeURIComponent(value)}`,
     )
     .join("&");
-
-/**
- * Escapes a string for usage in an Elasticsearch query.
- * See https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_reserved_characters.
- */
-const escapeElasticQuery = (query: string) =>
-  query
-    .replace(/([+\-=!(){}[\]^"~*?:\\/]|&&|\|\|)/g, "\\$1")
-    // Remove characters that cannot be escaped.
-    .replace(/[<>]/g, "");
 
 export const escapeHTML = (unsafe: string) =>
   unsafe
@@ -77,7 +69,7 @@ export const getFilterLink = (
 ) => {
   const params = new URLSearchParams(location.search);
   params.delete("page");
-  params.set("q", `${field}:"${escapeElasticQuery(value)}"`);
+  params.set("q", `${field}:"${escapeTerm(value, true)}"`);
   return {
     ...location,
     search: params.toString(),

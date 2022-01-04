@@ -2,6 +2,8 @@ import { convertTimeZone } from "util";
 
 import { format, formatISO, parseISO } from "date-fns";
 
+import { transformQuery } from "elastic";
+
 const API_URL =
   process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5000/api";
 
@@ -68,6 +70,9 @@ const post = async <T>(url: string, data = {}): Promise<T> => {
   }
   return response.json();
 };
+
+export const getFeaturesByTeamAndArea = () =>
+  get<JSONAPI.Area[]>("/2/shakira/features_by_team_and_area");
 
 export const getJiraDuplicates = (issueKey: string) =>
   get<JSONAPI.Ticket[]>(
@@ -144,6 +149,7 @@ export const getTicket = async (
 export const getTickets = (
   lang: JSONAPI.LanguageId,
   {
+    areas,
     beta_filter,
     end_time,
     limit,
@@ -151,13 +157,14 @@ export const getTickets = (
     start_time,
     word,
   }: {
+    areas: JSONAPI.Area[];
     beta_filter?: JSONAPI.ShakeToReportCategory;
     end_time?: Date;
     limit?: number;
     page?: number;
     start_time?: Date;
     word?: string;
-  } = {},
+  },
 ) => {
   const params = new URLSearchParams();
 
@@ -166,7 +173,7 @@ export const getTickets = (
   limit && params.set("limit", `${limit}`);
   page && params.set("page", `${page}`);
   start_time && params.set("start_time", formatDateTime(start_time));
-  word && params.set("word", word);
+  word && params.set("word", transformQuery(word, areas));
 
   return get<JSONAPI.Tickets>(`/1/${lang}/tickets?${params.toString()}`);
 };
@@ -174,8 +181,10 @@ export const getTickets = (
 export const getTimeSeries = async (
   lang: JSONAPI.LanguageId,
   {
+    areas,
     word,
   }: {
+    areas: JSONAPI.Area[];
     word: string;
   },
 ): Promise<
@@ -186,7 +195,9 @@ export const getTimeSeries = async (
 > => {
   const data = (
     await get<JSONAPI.TimeSeries>(
-      `/1/${lang}/time_series?word=${encodeURIComponent(word)}`,
+      `/1/${lang}/time_series?word=${encodeURIComponent(
+        transformQuery(word, areas),
+      )}`,
     )
   ).values;
   return Object.entries(data).map(([date, value]) => ({

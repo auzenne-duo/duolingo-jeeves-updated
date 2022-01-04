@@ -4,6 +4,7 @@ import createPlotlyComponent from "react-plotly.js/factory";
 import { useQuery } from "react-query";
 
 import { getTimeSeries } from "api";
+import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import styles from "styles/TrendGraph.scss";
 
 interface PlotState {
@@ -48,11 +49,14 @@ const TrendGraph = ({
   zoomFrom,
   zoomTo,
 }: Props) => {
+  const { data: areas = [], isSuccess: areasLoaded } =
+    useFeaturesByTeamAndArea();
+
   const { data } = useQuery(
-    ["time-series", { lang, query }],
-    () => getTimeSeries(lang, { word: query }),
+    ["time-series", { areas, lang, query }],
+    () => getTimeSeries(lang, { areas, word: query }),
     {
-      enabled: !!query,
+      enabled: areasLoaded && !!query,
     },
   );
 

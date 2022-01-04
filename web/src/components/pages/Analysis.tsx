@@ -14,6 +14,7 @@ import type { RangeChangeEvent } from "components/TrendGraph";
 import TrendGraph from "components/TrendGraph";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";
+import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 import styles from "styles/pages/Analysis.scss";
@@ -41,6 +42,8 @@ const handleRangeChangeDebouncer = debounce(
 
 const Analysis = () => {
   const { from, to } = useDateRangeFilter({ monthsAgo: 3 });
+  const { data: areas = [], isSuccess: areasLoaded } =
+    useFeaturesByTeamAndArea();
   const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{
@@ -64,9 +67,10 @@ const Analysis = () => {
   prevQuery.set("page", `${page - 1}`);
 
   const { data, error, isLoading, isPreviousData } = useQuery(
-    ["tickets", { filter, from, lang, page, query, to }],
+    ["tickets", { areas, filter, from, lang, page, query, to }],
     () =>
       getTickets(lang, {
+        areas,
         beta_filter: filter ?? undefined,
         end_time: to,
         limit: PER_PAGE,
@@ -75,7 +79,7 @@ const Analysis = () => {
         word: query,
       }),
     {
-      enabled: !!query,
+      enabled: areasLoaded && !!query,
       keepPreviousData: true,
     },
   );

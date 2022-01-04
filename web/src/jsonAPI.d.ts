@@ -1,4 +1,9 @@
 declare namespace JSONAPI {
+  interface Area {
+    area_name: string;
+    teams: Team[];
+  }
+
   interface DuolingoMetadata {
     app_version?: string;
     course?: string;
@@ -86,6 +91,11 @@ declare namespace JSONAPI {
       }
     | undefined
   >;
+
+  interface Team {
+    features: string[];
+    team_name: string;
+  }
 
   interface Ticket extends DuolingoMetadata {
     /** URLs to file attachments. Currently only available for Jira tickets. */

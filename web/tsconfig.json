@@ -11,5 +11,12 @@
     "target": "ES2019",
     "types": []
   },
+  "exclude": [
+    "src/__tests__",
+    "src/jest.setup.ts",
+    "src/**/__mocks__",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
+  ],
   "include": ["src/**/*"]
 }

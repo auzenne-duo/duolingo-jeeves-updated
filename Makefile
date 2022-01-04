@@ -15,6 +15,10 @@ eslint-fix:
 install:
 	cd web && npm ci
 
+.PHONY: test
+test: web-config
+	cd web && "$$(npm bin)/jest" --config config/jest.config.js --silent --watch
+
 # Starts a local microservice.
 .PHONY: web
 web:

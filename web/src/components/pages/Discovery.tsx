@@ -22,6 +22,7 @@ import Tag from "components/Tag";
 import TagFilter from "components/TagFilter";
 import Ticket from "components/Ticket";
 import useDocumentTitle from "components/useDocumentTitle";
+import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
@@ -41,6 +42,8 @@ const formatDate = (date: Date) => {
 
 const Discovery = () => {
   const history = useHistory();
+  const { data: areas = [], isSuccess: areasLoaded } =
+    useFeaturesByTeamAndArea();
   const location = useLocation();
   const { lang } = useParams<{
     lang: JSONAPI.LanguageId;
@@ -64,18 +67,19 @@ const Discovery = () => {
   const prevQuery = useSearchParams();
   prevQuery.set("page", `${page - 1}`);
 
-  const listQueryKey = ["tickets", { filter, lang, page, query }];
+  const listQueryKey = ["tickets", { areas, filter, lang, page, query }];
 
   const { data, error, isLoading, isPreviousData } = useQuery(
     listQueryKey,
     () =>
       getTickets(lang, {
+        areas,
         beta_filter: filter ?? undefined,
         limit: PER_PAGE,
         page: page - 1,
         word: query,
       }),
-    { keepPreviousData: true },
+    { enabled: areasLoaded, keepPreviousData: true },
   );
 
   const tickets = data?.data;

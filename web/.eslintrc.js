@@ -1,7 +1,7 @@
 module.exports = {
   extends: ["duolingo"],
   parserOptions: {
-    project: "tsconfig.json",
+    project: "tsconfig.eslint.json",
   },
   rules: {
     // This seems to give false positives.
