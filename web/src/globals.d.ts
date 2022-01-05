@@ -7,6 +7,7 @@ declare let ga: (
 
 declare let process: {
   env: {
+    DUOLINGO_JWT?: string;
     NODE_ENV: "development" | "production";
   };
 };

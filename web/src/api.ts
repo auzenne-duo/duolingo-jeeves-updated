@@ -1,11 +1,14 @@
 import { convertTimeZone } from "util";
 
 import { format, formatISO, parseISO } from "date-fns";
+import Cookies from "js-cookie";
 
 import { transformQuery } from "elastic";
 
 const API_URL =
   process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5000/api";
+
+const BEARER = `Bearer ${process.env.DUOLINGO_JWT ?? Cookies.get("jwt_token")}`;
 
 export const createJira = ({
   description,
@@ -47,6 +50,7 @@ const formatLocalDate = (date: Date) =>
 const get = async <T>(url: string): Promise<T> => {
   const response = await fetch(`${API_URL}${url}`, {
     credentials: "include",
+    headers: [["Authorization", BEARER]],
   });
   if (!response.ok) {
     throw Error(`Request failed with status ${response.status}.`);
@@ -58,11 +62,13 @@ const post = async <T>(url: string, data = {}): Promise<T> => {
   const response = await fetch(`${API_URL}${url}`, {
     body: data instanceof FormData ? data : JSON.stringify(data),
     credentials: "include",
-    headers:
-      data instanceof FormData
+    headers: [
+      ["Authorization", BEARER],
+      ...(data instanceof FormData
         ? // The browser should set this.
-          {}
-        : { "Content-Type": "application/json" },
+          []
+        : ["Content-Type", "application/json"]),
+    ] as [string, string][],
     method: "POST",
   });
   if (!response.ok) {

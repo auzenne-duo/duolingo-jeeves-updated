@@ -1,9 +1,12 @@
 import * as path from "path";
 
 import * as HtmlWebpackPlugin from "html-webpack-plugin";
-import type * as webpack from "webpack";
+import * as webpack from "webpack";
 
-const webpackConfig: webpack.Configuration = {
+const webpackConfig = (
+  _env: unknown,
+  argv: { mode: "development" | "production" },
+): webpack.Configuration => ({
   context: path.resolve(__dirname, "../src"),
   // @ts-ignore
   devServer: {
@@ -74,7 +77,15 @@ const webpackConfig: webpack.Configuration = {
   output: {
     publicPath: "/",
   },
-  plugins: [new HtmlWebpackPlugin({ template: "index.html" })],
+  plugins: [
+    new webpack.DefinePlugin({
+      "process.env.DUOLINGO_JWT":
+        argv.mode === "development"
+          ? JSON.stringify(process.env.DUOLINGO_JWT)
+          : undefined,
+    }),
+    new HtmlWebpackPlugin({ template: "index.html" }),
+  ],
   resolve: {
     extensions: [".ts", ".tsx", ".js"],
     modules: [
@@ -82,6 +93,6 @@ const webpackConfig: webpack.Configuration = {
       path.resolve(__dirname, "../node_modules"),
     ],
   },
-};
+});
 
 export default webpackConfig;

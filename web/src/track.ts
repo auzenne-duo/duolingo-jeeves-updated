@@ -1,12 +1,10 @@
+import Cookies from "js-cookie";
 import * as excess from "web-excess";
 
 excess.init();
 excess.setDebug(process.env.NODE_ENV === "development");
 
-const jwt = document.cookie
-  .split("; ")
-  .find(row => row.startsWith("jwt_token="))
-  ?.split("=")[1];
+const jwt = process.env.DUOLINGO_JWT ?? Cookies.get("jwt_token");
 
 const userId = jwt ? JSON.parse(atob(jwt.split(".")[1])).sub : undefined;
 
