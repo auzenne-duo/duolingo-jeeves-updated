@@ -20,6 +20,8 @@ export interface RangeChangeEvent {
 }
 
 interface RelayoutEvent {
+  /** Set when double clicking the plot to reset the range. */
+  "xaxis.autorange"?: boolean;
   /** Set when using the range slider. */
   "xaxis.range"?: [string, string];
   /** Set when selecting an area directly on the plot. */
@@ -67,28 +69,47 @@ const TrendGraph = ({
     layout: {},
   });
 
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const plotRef = React.useRef<typeof Plot>(null);
+
   const handleRelayout = (e: RelayoutEvent) => {
     if (!data) {
       return;
     }
     let from = e["xaxis.range"]?.[0] ?? e["xaxis.range[0]"];
     let to = e["xaxis.range"]?.[1] ?? e["xaxis.range[1]"];
-    // Plotly doesn't really document this event and doesn't
-    // supply the data in a consistent format. Just in case
-    // they would provide a date-only string, pad it with
-    // zeroes to force the Date constructor to treat it as
-    // a date in the local timezone.
-    if (from?.length === 10) {
-      from += " 00:00:00";
+    if (from !== undefined || to !== undefined) {
+      // Plotly doesn't really document this event and doesn't
+      // supply the data in a consistent format. Just in case
+      // they would provide a date-only string, pad it with
+      // zeroes to force the Date constructor to treat it as
+      // a date in the local timezone.
+      if (from?.length === 10) {
+        from += " 00:00:00";
+      }
+      if (to?.length === 10) {
+        to += " 00:00:00";
+      }
+      onRangeChange?.({
+        from: from ? new Date(from) : undefined,
+        to: to ? new Date(to) : undefined,
+      });
+    } else if (e["xaxis.autorange"]) {
+      // User double clicked the plot to reset the range.
+      onRangeChange?.({ from: undefined, to: undefined });
     }
-    if (to?.length === 10) {
-      to += " 00:00:00";
-    }
-    onRangeChange?.({
-      from: from ? new Date(from) : undefined,
-      to: to ? new Date(to) : undefined,
-    });
   };
+
+  React.useEffect(() => {
+    if (containerRef.current && plotRef.current) {
+      const observer = new ResizeObserver(() =>
+        Plotly.Plots.resize(plotRef.current.el),
+      );
+      observer.observe(containerRef.current);
+      return () => observer.disconnect();
+    }
+    return undefined;
+  }, []);
 
   React.useEffect(() => {
     const x = data?.map(({ date }) => date);
@@ -148,7 +169,7 @@ const TrendGraph = ({
   }, [data, zoomFrom?.valueOf(), zoomTo?.valueOf()]);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={containerRef}>
       <div className={styles.inner}>
         <Plot
           className={styles.plot}
@@ -163,7 +184,7 @@ const TrendGraph = ({
           onUpdate={(figure: Partial<PlotState>) =>
             setPlotState(value => ({ ...value, figure }))
           }
-          useResizeHandler={true}
+          ref={plotRef}
         />
       </div>
     </div>

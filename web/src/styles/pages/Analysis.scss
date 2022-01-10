@@ -9,25 +9,3 @@
     margin: 0;
   }
 }
-
-.tickets-after-hidden-trend {
-  margin-top: calc(-1 * var(--margin));
-}
-
-.trend {
-  width: 100%;
-}
-
-.trend-hidden {
-  composes: trend;
-  // We still render the graph to prevent having to redraw it.
-  height: 0;
-  overflow: hidden;
-}
-
-.trend-header {
-  display: grid;
-  grid-gap: var(--margin);
-  grid-template-columns: 1fr min-content;
-  width: 100%;
-}

@@ -1,4 +1,6 @@
 .container {
+  // The plot is resized asynchronously so it might overflow for an instant.
+  overflow: hidden;
   padding-top: 50%;
   position: relative;
 

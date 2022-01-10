@@ -1,5 +1,5 @@
-@import "../constants";
-@import "../mixins";
+@import "constants";
+@import "mixins";
 
 $item-gap: 2 * $juicy-length;
 $item-height: 70px;
@@ -122,4 +122,8 @@ $item-padding-x: 16px;
   height: 100%;
   padding: 0 $item-gap 0 $item-padding-x;
   z-index: 1;
+}
+
+.trend {
+  width: 100%;
 }

@@ -1,3 +1,5 @@
+import { encodeURLSearchParams } from "util";
+
 import { endOfDay } from "date-fns";
 import * as React from "react";
 import {
@@ -23,8 +25,8 @@ import styles from "styles/Topbar.scss";
 
 const Topbar = () => {
   const { from, to } = useDateRangeFilter({
-    daysAgo: useRouteMatch("/:lang/spike") ? 3 : 0,
-    monthsAgo: useRouteMatch("/:lang/analysis") ? 3 : 0,
+    daysAgo: useRouteMatch("/:lang/spike") ? 3 : undefined,
+    monthsAgo: useRouteMatch("/:lang/analysis") ? 3 : undefined,
   });
   const history = useHistory();
   const location = useLocation();
@@ -48,7 +50,7 @@ const Topbar = () => {
   const applyFilters = (params: URLSearchParams) =>
     history.push({
       ...location,
-      search: params.toString(),
+      search: encodeURLSearchParams(params),
     });
 
   const handleDateRangeChange = (e: DateRangeChangeEvent) => {

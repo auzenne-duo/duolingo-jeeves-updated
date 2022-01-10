@@ -1,3 +1,5 @@
+import { encodeURLSearchParams } from "util";
+
 import { formatISO } from "date-fns";
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -44,7 +46,9 @@ const SpikeTable = ({
           <tr key={word}>
             <td>{value.toFixed(1)}</td>
             <td>
-              <Link to={`/${language}/analysis?${params.toString()}`}>
+              <Link
+                to={`/${language}/analysis?${encodeURLSearchParams(params)}`}
+              >
                 {word}
               </Link>
             </td>
