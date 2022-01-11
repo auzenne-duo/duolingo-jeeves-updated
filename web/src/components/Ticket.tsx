@@ -31,6 +31,8 @@ interface Props {
   ticket: JSONAPI.Ticket;
 }
 
+const isImage = (url: string) => /\.(png|jpe?g)$/.test(url);
+
 // eslint-disable-next-line complexity
 const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
   const location = useLocation();
@@ -52,6 +54,9 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         enabled: !!ticket.issue_key,
       },
     );
+
+  const imageAttachments = ticket.attachments?.filter(url => isImage(url));
+  const urlAttachments = ticket.attachments?.filter(url => !isImage(url));
 
   return (
     <div className={cn(styles.container, className)}>
@@ -87,19 +92,32 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
               </div>
             </section>
           ) : null}
-          {ticket.attachments?.length || ticket.fullstory_url ? (
+          {imageAttachments?.length ||
+          urlAttachments?.length ||
+          ticket.fullstory_url ? (
             <section className={styles.section}>
               <span className={styles.label}>Attachments</span>
-              <div className={styles.attachments}>
-                {ticket.attachments?.map((url, i) => (
-                  <a href={url} key={i}>
-                    {formatAttachment(url)}
-                  </a>
-                ))}
-                {ticket.fullstory_url ? (
-                  <a href={ticket.fullstory_url}>FullStory recording</a>
-                ) : null}
-              </div>
+              {urlAttachments?.length || ticket.fullstory_url ? (
+                <div className={styles.attachments}>
+                  {urlAttachments?.map((url, i) => (
+                    <a href={url} key={i}>
+                      {formatAttachment(url)}
+                    </a>
+                  ))}
+                  {ticket.fullstory_url ? (
+                    <a href={ticket.fullstory_url}>FullStory recording</a>
+                  ) : null}
+                </div>
+              ) : null}
+              {imageAttachments?.length ? (
+                <div className={styles.thumbs}>
+                  {imageAttachments.map(url => (
+                    <a href={url} key={url}>
+                      <img alt="" className={styles.thumb} src={url} />
+                    </a>
+                  ))}
+                </div>
+              ) : null}
             </section>
           ) : null}
           {ticket.components?.length ? (

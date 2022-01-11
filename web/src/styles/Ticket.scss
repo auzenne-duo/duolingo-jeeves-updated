@@ -65,3 +65,19 @@
   flex-wrap: wrap;
   margin: -($tag-spacing / 2);
 }
+
+.thumb {
+  display: block;
+  max-height: 180px;
+  max-width: 100%;
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  grid-gap: $juicy-length;
+
+  .attachments + & {
+    margin-top: $juicy-length;
+  }
+}
