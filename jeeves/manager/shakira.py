@@ -5,7 +5,8 @@ Interface for interacting with the Slack and JIRA managers for shakira routes.
 from typing import Dict, List, Optional, Tuple, Union
 
 from jeeves.manager.shakira_jira import ShakiraJiraClient
-from jeeves.manager.shakira_slack import ShakiraSlackClient, SlackChannel
+from jeeves.manager.shakira_slack import ShakiraSlackClient
+from jeeves.model.slack_channel import SlackChannel
 from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM
 
 _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {

@@ -13,7 +13,7 @@
     "command": ["python","./jeeves/scripts/slack.py"],
     "environment": [
         {"name": "PYTHONPATH", "value": "/code"},
-        {"name": "SLACK_POST_URL", "value": "${cookie_secret}"}
+        {"name": "SPIKE_REPORTER_SLACK_API_TOKEN", "value": "${cookie_secret}"}
     ],
     "logConfiguration": {
     "logDriver": "awslogs",

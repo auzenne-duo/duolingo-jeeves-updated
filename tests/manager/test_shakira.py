@@ -3,7 +3,8 @@ from unittest.mock import MagicMock
 
 from jeeves.manager.shakira import ShakiraManager
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
-from jeeves.manager.shakira_slack import ShakiraSlackApiClient, SlackChannel
+from jeeves.manager.shakira_slack import ShakiraSlackApiClient
+from jeeves.model.slack_channel import SlackChannel
 
 _JIRA_ISSUE_URL = "https://jira.com/issues/DLAA-1"
 

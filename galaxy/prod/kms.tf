@@ -63,10 +63,10 @@ data "aws_kms_secrets" "secrets" {
     }
   }
 
-  # We require that the URL of our Slack channel be encrypted because Slack provides no auth measures around webhooks, other than "don't give away the URL"
+
   secret {
-    name    = "slack_post_url"
-    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwHWkUiHVZPJmoiEgCl/GpF4AAAAsTCBrgYJKoZIhvcNAQcGoIGgMIGdAgEAMIGXBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDB8LRikx7ODBwOlYYAIBEIBq/C8pHAcPgLiVwM2zGwsmyCzHzNNY8WJ3vu5z1u2qBu0zP09pbYFbv7Ya5TuoXM/Ob41FRD2GnwUfF4zjXtj9F/QN0xGEd7xZJ61zwi9m6BSR6Pc6RCOe64X2wNPjZRE6KFK3CTi/WuoW8Q=="
+    name    = "spike_reporter_slack_api_token"
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwEVDtJ8wrdQ0BkiC1D9lt83AAAAlzCBlAYJKoZIhvcNAQcGoIGGMIGDAgEAMH4GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM1L5m4jx9OxcuTo/AAgEQgFGQ6gleZSkfP8tYzPiZSBrmgU+3G78WHf48xzQoSC+Lz4aztSxnrmwJu6Z8Rx3IkhrfZmk2XAI0b9hbJHNSOCv9kAw4aBoEFWOrOLyr0YTlal4="
 
     context = {
       product     = var.product

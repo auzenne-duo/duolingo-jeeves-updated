@@ -5,34 +5,14 @@ Manager for interacting with the Slack API for shakira.
 import json
 import os
 import sys
-from collections import namedtuple
-from enum import Enum
 from typing import Optional
 
 from requests import post
 from requests.exceptions import RequestException
 
+from jeeves.model.slack_channel import SlackChannel
 from jeeves.util.error_util import print_request_exception
 from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM
-
-
-class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
-    VISUAL_POLISH = "#visual-polish", "C01867ZCY7J"
-    FEEDBACK_LANGUAGE = "#feedback-language", "C0KHQRPDZ"
-    FEEDBACK_PRODUCT = "#feedback-product", "C013VGDCU5R"
-    FEEDBACK_TTS = "#feedback-tts", "C01FWHDCLP4"
-    POST_TEST_RESULTS = "#post-test-results", "CJNN7RJBD"
-
-    @classmethod
-    def from_name_or_id(cls, name_or_id: str) -> Optional["SlackChannel"]:
-        for channel in list(cls):
-            if channel.name == name_or_id or channel.channel_id == name_or_id:
-                return channel
-        return None
-
-    def url(self):
-        return f"https://duolingo.slack.com/archives/{self.channel_id}"
-
 
 _API = "https://slack.com/api/"
 _API_TOKEN = os.environ.get("SHAKIRA_SLACK_API_TOKEN")

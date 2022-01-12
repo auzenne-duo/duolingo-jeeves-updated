@@ -1,18 +1,29 @@
 import json
 import os
 
-import requests
 from duolingo_base.config import Config
+from requests import post
+from requests.exceptions import RequestException
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.manager.shakira_slack import SlackChannel
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
+from jeeves.util.error_util import print_request_exception
 
 _config = Config.load_config()
 _config.apply_logging()
 _config.apply_rollbar()
 
 _SLACK_REPORT_LANG = "en"
+
+_SLACK_API = "https://slack.com/api"
+_SLACK_API_TOKEN = os.environ.get("SPIKE_REPORTER_SLACK_API_TOKEN")
+_SLACK_CHANNELS = (
+    [SlackChannel.POST_TEST_RESULTS]
+    if _config.get_nested(["environment"]) == "dev"
+    else [SlackChannel.BUG_TRIAGE, SlackChannel.JEEVES]
+)
 
 
 def get_yesterdays_date():
@@ -60,14 +71,26 @@ def generate_slack_message(top_spikes):
 
     body_block = {"type": "section", "fields": message_body_fields}
 
-    prepared_message = {"blocks": [header_block, body_block]}
+    prepared_message = [header_block, body_block]
 
     return prepared_message
 
 
 if __name__ == "__main__":
-    slack_post_url = os.environ.get("SLACK_POST_URL")
+    url = f"{_SLACK_API}/chat.postMessage"
+    headers = {
+        "Authorization": f"Bearer {_SLACK_API_TOKEN}",
+        "Content-Type": "application/json; charset=utf-8",
+    }
     slack_message = generate_slack_message(get_top_spikes_yesterday())
-    requests.post(
-        slack_post_url, data=json.dumps(slack_message), headers={"Content-Type": "application/json"}
-    )
+
+    for slack_channel in _SLACK_CHANNELS:
+        data = {
+            "channel": slack_channel.channel_id,
+            "blocks": slack_message,
+        }
+        try:
+            r = post(url, headers=headers, data=json.dumps(data))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e)

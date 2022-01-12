@@ -157,7 +157,7 @@ module "duolingo-jeeves-worker-cron" {
   owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "worker-cron.json"
-  cookie_secret        = data.aws_kms_secrets.secrets.plaintext["slack_post_url"]
+  cookie_secret        = data.aws_kms_secrets.secrets.plaintext["spike_reporter_slack_api_token"]
   schedule_expression  = "cron(* * * * ? 1970)"
   release_version      = var.release_version
 }
