@@ -3,7 +3,8 @@ import { QueryClient, QueryClientProvider, useIsFetching } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { Route, Switch } from "react-router-dom";
 
-import MenuDrawer, { canFitMenuAndContent } from "components/MenuDrawer";
+import Lightbox from "components/Lightbox";
+import MenuDrawer from "components/MenuDrawer";
 import Topbar from "components/Topbar";
 import Analysis from "components/pages/Analysis";
 import Dashboard from "components/pages/Dashboard";
@@ -61,11 +62,7 @@ const App = () => {
   React.useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (state.showMenu && !canFitMenuAndContent()) {
-          dispatch({ type: "HIDE_MENU" });
-        } else {
-          dispatch({ type: "HIDE_ASIDE" });
-        }
+        dispatch({ type: "ESCAPE" });
         e.preventDefault();
       } else if (e.key === "[") {
         dispatch({ type: "TOGGLE_MENU" });
@@ -74,7 +71,7 @@ const App = () => {
     };
     document.addEventListener("keydown", handleKeydown);
     return () => document.removeEventListener("keydown", handleKeydown);
-  }, [state.showMenu]);
+  }, []);
 
   React.useEffect(() => {
     const handleVisibilityChange = () => {
@@ -116,6 +113,7 @@ const App = () => {
           isOpen={state.showMenu}
           onRequestClose={() => dispatch({ type: "HIDE_MENU" })}
         />
+        <Lightbox />
       </QueryClientProvider>
     </AppStateContext.Provider>
   );

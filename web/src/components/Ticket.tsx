@@ -22,6 +22,7 @@ import PlatformIcon from "components/PlatformIcon";
 import TagFilter from "components/TagFilter";
 import TicketJiraButton from "components/TicketJiraButton";
 import renderTicketSource from "components/renderTicketSource";
+import AppStateContext from "contexts/AppStateContext";
 import styles from "styles/Ticket.scss";
 
 interface Props {
@@ -36,6 +37,8 @@ const isImage = (url: string) => /\.(png|jpe?g)$/.test(url);
 // eslint-disable-next-line complexity
 const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
   const location = useLocation();
+
+  const [, dispatch] = React.useContext(AppStateContext);
 
   let body = normalizeNewLines(escapeHTML(ticket.body_text ?? ""))
     .trim()
@@ -112,9 +115,14 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
               {imageAttachments?.length ? (
                 <div className={styles.thumbs}>
                   {imageAttachments.map(url => (
-                    <a href={url} key={url}>
-                      <img alt="" className={styles.thumb} src={url} />
-                    </a>
+                    <img
+                      alt=""
+                      className={styles.thumb}
+                      key={url}
+                      onClick={() => dispatch({ type: "LIGHTBOX", url })}
+                      src={url}
+                      tabIndex={0}
+                    />
                   ))}
                 </div>
               ) : null}

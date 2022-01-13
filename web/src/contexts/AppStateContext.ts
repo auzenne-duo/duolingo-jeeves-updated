@@ -3,8 +3,10 @@ import * as React from "react";
 import { canFitMenuAndContent } from "components/MenuDrawer";
 
 type Action =
+  | { type: "ESCAPE" }
   | { type: "HIDE_ASIDE" }
   | { type: "HIDE_MENU" }
+  | { type: "LIGHTBOX"; url: string }
   | { type: "LOADED" }
   | { type: "LOADING" }
   | { query: string; type: "SEARCH" }
@@ -14,6 +16,7 @@ type Action =
   | { type: "TOGGLE_MENU" };
 
 interface State {
+  lightboxUrl?: string;
   loading: boolean;
   searchHistory: string[];
   showAside: boolean;
@@ -29,10 +32,18 @@ export const initialState: State = {
 
 export const reducer: React.Reducer<State, Action> = (state, action) => {
   switch (action.type) {
+    case "ESCAPE":
+      return state.lightboxUrl
+        ? { ...state, lightboxUrl: undefined }
+        : state.showMenu && !canFitMenuAndContent()
+        ? { ...state, showMenu: false }
+        : { ...state, showAside: false };
     case "HIDE_ASIDE":
       return { ...state, showAside: false };
     case "HIDE_MENU":
       return { ...state, showMenu: false };
+    case "LIGHTBOX":
+      return { ...state, lightboxUrl: action.url };
     case "LOADED":
       return { ...state, loading: false };
     case "LOADING":
