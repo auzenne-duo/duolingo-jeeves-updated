@@ -36,7 +36,7 @@ JIRA_FEATURES = {
             "CopyCAT": [],
         },
         "Onboarding": {
-            "Onboarding screens": [],
+            "Onboarding": [],
             "Placement Test": [],
             "Registration": [],
         },
@@ -53,14 +53,14 @@ JIRA_FEATURES = {
         "Retention": {
             "Streak": [],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
-            "Monthly goal": [],
+            "Monthly Goal": [],
             "Practice reminders / notifications": ["practice reminder", "notification"],
         },
         "Time Spent Learning": {
             "Achievements": ["achievement"],
             "Leaderboards": ["leaderboard"],
-            "Quests": [],
-            "Daily goal": [],
+            "Daily Quests": [],
+            "Daily Goal": [],
             "XP boost": [],
         },
         "None": {
@@ -91,6 +91,7 @@ JIRA_FEATURES = {
         "Speaking": {
             "Pronunciation Review": [],
             "Audio Lessons": ["audio lesson"],
+            "Speech recognizer (in house)": ["speech recogni"],
         },
         "Stories Product": {
             "Stories": ["story"],
@@ -121,7 +122,7 @@ JIRA_FEATURES = {
         },
         "Poseidon": {
             "In-app purchases": [],
-            "XP ramp up": [],
+            "Ramp-up challenge": ["ramp up", "ramp-up"],
             "Gems / Lingots": ["gem", "lingot"],
             "Hard mode": [],
         },
@@ -129,7 +130,7 @@ JIRA_FEATURES = {
             "Mistakes inbox": [],
             "Practice Hub": [],
             "Mastery / Progress quiz": ["mastery quiz", "progress quiz"],
-            "Plus Family Plan": [],
+            "Family plan": [],
             "Legendary": [],
         },
     },
@@ -176,6 +177,7 @@ JIRA_FEATURES = {
         "None": {
             "Spam": [],
             "Feature request / feedback": [],
+            "Other": [],
             "Writing system": [],
         },
     },
