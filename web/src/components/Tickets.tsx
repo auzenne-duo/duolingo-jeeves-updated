@@ -380,6 +380,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
         ? createPortal(
             <Ticket
               className={styles.ticket}
+              highlight={query}
               onRequestClose={() => setId(undefined)}
               ticket={selected}
             />,
