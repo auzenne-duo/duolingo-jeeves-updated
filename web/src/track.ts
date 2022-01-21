@@ -1,19 +1,25 @@
-import Cookies from "js-cookie";
 import * as excess from "web-excess";
+
+import { getLoggedInUserId } from "api/user";
 
 excess.init();
 excess.setDebug(process.env.NODE_ENV === "development");
 
-const jwt = process.env.DUOLINGO_JWT ?? Cookies.get("jwt_token");
-
-const userId = jwt ? JSON.parse(atob(jwt.split(".")[1])).sub : undefined;
-
-if (userId !== undefined) {
-  excess.identify(userId);
+try {
+  excess.identify(`${getLoggedInUserId()}`);
+} catch (ex) {
+  // Logged out
 }
 
 interface TrackingEvents {
   jeeves_active_user: undefined;
+  shake_to_report_feedback: {
+    feature?: string;
+    number_suggested_features: number;
+    report_type: "jeeves";
+    selected_suggested_feature: boolean;
+    slack_channel?: string;
+  };
 }
 
 const track = <T extends keyof TrackingEvents>(

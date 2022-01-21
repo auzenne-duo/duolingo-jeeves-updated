@@ -15,7 +15,7 @@ import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "react-query";
 import { Link, useHistory, useLocation, useParams } from "react-router-dom";
 
-import { getTicket, getTickets } from "api";
+import { getTicket, getTickets } from "api/jeeves";
 import JiraStatus from "components/JiraStatus";
 import Pagination from "components/Pagination";
 import PlatformIcon from "components/PlatformIcon";
@@ -381,6 +381,8 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
             <Ticket
               className={styles.ticket}
               highlight={query}
+              // Don't reuse the component for different tickets as it's stateful.
+              key={selected.jeeves_uid}
               onRequestClose={() => setId(undefined)}
               ticket={selected}
             />,

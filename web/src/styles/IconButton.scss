@@ -1,26 +1,22 @@
 @import "constants";
 @import "mixins";
 
-.close {
+.button {
   --web-ui_button-filter-hover: none;
   align-items: center;
   background: $juicy-snow;
   border: $juicy-border;
   border-radius: 50%;
-  position: absolute;
-  height: 30px;
+  height: $width-icon-button;
   justify-content: center;
-  right: $juicy-border-width / 2;
-  top: $juicy-border-width / 2;
-  transform: translateX(50%) translateY(-50%);
   transition: background $duration-button-transition;
-  width: 30px;
+  width: $width-icon-button;
 
   @include hover {
     background: $juicy-swan;
   }
+}
 
-  img {
-    height: 50%;
-  }
+.icon {
+  height: 50%;
 }

@@ -1,6 +1,6 @@
 import { useQuery } from "react-query";
 
-import { getFeaturesByTeamAndArea } from "api";
+import { getFeaturesByTeamAndArea } from "api/shakira";
 
 const useFeaturesByTeamAndArea = () =>
   useQuery("areas", () => getFeaturesByTeamAndArea(), {

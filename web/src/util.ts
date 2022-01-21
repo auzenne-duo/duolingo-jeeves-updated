@@ -42,7 +42,7 @@ export const formatAttachment = (url: string) => {
     return url.split("?name=")[1];
   }
   if (url.startsWith("https://duolingo.atlassian.net/")) {
-    return url.split("/").slice(-1);
+    return url.split("/").slice(-1)[0];
   }
   return url;
 };
@@ -112,6 +112,8 @@ export const highlightWord = (str: string, word: string) => {
     return str;
   }
 };
+
+export const isImage = (url: string) => /\.(png|jpe?g)$/.test(url);
 
 export const normalizeNewLines = (str: string) =>
   str

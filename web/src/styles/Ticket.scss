@@ -14,6 +14,24 @@
   overflow: hidden;
 }
 
+.btn-bug {
+  position: absolute;
+  right: $juicy-border-width / 2 + $width-icon-button + 4px;
+  top: $juicy-border-width / 2;
+  transform: translateX(50%) translateY(-50%);
+
+  img {
+    height: 18px;
+  }
+}
+
+.btn-close {
+  position: absolute;
+  right: $juicy-border-width / 2;
+  top: $juicy-border-width / 2;
+  transform: translateX(50%) translateY(-50%);
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -67,6 +85,7 @@
 }
 
 .thumb {
+  cursor: pointer;
   display: block;
   max-height: 180px;
   max-width: 100%;

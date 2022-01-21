@@ -6,6 +6,7 @@ import {
   formatScreen,
   getFilterLink,
   highlightWord,
+  isImage,
   normalizeNewLines,
 } from "util";
 
@@ -14,15 +15,17 @@ import { useQuery } from "react-query";
 import { Link, useLocation } from "react-router-dom";
 import { LoadingDots } from "web-ui";
 
-import { getJiraDuplicates } from "api";
+import { detectDuplicates } from "api/shakira";
 import cn from "classnames";
-import CloseButton from "components/CloseButton";
+import IconButton from "components/IconButton";
 import JiraIssues from "components/JiraIssues";
 import PlatformIcon from "components/PlatformIcon";
+import ShakeToReportForm from "components/ShakeToReportForm";
 import TagFilter from "components/TagFilter";
-import TicketJiraButton from "components/TicketJiraButton";
 import renderTicketSource from "components/renderTicketSource";
 import AppStateContext from "contexts/AppStateContext";
+import imageBug from "images/ant.svg";
+import imageClose from "images/x.svg";
 import styles from "styles/Ticket.scss";
 
 interface Props {
@@ -32,13 +35,12 @@ interface Props {
   ticket: JSONAPI.Ticket;
 }
 
-const isImage = (url: string) => /\.(png|jpe?g)$/.test(url);
-
 // eslint-disable-next-line complexity
 const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
   const location = useLocation();
 
-  const [, dispatch] = React.useContext(AppStateContext);
+  const [state, dispatch] = React.useContext(AppStateContext);
+  const [isReporting, setIsReporting] = React.useState(false);
 
   let body = normalizeNewLines(escapeHTML(ticket.body_text ?? ""))
     .trim()
@@ -52,7 +54,7 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
   const { data: potentialDuplicates, isLoading: isLoadingPotentialDuplicates } =
     useQuery(
       ["jira-duplicates", { issueKey: ticket.issue_key }],
-      () => getJiraDuplicates(ticket.issue_key as string),
+      () => detectDuplicates(ticket.issue_key as string),
       {
         enabled: !!ticket.issue_key,
       },
@@ -61,289 +63,331 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
   const imageAttachments = ticket.attachments?.filter(url => isImage(url));
   const urlAttachments = ticket.attachments?.filter(url => !isImage(url));
 
+  const reportedIssue = state.reportedIssues.find(
+    i => i.jeeves_uid === ticket.jeeves_uid,
+  );
+
+  const content = isReporting ? (
+    <ShakeToReportForm
+      onReported={(result, summary) =>
+        dispatch({
+          issue: {
+            jeeves_uid: ticket.jeeves_uid,
+            result,
+            summary,
+          },
+          type: "REPORTED_ISSUE",
+        })
+      }
+      onRequestClose={() => setIsReporting(false)}
+      ticket={ticket}
+    />
+  ) : (
+    <>
+      <h2>{ticket.header_text ?? "(No title)"}</h2>
+      {reportedIssue?.result.issueKey ? (
+        <section className={styles.section}>
+          <JiraIssues
+            issues={[
+              {
+                key: reportedIssue.result.issueKey,
+                summary: reportedIssue.summary,
+              },
+            ]}
+          />
+        </section>
+      ) : null}
+      {body ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Description</span>
+          <div
+            dangerouslySetInnerHTML={{
+              // eslint-disable-next-line @typescript-eslint/naming-convention
+              __html: body,
+            }}
+          />
+        </section>
+      ) : null}
+      {ticket.app_version ? (
+        <section className={styles.section}>
+          <span className={styles.label}>App version</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="app_version"
+              value={ticket.app_version}
+            />
+          </div>
+        </section>
+      ) : null}
+      {imageAttachments?.length ||
+      urlAttachments?.length ||
+      ticket.fullstory_url ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Attachments</span>
+          {urlAttachments?.length || ticket.fullstory_url ? (
+            <div className={styles.attachments}>
+              {urlAttachments?.map((url, i) => (
+                <a href={url} key={i}>
+                  {formatAttachment(url)}
+                </a>
+              ))}
+              {ticket.fullstory_url ? (
+                <a href={ticket.fullstory_url}>FullStory recording</a>
+              ) : null}
+            </div>
+          ) : null}
+          {imageAttachments?.length ? (
+            <div className={styles.thumbs}>
+              {imageAttachments.map(url => (
+                <img
+                  alt=""
+                  className={styles.thumb}
+                  key={url}
+                  onClick={() => dispatch({ type: "LIGHTBOX", url })}
+                  src={url}
+                  tabIndex={0}
+                />
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+      {ticket.components?.length ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Components</span>
+          <div>
+            {ticket.components?.map(c => (
+              <TagFilter
+                className={styles.tag}
+                field="components"
+                key={c}
+                value={c}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+      {ticket.course ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Course</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="course"
+              text={formatCourseId(ticket.course)}
+              value={ticket.course}
+            />
+          </div>
+        </section>
+      ) : null}
+      {duplicates?.length ? (
+        <section className={styles.section}>
+          <span
+            className={styles.label}
+            title="These are confirmed duplicates and are linked in the Jira record."
+          >
+            Linked duplicates
+          </span>
+          <div>
+            <JiraIssues
+              issues={duplicates.map(issue => ({
+                key: (issue.inwardIssue?.key ??
+                  issue.outwardIssue?.key) as string,
+                status: (issue.inwardIssue?.fields.status.name ??
+                  issue.outwardIssue?.fields.status.name) as string,
+                summary: (issue.inwardIssue?.fields.summary ??
+                  issue.outwardIssue?.fields.summary) as string,
+              }))}
+            />
+          </div>
+        </section>
+      ) : null}
+      {ticket.os_version ? (
+        <section className={styles.section}>
+          <span className={styles.label}>OS version</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="os_version"
+              value={ticket.os_version}
+            />
+          </div>
+        </section>
+      ) : null}
+      {ticket.platform ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Platform</span>
+          <div>
+            <Link to={getFilterLink(location, "platform", ticket.platform)}>
+              <PlatformIcon
+                className={styles.icon}
+                platform={ticket.platform}
+              />
+            </Link>
+          </div>
+        </section>
+      ) : null}
+      {ticket.data_source === "JIRA" ? (
+        <section className={styles.section}>
+          <span
+            className={styles.label}
+            title="Jeeves has detected these issues as potential duplicates of this ticket."
+          >
+            Potential duplicates
+          </span>
+          <div>
+            {isLoadingPotentialDuplicates || !potentialDuplicates?.length ? (
+              <div className={styles["loading-container"]}>
+                <span
+                  className={
+                    isLoadingPotentialDuplicates ? styles.invisible : undefined
+                  }
+                >
+                  None
+                </span>
+                {isLoadingPotentialDuplicates ? (
+                  <LoadingDots type="button" />
+                ) : null}
+              </div>
+            ) : (
+              <JiraIssues
+                issues={potentialDuplicates.map(t => ({
+                  key: t.issue_key as string,
+                  status: t.status as string,
+                  summary: t.header_text as string,
+                }))}
+              />
+            )}
+          </div>
+        </section>
+      ) : null}
+      {ticket.priority ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Priority</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="priority"
+              isPriority={["high", "highest", "urgent"].includes(
+                ticket.priority.toLowerCase(),
+              )}
+              value={ticket.priority}
+            />
+          </div>
+        </section>
+      ) : null}
+      {ticket.date_time ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Reported at</span>
+          <div>{formatReadableDate(new Date(ticket.date_time))}</div>
+        </section>
+      ) : null}
+      {ticket.screen_content ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Screen</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="screen_content"
+              text={formatScreen(ticket.screen_content)}
+              value={ticket.screen_content}
+            />
+          </div>
+        </section>
+      ) : null}
+      {ticket.screen_size ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Screen dimensions</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="screen_size"
+              value={ticket.screen_size}
+            />
+          </div>
+        </section>
+      ) : null}
+      <section className={styles.section}>
+        <span className={styles.label}>Source</span>
+        <div>
+          {ticket.data_source === "JIRA" ? (
+            <JiraIssues
+              issues={[
+                {
+                  key: ticket.issue_key as string,
+                  status: ticket.status as string,
+                  summary: ticket.header_text as string,
+                },
+              ]}
+            />
+          ) : (
+            renderTicketSource(ticket)
+          )}
+        </div>
+      </section>
+      {ticket.tags?.length ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Tags</span>
+          <div className={styles.tags}>
+            {ticket.tags?.map(tag => (
+              <TagFilter
+                className={styles.tag}
+                field="tags"
+                key={tag}
+                value={tag}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+      {ticket.ui_language ? (
+        <section className={styles.section}>
+          <span className={styles.label}>UI language</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="ui_language"
+              value={ticket.ui_language}
+            />
+          </div>
+        </section>
+      ) : null}
+      {ticket.username ? (
+        <section className={styles.section}>
+          <span className={styles.label}>User</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="username"
+              value={ticket.username}
+            />
+          </div>
+        </section>
+      ) : null}
+    </>
+  );
+
   return (
     <div className={cn(styles.container, className)}>
       <div className={styles.bordered}>
         <div className={styles.content}>
-          <h2>{ticket.header_text ?? "(No title)"}</h2>
-          {(ticket.platform === "Android" || ticket.platform === "iOS") &&
-          ticket.shake_to_report_category === "EXTERNAL" ? (
-            <section className={styles.section}>
-              <TicketJiraButton ticket={ticket} />
-            </section>
+          {content}
+          {ticket.data_source === "JIRA" ? null : (
+            <IconButton
+              className={styles["btn-bug"]}
+              icon={imageBug}
+              onClick={() => setIsReporting(value => !value)}
+              title="Report to Jira/Slack"
+            />
+          )}
+          {onRequestClose ? (
+            <IconButton
+              className={styles["btn-close"]}
+              icon={imageClose}
+              onClick={onRequestClose}
+            />
           ) : null}
-          {body ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Description</span>
-              <div
-                dangerouslySetInnerHTML={{
-                  // eslint-disable-next-line @typescript-eslint/naming-convention
-                  __html: body,
-                }}
-              />
-            </section>
-          ) : null}
-          {ticket.app_version ? (
-            <section className={styles.section}>
-              <span className={styles.label}>App version</span>
-              <div>
-                <TagFilter
-                  className={styles.tag}
-                  field="app_version"
-                  value={ticket.app_version}
-                />
-              </div>
-            </section>
-          ) : null}
-          {imageAttachments?.length ||
-          urlAttachments?.length ||
-          ticket.fullstory_url ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Attachments</span>
-              {urlAttachments?.length || ticket.fullstory_url ? (
-                <div className={styles.attachments}>
-                  {urlAttachments?.map((url, i) => (
-                    <a href={url} key={i}>
-                      {formatAttachment(url)}
-                    </a>
-                  ))}
-                  {ticket.fullstory_url ? (
-                    <a href={ticket.fullstory_url}>FullStory recording</a>
-                  ) : null}
-                </div>
-              ) : null}
-              {imageAttachments?.length ? (
-                <div className={styles.thumbs}>
-                  {imageAttachments.map(url => (
-                    <img
-                      alt=""
-                      className={styles.thumb}
-                      key={url}
-                      onClick={() => dispatch({ type: "LIGHTBOX", url })}
-                      src={url}
-                      tabIndex={0}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </section>
-          ) : null}
-          {ticket.components?.length ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Components</span>
-              <div>
-                {ticket.components?.map(c => (
-                  <TagFilter
-                    className={styles.tag}
-                    field="components"
-                    key={c}
-                    value={c}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
-          {ticket.course ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Course</span>
-              <div>
-                <TagFilter
-                  className={styles.tag}
-                  field="course"
-                  text={formatCourseId(ticket.course)}
-                  value={ticket.course}
-                />
-              </div>
-            </section>
-          ) : null}
-          {duplicates?.length ? (
-            <section className={styles.section}>
-              <span
-                className={styles.label}
-                title="These are confirmed duplicates and are linked in the Jira record."
-              >
-                Linked duplicates
-              </span>
-              <div>
-                <JiraIssues
-                  issues={duplicates.map(issue => ({
-                    key: (issue.inwardIssue?.key ??
-                      issue.outwardIssue?.key) as string,
-                    status: (issue.inwardIssue?.fields.status.name ??
-                      issue.outwardIssue?.fields.status.name) as string,
-                    summary: (issue.inwardIssue?.fields.summary ??
-                      issue.outwardIssue?.fields.summary) as string,
-                  }))}
-                />
-              </div>
-            </section>
-          ) : null}
-          {ticket.os_version ? (
-            <section className={styles.section}>
-              <span className={styles.label}>OS version</span>
-              <div>
-                <TagFilter
-                  className={styles.tag}
-                  field="os_version"
-                  value={ticket.os_version}
-                />
-              </div>
-            </section>
-          ) : null}
-          {ticket.platform ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Platform</span>
-              <div>
-                <Link to={getFilterLink(location, "platform", ticket.platform)}>
-                  <PlatformIcon
-                    className={styles.icon}
-                    platform={ticket.platform}
-                  />
-                </Link>
-              </div>
-            </section>
-          ) : null}
-          {ticket.data_source === "JIRA" ? (
-            <section className={styles.section}>
-              <span
-                className={styles.label}
-                title="Jeeves has detected these issues as potential duplicates of this ticket."
-              >
-                Potential duplicates
-              </span>
-              <div>
-                {isLoadingPotentialDuplicates ||
-                !potentialDuplicates?.length ? (
-                  <div className={styles["loading-container"]}>
-                    <span
-                      className={
-                        isLoadingPotentialDuplicates
-                          ? styles.invisible
-                          : undefined
-                      }
-                    >
-                      None
-                    </span>
-                    {isLoadingPotentialDuplicates ? (
-                      <LoadingDots type="button" />
-                    ) : null}
-                  </div>
-                ) : (
-                  <JiraIssues
-                    issues={potentialDuplicates.map(t => ({
-                      key: t.issue_key as string,
-                      status: t.status as string,
-                      summary: t.header_text as string,
-                    }))}
-                  />
-                )}
-              </div>
-            </section>
-          ) : null}
-          {ticket.priority ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Priority</span>
-              <div>
-                <TagFilter
-                  className={styles.tag}
-                  field="priority"
-                  isPriority={["high", "highest", "urgent"].includes(
-                    ticket.priority.toLowerCase(),
-                  )}
-                  value={ticket.priority}
-                />
-              </div>
-            </section>
-          ) : null}
-          {ticket.date_time ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Reported at</span>
-              <div>{formatReadableDate(new Date(ticket.date_time))}</div>
-            </section>
-          ) : null}
-          {ticket.screen_content ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Screen</span>
-              <div>
-                <TagFilter
-                  className={styles.tag}
-                  field="screen_content"
-                  text={formatScreen(ticket.screen_content)}
-                  value={ticket.screen_content}
-                />
-              </div>
-            </section>
-          ) : null}
-          {ticket.screen_size ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Screen dimensions</span>
-              <div>
-                <TagFilter
-                  className={styles.tag}
-                  field="screen_size"
-                  value={ticket.screen_size}
-                />
-              </div>
-            </section>
-          ) : null}
-          <section className={styles.section}>
-            <span className={styles.label}>Source</span>
-            <div>
-              {ticket.data_source === "JIRA" ? (
-                <JiraIssues
-                  issues={[
-                    {
-                      key: ticket.issue_key as string,
-                      status: ticket.status as string,
-                      summary: ticket.header_text as string,
-                    },
-                  ]}
-                />
-              ) : (
-                renderTicketSource(ticket)
-              )}
-            </div>
-          </section>
-          {ticket.tags?.length ? (
-            <section className={styles.section}>
-              <span className={styles.label}>Tags</span>
-              <div className={styles.tags}>
-                {ticket.tags?.map(tag => (
-                  <TagFilter
-                    className={styles.tag}
-                    field="tags"
-                    key={tag}
-                    value={tag}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
-          {ticket.ui_language ? (
-            <section className={styles.section}>
-              <span className={styles.label}>UI language</span>
-              <div>
-                <TagFilter
-                  className={styles.tag}
-                  field="ui_language"
-                  value={ticket.ui_language}
-                />
-              </div>
-            </section>
-          ) : null}
-          {ticket.username ? (
-            <section className={styles.section}>
-              <span className={styles.label}>User</span>
-              <div>
-                <TagFilter
-                  className={styles.tag}
-                  field="username"
-                  value={ticket.username}
-                />
-              </div>
-            </section>
-          ) : null}
-          {onRequestClose ? <CloseButton onClick={onRequestClose} /> : null}
         </div>
       </div>
     </div>

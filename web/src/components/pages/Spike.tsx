@@ -4,7 +4,7 @@ import * as React from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 
-import { getSpikes } from "api";
+import { getSpikes } from "api/jeeves";
 import SpikeTable from "components/SpikeTable";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";

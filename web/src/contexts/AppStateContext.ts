@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import type { ReportIssueResult } from "api/shakira";
 import { canFitMenuAndContent } from "components/MenuDrawer";
 
 type Action =
@@ -9,15 +10,24 @@ type Action =
   | { type: "LIGHTBOX"; url: string }
   | { type: "LOADED" }
   | { type: "LOADING" }
+  | { issue: ReportedIssue; type: "REPORTED_ISSUE" }
   | { query: string; type: "SEARCH" }
   | { type: "SHOW_ASIDE" }
   | { type: "SHOW_MENU" }
   | { type: "TOGGLE_ASIDE" }
   | { type: "TOGGLE_MENU" };
 
+interface ReportedIssue {
+  jeeves_uid: string;
+  result: ReportIssueResult;
+  summary: string;
+}
+
 interface State {
   lightboxUrl?: string;
   loading: boolean;
+  /** Keep a list of issues reported to Jira/Slack since the page was last refreshed. */
+  reportedIssues: ReportedIssue[];
   searchHistory: string[];
   showAside: boolean;
   showMenu: boolean;
@@ -25,6 +35,7 @@ interface State {
 
 export const initialState: State = {
   loading: false,
+  reportedIssues: [],
   searchHistory: JSON.parse(localStorage.getItem("searchHistory") ?? "[]"),
   showAside: false,
   showMenu: canFitMenuAndContent(),
@@ -48,6 +59,16 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
       return { ...state, loading: false };
     case "LOADING":
       return { ...state, loading: true };
+    case "REPORTED_ISSUE":
+      return {
+        ...state,
+        reportedIssues: [
+          ...state.reportedIssues.filter(
+            i => i.jeeves_uid !== action.issue.jeeves_uid,
+          ),
+          action.issue,
+        ],
+      };
     case "SEARCH":
       if (action.query.trim() === "") {
         return state;

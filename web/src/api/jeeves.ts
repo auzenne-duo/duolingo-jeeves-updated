@@ -1,44 +1,9 @@
 import { convertTimeZone } from "util";
 
 import { format, formatISO, parseISO } from "date-fns";
-import Cookies from "js-cookie";
 
+import { get } from "api/client";
 import { transformQuery } from "elastic";
-
-const API_URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5000/api";
-
-const BEARER = `Bearer ${process.env.DUOLINGO_JWT ?? Cookies.get("jwt_token")}`;
-
-export const createJira = ({
-  description,
-  generated_description,
-  project,
-  summary,
-}: {
-  pre_release?: boolean;
-  description: string;
-  feature?: string;
-  generated_description?: string;
-  project: "DLAA" | "DLAI" | "DLAW";
-  reporter_email?: string;
-  summary: string;
-}) => {
-  const formData = new FormData();
-  formData.set(
-    "issueData",
-    JSON.stringify({
-      description,
-      generatedDescription: generated_description,
-      project,
-      summary,
-    }),
-  );
-  return post<{
-    issueKey: string;
-    jiraUrl: string;
-  }>("/1/shakira/report_issue", formData);
-};
 
 /** Converts a date and time to a format that the API supports. */
 const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
@@ -46,44 +11,6 @@ const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
 /** Converts a date to a format that the API supports. */
 const formatLocalDate = (date: Date) =>
   formatISO(date, { representation: "date" });
-
-const get = async <T>(url: string): Promise<T> => {
-  const response = await fetch(`${API_URL}${url}`, {
-    credentials: "include",
-    headers: [["Authorization", BEARER]],
-  });
-  if (!response.ok) {
-    throw Error(`Request failed with status ${response.status}.`);
-  }
-  return response.json();
-};
-
-const post = async <T>(url: string, data = {}): Promise<T> => {
-  const response = await fetch(`${API_URL}${url}`, {
-    body: data instanceof FormData ? data : JSON.stringify(data),
-    credentials: "include",
-    headers: [
-      ["Authorization", BEARER],
-      ...(data instanceof FormData
-        ? // The browser should set this.
-          []
-        : ["Content-Type", "application/json"]),
-    ] as [string, string][],
-    method: "POST",
-  });
-  if (!response.ok) {
-    throw Error(`Request failed with status ${response.status}.`);
-  }
-  return response.json();
-};
-
-export const getFeaturesByTeamAndArea = () =>
-  get<JSONAPI.Area[]>("/2/shakira/features_by_team_and_area");
-
-export const getJiraDuplicates = (issueKey: string) =>
-  get<JSONAPI.Ticket[]>(
-    `/1/detect_duplicates?issue_key=${encodeURIComponent(issueKey)}`,
-  );
 
 export const getInfo = async (
   lang: JSONAPI.LanguageId,
