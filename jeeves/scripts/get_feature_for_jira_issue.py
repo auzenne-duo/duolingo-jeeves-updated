@@ -5,8 +5,8 @@ Command line argument: Jira issue key (e.g. DEL-1234)
 
 In order to use this script, make sure to do the following:
 1. Set the following environment variables:
-    - JIRA_USERNAME = your @duolingo email
-    - JIRA_API_TOKEN = an api token generated from your account
+    - JIRA_USERNAME, SHAKIRA_JIRA_USERNAME_WEB = your @duolingo email
+    - JIRA_API_TOKEN, SHAKIRA_JIRA_API_TOKEN_WEB = an api token generated from your account
     - DUPLICATE_DETECTOR_MODEL = a file path on your computer
 2. Before the first time running this script, you'll have to download the duplicate detector model
 to the $DUPLICATE_DETECTOR_MODEL file path:
