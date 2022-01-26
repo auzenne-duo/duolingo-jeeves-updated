@@ -1,5 +1,9 @@
 @import "constants";
 
+.area {
+  position: relative;
+}
+
 .filters {
   align-items: end;
   display: grid;
@@ -13,19 +17,12 @@
   }
 }
 
-.filters-analysis {
-  composes: filters;
-
-  @media (min-width: $width-ipad) {
-    grid-template-columns: 1fr min-content min-content;
-  }
-}
-
+.filters-analysis,
 .filters-discovery {
   composes: filters;
 
   @media (min-width: $width-ipad) {
-    grid-template-columns: 1fr min-content;
+    grid-template-columns: 1fr min-content min-content;
   }
 }
 

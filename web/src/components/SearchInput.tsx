@@ -150,7 +150,7 @@ const SearchInput = (
   const items = React.useMemo(() => {
     switch (subQuery?.field) {
       case "area":
-        return areas.map(a => ({ text: a.area_name })).sort(alphabeticalSorter);
+        return areas.map(a => ({ text: a.area_name }));
       case "feature":
         return areas
           .flatMap(a =>

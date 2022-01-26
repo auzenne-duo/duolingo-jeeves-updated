@@ -67,12 +67,22 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
 
   const [, dispatch] = React.useContext(AppStateContext);
 
+  const area = search.get("area");
   const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
   const id = search.get("id");
   const page = search.get("page")
     ? parseInt(search.get("page") as string, 10)
     : 1;
-  const query = search.get("q") ?? "";
+  const team = search.get("team");
+
+  const query = [
+    search.get("q") ?? "",
+    area ? `area:${area}` : "",
+    team ? `team:${team}` : "",
+  ]
+    .filter(term => term)
+    .map((term, _i, list) => (list.length > 1 ? `(${term})` : term))
+    .join(" AND ");
 
   const nextQuery = useSearchParams();
   nextQuery.set("page", `${page + 1}`);

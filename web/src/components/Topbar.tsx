@@ -9,7 +9,7 @@ import {
   useParams,
   useRouteMatch,
 } from "react-router-dom";
-import { Input, LoadingDots, Select } from "web-ui";
+import { Input, LoadingDots, Select, SelectList } from "web-ui";
 
 import cn from "classnames";
 import type { DateRangeChangeEvent } from "components/DateRangeInput";
@@ -18,16 +18,24 @@ import Hamburger from "components/Hamburger";
 import type { SearchInputChangeEvent } from "components/SearchInput";
 import SearchInput from "components/SearchInput";
 import useDateRangeFilter from "components/useDateRangeFilter";
+import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
 import imageLogo from "images/logo.svg";
 import styles from "styles/Topbar.scss";
+
+type SelectListProps = React.ComponentProps<typeof SelectList>;
+
+type SelectListChangeEvent = Parameters<
+  Exclude<SelectListProps["onChange"], undefined>
+>[0];
 
 const Topbar = () => {
   const { from, to } = useDateRangeFilter({
     daysAgo: useRouteMatch("/:lang/spike") ? 3 : undefined,
     monthsAgo: useRouteMatch("/:lang/analysis") ? 3 : undefined,
   });
+  const { data: areas = [] } = useFeaturesByTeamAndArea();
   const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
@@ -36,8 +44,10 @@ const Topbar = () => {
   const isSpikePage = useRouteMatch("/:lang/spike");
   const search = useSearchParams();
 
+  const area = search.get("area");
   const filter = search.get("filter");
   const query = search.get("q") ?? "";
+  const team = search.get("team");
 
   const [state, dispatch] = React.useContext(AppStateContext);
   const [input, setInput] = React.useState(query);
@@ -47,11 +57,50 @@ const Topbar = () => {
   const searchInputRef =
     React.useRef<React.ElementRef<typeof SearchInput>>(null);
 
+  const areasAndTeams = React.useMemo(() => {
+    const options = areas.flatMap(a => [
+      { field: "area", text: a.area_name, value: "" },
+      ...a.teams.flatMap(t => ({
+        description: `in ${a.area_name}`,
+        field: "team",
+        text: t.team_name,
+        value: "",
+      })),
+    ]);
+    options.forEach((o, i) => (o.value = `${i}`));
+    return options;
+  }, [areas]);
+
+  const areaOrTeamIndex = React.useMemo(
+    () =>
+      area || team
+        ? areasAndTeams.findIndex(
+            o => (area && o.text === area) || (team && o.text === team),
+          )
+        : -1,
+    [area, areasAndTeams, team],
+  );
+
   const applyFilters = (params: URLSearchParams) =>
     history.push({
       ...location,
       search: encodeURLSearchParams(params),
     });
+
+  const handleAreaOrTeamChange = (e: SelectListChangeEvent) => {
+    const val = e.selectedValue
+      ? areasAndTeams[parseInt(e.selectedValue, 10)]
+      : undefined;
+    const params = new URLSearchParams(location.search);
+    params.delete("area");
+    params.delete("page");
+    params.delete("team");
+    if (val) {
+      params.set(val.field, val.text);
+      params.set("filter", "INTERNAL");
+    }
+    applyFilters(params);
+  };
 
   const handleDateRangeChange = (e: DateRangeChangeEvent) => {
     const params = new URLSearchParams(location.search);
@@ -182,6 +231,35 @@ const Topbar = () => {
             onChange={handleDateRangeChange}
             to={to}
           />
+        ) : null}
+        {isDiscoveryPage ? (
+          <div
+            className={cn(styles.area, styles["hide-on-mobile"])}
+            onKeyDown={
+              // Don't trigger shortcuts.
+              e => e.stopPropagation()
+            }
+          >
+            <SelectList
+              onChange={handleAreaOrTeamChange}
+              options={[{ text: "Any area/team", value: "" }, ...areasAndTeams]}
+              popoverPosition={{
+                direction: "down",
+                manualPositioning: true,
+                style: {
+                  maxHeight: "min(50vh, 400px)",
+                  maxWidth: "min(50vw, 300px)",
+                  position: "absolute",
+                  right: 0,
+                  top: "100%",
+                  width: "max-content",
+                },
+                zIndex: 1,
+              }}
+              showSearch={true}
+              value={areaOrTeamIndex > -1 ? `${areaOrTeamIndex}` : ""}
+            />
+          </div>
         ) : null}
         {isAnalysisPage || isDiscoveryPage ? (
           <Select
