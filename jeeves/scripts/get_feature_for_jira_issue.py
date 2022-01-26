@@ -22,6 +22,7 @@ import sys
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.jira_manager import JiraManager
+from jeeves.manager.shakira_jira import ShakiraJiraClient
 
 if __name__ == "__main__":
     jira_doc = JiraManager.download_specific_issue(sys.argv[1])
@@ -30,8 +31,9 @@ if __name__ == "__main__":
     print(f"Issue description : {jira_doc.body_text}")
     print(f"Issue metadata    : {jira_doc.duolingo_metadata.get('raw')}")
 
-    mgr = JiraFeatureManager(JIRA_FEATURES)
+    mgr = JiraFeatureManager(ShakiraJiraClient, JIRA_FEATURES)
     suggested_features = mgr.get_suggested_features(
+        ["DLAA", "DLAI", "DLAW"],
         summary=jira_doc.header_text,
         description=jira_doc.body_text,
         generated_description=jira_doc.duolingo_metadata.get("raw"),

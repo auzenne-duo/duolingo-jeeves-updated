@@ -1,8 +1,15 @@
 import unittest
+from unittest.mock import MagicMock
 
 import pytest
 
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
+from jeeves.manager.shakira_jira import ShakiraJiraClient
+
+mock_jira_client = ShakiraJiraClient
+mock_jira_client.get_features = MagicMock(
+    return_value=["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"]
+)
 
 mock_jira_features = {
     "Area A": {
@@ -23,10 +30,31 @@ mock_jira_features = {
     },
 }
 
-feature_manager = JiraFeatureManager(mock_jira_features)
+
+def test_get_features_v1():
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features)
+    actual_result = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
+
+    case = unittest.TestCase()
+    case.assertCountEqual(
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Visual polish",
+            "Lesson content / accepted translations",
+            "TTS: mispronunciation",
+            "Feature request / feedback",
+        ],
+        actual_result,
+    )
 
 
 def test_get_features_by_team_and_area():
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features)
     actual_result = feature_manager.get_features_by_team_and_area()
 
     assert actual_result == [
@@ -155,10 +183,83 @@ test_cases = [
 def test_get_suggested_features(
     summary, description, generated_description, expected_suggestions, expected_others
 ):
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features)
     actual_result = feature_manager.get_suggested_features(
-        summary, description, generated_description
+        ["DLAA", "DLAI", "DLAW"], summary, description, generated_description
     )
 
     case = unittest.TestCase()
     case.assertEqual(expected_suggestions, actual_result["suggested_features"])
     case.assertCountEqual(expected_others, actual_result["other_features"])
+
+
+def test_feature_filtering():
+    mock_filtered_jira_client = ShakiraJiraClient
+    mock_filtered_jira_client.get_features = MagicMock(
+        return_value=["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"]
+    )
+    mock_filtered_jira_features = {
+        "Area A": {
+            "Team 1": {"Leaderboard": ["League"], "Streak": [], "Stories": ["Story"]},
+        },
+        "Area B": {
+            "Team 2": {
+                "Kudos": ["Congrats", "High five", "High-five", "Highfive"],
+            },
+            "Team 3": {
+                "Skill tree": ["Home"],
+            },
+        },
+    }
+
+    feature_manager = JiraFeatureManager(mock_filtered_jira_client, mock_filtered_jira_features)
+    case = unittest.TestCase()
+
+    actual_result_features = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
+    case.assertCountEqual(
+        [
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Visual polish",
+            "Lesson content / accepted translations",
+            "TTS: mispronunciation",
+            "Feature request / feedback",
+        ],
+        actual_result_features,
+    )
+
+    actual_result_features_by_area_and_team = feature_manager.get_features_by_team_and_area()
+    assert actual_result_features_by_area_and_team == [
+        {
+            "area_name": "Area A",
+            "teams": [
+                {
+                    "team_name": "Team 1",
+                    "features": ["Streak", "Stories"],
+                },
+            ],
+        },
+        {
+            "area_name": "Area B",
+            "teams": [
+                {
+                    "team_name": "Team 2",
+                    "features": ["Kudos"],
+                },
+                {
+                    "team_name": "Team 3",
+                    "features": ["Skill tree"],
+                },
+            ],
+        },
+    ]
+
+    actual_result_suggested_features = feature_manager.get_suggested_features(
+        ["DLAA", "DLAI", "DLAW"], "", "", ""
+    )
+    case.assertCountEqual(
+        ["Streak", "Stories", "Kudos", "Skill tree"],
+        actual_result_suggested_features["other_features"],
+    )

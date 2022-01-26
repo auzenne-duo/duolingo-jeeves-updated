@@ -2,20 +2,20 @@ import unittest
 from unittest.mock import MagicMock
 
 from jeeves.manager.shakira import ShakiraManager
-from jeeves.manager.shakira_jira import ShakiraJiraApiClient
-from jeeves.manager.shakira_slack import ShakiraSlackApiClient
+from jeeves.manager.shakira_jira import ShakiraJiraClient
+from jeeves.manager.shakira_slack import ShakiraSlackClient
 from jeeves.model.slack_channel import SlackChannel
 
 _JIRA_ISSUE_URL = "https://jira.com/issues/DLAA-1"
 
 
 def _get_mocked_managers():
-    shakira_jira_mock = ShakiraJiraApiClient()
+    shakira_jira_mock = ShakiraJiraClient
     shakira_jira_mock.create_issue = MagicMock(return_value="DLAA-1")
     shakira_jira_mock.upload_attachments = MagicMock()
     shakira_jira_mock.issue_url = MagicMock(return_value=_JIRA_ISSUE_URL)
 
-    shakira_slack_mock = ShakiraSlackApiClient()
+    shakira_slack_mock = ShakiraSlackClient
     shakira_slack_mock.post_issue = MagicMock(return_value="post1")
     shakira_slack_mock.post_info_in_reply = MagicMock()
 

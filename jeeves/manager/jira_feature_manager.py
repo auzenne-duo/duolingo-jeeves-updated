@@ -1,12 +1,18 @@
 import operator
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
+from jeeves.manager.shakira import _SHAKIRA_FEATURES_TO_SLACK_CHANNEL
+from jeeves.manager.shakira_jira import ShakiraJiraClient
 from jeeves.model.custom_types import JSON, AreaWithTeamList
 from jeeves.util.cleanup import extract_duolingo_metadata
 
 
 class JiraFeatureManager:
-    def __init__(self, features_config: Dict[str, Dict[str, Dict[str, List[str]]]]):
+    def __init__(
+        self,
+        jira_client: ShakiraJiraClient,
+        features_config: Dict[str, Dict[str, Dict[str, List[str]]]],
+    ):
         """
         Note: the features and synonyms provided in features_config are assumed to be unique, ie
         no synonym or feature name is associated with more than one feature.
@@ -20,6 +26,7 @@ class JiraFeatureManager:
             },
         }
         """
+        self._jira_client = jira_client
         self.jira_features_and_synonyms = features_config
         self._feature_to_synonyms = self._get_feature_to_synonyms_mapping()
         self._uppercase_term_to_feature = self._get_uppercase_term_to_feature_mapping()
@@ -65,19 +72,39 @@ class JiraFeatureManager:
                 res = res + JiraFeatureManager._get_leaf_values(value) + "\n"
             return res
 
+    def _get_valid_features(self, projects: Union[str, List[str]]) -> List[str]:
+        """
+        Returns a list of features that exist in both the specific Jira project and in the config.
+        """
+        features_on_jira = self._jira_client.get_features(projects) or []
+        features_in_config = (
+            self._feature_to_synonyms.keys()
+        )  # pylint: disable=consider-iterating-dictionary
+        return list(set(features_on_jira) & set(features_in_config))
+
+    def get_features_v1(self, projects: Union[str, List[str]]) -> List[str]:
+        valid_jira_features = self._get_valid_features(projects)
+        slack_report_features = _SHAKIRA_FEATURES_TO_SLACK_CHANNEL.keys()
+        return list(set(valid_jira_features).union(set(slack_report_features)))
+
     def get_features_by_team_and_area(
         self,
     ) -> List[AreaWithTeamList]:
         """
         Returns a list of features organized by area and team.
         """
-        return [
+        valid_features = self._get_valid_features(["DLAA", "DLAI", "DLAW"])
+        areasWithTeams = [
             {
                 "area_name": area_name,
                 "teams": [
                     {
                         "team_name": team_name,
-                        "features": [feature for (feature, synonyms) in features_dict.items()],
+                        "features": [
+                            feature
+                            for (feature, synonyms) in features_dict.items()
+                            if feature in valid_features
+                        ],
                     }
                     for (team_name, features_dict) in teams_dict.items()
                 ],
@@ -85,8 +112,28 @@ class JiraFeatureManager:
             for (area_name, teams_dict) in self.jira_features_and_synonyms.items()
         ]
 
+        areasWithTeams = [
+            {
+                "area_name": areaWithTeams["area_name"],
+                "teams": list(
+                    filter(
+                        lambda teamWithFeatures: len(teamWithFeatures["features"]) > 0,
+                        areaWithTeams["teams"],
+                    )
+                ),
+            }
+            for areaWithTeams in areasWithTeams
+        ]
+
+        areasWithTeams = list(
+            filter(lambda areaWithTeams: len(areaWithTeams["teams"]) > 0, areasWithTeams)
+        )
+
+        return areasWithTeams
+
     def get_suggested_features(
         self,
+        projects: Union[str, List[str]],
         summary: str,
         description: Optional[str],
         generated_description: Optional[str],
@@ -95,6 +142,7 @@ class JiraFeatureManager:
         Suggests features that could be attached to an issue.
 
         parameters:
+            projects: e.g. DLAA, DLAI, DLAW
             summary: Rougly one-sentence summary of issue.
             description: Longer issue description.
             generated_description: Generated information such as app version, fullstory url, session type, etc.
@@ -130,12 +178,15 @@ class JiraFeatureManager:
         sorted_features_to_counts = sorted(
             feature_count.items(), key=operator.itemgetter(1), reverse=True
         )
-        sorted_features = [feature for (feature, count) in sorted_features_to_counts if count > 0]
-        suggested_features = sorted_features[:3]
-        other_features = [
+        valid_features = self._get_valid_features(projects)
+        sorted_and_filtered_features = [
             feature
-            for feature in self._feature_to_synonyms.keys()  # pylint: disable=consider-iterating-dictionary
-            if feature not in suggested_features
+            for (feature, count) in sorted_features_to_counts
+            if count > 0 and feature in valid_features
+        ]
+        suggested_features = sorted_and_filtered_features[:3]
+        other_features = [
+            feature for feature in valid_features if feature not in suggested_features
         ]
 
         return {
