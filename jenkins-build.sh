@@ -64,12 +64,26 @@ fi
 TERRAFORM_PATH="galaxy/$TERRAFORM_ENV"
 echo "TERRAFORM_ENV: $TERRAFORM_PATH"
 if [[ $TERRAFORM_ENV == "prod" ]]; then
+  # --- deploy Docker images ---
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SQS_WORKER_1" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SQS_WORKER_2" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SPIKE_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+
+  # --- run Jira Feature creation script ---
+  WORKSPACE=${WORKSPACE:-$(pwd)}
+  PYENV_HOME="$WORKSPACE/.pyenv/"
+  python3 -m venv "$PYENV_HOME"
+  . "$PYENV_HOME/bin/activate"
+  export PYTHONPATH="$WORKSPACE"
+  export SHAKIRA_JIRA_USERNAME_WEB="jira-automation@duolingo.com"
+
+  pip install -U pip wheel setuptools
+  pip install -r dev-requirements.txt
+
+  python jeeves/scripts/create_jira_features.py
 else
   echo "No auto-deployment in dev environment."
 fi

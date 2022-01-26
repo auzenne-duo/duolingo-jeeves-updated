@@ -1,5 +1,7 @@
 """
 Contains a dictionary listing features and synonyms by Area > Team.
+When an addition to this dictionary gets merged to master, the deploy job will automatically create
+Features in Jira for the new additions.
 
 Format:
 {

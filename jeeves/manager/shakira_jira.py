@@ -63,9 +63,11 @@ class ShakiraJiraApiClient:
         }
         return (url, params)
 
-    def get_features(self, projects: Union[str, List[str]]) -> List[str]:
+    def get_issuetype_metadata(
+        self, projects: Union[str, List[str]]
+    ) -> List[JiraIssueTypeMetaData]:
         """
-        Get possible values for the "Feature" issue field in a project.
+        Get metadata about issuetypes, including fields, in the given project(s).
 
         parameters
             projects: e.g. DLAA, DLAI, DLAW
@@ -82,17 +84,62 @@ class ShakiraJiraApiClient:
             r.raise_for_status()
 
             response_json = json.loads(r.text)
-            issuetypes = [
-                JiraIssueTypeMetaData.from_json(issuetype)
-                for project in response_json["projects"]
-                for issuetype in project["issuetypes"]
-            ]
             return list(
-                {name for issuetype in issuetypes for name in issuetype.allowed_feature_values()}
+                {
+                    JiraIssueTypeMetaData.from_json(issuetype).id: JiraIssueTypeMetaData.from_json(
+                        issuetype
+                    )
+                    for project in response_json["projects"]
+                    for issuetype in project["issuetypes"]
+                }.values()
             )
         except RequestException as e:
             print_request_exception(e)
             return None
+
+    def get_features(self, projects: Union[str, List[str]]) -> List[str]:
+        """
+        Get possible values for the "Feature" issue field in a project.
+
+        parameters
+            projects: e.g. DLAA, DLAI, DLAW
+        """
+        issuetypes = self.get_issuetype_metadata(projects)
+        return list(
+            {name for issuetype in issuetypes for name in issuetype.allowed_feature_values()}
+        )
+
+    def _get_context_url_for_field(self, field_key: str) -> str:
+        return f"{_HOST}/rest/api/3/field/{field_key}/context"
+
+    def get_contexts(self, field_key: str) -> List[str]:
+        url = self._get_context_url_for_field(field_key)
+        auth = self._get_jira_auth("DLAW")
+        headers = {"Accept": "application/json"}
+
+        try:
+            r = get(url, auth=auth, headers=headers)
+            r.raise_for_status()
+
+            response_json = json.loads(r.text)
+            return [context["id"] for context in response_json["values"]]
+        except RequestException as e:
+            print_request_exception(e)
+
+    def _get_create_url_for_field_and_context(self, field_key: str, context_id: str) -> str:
+        return f"{_HOST}/rest/api/2/field/{field_key}/context/{context_id}/option"
+
+    def create_options_for_field(self, field_key: str, context_id: str, options: List[str]):
+        url = self._get_create_url_for_field_and_context(field_key, context_id)
+        auth = self._get_jira_auth("DLAW")
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        data = {"options": [{"value": option} for option in options]}
+
+        try:
+            r = post(url, auth=auth, headers=headers, data=json.dumps(data))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e)
 
     def _get_metadata_for_specific_issuetype(
         self, project: str, issuetype: str
