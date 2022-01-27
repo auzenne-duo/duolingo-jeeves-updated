@@ -4,7 +4,7 @@ Technology-driven user support.
 
 ## Owner
 
-- Peter Chapman, peter@duolingo.com
+- Yijin Kang, yijin@duolingo.com
 
 ## Badges
 
