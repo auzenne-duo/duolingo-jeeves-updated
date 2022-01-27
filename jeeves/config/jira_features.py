@@ -88,15 +88,34 @@ JIRA_FEATURES = {
         "New Writing Systems": {
             "Character Bingo": ["drawing"],
             "Transliteration": [],
+            "Grammar": ["grammar skills", "grammar tip"],
+            "Non-latin alphabet": [],
         },
         "Speaking": {
             "Pronunciation Review": ["speaking challenge"],
             "Audio Lessons": ["audio lesson", "podcast"],
-            "Speech recognizer (in house)": ["speech recogni"],
+            "Speech recognizer (in house)": [
+                "speech recognition",
+                "speech recognizer",
+                "speech recogni",
+            ],
         },
         "Stories Product": {
             "Stories": ["story"],
             "Hoots": [],
+        },
+        "Speech Lab": {
+            "World character voice": [
+                "voice",
+                "tts voice",
+                "junior voice",
+                "zari voice",
+                "lin voice",
+                "bea voice",
+                "oscar voice",
+                "lily voice",
+                "character voice",
+            ]
         },
         "None": {
             "Smart tips": ["smart tip"],
@@ -137,7 +156,7 @@ JIRA_FEATURES = {
     },
     "New Initiatives": {
         "Events": {
-            "Events": [],
+            "Events": ["overflow tab", "news feed", "Duo news"],
         },
         "Schools": {
             "Schools": [],
