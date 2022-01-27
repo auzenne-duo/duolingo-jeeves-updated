@@ -129,7 +129,7 @@ JIRA_FEATURES = {
         },
     },
     "Monetization": {
-        "Midas": {
+        "Plus": {
             "Ads / rewarded ads": ["ads"],
             "Plus": [],
             "Plus reward videos": [],
@@ -139,6 +139,11 @@ JIRA_FEATURES = {
             "Flashcards": [],
             "Shop items": [],
             "New Years Promo": [],
+            "Mistakes inbox": [],
+            "Practice Hub": [],
+            "Mastery / Progress quiz": ["mastery quiz", "progress quiz"],
+            "Family plan": [],
+            "Legendary": [],
         },
         "Poseidon": {
             "In-app purchases": [],
@@ -146,12 +151,9 @@ JIRA_FEATURES = {
             "Gems / Lingots": ["gem", "lingot"],
             "Hard mode": ["challenge"],
         },
-        "Sigma": {
-            "Mistakes inbox": [],
-            "Practice Hub": [],
-            "Mastery / Progress quiz": ["mastery quiz", "progress quiz"],
-            "Family plan": [],
-            "Legendary": [],
+        "Gold": {
+            "Tutors": [],
+            "Gold": [],
         },
     },
     "New Initiatives": {
