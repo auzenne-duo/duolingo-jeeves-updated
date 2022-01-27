@@ -69,21 +69,17 @@ JIRA_FEATURES = {
             "Next lesson ads": [],
         },
     },
-    "Learning": {
-        "Learning Efficiency": {
-            "Decayed Skills": [],
-        },
-    },
     "Learning R&D": {
         "Learning Assesment": {
             "Checkpoint": ["section"],
             "Learning Assessment": ["learning quiz"],
             "Test Out": ["level skip"],
         },
-        "Learning Efficiency": {
+        "Generated Sessions": {
             "Skill tree migration": ["course update"],
             "Crowns": [],
             "Course messaging": [],
+            "Decayed Skills": ["cracked skill", "guilded skill"],
         },
         "New Writing Systems": {
             "Character Bingo": ["drawing"],
@@ -100,9 +96,12 @@ JIRA_FEATURES = {
                 "speech recogni",
             ],
         },
-        "Stories Product": {
+        "Immersive Sessions": {
             "Stories": ["story"],
             "Hoots": [],
+        },
+        "Core v2": {
+            "v2 feedback": ["ios_v2_dev: true"],
         },
         "Speech Lab": {
             "World character voice": [
