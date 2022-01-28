@@ -79,6 +79,9 @@ if [[ $TERRAFORM_ENV == "prod" ]]; then
   . "$PYENV_HOME/bin/activate"
   export PYTHONPATH="$WORKSPACE"
   export SHAKIRA_JIRA_USERNAME_WEB="jira-automation@duolingo.com"
+  set +x
+  export SHAKIRA_JIRA_API_TOKEN_WEB=$(aws secretsmanager get-secret-value --secret-id 'PRODUCT_QUALITY_JIRA_TOKEN' | jq -r '.SecretString')
+  set -x
 
   pip install -U pip wheel setuptools
   pip install -r dev-requirements.txt

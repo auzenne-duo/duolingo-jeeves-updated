@@ -140,6 +140,7 @@ class ShakiraJiraApiClient:
             r.raise_for_status()
         except RequestException as e:
             print_request_exception(e)
+            raise
 
     def _get_metadata_for_specific_issuetype(
         self, project: str, issuetype: str
