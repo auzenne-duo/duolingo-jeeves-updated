@@ -22,6 +22,7 @@ _BIRDS_EYE_MARKER = "Reported via Bird's Eye, shake-to-report"
 
 @attr.s(kw_only=True)
 class JiraDocument(JeevesDocument):
+    _feature_field_key = None
     _duplicate_detector = None
 
     issue_key: str = attr.ib()
@@ -35,6 +36,7 @@ class JiraDocument(JeevesDocument):
     status: str = attr.ib()
     resolution: str = attr.ib()
     components: List[str] = attr.ib()
+    feature_url: str = attr.ib()
     features: List[str] = attr.ib()
     priority: str = attr.ib()
     reporter: str = attr.ib()
@@ -174,6 +176,10 @@ class JiraDocument(JeevesDocument):
         return known_duplicates
 
     @classmethod
+    def set_feature_field_key(cls, feature_field_key: str):
+        cls._feature_field_key = feature_field_key
+
+    @classmethod
     def deserialize_from_external_json(cls, external_json: JSON) -> JeevesDocument:
         """
         Please see parent class for documentation
@@ -239,7 +245,14 @@ class JiraDocument(JeevesDocument):
             if external_fields["resolution"]
             else "",
             components=[comp["name"] for comp in external_fields["components"]],
-            features=[],
+            feature_url=external_fields[cls._feature_field_key]["self"]
+            if cls._feature_field_key is not None
+            and external_fields[cls._feature_field_key] is not None
+            else "",
+            features=[external_fields[cls._feature_field_key]["value"]]
+            if cls._feature_field_key is not None
+            and external_fields[cls._feature_field_key] is not None
+            else [],
             priority=external_fields["priority"]["name"]
             if external_fields["priority"]
             else "NO PRIORITY GIVEN",
@@ -308,6 +321,7 @@ class JiraDocument(JeevesDocument):
             status=internal_json["status"],
             resolution=internal_json["resolution"],
             components=internal_json["components"],
+            feature_url=internal_json["feature_url"],
             features=internal_json["features"],
             priority=internal_json["priority"],
             reporter=internal_json["reporter"],

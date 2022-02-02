@@ -63,6 +63,17 @@ data "aws_kms_secrets" "secrets" {
     }
   }
 
+  secret {
+    name    = "jira_api_token_sqs_worker_1"
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwGSroLp/9augXbYZgl8zilVAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM8DhUs6mtuU6t+pp6AgEQgDOMret+w3cUJdGIxNZ1DF6M33cXjcYlYEJMpI0GzFNUshh3XvLxm37AJSoF5PW1wYLAfbE="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "sqs-worker-1"
+      environment = var.environment
+    }
+  }
 
   secret {
     name    = "spike_reporter_slack_api_token"

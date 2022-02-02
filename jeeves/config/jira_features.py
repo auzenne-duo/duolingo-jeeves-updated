@@ -16,6 +16,9 @@ Notes:
 - Feature names and synonyms are /not/ case-sensitive.
 - The detector will match on substrings, so "notifications" will detect the term "notification".
 - This also means that "question" will detect the term "quest" if quest is included as a synonym.
+
+If you rename a feature on Jira, you must (1) update the feature name in this file, and (2) let the
+team in charge of Jeeves know that their documents have to be refreshed.
 """
 
 JIRA_FEATURES = {

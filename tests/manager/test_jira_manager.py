@@ -293,6 +293,7 @@ class Test(unittest.TestCase):
             "status": "To Do",
             "resolution": "",
             "components": ["Circle Area", "Circle Perimeter"],
+            "feature_url": "",
             "features": [],
             "priority": "Unprioritized",
             "reporter": "Peter Chapman",

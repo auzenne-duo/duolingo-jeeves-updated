@@ -80,6 +80,7 @@ def _jira_document(header="I am a header", body="I am body text"):
         status="Closed",
         resolution="Done",
         components=[],
+        feature_url="",
         features=[],
         priority="High",
         reporter="",

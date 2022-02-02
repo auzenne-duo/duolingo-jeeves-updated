@@ -185,6 +185,14 @@ module "duolingo-jeeves-sqs-worker-1" {
       name  = "PYTHONPATH"
       value = "/code"
     },
+    {
+      name  = "JIRA_USERNAME"
+      value = "jira-automation@duolingo.com"
+    },
+    {
+      name  = "JIRA_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["jira_api_token_sqs_worker_1"]
+    },
   ]
 
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-download-verify.id

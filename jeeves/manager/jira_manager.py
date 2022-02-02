@@ -3,6 +3,7 @@ Manager for JIRA documents.
 """
 import json
 import os
+import sys
 from datetime import datetime
 from typing import Dict, Optional
 
@@ -15,14 +16,72 @@ from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
+from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.error_util import print_request_exception
 
 _USERNAME = os.environ.get("JIRA_USERNAME")
 _API_TOKEN = os.environ.get("JIRA_API_TOKEN")
 
+_JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"]
+_JIRA_ISSUE_TYPE_BUG = "Bug"
+
 
 class JiraManager(JeevesManager):
+    @staticmethod
+    def _try_set_jira_document_feature_field_key():
+        # copied from shakira_jira, because I didn't want to tie the code together
+        url = "https://duolingo.atlassian.net/rest/api/2/issue/createmeta"
+        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+        headers = {"Accept": "application/json"}
+        params = {
+            "expand": "projects.issuetypes.fields",
+            "projectKeys": _JIRA_PROJECTS,
+            "issuetypeNames": _JIRA_ISSUE_TYPE_BUG,
+        }
+
+        try:
+            r = get(url, auth=auth, headers=headers, params=params)
+            r.raise_for_status()
+
+            response_json = json.loads(r.text)
+            issuetypes = [
+                JiraIssueTypeMetaData.from_json(issuetype)
+                for project in response_json["projects"]
+                for issuetype in project["issuetypes"]
+            ]
+            feature_field_keys = {issuetype.feature_field_key() for issuetype in issuetypes}
+            if len(feature_field_keys) == 1:
+                JiraDocument.set_feature_field_key(feature_field_keys.pop())
+            else:
+                print(
+                    f"Expected one unique feature field key, got {len(feature_field_keys)}",
+                    file=sys.stderr,
+                )
+        except RequestException as e:
+            print_request_exception(e)
+
+    @staticmethod
+    def _try_set_features_for_jira_document(doc: JiraDocument):
+        url = doc.feature_url
+        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+        headers = {"Accept": "application/json"}
+
+        try:
+            r = get(url, auth=auth, headers=headers)
+            r.raise_for_status()
+
+            response_json = json.loads(r.text)
+            doc.features = [response_json["value"]]
+        except RequestException as e:
+            print_request_exception(e)
+        except KeyError:
+            print(
+                f"""Unexpected response from Jira Feature URL:
+                {r.text}""",
+                file=sys.stderr,
+            )
+
     @staticmethod
     def get_managed_document_type():
         """
@@ -56,8 +115,7 @@ class JiraManager(JeevesManager):
         # than 1000 issues at a time will only return the first 1000.
         max_issues_per_fetch = 1000
 
-        projects_to_fetch = ["DLAA", "DLAI", "DLAW"]
-        projects_fetch_string = f"project IN ({','.join(projects_to_fetch)}) AND updated > {start_timestamp_millis} AND issueType = Bug ORDER BY updated asc"
+        projects_fetch_string = f"project IN ({','.join(_JIRA_PROJECTS)}) AND updated > {start_timestamp_millis} AND issueType = {_JIRA_ISSUE_TYPE_BUG} ORDER BY updated asc"
 
         url_params = {"fields": "*all", "maxResults": 0, "startAt": 0, "jql": projects_fetch_string}
 
@@ -126,6 +184,7 @@ class JiraManager(JeevesManager):
             r.raise_for_status()
 
             response_JSON = json.loads(r.text)
+            JiraManager._try_set_jira_document_feature_field_key()
             return JiraDocument.deserialize_from_external_json(response_JSON)
 
         except RequestException as e:
@@ -434,7 +493,9 @@ class JiraManager(JeevesManager):
         """
         Please see parent class for documentation.
         """
+        JiraManager._try_set_jira_document_feature_field_key()
         test_doc = JiraDocument.deserialize_from_external_json(doc_json)
+        JiraManager._try_set_features_for_jira_document(test_doc)
         if JiraDocument.check_should_index_document(test_doc):
             return test_doc
         return None
