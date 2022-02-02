@@ -11,7 +11,7 @@ from flask import Blueprint, abort, json, make_response, request, send_from_dire
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.lib.duplicate_graph_resolver import DuplicateGraphResolver
-from jeeves.manager.jira_feature_manager import JiraFeatureManager
+from jeeves.manager.jira_feature_manager import SUBSTRINGS_TO_IGNORE_BY_TERM, JiraFeatureManager
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.shakira import Shakira
 from jeeves.manager.shakira_jira import ShakiraJiraClient
@@ -30,7 +30,9 @@ _DEPLOYED_TIMESTAMP = datetime_to_str(get_utc_today())
 
 _init_timestamp = datetime_to_str(get_utc_today())
 
-_jira_feature_manager = JiraFeatureManager(ShakiraJiraClient, JIRA_FEATURES)
+_jira_feature_manager = JiraFeatureManager(
+    ShakiraJiraClient, JIRA_FEATURES, SUBSTRINGS_TO_IGNORE_BY_TERM
+)
 
 
 @blueprint_api.route("/api/1/hello")

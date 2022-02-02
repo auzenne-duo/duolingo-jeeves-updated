@@ -30,9 +30,13 @@ mock_jira_features = {
     },
 }
 
+mock_substrings_to_ignore_by_term = {
+    "SHAKE-TO-REPORT": ["REPORTED WITH SHAKE-TO-REPORT"],
+}
+
 
 def test_get_features_v1():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features)
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {})
     actual_result = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
 
     case = unittest.TestCase()
@@ -54,7 +58,7 @@ def test_get_features_v1():
 
 
 def test_get_features_by_team_and_area():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features)
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {})
     actual_result = feature_manager.get_features_by_team_and_area()
 
     assert actual_result == [
@@ -118,23 +122,7 @@ test_cases = [
         ["Leaderboard"],
         ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
-    # terms that appear in the field keys of the generated_description should be ignored.
-    (
-        "",
-        "",
-        "Session information:\nSkill tree id: 1234abcd",
-        [],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
-    ),
-    # terms that appear in the field values of the generated_description should be detected.
-    (
-        "",
-        "",
-        "Session information:\nField name: Leaderboard",
-        ["Leaderboard"],
-        ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
-    ),
-    # auto-generated "Reported with shake-to-report" message is not detected.
+    # terms that appear in the "substrings to ignore" should be ignored.
     (
         "Bug",
         "Please fix\n-\nReported with shake-to-report",
@@ -142,13 +130,13 @@ test_cases = [
         [],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
-    # FullStory does not get detected as "story".
+    # terms that appear in ways other than the "substrings to ignore" should be ignored.
     (
-        "",
-        "",
-        "FullStory:\n- session url: https://app.fullstory.com/asdf",
-        [],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        "Bug with shake-to-report",
+        "Please fix\n-\nReported with shake-to-report",
+        "Reported with shake-to-report",
+        ["Shake-to-report"],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree"],
     ),
     # multiple features are detected, no tie.
     (
@@ -183,7 +171,9 @@ test_cases = [
 def test_get_suggested_features(
     summary, description, generated_description, expected_suggestions, expected_others
 ):
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features)
+    feature_manager = JiraFeatureManager(
+        mock_jira_client, mock_jira_features, mock_substrings_to_ignore_by_term
+    )
     actual_result = feature_manager.get_suggested_features(
         ["DLAA", "DLAI", "DLAW"], summary, description, generated_description
     )
@@ -212,7 +202,7 @@ def test_feature_filtering():
         },
     }
 
-    feature_manager = JiraFeatureManager(mock_filtered_jira_client, mock_filtered_jira_features)
+    feature_manager = JiraFeatureManager(mock_filtered_jira_client, mock_filtered_jira_features, {})
     case = unittest.TestCase()
 
     actual_result_features = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])

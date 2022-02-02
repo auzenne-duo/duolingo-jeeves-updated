@@ -20,7 +20,7 @@ to the $DUPLICATE_DETECTOR_MODEL file path:
 import sys
 
 from jeeves.config.jira_features import JIRA_FEATURES
-from jeeves.manager.jira_feature_manager import JiraFeatureManager
+from jeeves.manager.jira_feature_manager import SUBSTRINGS_TO_IGNORE_BY_TERM, JiraFeatureManager
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.shakira_jira import ShakiraJiraClient
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     print(f"Issue description : {jira_doc.body_text}")
     print(f"Issue metadata    : {jira_doc.duolingo_metadata.get('raw')}")
 
-    mgr = JiraFeatureManager(ShakiraJiraClient, JIRA_FEATURES)
+    mgr = JiraFeatureManager(ShakiraJiraClient, JIRA_FEATURES, SUBSTRINGS_TO_IGNORE_BY_TERM)
     suggested_features = mgr.get_suggested_features(
         ["DLAA", "DLAI", "DLAW"],
         summary=jira_doc.header_text,

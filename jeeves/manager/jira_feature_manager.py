@@ -3,8 +3,24 @@ from typing import Dict, List, Optional, Union
 
 from jeeves.manager.shakira import _SHAKIRA_FEATURES_TO_SLACK_CHANNEL
 from jeeves.manager.shakira_jira import ShakiraJiraClient
-from jeeves.model.custom_types import JSON, AreaWithTeamList
-from jeeves.util.cleanup import extract_duolingo_metadata
+from jeeves.model.custom_types import AreaWithTeamList
+
+SUBSTRINGS_TO_IGNORE_BY_TERM = {
+    "ADS": ["READS"],
+    "COURSE": ["COURSE: "],
+    "EDDY": ["FREDDY"],
+    "LEVEL": ["API LEVEL: ", "LEVEL NUMBER: "],
+    "LIN": ["DUOLINGO", "LINE", "LINK"],
+    "PLUS": ["ONEPLUS"],
+    "SKILL TREE": ["SKILL TREE ID: "],
+    "SHAKE-TO-REPORT": [
+        "REPORTED WITH SHAKE-TO-REPORT",
+        "REPORTED VIA BIRD'S EYE, SHAKE-TO-REPORT",
+    ],
+    "STORY": ["FULLSTORY"],
+    "TREE": ["SKILL TREE ID: "],
+    "USERNAME": ["USERNAME: "],
+}
 
 
 class JiraFeatureManager:
@@ -12,6 +28,7 @@ class JiraFeatureManager:
         self,
         jira_client: ShakiraJiraClient,
         features_config: Dict[str, Dict[str, Dict[str, List[str]]]],
+        substrings_to_ignore_by_term: Dict[str, List[str]],
     ):
         """
         Note: the features and synonyms provided in features_config are assumed to be unique, ie
@@ -30,6 +47,7 @@ class JiraFeatureManager:
         self.jira_features_and_synonyms = features_config
         self._feature_to_synonyms = self._get_feature_to_synonyms_mapping()
         self._uppercase_term_to_feature = self._get_uppercase_term_to_feature_mapping()
+        self._substrings_to_ignore_by_term = substrings_to_ignore_by_term
 
     def _get_feature_to_synonyms_mapping(self) -> Dict[str, List[str]]:
         """
@@ -60,26 +78,12 @@ class JiraFeatureManager:
 
         return uppercase_term_to_feature
 
-    @staticmethod
-    def _get_leaf_values(json: JSON) -> str:
-        if isinstance(json, str):
-            return json
-        if isinstance(json, list):
-            return ",".join(json)
-        if isinstance(json, dict):
-            res = ""
-            for value in json.values():
-                res = res + JiraFeatureManager._get_leaf_values(value) + "\n"
-            return res
-
     def _get_valid_features(self, projects: Union[str, List[str]]) -> List[str]:
         """
         Returns a list of features that exist in both the specific Jira project and in the config.
         """
         features_on_jira = self._jira_client.get_features(projects) or []
-        features_in_config = (
-            self._feature_to_synonyms.keys()
-        )  # pylint: disable=consider-iterating-dictionary
+        features_in_config = self._feature_to_synonyms.keys()
         return list(set(features_on_jira) & set(features_in_config))
 
     def get_features_v1(self, projects: Union[str, List[str]]) -> List[str]:
@@ -157,23 +161,23 @@ class JiraFeatureManager:
         if description:
             search_text_uppercase = search_text_uppercase + "\n" + description.upper()
         if generated_description:
-            _, metadata = extract_duolingo_metadata(generated_description)
-            if metadata:
-                metadata.pop("raw")
-            search_text_uppercase = (
-                search_text_uppercase + "\n" + JiraFeatureManager._get_leaf_values(metadata).upper()
-            )
-
-        search_text_uppercase = search_text_uppercase.replace("REPORTED WITH SHAKE-TO-REPORT", "")
-        search_text_uppercase = search_text_uppercase.replace("FULLSTORY", "")
+            search_text_uppercase = search_text_uppercase + "\n" + generated_description.upper()
 
         feature_count = {}
         # Note: this counts substrings that are parts of words
         for term, feature in self._uppercase_term_to_feature.items():
+            search_text_uppercase_clean = search_text_uppercase
+            substrings_to_ignore = SUBSTRINGS_TO_IGNORE_BY_TERM.get(term)
+            if substrings_to_ignore is not None and len(substrings_to_ignore) > 0:
+                for substring in substrings_to_ignore:
+                    search_text_uppercase_clean = search_text_uppercase_clean.replace(substring, "")
+
             if feature in feature_count:
-                feature_count[feature] = feature_count[feature] + search_text_uppercase.count(term)
+                feature_count[feature] = feature_count[feature] + search_text_uppercase_clean.count(
+                    term
+                )
             else:
-                feature_count[feature] = search_text_uppercase.count(term)
+                feature_count[feature] = search_text_uppercase_clean.count(term)
 
         sorted_features_to_counts = sorted(
             feature_count.items(), key=operator.itemgetter(1), reverse=True
