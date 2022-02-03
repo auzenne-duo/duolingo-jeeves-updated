@@ -77,8 +77,8 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
 
   const query = [
     search.get("q") ?? "",
-    area ? `area:${area}` : "",
-    team ? `team:${team}` : "",
+    area ? `area:"${area}"` : "",
+    team ? `team:"${team}"` : "",
   ]
     .filter(term => term)
     .map((term, _i, list) => (list.length > 1 ? `(${term})` : term))
