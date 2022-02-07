@@ -15,7 +15,7 @@ variable "environment" {
 }
 
 variable "owner" {
-  default = "Peter Chapman"
+  default = "Yijin Kang"
 }
 
 variable "ecs_cluster" {
