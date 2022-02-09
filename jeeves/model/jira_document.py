@@ -2,6 +2,7 @@
 Our model for a JIRA issue from the JIRA API
 """
 import datetime
+import sys
 from typing import Dict, List, Union
 
 import attr
@@ -276,6 +277,8 @@ class JiraDocument(JeevesDocument):
 
     @classmethod
     def deserialize_from_internal_json(cls, internal_json: JSON) -> JeevesDocument:
+        if internal_json.get("feature_url") is None:
+            print(f"feature_url is missing for {internal_json['issue_key']}", file=sys.stderr)
         """
         Please see parent class for documentation
         """
@@ -321,7 +324,7 @@ class JiraDocument(JeevesDocument):
             status=internal_json["status"],
             resolution=internal_json["resolution"],
             components=internal_json["components"],
-            feature_url=internal_json["feature_url"],
+            feature_url=internal_json.get("feature_url") or "",
             features=internal_json["features"],
             priority=internal_json["priority"],
             reporter=internal_json["reporter"],

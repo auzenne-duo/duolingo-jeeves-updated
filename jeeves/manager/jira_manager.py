@@ -64,6 +64,9 @@ class JiraManager(JeevesManager):
     @staticmethod
     def _try_set_features_for_jira_document(doc: JiraDocument):
         url = doc.feature_url
+        if url is None or len(url) == 0:
+            return
+
         auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
         headers = {"Accept": "application/json"}
 
