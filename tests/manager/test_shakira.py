@@ -33,10 +33,10 @@ def test_get_slack_report_types():
     case = unittest.TestCase()
     case.assertCountEqual(
         [
-            {"name": "#visual-polish", "alsoPostsToJira": True},
-            {"name": "#feedback-language", "alsoPostsToJira": False},
-            {"name": "#feedback-tts", "alsoPostsToJira": False},
-            {"name": "#feedback-product", "alsoPostsToJira": False},
+            {"name": "Visual polish", "alsoPostsToJira": True},
+            {"name": "Lesson content issue", "alsoPostsToJira": False},
+            {"name": "TTS is missing/mispronounced", "alsoPostsToJira": False},
+            {"name": "Feature request", "alsoPostsToJira": False},
         ],
         result,
     )
@@ -103,7 +103,7 @@ def test_report_issue_to_slack_only_v2():
     shakira_manager.report_issue(
         project="DLAA",
         feature=None,
-        slack_report_type="#feedback-tts",
+        slack_report_type="TTS is missing/mispronounced",
         client_specified_slack_channel_name=None,
         summary="summary",
         description=None,
@@ -167,7 +167,7 @@ def test_report_issue_to_both_v2():
     shakira_manager.report_issue(
         project="DLAA",
         feature="Callouts",
-        slack_report_type="#visual-polish",
+        slack_report_type="Visual polish",
         client_specified_slack_channel_name=None,
         summary="summary",
         description=None,

@@ -16,14 +16,11 @@ _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "Feature request / feedback": SlackChannel.FEEDBACK_PRODUCT,
 }
 
-_SLACK_CHANNELS_THAT_RECEIVE_REPORTS = {
-    channel.name: channel
-    for channel in [
-        SlackChannel.VISUAL_POLISH,
-        SlackChannel.FEEDBACK_LANGUAGE,
-        SlackChannel.FEEDBACK_TTS,
-        SlackChannel.FEEDBACK_PRODUCT,
-    ]
+_SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
+    "Lesson content issue": SlackChannel.FEEDBACK_LANGUAGE,
+    "TTS is missing/mispronounced": SlackChannel.FEEDBACK_TTS,
+    "Visual polish": SlackChannel.VISUAL_POLISH,
+    "Feature request": SlackChannel.FEEDBACK_PRODUCT,
 }
 
 _SLACK_CHANNELS_TO_JIRA_LABELS = {SlackChannel.VISUAL_POLISH: "visual-polish"}
@@ -66,7 +63,7 @@ class ShakiraManager:
                 "name": channel_name,
                 "alsoPostsToJira": channel in _SLACK_CHANNELS_TO_JIRA_LABELS,
             }
-            for channel_name, channel in _SLACK_CHANNELS_THAT_RECEIVE_REPORTS.items()
+            for channel_name, channel in _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL.items()
         ]
 
     def report_issue(
@@ -120,7 +117,7 @@ class ShakiraManager:
             if client_specified_slack_channel_name
             else None
         )
-        slack_channel_from_slack_report_type = _SLACK_CHANNELS_THAT_RECEIVE_REPORTS.get(
+        slack_channel_from_slack_report_type = _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL.get(
             slack_report_type
         )
         slack_channel_from_feature = _SHAKIRA_FEATURES_TO_SLACK_CHANNEL.get(feature)
