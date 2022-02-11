@@ -353,7 +353,7 @@ class ElasticsearchDAL:
         if lang:
             s = s.filter("term", language=lang)
         if data_source:
-            s = s.filter("term", data_source=data_source)
+            s = s.filter("term", data_source__keyword=data_source)
         s.aggs.metric("most_recent_timestamp", "max", field="date_time")
 
         response = s.execute()
@@ -696,7 +696,7 @@ class ElasticsearchDAL:
             raise Exception("Duplicate detection is currently only supported for JIRA issues!")
 
         s = Search(using=self._es, index=self._indexname)
-        s = s.filter("term", data_source=base_document.data_source)
+        s = s.filter("term", data_source__keyword=base_document.data_source)
         s = s.filter("term", issue_type__keyword="Bug")
         if should_filter_project:
             s = s.filter("term", project__keyword=base_document.project)
