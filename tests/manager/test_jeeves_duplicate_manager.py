@@ -81,6 +81,7 @@ def _jira_document(header="I am a header", body="I am body text"):
         resolution="Done",
         components=[],
         feature_url="",
+        feature="",
         features=[],
         priority="High",
         reporter="",

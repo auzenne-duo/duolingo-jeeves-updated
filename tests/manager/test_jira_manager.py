@@ -294,6 +294,7 @@ class Test(unittest.TestCase):
             "resolution": "",
             "components": ["Circle Area", "Circle Perimeter"],
             "feature_url": "",
+            "feature": "",
             "features": [],
             "priority": "Unprioritized",
             "reporter": "Peter Chapman",

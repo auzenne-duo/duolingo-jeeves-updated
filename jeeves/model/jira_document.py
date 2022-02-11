@@ -38,6 +38,7 @@ class JiraDocument(JeevesDocument):
     resolution: str = attr.ib()
     components: List[str] = attr.ib()
     feature_url: str = attr.ib()
+    feature: str = attr.ib()
     features: List[str] = attr.ib()
     priority: str = attr.ib()
     reporter: str = attr.ib()
@@ -250,6 +251,10 @@ class JiraDocument(JeevesDocument):
             if cls._feature_field_key is not None
             and external_fields[cls._feature_field_key] is not None
             else "",
+            feature=external_fields[cls._feature_field_key]["value"]
+            if cls._feature_field_key is not None
+            and external_fields[cls._feature_field_key] is not None
+            else "",
             features=[external_fields[cls._feature_field_key]["value"]]
             if cls._feature_field_key is not None
             and external_fields[cls._feature_field_key] is not None
@@ -324,7 +329,8 @@ class JiraDocument(JeevesDocument):
             status=internal_json["status"],
             resolution=internal_json["resolution"],
             components=internal_json["components"],
-            feature_url=internal_json.get("feature_url") or "",
+            feature_url=internal_json.get("feature_url", ""),
+            feature=internal_json.get("feature", ""),
             features=internal_json["features"],
             priority=internal_json["priority"],
             reporter=internal_json["reporter"],

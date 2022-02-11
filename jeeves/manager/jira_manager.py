@@ -62,7 +62,7 @@ class JiraManager(JeevesManager):
             print_request_exception(e)
 
     @staticmethod
-    def _try_set_features_for_jira_document(doc: JiraDocument):
+    def _try_set_feature_for_jira_document(doc: JiraDocument):
         url = doc.feature_url
         if url is None or len(url) == 0:
             return
@@ -76,6 +76,7 @@ class JiraManager(JeevesManager):
 
             response_json = json.loads(r.text)
             doc.features = [response_json["value"]]
+            doc.feature = response_json["value"]
         except RequestException as e:
             print_request_exception(e)
         except KeyError:
@@ -498,7 +499,7 @@ class JiraManager(JeevesManager):
         """
         JiraManager._try_set_jira_document_feature_field_key()
         test_doc = JiraDocument.deserialize_from_external_json(doc_json)
-        JiraManager._try_set_features_for_jira_document(test_doc)
+        JiraManager._try_set_feature_for_jira_document(test_doc)
         if JiraDocument.check_should_index_document(test_doc):
             return test_doc
         return None
