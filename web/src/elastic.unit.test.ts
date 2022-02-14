@@ -9,7 +9,7 @@ describe("transformQuery", () => {
       },
     ];
     expect(transformQuery("area:Platform", areas)).toBe(
-      "feature:(a OR b OR c)",
+      "feature.keyword:(a OR b OR c)",
     );
   });
 
@@ -24,7 +24,7 @@ describe("transformQuery", () => {
       },
     ];
     expect(transformQuery('area:"Product Quality"', areas)).toBe(
-      "feature:(a OR b OR c)",
+      "feature.keyword:(a OR b OR c)",
     );
   });
 
@@ -49,7 +49,7 @@ describe("transformQuery", () => {
         "area:Monetization OR team:Delight OR team:Artemis OR team:Midas",
         areas,
       ),
-    ).toBe("feature:(a OR b)");
+    ).toBe("feature.keyword:(a OR b)");
   });
 
   it("handles teams with a single feature", () => {
@@ -59,7 +59,9 @@ describe("transformQuery", () => {
         teams: [{ features: ["a"], team_name: "Service Quality" }],
       },
     ];
-    expect(transformQuery('team:"Service Quality"', areas)).toBe("feature:a");
+    expect(transformQuery('team:"Service Quality"', areas)).toBe(
+      "feature.keyword:a",
+    );
   });
 
   it("handles features with spaces", () => {
@@ -70,7 +72,7 @@ describe("transformQuery", () => {
       },
     ];
     expect(transformQuery('team:"Service Quality"', areas)).toBe(
-      "feature:(foo\\ bar OR baz)",
+      "feature.keyword:(foo\\ bar OR baz)",
     );
   });
 
@@ -91,7 +93,7 @@ describe("transformQuery", () => {
         areas,
       ),
     ).toBe(
-      "feature:(a OR b OR c OR d OR e) AND (feature:(a OR b) OR feature:c)",
+      "feature.keyword:(a OR b OR c OR d OR e) AND (feature.keyword:(a OR b) OR feature.keyword:c)",
     );
   });
 
@@ -110,16 +112,16 @@ describe("transformQuery", () => {
       },
     ];
     expect(transformQuery("area:(Platform)", areas)).toBe(
-      "feature:(a OR b OR c)",
+      "feature.keyword:(a OR b OR c)",
     );
     expect(transformQuery("area:(Platform OR Product\\ Quality)", areas)).toBe(
-      "feature:(a OR b OR c) OR feature:(d OR e OR f)",
+      "feature.keyword:(a OR b OR c) OR feature.keyword:(d OR e OR f)",
     );
     expect(
       transformQuery(
         "area:(Platform OR Foo OR Bar OR Baz OR Product\\ Quality)",
         areas,
       ),
-    ).toBe("feature:(a OR b OR c) OR feature:(d OR e OR f)");
+    ).toBe("feature.keyword:(a OR b OR c) OR feature.keyword:(d OR e OR f)");
   });
 });

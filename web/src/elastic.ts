@@ -108,13 +108,13 @@ export const transformQuery = (query: string, areas: JSONAPI.Area[]) => {
       if (features?.length === 1) {
         // Replace the field node with another field node expression.
         node.parent[branch] = {
-          field: "feature",
+          field: "feature.keyword",
           term: escapeTerm(features[0]),
         };
       } else if (features?.length) {
         // Replace the field node with a parenthesized node expression.
         node.parent[branch] = {
-          field: "feature",
+          field: "feature.keyword",
           parenthesized: true,
           ...buildParenthesizedNode(features),
         };
