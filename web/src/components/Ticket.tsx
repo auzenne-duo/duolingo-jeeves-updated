@@ -181,6 +181,18 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
           </div>
         </section>
       ) : null}
+      {ticket.feature ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Feature</span>
+          <div>
+            <TagFilter
+              className={styles.tag}
+              field="feature.keyword"
+              value={ticket.feature}
+            />
+          </div>
+        </section>
+      ) : null}
       {duplicates?.length ? (
         <section className={styles.section}>
           <span

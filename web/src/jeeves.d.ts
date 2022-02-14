@@ -119,6 +119,8 @@ declare namespace JSONAPI {
     duolingo_metadata: {
       raw?: string;
     };
+    /** Feature field of a Jira ticket. */
+    feature?: string;
     /** Title, subject line, etc. */
     header_text?: string;
     /** The issue key of a Jira ticket. */
