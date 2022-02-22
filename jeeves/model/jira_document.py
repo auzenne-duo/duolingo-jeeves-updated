@@ -39,7 +39,6 @@ class JiraDocument(JeevesDocument):
     components: List[str] = attr.ib()
     feature_url: str = attr.ib()
     feature: str = attr.ib()
-    features: List[str] = attr.ib()
     priority: str = attr.ib()
     reporter: str = attr.ib()
     assignee: str = attr.ib()
@@ -255,10 +254,6 @@ class JiraDocument(JeevesDocument):
             if cls._feature_field_key is not None
             and external_fields[cls._feature_field_key] is not None
             else "",
-            features=[external_fields[cls._feature_field_key]["value"]]
-            if cls._feature_field_key is not None
-            and external_fields[cls._feature_field_key] is not None
-            else [],
             priority=external_fields["priority"]["name"]
             if external_fields["priority"]
             else "NO PRIORITY GIVEN",
@@ -331,7 +326,6 @@ class JiraDocument(JeevesDocument):
             components=internal_json["components"],
             feature_url=internal_json.get("feature_url", ""),
             feature=internal_json.get("feature", ""),
-            features=internal_json["features"],
             priority=internal_json["priority"],
             reporter=internal_json["reporter"],
             assignee=internal_json["assignee"],

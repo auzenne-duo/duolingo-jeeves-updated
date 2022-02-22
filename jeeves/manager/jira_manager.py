@@ -75,7 +75,6 @@ class JiraManager(JeevesManager):
             r.raise_for_status()
 
             response_json = json.loads(r.text)
-            doc.features = [response_json["value"]]
             doc.feature = response_json["value"]
         except RequestException as e:
             print_request_exception(e)

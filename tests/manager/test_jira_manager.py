@@ -295,7 +295,6 @@ class Test(unittest.TestCase):
             "components": ["Circle Area", "Circle Perimeter"],
             "feature_url": "",
             "feature": "",
-            "features": [],
             "priority": "Unprioritized",
             "reporter": "Peter Chapman",
             "assignee": "UNASSIGNED",

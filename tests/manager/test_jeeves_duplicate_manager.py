@@ -82,7 +82,6 @@ def _jira_document(header="I am a header", body="I am body text"):
         components=[],
         feature_url="",
         feature="",
-        features=[],
         priority="High",
         reporter="",
         assignee="",
