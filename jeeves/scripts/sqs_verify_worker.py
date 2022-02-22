@@ -1,7 +1,9 @@
 import json
 import random
+import sys
 from typing import List
 
+import rollbar
 from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 
@@ -47,51 +49,54 @@ def _check_for_data_source(messages: List[sqs.SQSMessage]) -> bool:
 
 
 if __name__ == "__main__":
-    sqs_client_input = sqs.SQSClient(
-        _config.get_nested(["sqs_download_verify_pipeline", "queue_url"]),
-        region_name=_config.get_nested(["sqs_download_verify_pipeline", "region_name"]),
-        endpoint_url=_config.get_nested(["sqs_download_verify_pipeline", "endpoint_url"]),
-    )
-    sqs_client_output = sqs.SQSClient(
-        _config.get_nested(["sqs_verify_index_pipeline", "queue_url"]),
-        region_name=_config.get_nested(["sqs_verify_index_pipeline", "region_name"]),
-        endpoint_url=_config.get_nested(["sqs_verify_index_pipeline", "endpoint_url"]),
-    )
+    try:
+        sqs_client_input = sqs.SQSClient(
+            _config.get_nested(["sqs_download_verify_pipeline", "queue_url"]),
+            region_name=_config.get_nested(["sqs_download_verify_pipeline", "region_name"]),
+            endpoint_url=_config.get_nested(["sqs_download_verify_pipeline", "endpoint_url"]),
+        )
+        sqs_client_output = sqs.SQSClient(
+            _config.get_nested(["sqs_verify_index_pipeline", "queue_url"]),
+            region_name=_config.get_nested(["sqs_verify_index_pipeline", "region_name"]),
+            endpoint_url=_config.get_nested(["sqs_verify_index_pipeline", "endpoint_url"]),
+        )
 
-    while True:
-        messages = sqs_client_input.receive_messages(MessageAttributeNames=["All"])
+        while True:
+            messages = sqs_client_input.receive_messages(MessageAttributeNames=["All"])
 
-        # If one or more received messages are missing their data_source,
-        # continue to next loop iteration so we can query this same batch later
-        if not _check_for_data_source(messages):
-            continue
-
-        passable_docs = []
-        for m in messages:
-            message_attrs = m.message_attributes
-            if not message_attrs:
+            # If one or more received messages are missing their data_source,
+            # continue to next loop iteration so we can query this same batch later
+            if not _check_for_data_source(messages):
                 continue
-            manager_name = ""
-            for m_attr in message_attrs:
-                if m_attr.name == "data_source":
-                    manager_name = m_attr.value
-            manager = IDManagerMap.get_manager_for_identifier(manager_name)
-            if not manager:
-                continue
-            doc_json = json.loads(m.message_body)
-            processed_doc = manager.process_document(doc_json)
-            if processed_doc:
-                passable_docs.append(processed_doc)
 
-        output_messages = [
-            sqs.SQSMessage(
-                message_id=f"{doc.jeeves_uid}_{random.randint(1,100000)}",
-                message_body=json.dumps(doc.serialize_to_json(doc), cls=JeevesJSONEncoder),
-            )
-            for doc in passable_docs
-        ]
-        if output_messages:
-            sqs_client_output.send_messages(output_messages)
+            passable_docs = []
+            for m in messages:
+                message_attrs = m.message_attributes
+                if not message_attrs:
+                    continue
+                manager_name = ""
+                for m_attr in message_attrs:
+                    if m_attr.name == "data_source":
+                        manager_name = m_attr.value
+                manager = IDManagerMap.get_manager_for_identifier(manager_name)
+                if not manager:
+                    continue
+                doc_json = json.loads(m.message_body)
+                processed_doc = manager.process_document(doc_json)
+                if processed_doc:
+                    passable_docs.append(processed_doc)
 
-        if messages:
-            sqs_client_input.delete_messages(messages)
+            output_messages = [
+                sqs.SQSMessage(
+                    message_id=f"{doc.jeeves_uid}_{random.randint(1,100000)}",
+                    message_body=json.dumps(doc.serialize_to_json(doc), cls=JeevesJSONEncoder),
+                )
+                for doc in passable_docs
+            ]
+            if output_messages:
+                sqs_client_output.send_messages(output_messages)
+
+            if messages:
+                sqs_client_input.delete_messages(messages)
+    except:
+        rollbar.report_exc_info(sys.exc_info())

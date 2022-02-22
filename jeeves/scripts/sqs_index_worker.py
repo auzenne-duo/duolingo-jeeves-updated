@@ -1,5 +1,7 @@
 import json
+import sys
 
+import rollbar
 from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 
@@ -30,29 +32,32 @@ def _message_to_document(message):
 
 
 if __name__ == "__main__":
-    sqs_client = sqs.SQSClient(
-        _config.get_nested(["sqs_verify_index_pipeline", "queue_url"]),
-        region_name=_config.get_nested(["sqs_verify_index_pipeline", "region_name"]),
-        endpoint_url=_config.get_nested(["sqs_verify_index_pipeline", "endpoint_url"]),
-    )
+    try:
+        sqs_client = sqs.SQSClient(
+            _config.get_nested(["sqs_verify_index_pipeline", "queue_url"]),
+            region_name=_config.get_nested(["sqs_verify_index_pipeline", "region_name"]),
+            endpoint_url=_config.get_nested(["sqs_verify_index_pipeline", "endpoint_url"]),
+        )
 
-    duplicate_manager = JeevesDuplicateManager(ElasticDAL)
+        duplicate_manager = JeevesDuplicateManager(ElasticDAL)
 
-    batch_list = []
-    while True:
-        messages = sqs_client.receive_messages()
-        print(f"Received {len(messages)} messages in batch", flush=True)
-        documents = [_message_to_document(m) for m in messages]
-        documents_deduped = duplicate_manager.dedup_document_batch(documents)
-        for doc in documents_deduped:
-            if doc.check_should_index_document(
-                doc
-            ) and not duplicate_manager.recent_duplicate_exists(doc):
-                batch_list.append(doc)
+        batch_list = []
+        while True:
+            messages = sqs_client.receive_messages()
+            print(f"Received {len(messages)} messages in batch", flush=True)
+            documents = [_message_to_document(m) for m in messages]
+            documents_deduped = duplicate_manager.dedup_document_batch(documents)
+            for doc in documents_deduped:
+                if doc.check_should_index_document(
+                    doc
+                ) and not duplicate_manager.recent_duplicate_exists(doc):
+                    batch_list.append(doc)
 
-        if messages:
-            sqs_client.delete_messages(messages)
+            if messages:
+                sqs_client.delete_messages(messages)
 
-        if len(batch_list) >= _BATCH_GROUP_SIZE:
-            tc.perform_checkpoint(batch_list)
-            batch_list = []
+            if len(batch_list) >= _BATCH_GROUP_SIZE:
+                tc.perform_checkpoint(batch_list)
+                batch_list = []
+    except:
+        rollbar.report_exc_info(sys.exc_info())

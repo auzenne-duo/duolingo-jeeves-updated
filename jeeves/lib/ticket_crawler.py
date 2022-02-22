@@ -13,6 +13,7 @@ from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import (
     date_to_str,
+    datetime_to_str,
     get_n_days_ago,
     get_utc_today,
     yield_intermediate_dates,
@@ -147,16 +148,20 @@ def _crawl_documents_for_data_source(
                  subclass of JeevesDocuments.
     """
 
-    latest_timestamp = ElasticDAL.get_most_recent_timestamp(
-        data_source=manager.get_managed_document_type().get_data_source_identifier()
-    )
+    data_source_identifier = manager.get_managed_document_type().get_data_source_identifier()
+    print(f"Finding latest indexed timestamp for data source {data_source_identifier}", flush=True)
+    latest_timestamp = ElasticDAL.get_most_recent_timestamp(data_source=data_source_identifier)
     any_documents_indexed = bool(latest_timestamp)
 
     if not any_documents_indexed:
+        print(
+            f"Didn't find any documents indexed for data source {data_source_identifier}. Will index documents starting from {date_to_str(_THRESHOLD_DATE)}",
+            flush=True,
+        )
         latest_timestamp = _THRESHOLD_DATE.timestamp()
 
     print(
-        f"Update starting for {manager.get_managed_document_type().get_data_source_identifier()}",
+        f"Update starting for {data_source_identifier}",
         flush=True,
     )
 
@@ -164,7 +169,7 @@ def _crawl_documents_for_data_source(
     updater(s3_client, s3_bucket_name, _THRESHOLD_DATE.timestamp())
 
     print(
-        f"Update complete for {manager.get_managed_document_type().get_data_source_identifier()}",
+        f"Update complete for {data_source_identifier}",
         flush=True,
     )
 
@@ -178,7 +183,11 @@ def _crawl_documents_for_data_source(
     # data should be exported.
 
     s3_latest_timestamp = manager.get_most_recent_s3_populated_date(s3_client, s3_bucket_name)
-    s3_path_stem = f"{manager.get_managed_document_type().get_data_source_identifier()}"
+    s3_path_stem = f"{data_source_identifier}"
+    print(
+        f"Sending {data_source_identifier} documents from {datetime_to_str(datetime.fromtimestamp(latest_timestamp))} to {datetime_to_str(s3_latest_timestamp)} to SQS",
+        flush=True,
+    )
     for inter_date in yield_intermediate_dates(
         datetime.fromtimestamp(latest_timestamp).date(), s3_latest_timestamp.date()
     ):
@@ -226,6 +235,11 @@ def crawl_tickets() -> None:
         print("Forcefully refreshing all documents from S3", flush=True)
         for manager in IDManagerMap.get_all_managers():
             s3_path_stem = manager.get_managed_document_type().get_data_source_identifier()
+            document_count = 0
             for s3_file in s3_client.yield_filenames(s3_bucket_name, path_prefix=s3_path_stem):
+                if document_count % 1000 == 0:
+                    print(f"{document_count} {s3_path_stem} documents refreshed", flush=True)
                 if s3_file != manager.get_checkpoint_file_name():
                     _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
+                    document_count += 1
+            print(f"Finished refreshing documents from {s3_path_stem}", flush=True)

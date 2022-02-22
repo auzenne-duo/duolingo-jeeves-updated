@@ -1,6 +1,8 @@
 import json
 import os
+import sys
 
+import rollbar
 from duolingo_base.config import Config
 from requests import post
 from requests.exceptions import RequestException
@@ -77,20 +79,24 @@ def generate_slack_message(top_spikes):
 
 
 if __name__ == "__main__":
-    url = f"{_SLACK_API}/chat.postMessage"
-    headers = {
-        "Authorization": f"Bearer {_SLACK_API_TOKEN}",
-        "Content-Type": "application/json; charset=utf-8",
-    }
-    slack_message = generate_slack_message(get_top_spikes_yesterday())
-
-    for slack_channel in _SLACK_CHANNELS:
-        data = {
-            "channel": slack_channel.channel_id,
-            "blocks": slack_message,
+    try:
+        url = f"{_SLACK_API}/chat.postMessage"
+        headers = {
+            "Authorization": f"Bearer {_SLACK_API_TOKEN}",
+            "Content-Type": "application/json; charset=utf-8",
         }
-        try:
-            r = post(url, headers=headers, data=json.dumps(data))
-            r.raise_for_status()
-        except RequestException as e:
-            print_request_exception(e)
+        slack_message = generate_slack_message(get_top_spikes_yesterday())
+
+        for slack_channel in _SLACK_CHANNELS:
+            data = {
+                "channel": slack_channel.channel_id,
+                "blocks": slack_message,
+            }
+            try:
+                r = post(url, headers=headers, data=json.dumps(data))
+                r.raise_for_status()
+            except RequestException as e:
+                print_request_exception(e)
+                rollbar.report_exc_info(sys.exc_info())
+    except:
+        rollbar.report_exc_info(sys.exc_info())

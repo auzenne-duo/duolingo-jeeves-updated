@@ -1,5 +1,7 @@
+import sys
 from datetime import datetime, timedelta, timezone
 
+import rollbar
 from duolingo_base.config import Config
 from duolingo_base.dal import s3
 
@@ -138,4 +140,7 @@ def run_spike_worker() -> None:
 
 
 if __name__ == "__main__":
-    run_spike_worker()
+    try:
+        run_spike_worker()
+    except:
+        rollbar.report_exc_info(sys.exc_info())
