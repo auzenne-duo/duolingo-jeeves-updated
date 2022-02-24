@@ -1,5 +1,6 @@
 import sys
 
+from elasticsearch_dsl.response import Response
 from requests.exceptions import RequestException
 
 
@@ -13,3 +14,22 @@ def print_request_exception(e: RequestException):
         """,
         file=sys.stderr,
     )
+
+
+class SearchUnsuccessfulException(Exception):
+    """Exception raised for unsuccessful Elasticsearch searches
+
+    Attributes:
+        response -- the response returned from the call the execute().
+        search_description -- a short description of what we were trying to search for.
+    """
+
+    def __init__(self, response: Response, search_description: str):
+        self.response = response
+        self.search_description = search_description
+        super().__init__()
+
+    def __str__(self):
+        return f"""Search '{self.search_description}' failed.
+Here's what the call to execute() returned:
+{self.response.to_dict()}"""

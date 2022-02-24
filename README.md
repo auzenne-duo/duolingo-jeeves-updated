@@ -63,7 +63,7 @@ To proxy API requests to https://jeeves.duolingo.com, run `make web-proxy`.
 
 ### Slack Reporting
 
-- Set the `SLACK_POST_URL` environment variable, or comment out the code that makes the request to the Slack API.
+- Set the `SPIKE_REPORTER_SLACK_API_TOKEN` environment variable, or comment out the code that makes the request to the Slack API.
 - Run the steps above to set up the Python virtual environment
 - Run `./env/bin/python ./jeeves/scripts/slack.py`
 

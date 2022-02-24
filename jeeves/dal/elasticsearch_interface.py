@@ -15,6 +15,7 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str
+from jeeves.util.error_util import SearchUnsuccessfulException
 
 _config = Config.load_config()
 
@@ -560,6 +561,7 @@ class ElasticsearchDAL:
             See documentation for bulk_index_spikes for a description of spike
             format.
         """
+        print(f"Yielding {num_spikes} {spike_group.name} spikes from {date_str}")
         # If x <= y and x >= y, then we must have x == y
         timestamp_dict = {"gte": date_str, "lte": date_str}
         s = (
@@ -570,7 +572,11 @@ class ElasticsearchDAL:
             .sort("-score")
         )
         s = s[0:num_spikes]
-        for hit in s.execute():
+        response = s.execute()
+
+        if not response.success():
+            raise SearchUnsuccessfulException(response, "yield spikes on date")
+        for hit in response:
             yield hit
 
     def yield_spikes_in_date_range(

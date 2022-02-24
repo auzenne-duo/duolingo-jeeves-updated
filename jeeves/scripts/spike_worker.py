@@ -12,7 +12,7 @@ from jeeves.lib.spike_detector import (  # pylint: disable=E0401
 )
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES  # pylint: disable=E0401
 from jeeves.util.date_util import get_utc_today  # pylint: disable=E0401
-from jeeves.util.date_util import str_to_date, yield_intermediate_dates
+from jeeves.util.date_util import date_to_str, str_to_date, yield_intermediate_dates
 
 _config = Config.load_config()
 _config.apply_logging()
@@ -129,6 +129,10 @@ def run_spike_worker() -> None:
         most_recent_spike_date = str_to_date(min_max_spike_dates["max"])
         todays_date = get_utc_today().date()
 
+        print(
+            f"Running incremental spike detection for dates {date_to_str(most_recent_spike_date)} to {date_to_str(todays_date)}",
+            flush=True,
+        )
         for inter_date in yield_intermediate_dates(most_recent_spike_date, todays_date):
             split_beta_batches_and_run_for_date(inter_date)
     finally:

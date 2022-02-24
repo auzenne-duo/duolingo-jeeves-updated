@@ -102,6 +102,7 @@ def run_spike_detector_for_batch(
         spike_group (SpikeCategory): Indicator for which types of documents
                                      are in the current batch.
     """
+    print(f"Running spike detection for a batch of {spike_group.name} tickets")
     # Since spike detection is split up by language, we need to separate tickets
     # and dates into different language buckets
     new_ticket_dates_per_lang = dict.fromkeys(SUPPORTED_LANGUAGES.__members__, set())
@@ -211,6 +212,7 @@ def _find_spiked_words(lang, word_to_date_to_count, target_dt):
         (_calculate_spike_score(date_to_count, target_dt), word)
         for word, date_to_count in word_to_date_to_count.items()
     ]
+    print(f"Calculated spike scores for {len(score_word_pairs)} words", flush=True)
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
     result = [
         {"word": word, "score": score, "date": target_date_str, "lang": lang}
