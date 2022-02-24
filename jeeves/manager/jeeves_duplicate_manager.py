@@ -40,6 +40,7 @@ class JeevesDuplicateManager:
             f'header_text: "{_clean_up_query_string(doc.header_text)}"'
             + f' AND body_text: "{_clean_up_query_string(doc.body_text)}"'
             + f' AND via.source.from.address: "{doc.via["source"]["from"]["address"]}"'
+            + f' AND NOT jeeves_uid: "{doc.jeeves_uid}"'
         )
         return (
             len(
