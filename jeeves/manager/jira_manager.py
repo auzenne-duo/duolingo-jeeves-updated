@@ -86,6 +86,13 @@ class JiraManager(JeevesManager):
             )
 
     @staticmethod
+    def _get_attachment_url(attachment_json: JSON):
+        # YK 2022-02-25 This is a hack to get a URL that has a file extension at the end of it but
+        # I don't think this URL is part of the official API so it might suddenly stop working.
+        # Ideally we should store attachments in our own S3 (DEL-852).
+        return f"https://duolingo.atlassian.net/secure/attachment/{attachment_json['id']}/{attachment_json['filename']}"
+
+    @staticmethod
     def get_managed_document_type():
         """
         Please see parent class for documentation
@@ -141,7 +148,7 @@ class JiraManager(JeevesManager):
                         attachments = []
                         if "attachment" in issue["fields"]:
                             for attachment_json in issue["fields"]["attachment"]:
-                                attachments.append(attachment_json["content"])
+                                attachments.append(JiraManager._get_attachment_url(attachment_json))
                         issue["attachments"] = attachments
                         # Store to S3
                         issue_updated_time = parse_external_datetime(issue["fields"]["updated"])
