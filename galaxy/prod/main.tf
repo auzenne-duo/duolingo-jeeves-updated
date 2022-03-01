@@ -161,7 +161,7 @@ module "duolingo-jeeves-worker-cron" {
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "worker-cron.json"
   cookie_secret        = data.aws_kms_secrets.secrets.plaintext["spike_reporter_slack_api_token"]
-  schedule_expression  = "cron(0 8 * * ? *)"
+  schedule_expression  = "cron(0 9 * * ? *)"
   release_version      = var.release_version
 }
 
