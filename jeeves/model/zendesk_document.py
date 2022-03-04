@@ -185,6 +185,7 @@ class ZendeskDocument(JeevesDocument):
             "closed_by_merge",
             "accommodation",
             "accommodation_request",
+            "host",
         }
 
         if document.via["channel"] == "chat":
