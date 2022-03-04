@@ -146,6 +146,7 @@ JIRA_FEATURES = {
             "Mastery / Progress quiz": ["mastery quiz", "progress quiz"],
             "Family plan": [],
             "Legendary": [],
+            "Super": [],
         },
         "Poseidon": {
             "In-app purchases": ["shop"],
