@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, DefaultDict, List
 from uuid import uuid4
 
+import rollbar
 from duolingo_base.config import Config
 from duolingo_base.dal import s3, sqs
 
@@ -154,10 +155,9 @@ def _crawl_documents_for_data_source(
     any_documents_indexed = bool(latest_timestamp)
 
     if not any_documents_indexed:
-        print(
-            f"Didn't find any documents indexed for data source {data_source_identifier}. Will index documents starting from {date_to_str(_THRESHOLD_DATE)}",
-            flush=True,
-        )
+        message = f"Didn't find any documents indexed for data source {data_source_identifier}. Will index documents starting from {date_to_str(_THRESHOLD_DATE)}"
+        print(message, flush=True)
+        rollbar.report_message(message, "warning")
         latest_timestamp = _THRESHOLD_DATE.timestamp()
 
     print(

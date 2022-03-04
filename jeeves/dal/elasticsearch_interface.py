@@ -2,6 +2,7 @@ import sys
 from datetime import date, datetime
 from typing import Dict, Iterator, List, Optional, Set, Union
 
+import rollbar
 from duolingo_base.config import Config
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
@@ -82,6 +83,7 @@ class ElasticsearchDAL:
             }
 
             self._es.indices.create(index=self._indexname, body=index_creation_structure)
+            rollbar.report_message("Created index {self._indexname} with new mappings", "info")
 
         if not self._es.indices.exists(index=self._spikename):
             self._es.indices.create(index=self._spikename)
@@ -90,6 +92,7 @@ class ElasticsearchDAL:
             m.field("lang", "keyword")
             m.field("spike_group", "keyword")
             m.save(self._spikename, using=self._es)
+            rollbar.report_message("Created index {self._spikename} with new mappings", "info")
 
     def _execute_search_for_documents(self, s: Search) -> List[JeevesDocument]:
         """
@@ -354,7 +357,7 @@ class ElasticsearchDAL:
         if lang:
             s = s.filter("term", language=lang)
         if data_source:
-            s = s.filter("term", data_source__keyword=data_source)
+            s = s.filter("term", data_source=data_source)
         s.aggs.metric("most_recent_timestamp", "max", field="date_time")
 
         response = s.execute()
@@ -702,7 +705,7 @@ class ElasticsearchDAL:
             raise Exception("Duplicate detection is currently only supported for JIRA issues!")
 
         s = Search(using=self._es, index=self._indexname)
-        s = s.filter("term", data_source__keyword=base_document.data_source)
+        s = s.filter("term", data_source=base_document.data_source)
         s = s.filter("term", issue_type__keyword="Bug")
         if should_filter_project:
             s = s.filter("term", project__keyword=base_document.project)
