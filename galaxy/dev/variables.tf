@@ -25,5 +25,5 @@ variable "ecs_cluster" {
 variable "office_cidr_blocks" {
   type        = list(string)
   description = "List of CIDR blocks for office addresses/subnets"
-  default     = ["10.1.0.0/16", "10.10.0.0/24", "10.11.0.0/24", "10.12.0.0/24"]
+  default     = ["10.1.0.0/16", "10.10.0.0/24", "10.11.0.0/24", "10.12.0.0/24", "10.30.0.0/16"]
 }
