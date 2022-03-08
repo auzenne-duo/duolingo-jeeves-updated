@@ -13,7 +13,11 @@ mock_jira_client.get_features = MagicMock(
 
 mock_jira_features = {
     "Area A": {
-        "Team 1": {"Leaderboard": ["League"], "Streak": [], "Stories": ["Story"]},
+        "Team 1": {
+            "Leaderboard": ["League", "*current_screen*: ldrbrd"],
+            "Streak": [],
+            "Stories": ["Story"],
+        },
     },
     "Area B": {
         "Team 2": {
@@ -122,6 +126,14 @@ test_cases = [
         ["Leaderboard"],
         ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
+    # synonym with colon, underscore, and markdown is detected in generated_description.
+    (
+        "Bug",
+        "Please fix.",
+        "*current_screen*: ldrbrd",
+        ["Leaderboard"],
+        ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
     # terms that appear in the "substrings to ignore" should be ignored.
     (
         "Bug",
@@ -130,7 +142,7 @@ test_cases = [
         [],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
-    # terms that appear in ways other than the "substrings to ignore" should be ignored.
+    # terms that appear in ways other than the "substrings to ignore" should be detected.
     (
         "Bug with shake-to-report",
         "Please fix\n-\nReported with shake-to-report",

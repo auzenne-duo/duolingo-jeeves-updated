@@ -104,7 +104,7 @@ JIRA_FEATURES = {
             "Hoots": [],
         },
         "Core v2": {
-            "v2 feedback": ["ios_v2_dev: true"],
+            "v2 feedback": ["ios_v2_dev: true", "*ios_v2_dev*: true"],
         },
         "Speech Lab": {
             "World character voice": [
