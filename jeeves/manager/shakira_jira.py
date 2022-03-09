@@ -40,6 +40,18 @@ class ShakiraJiraApiClient:
         """
         return f"{_HOST}/browse/{issue_key}"
 
+    def get_jira_api_token(self, project: Optional[str]):
+        """
+        Returns API token based on given project.
+        """
+        # If no project is provided, default to iOS for backwards-compatibility
+        if project == "DLAA":
+            return _API_TOKEN_ANDROID
+        elif project == "DLAW":
+            return _API_TOKEN_WEB
+        else:
+            return _API_TOKEN_IOS
+
     def _get_jira_auth(self, project: Optional[str] = None) -> HTTPBasicAuth:
         """
         Returns authentication for the appropriate service account. If no project

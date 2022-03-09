@@ -833,7 +833,7 @@ class ElasticsearchDAL:
                                       be applied.
 
         Returns:
-            A list of issue keys of suspected duplicate issues.
+            A list of suspected duplicate issues.
         """
 
         target_doc = self.ensure_specific_jira_issue(issue_key)

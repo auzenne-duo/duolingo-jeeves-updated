@@ -171,10 +171,17 @@ def do_init(lang):
 
 @blueprint_api.route("/api/1/shake_to_report_tokens")
 def get_shake_to_report_tokens():
-    jira_token = os.environ.get("SHAKIRA_JIRA_API_TOKEN_IOS")
-    slack_token = os.environ.get("SHAKIRA_SLACK_API_TOKEN")
+    """
+    Endpoint for API tokens for Jira and Slack.
+    Clients use them for displaying screenshot previews of duplicate Jira issues.
 
-    token_dict = {"jira": jira_token, "slack": slack_token}
+    Returns:
+        A dictionary of API tokens for Jira and Slack.
+    """
+
+    project = request.args.get("project")
+
+    token_dict = Shakira.get_shake_to_report_tokens(project)
 
     return json.jsonify(token_dict)
 
@@ -236,7 +243,7 @@ def perform_duplicate_jira_detection():
                          Elasticsearch, we attempt to download it.
 
     Returns:
-        A list of issue keys of suspected duplicate issues.
+        A list of suspected duplicate issues.
     """
 
     issue_key = request.args.get("issue_key")

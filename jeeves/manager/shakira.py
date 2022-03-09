@@ -31,6 +31,22 @@ class ShakiraManager:
         self._jira_client = jira_client
         self._slack_client = slack_client
 
+    def get_shake_to_report_tokens(self, project: Optional[str]) -> Dict[str, str]:
+        """
+        Gets API tokens for Jira and Slack depending on the project.
+
+        Parameters:
+             project: Platform (e.g., DLAA, DLAI, DLAW)
+
+        Returns:
+            Dictionary of API tokens for Jira and Slack.
+        """
+
+        jira_token = self._jira_client.get_jira_api_token(project)
+        slack_token = self._slack_client.get_slack_api_token()
+
+        return {"jira": jira_token, "slack": slack_token}
+
     def get_project_error_message(self, project: str) -> Optional[str]:
         """
         If the project is invalid, return an error message. Otherwise return None.

@@ -19,6 +19,12 @@ _API_TOKEN = os.environ.get("SHAKIRA_SLACK_API_TOKEN")
 
 
 class ShakiraSlackApiClient:
+    def get_slack_api_token(self):
+        """
+        Returns Slack API token.
+        """
+        return _API_TOKEN
+
     def _post_chat_message(
         self,
         slack_channel: SlackChannel,
