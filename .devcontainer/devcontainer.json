@@ -1,0 +1,16 @@
+{
+  "features": {
+    "docker-in-docker": "latest"
+  },
+  "image": "ghcr.io/duolingo/codespaces",
+  "onCreateCommand": "/onCreate",
+  "postAttachCommand": "/postAttach",
+  "postCreateCommand": "/postCreate",
+  "postStartCommand": "/postStart",
+  "remoteUser": "vscode",
+  "settings": {
+    "files.autoSave": "off",
+    "git.autofetch": true
+  },
+  "updateContentCommand": "/updateContent"
+}
