@@ -19,17 +19,18 @@ from jeeves.util.date_util import (
     get_n_days_ago,
     time_series_str_to_datetime,
 )
+from jeeves.util.error_util import SpikeDetectorException
 
 
-def split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument]) -> None:
+def split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument], lang: str) -> None:
     """
     Given a mix of documents from checkpointing, split them into groups
     according to what their shake-to-report categorization is, and run spike
     detection on each of those groups.
 
     Parameters:
-        doc_mix: A mix of documents, which can contain documents with various
-                 values for shake_to_report_category.
+        doc_mix: A mix of documents, which can contain documents with various values for
+        shake_to_report_category. All of these documents should be in the same language.
     """
 
     split_batches = defaultdict(list)
@@ -43,10 +44,10 @@ def split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument]) -> None:
                 group_to_run += split_batches[shake_category]
 
         if group_to_run:
-            run_spike_detector_for_batch(group_to_run, spike_group)
+            run_spike_detector_for_batch(group_to_run, spike_group, lang)
 
 
-def split_beta_batches_and_run_for_date(target_date: date) -> None:
+def detect_spikes_for_date(target_date: date) -> None:
     """
     Essentially a wrapper around split_beta_batches_and_run_detector that
     calculates a list of documents on a particular date and uses
@@ -60,11 +61,11 @@ def split_beta_batches_and_run_for_date(target_date: date) -> None:
     target_start = datetime.combine(target_date, time.min)
     target_end = datetime.combine(target_date, time.max)
 
-    doc_batch = []
     _BATCH_TARGET_SIZE = 1000
-
     _PAGE_SIZE = 10
+
     for lang in SUPPORTED_LANGUAGES.__members__:
+        doc_batch = []
         more_pages = True
         page_number = 0
         while more_pages:
@@ -80,14 +81,15 @@ def split_beta_batches_and_run_for_date(target_date: date) -> None:
             doc_batch += paginated_info["data"]
             page_number += 1
             if len(doc_batch) > _BATCH_TARGET_SIZE:
-                split_beta_batches_and_run_detector(doc_batch)
+                split_beta_batches_and_run_detector(doc_batch, lang)
                 doc_batch = []
 
-    split_beta_batches_and_run_detector(doc_batch)
+        split_beta_batches_and_run_detector(doc_batch, lang)
 
 
+# TODO require batch to only contain one language and maybe one date?
 def run_spike_detector_for_batch(
-    new_ticket_batch: List[JeevesDocument], spike_group: SpikeCategory
+    new_ticket_batch: List[JeevesDocument], spike_group: SpikeCategory, lang: str
 ) -> None:
     """
     Given a new batch of tickets from checkpointing, runs spike detection on
@@ -97,30 +99,30 @@ def run_spike_detector_for_batch(
     that ticket, and repeat for all tickets in the batch.
 
     Parameters:
-        new_ticket_batch (List[JeevesDocument]): Batch of new tickets used to
-                                                direct spike detection
+        new_ticket_batch (List[JeevesDocument]): Batch of new tickets used to direct spike
+                                            detection. All tickets should be in the same language.
         spike_group (SpikeCategory): Indicator for which types of documents
                                      are in the current batch.
     """
-    print(f"Running spike detection for a batch of {spike_group.name} tickets")
-    # Since spike detection is split up by language, we need to separate tickets
-    # and dates into different language buckets
-    new_ticket_dates_per_lang = dict.fromkeys(SUPPORTED_LANGUAGES.__members__, set())
-    new_ticket_ids_per_lang = dict.fromkeys(SUPPORTED_LANGUAGES.__members__, [])
-
-    for ticket in new_ticket_batch:
-        new_ticket_dates_per_lang[ticket.language].add(ticket.date_time.date())
-        new_ticket_ids_per_lang[ticket.language].append(
-            ticket.generate_elasticsearch_internal_id(ticket)
+    print(f"Running spike detection for a batch of {spike_group.name} tickets in language {lang}")
+    different_languages = [
+        ticket.language for ticket in new_ticket_batch if ticket.language != lang
+    ]
+    if any(different_languages):
+        raise SpikeDetectorException(
+            f"Batch of {lang} tickets contains a tickets in {different_languages}"
         )
+
+    new_ticket_dates = {ticket.date_time.date() for ticket in new_ticket_batch}
+    new_ticket_ids = [
+        ticket.generate_elasticsearch_internal_id(ticket) for ticket in new_ticket_batch
+    ]
 
     batch_spike_list = []
 
-    for lang in SUPPORTED_LANGUAGES.__members__:
-        if new_ticket_ids_per_lang[lang]:
-            word_to_date_to_count = _get_word_to_date_to_count(lang, new_ticket_ids_per_lang[lang])
-            for target_dt in new_ticket_dates_per_lang[lang]:
-                batch_spike_list += _find_spiked_words(lang, word_to_date_to_count, target_dt)
+    word_to_date_to_count = _get_word_to_date_to_count(lang, new_ticket_ids)
+    for target_dt in new_ticket_dates:
+        batch_spike_list += _find_spiked_words(lang, word_to_date_to_count, target_dt)
 
     for spike in batch_spike_list:
         spike.update({"spike_group": spike_group.name})
@@ -212,7 +214,10 @@ def _find_spiked_words(lang, word_to_date_to_count, target_dt):
         (_calculate_spike_score(date_to_count, target_dt), word)
         for word, date_to_count in word_to_date_to_count.items()
     ]
-    print(f"Calculated spike scores for {len(score_word_pairs)} words", flush=True)
+    print(
+        f"Calculated spike scores from {target_date_str} for {len(score_word_pairs)} words",
+        flush=True,
+    )
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
     result = [
         {"word": word, "score": score, "date": target_date_str, "lang": lang}

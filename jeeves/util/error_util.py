@@ -33,3 +33,10 @@ class SearchUnsuccessfulException(Exception):
         return f"""Search '{self.search_description}' failed.
 Here's what the call to execute() returned:
 {self.response.to_dict()}"""
+
+
+class SpikeDetectorException(Exception):
+    """Exception raised while performing spike detection"""
+
+    def __init__(self, message: str):
+        super().__init__(message)

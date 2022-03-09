@@ -7,8 +7,8 @@ from duolingo_base.dal import s3
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL  # pylint: disable=E0401
 from jeeves.lib.spike_detector import (  # pylint: disable=E0401
+    detect_spikes_for_date,
     split_beta_batches_and_run_detector,
-    split_beta_batches_and_run_for_date,
 )
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES  # pylint: disable=E0401
 from jeeves.util.date_util import get_utc_today  # pylint: disable=E0401
@@ -34,12 +34,12 @@ def force_recalculate_all_spikes(s3_client: s3.S3Client, s3_bucket_name: str) ->
     """
     # By batching documents we can hopefully improve runtime, since spike
     # detection passes multiple documents to each ES mtermvectors command.
-    document_batch = []
     _BATCH_TARGET_SIZE = 1000
     # It is assumed that one page is not larger than one batch, so make sure
     # _PAGE_SIZE isn't larger than _BATCH_TARGET_SIZE
     _PAGE_SIZE = 100
     for lang in SUPPORTED_LANGUAGES.__members__:
+        document_batch = []
         more_pages = True
         page_number = 0
         while more_pages:
@@ -51,10 +51,9 @@ def force_recalculate_all_spikes(s3_client: s3.S3Client, s3_bucket_name: str) ->
             document_batch += paginated_info["data"]
             page_number += 1
             if len(document_batch) >= _BATCH_TARGET_SIZE:
-                split_beta_batches_and_run_detector(document_batch)
+                split_beta_batches_and_run_detector(document_batch, lang)
                 document_batch = []
-    if document_batch:
-        split_beta_batches_and_run_detector(document_batch)
+        split_beta_batches_and_run_detector(document_batch, lang)
 
 
 def run_spike_worker() -> None:
@@ -134,7 +133,7 @@ def run_spike_worker() -> None:
             flush=True,
         )
         for inter_date in yield_intermediate_dates(most_recent_spike_date, todays_date):
-            split_beta_batches_and_run_for_date(inter_date)
+            detect_spikes_for_date(inter_date)
     finally:
         # Release the lock.
         # We use a finaly clause for this in case we ctrl-c or otherwise kill
