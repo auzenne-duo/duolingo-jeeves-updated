@@ -33,6 +33,7 @@ def test_get_slack_report_types():
     case = unittest.TestCase()
     case.assertCountEqual(
         [
+            {"name": "v2 feedback", "alsoPostsToJira": False},
             {"name": "Visual polish", "alsoPostsToJira": True},
             {"name": "Lesson content issue", "alsoPostsToJira": False},
             {"name": "TTS is missing/mispronounced", "alsoPostsToJira": False},
@@ -197,3 +198,32 @@ def test_report_issue_to_both_v2():
         post_info_in_reply=False,
         screenshot=None,
     )
+
+
+def test_report_v2_feedback():
+    shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+    shakira_manager.report_issue(
+        project="DLAA",
+        feature=None,
+        slack_report_type="v2 feedback",
+        client_specified_slack_channel_name=None,
+        summary="summary",
+        description=None,
+        generated_description=None,
+        reporter_email=None,
+        pre_release=False,
+        files={},
+    )
+
+    shakira_jira_mock.create_issue.assert_called_once_with(
+        project="DLAA",
+        feature="v2 feedback",
+        label=None,
+        summary="summary",
+        description=None,
+        generated_description=None,
+        reporter_email=None,
+        pre_release=False,
+        will_post_to_slack=False,
+    )
+    assert not shakira_slack_mock.post_issue.called

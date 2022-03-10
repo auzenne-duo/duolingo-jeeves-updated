@@ -17,6 +17,7 @@ _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
 }
 
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
+    "v2 feedback": None,
     "Lesson content issue": SlackChannel.FEEDBACK_LANGUAGE,
     "TTS is missing/mispronounced": SlackChannel.FEEDBACK_TTS,
     "Visual polish": SlackChannel.VISUAL_POLISH,
@@ -161,7 +162,7 @@ class ShakiraManager:
         if should_post_to_jira:
             issue_key = self._jira_client.create_issue(
                 project=project,
-                feature=feature,
+                feature="v2 feedback" if slack_report_type == "v2 feedback" else feature,
                 label=jira_label_from_channel,
                 summary=summary,
                 description=description,
