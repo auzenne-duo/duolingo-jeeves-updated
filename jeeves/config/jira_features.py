@@ -83,6 +83,15 @@ JIRA_FEATURES = {
             "Crowns": [],
             "Course messaging": [],
             "Decayed Skills": ["cracked skill", "guilded skill"],
+            "Generated sessions": [],
+        },
+        "Grading": {
+            "Grading issue": [
+                "grading",
+                "Did not earn XP",
+                "Didn't receive XP",
+                "Did not receive XP",
+            ],
         },
         "New Writing Systems": {
             "Character Bingo": ["drawing"],
@@ -102,6 +111,7 @@ JIRA_FEATURES = {
         "Immersive Sessions": {
             "Stories": ["story"],
             "Hoots": [],
+            "Speaking exercises": ["speak challenge", "speak exercise"],
         },
         "Core v2": {
             "v2 feedback": ["ios_v2_dev: true", "*ios_v2_dev*: true"],
