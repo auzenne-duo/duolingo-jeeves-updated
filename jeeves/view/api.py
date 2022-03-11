@@ -356,7 +356,7 @@ def fully_connect_duplicates():
     """
 
     data = request.get_json()
-    if ("issue_keys" not in data) or (not data["issue_keys"]):
+    if (data is None) or ("issue_keys" not in data) or (not data["issue_keys"]):
         abort(make_response("Please provide a list of issue_keys to interconnect.", 400))
     issue_keys = data["issue_keys"]
     if isinstance(issue_keys, str):

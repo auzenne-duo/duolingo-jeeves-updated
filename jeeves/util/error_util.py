@@ -1,19 +1,23 @@
 import sys
 
+import rollbar
 from elasticsearch_dsl.response import Response
 from requests.exceptions import RequestException
 
 
 def print_request_exception(e: RequestException):
+    status_code = e.response.status_code if e.response is not None else None
+    reason = e.response.reason if e.response is not None else None
     print(
         f"""
         An exception occurred for the following request:
         {e.request}
         The above request generated the following response:
-        {e.response}
+        {status_code}: {reason}
         """,
         file=sys.stderr,
     )
+    rollbar.report_exc_info(sys.exc_info())
 
 
 class SearchUnsuccessfulException(Exception):

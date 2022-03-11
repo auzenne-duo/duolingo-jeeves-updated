@@ -949,7 +949,7 @@ class ElasticsearchDAL:
             return None
 
         for family_member_key in target_doc.linked_duplicate_keys:
-            family_member = self.find_jira_by_key(family_member_key)
+            family_member = self.ensure_specific_jira_issue(family_member_key)
             if family_member.is_group_parent(family_member):
                 return family_member
         return None

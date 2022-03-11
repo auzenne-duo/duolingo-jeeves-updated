@@ -114,7 +114,7 @@ class DuplicateGraphResolver:
                 existing_links.add(existing_pair)
             visited.add(target_key)
 
-        doc_reps = [ElasticDAL.find_jira_by_key(key) for key in visited]
+        doc_reps = [ElasticDAL.ensure_specific_jira_issue(key) for key in visited]
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
 
         parent_key = None
