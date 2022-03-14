@@ -29,6 +29,7 @@ JIRA_FEATURES = {
             "Words list": [],
             "China Android Plus": [],
             "Year in Review": [],
+            "Cantonese": [],
         },
         "Connections": {
             "Profile": [],
@@ -39,16 +40,16 @@ JIRA_FEATURES = {
         "Onboarding": {
             "Onboarding": ["new user", "on boarding"],
             "Placement Test": [],
-            "Registration": ["sign up"],
         },
         "Priority Markets": {
             "Welcome message": [],
             "Welcome back quest": [],
-            "Course picker": ["course chooser", "language drawer", "flag"],
-            "What's app related": [],
+            "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
+            "What's app related": ["whatsapp"],
             "India phone number related": [],
-            "Apple sign-in": ["social sign in"],
-            "Resurrected user experiences": [],
+            "Apple sign-in": ["social sign in", "google sign in"],
+            "Resurrected user experiences": ["surr", "resurrected", "reactivated"],
+            "Registration": ["sign up"],
             "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
         },
         "Retention": {
@@ -65,7 +66,7 @@ JIRA_FEATURES = {
             "XP boost": ["double xp"],
         },
         "Virality": {
-            "In-app sharing": [],
+            "In-app sharing": ["sharing", "share"],
         },
         "None": {
             "Birdhouse audio room": [],
