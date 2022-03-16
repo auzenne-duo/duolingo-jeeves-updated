@@ -66,7 +66,8 @@ JIRA_FEATURES = {
             "XP boost": ["double xp"],
         },
         "Virality": {
-            "In-app sharing": ["sharing", "share"],
+            "in-app sharing": ["sharing", "share", "share card"],
+            "weekly progress report": ["weekly report", "progress report"],
         },
         "None": {
             "Birdhouse audio room": [],
