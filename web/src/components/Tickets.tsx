@@ -14,6 +14,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "react-query";
 import { Link, useHistory, useLocation, useParams } from "react-router-dom";
+import { alignNearest } from "web-ui/util/scroll";
 
 import { getTicket, getTickets } from "api/jeeves";
 import JiraStatus from "components/JiraStatus";
@@ -66,6 +67,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const search = useSearchParams();
 
   const [, dispatch] = React.useContext(AppStateContext);
+  const currentRowRef = React.useRef<HTMLLIElement>(null);
 
   const area = search.get("area");
   const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
@@ -206,6 +208,27 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   }, [id]);
 
   React.useEffect(() => {
+    if (currentRowRef.current) {
+      const bodyStyle = getComputedStyle(document.body);
+      const topbarHeight = parseFloat(
+        bodyStyle.getPropertyValue("--height-topbar"),
+      );
+      const margin = parseFloat(bodyStyle.getPropertyValue("--margin"));
+      const target = currentRowRef.current.getBoundingClientRect();
+      document.documentElement.scrollTop += alignNearest(
+        topbarHeight + margin,
+        window.innerHeight - margin,
+        window.innerHeight - topbarHeight - 2 * margin,
+        0,
+        0,
+        target.top,
+        target.bottom,
+        target.height,
+      );
+    }
+  }, [id, tickets]);
+
+  React.useEffect(() => {
     if (tickets?.length) {
       const next = () =>
         setId(
@@ -281,6 +304,11 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
                   }
                   key={i}
                   onClick={() => handleClick(t)}
+                  ref={
+                    t.jeeves_uid === selected?.jeeves_uid
+                      ? currentRowRef
+                      : undefined
+                  }
                 >
                   <div className={styles["title-container"]}>
                     <span className={styles.title}>
