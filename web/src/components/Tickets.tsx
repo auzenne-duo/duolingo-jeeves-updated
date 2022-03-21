@@ -114,6 +114,22 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
 
   const tickets = data?.data;
 
+  const nextLink =
+    data?.next_url && !isPreviousData
+      ? {
+          ...location,
+          search: encodeURLSearchParams(nextQuery),
+        }
+      : undefined;
+
+  const prevLink =
+    page > 1
+      ? {
+          ...location,
+          search: encodeURLSearchParams(prevQuery),
+        }
+      : undefined;
+
   const { data: selected } = useQuery(
     ["tickets", id, { lang }],
     () => getTicket(lang, id as string),
@@ -230,26 +246,24 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
 
   React.useEffect(() => {
     if (tickets?.length) {
-      const next = () =>
-        setId(
-          tickets[
-            Math.min(
-              tickets.findIndex(t => t.jeeves_uid === id) + 1,
-              tickets.length - 1,
-            )
-          ].jeeves_uid,
-        );
+      const currentIndex = tickets.findIndex(t => t.jeeves_uid === id);
+
+      const next = () => {
+        if (currentIndex < tickets.length - 1) {
+          setId(tickets[currentIndex + 1].jeeves_uid);
+        } else if (nextLink) {
+          history.push(nextLink);
+        }
+      };
 
       const prev = () => {
-        const currentIndex = tickets.findIndex(t => t.jeeves_uid === id);
-        setId(
-          tickets[
-            Math.max(
-              currentIndex > -1 ? currentIndex - 1 : tickets.length - 1,
-              0,
-            )
-          ].jeeves_uid,
-        );
+        if (currentIndex === -1) {
+          setId(tickets[tickets.length - 1].jeeves_uid);
+        } else if (currentIndex > 0) {
+          setId(tickets[currentIndex - 1].jeeves_uid);
+        } else if (prevLink) {
+          history.push(prevLink);
+        }
       };
 
       const handleKeydown = (e: KeyboardEvent) => {
@@ -265,13 +279,16 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       return () => document.removeEventListener("keydown", handleKeydown);
     }
     return undefined;
-  }, [id, setId, tickets]);
+  }, [id, nextLink, prevLink, setId, tickets]);
 
+  // This has a dependency on both `isPreviousData` and `page` so
+  // that the page is scrolled to the top when either cached or
+  // fresh query data is loaded.
   React.useEffect(() => {
     if (!isPreviousData) {
       window.scrollTo(0, 0);
     }
-  }, [isPreviousData]);
+  }, [isPreviousData, page]);
 
   return (
     <>
@@ -394,25 +411,8 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       ) : isLoading ? null : (
         <span>Your search returned no results.</span>
       )}
-      {(data?.next_url && !isPreviousData) || page > 1 ? (
-        <Pagination
-          nextLink={
-            data?.next_url && !isPreviousData
-              ? {
-                  ...location,
-                  search: encodeURLSearchParams(nextQuery),
-                }
-              : undefined
-          }
-          prevLink={
-            page > 1
-              ? {
-                  ...location,
-                  search: encodeURLSearchParams(prevQuery),
-                }
-              : undefined
-          }
-        />
+      {nextLink || prevLink ? (
+        <Pagination nextLink={nextLink} prevLink={prevLink} />
       ) : null}
       {selected
         ? createPortal(
