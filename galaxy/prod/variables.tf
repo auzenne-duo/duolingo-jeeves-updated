@@ -21,3 +21,7 @@ variable "owner" {
 variable "ecs_cluster" {
   default = "prod"
 }
+
+variable "pagerduty_rotation" {
+  default = "fireant"
+}

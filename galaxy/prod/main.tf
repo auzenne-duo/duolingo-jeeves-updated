@@ -91,6 +91,9 @@ module "duolingo-jeeves" {
       value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_web"]
     },
   ]
+
+  warning_alarm_actions   = [aws_sns_topic.warning.arn]
+  emergency_alarm_actions = [aws_sns_topic.warning.arn]
 }
 
 module "duolingo-jeeves-s3-worker" {
@@ -145,6 +148,9 @@ module "duolingo-jeeves-s3-worker" {
   ]
 
   release_version = var.release_version
+
+  warning_alarm_actions   = [aws_sns_topic.warning.arn]
+  emergency_alarm_actions = [aws_sns_topic.warning.arn]
 }
 
 module "duolingo-jeeves-worker-cron" {
@@ -163,6 +169,9 @@ module "duolingo-jeeves-worker-cron" {
   cookie_secret        = data.aws_kms_secrets.secrets.plaintext["spike_reporter_slack_api_token"]
   schedule_expression  = "cron(0 9 * * ? *)"
   release_version      = var.release_version
+
+  warning_alarm_actions   = [aws_sns_topic.warning.arn]
+  emergency_alarm_actions = [aws_sns_topic.warning.arn]
 }
 
 module "duolingo-jeeves-sqs-worker-1" {
@@ -198,6 +207,9 @@ module "duolingo-jeeves-sqs-worker-1" {
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-download-verify.id
   scale_out_sqs       = 250
   scale_out_count_sqs = 16
+
+  warning_alarm_actions   = [aws_sns_topic.warning.arn]
+  emergency_alarm_actions = [aws_sns_topic.warning.arn]
 }
 
 module "duolingo-jeeves-sqs-worker-2" {
@@ -225,6 +237,9 @@ module "duolingo-jeeves-sqs-worker-2" {
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-verify-index.id
   scale_out_sqs       = 2500
   scale_out_count_sqs = 16
+
+  warning_alarm_actions   = [aws_sns_topic.warning.arn]
+  emergency_alarm_actions = [aws_sns_topic.warning.arn]
 }
 
 module "duolingo-jeeves-spike-worker" {
@@ -242,4 +257,7 @@ module "duolingo-jeeves-spike-worker" {
   container_definition = "spike-worker.json"
   schedule_expression  = "rate(15 minutes)"
   release_version      = var.release_version
+
+  warning_alarm_actions   = [aws_sns_topic.warning.arn]
+  emergency_alarm_actions = [aws_sns_topic.warning.arn]
 }
