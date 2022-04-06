@@ -186,6 +186,9 @@ class ZendeskDocument(JeevesDocument):
             "accommodation",
             "accommodation_request",
             "host",
+            "abuse",
+            "institutional",
+            "purchase_issue",
         }
 
         if document.via["channel"] == "chat":
