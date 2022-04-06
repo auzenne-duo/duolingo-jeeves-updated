@@ -175,19 +175,22 @@ module "duolingo-jeeves-worker-cron" {
 }
 
 module "duolingo-jeeves-sqs-worker-1" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
-  environment          = var.environment
-  service              = var.service
-  subservice           = "sqs-worker-1"
-  cpu                  = 1024 # 1024 equals one core
-  memory               = 4096 # in MB
-  min_count            = 1    # Minimum number of tasks to run in autoscaling group
-  max_count            = 8    # Maximum number of tasks to run in autoscaling group
-  product              = var.product
-  owner                = var.owner       # The name of the owner for this service
-  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
-  container_definition = "sqs-worker-1.json"
-  release_version      = var.release_version
+  source                      = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  environment                 = var.environment
+  service                     = var.service
+  subservice                  = "sqs-worker-1"
+  cpu                         = 1024 # 1024 equals one core
+  memory                      = 4096 # in MB
+  min_count                   = 1    # Minimum number of tasks to run in autoscaling group
+  max_count                   = 20   # Maximum number of tasks to run in autoscaling group
+  product                     = var.product
+  owner                       = var.owner       # The name of the owner for this service
+  ecs_cluster                 = var.ecs_cluster # Name of the ECS cluster to run on
+  container_definition        = "sqs-worker-1.json"
+  release_version             = var.release_version
+  scale_in_evaluation_periods = 5
+
+
 
   environment_vars = [
     {
