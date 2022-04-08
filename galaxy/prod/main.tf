@@ -182,7 +182,7 @@ module "duolingo-jeeves-sqs-worker-1" {
   cpu                         = 1024 # 1024 equals one core
   memory                      = 4096 # in MB
   min_count                   = 1    # Minimum number of tasks to run in autoscaling group
-  max_count                   = 20   # Maximum number of tasks to run in autoscaling group
+  max_count                   = 40   # Maximum number of tasks to run in autoscaling group
   product                     = var.product
   owner                       = var.owner       # The name of the owner for this service
   ecs_cluster                 = var.ecs_cluster # Name of the ECS cluster to run on
@@ -211,7 +211,7 @@ module "duolingo-jeeves-sqs-worker-1" {
   scale_out_sqs       = 250
   scale_out_count_sqs = 16
 
-  warning_alarm_actions   = [aws_sns_topic.warning.arn]
+  warning_alarm_actions   = []
   emergency_alarm_actions = [aws_sns_topic.warning.arn]
 }
 
