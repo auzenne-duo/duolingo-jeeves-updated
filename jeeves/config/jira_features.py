@@ -190,6 +190,7 @@ JIRA_FEATURES = {
                 "popout",
                 "popover",
             ],
+            "Web home page": ["Landing page"],
             "Settings": ["toggle", "admin", "menu", "account"],
             "World characters": [
                 "world character",
