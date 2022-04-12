@@ -13,6 +13,8 @@ class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
     JEEVES = "#jeeves", "C6A1F2CNA"
     POST_TEST_RESULTS = "#post-test-results", "CJNN7RJBD"
 
+    LITERACY_TESTING = "#team-literacy-testing", "CMCTM4UN4"
+
     @classmethod
     def from_name_or_id(cls, name_or_id: str) -> Optional["SlackChannel"]:
         for channel in list(cls):

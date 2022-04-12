@@ -23,6 +23,8 @@ _USERNAME_IOS = os.environ.get("SHAKIRA_JIRA_USERNAME_IOS")
 _API_TOKEN_IOS = os.environ.get("SHAKIRA_JIRA_API_TOKEN_IOS")
 _USERNAME_WEB = os.environ.get("SHAKIRA_JIRA_USERNAME_WEB")
 _API_TOKEN_WEB = os.environ.get("SHAKIRA_JIRA_API_TOKEN_WEB")
+_USERNAME_LITERACY = os.environ.get("SHAKIRA_JIRA_USERNAME_LITERACY")
+_API_TOKEN_LITERACY = os.environ.get("SHAKIRA_JIRA_API_TOKEN_LITERACY")
 
 _ISSUE_TYPE_BUG = "Bug"
 _ISSUE_TYPE_STORY = "Story"
@@ -30,6 +32,10 @@ _ALL_ISSUE_TYPES = [_ISSUE_TYPE_BUG, _ISSUE_TYPE_STORY]
 
 _DESCRIPTION_FOR_ISSUES_SENT_TO_SLACK = (
     "This issue will be shared to a feature-specific Slack channel."
+)
+
+_DESCRIPTION_FOR_LITERACY_ISSUES_SENT_TO_SLACK = (
+    "This issue will be shared to the #team-literacy-testing Slack channel."
 )
 
 
@@ -45,7 +51,9 @@ class ShakiraJiraApiClient:
         Returns API token based on given project.
         """
         # If no project is provided, default to iOS for backwards-compatibility
-        if project == "DLAA":
+        if project == "LIT":
+            return _API_TOKEN_LITERACY
+        elif project == "DLAA":
             return _API_TOKEN_ANDROID
         elif project == "DLAW":
             return _API_TOKEN_WEB
@@ -57,7 +65,9 @@ class ShakiraJiraApiClient:
         Returns authentication for the appropriate service account. If no project
         is provided default to the iOS account.
         """
-        if project == "DLAA":
+        if project == "LIT":
+            return HTTPBasicAuth(_USERNAME_LITERACY, _API_TOKEN_LITERACY)
+        elif project == "DLAA":
             return HTTPBasicAuth(_USERNAME_ANDROID, _API_TOKEN_ANDROID)
         elif project == "DLAW":
             return HTTPBasicAuth(_USERNAME_WEB, _API_TOKEN_WEB)
@@ -187,6 +197,11 @@ class ShakiraJiraApiClient:
             print_request_exception(e)
             return None
 
+    def _get_slack_channel_description(self, project: str):
+        if project == "LIT":
+            return _DESCRIPTION_FOR_LITERACY_ISSUES_SENT_TO_SLACK
+        return _DESCRIPTION_FOR_ISSUES_SENT_TO_SLACK
+
     def create_issue(
         self,
         project: str,
@@ -204,7 +219,7 @@ class ShakiraJiraApiClient:
         For reference: https://docs.atlassian.com/software/jira/docs/api/REST/8.13.1/#api/2/issue
 
         parameters:
-            project: e.g. DLAA, DLAI, DLAW
+            project: e.g. DLAA, DLAI, DLAW, LIT
             feature: e.g. Achievements
             label: e.g. Visual polish
             summary: Rougly one-sentence summary of issue.
@@ -232,7 +247,9 @@ class ShakiraJiraApiClient:
                         for desc in [
                             description,
                             generated_description,
-                            _DESCRIPTION_FOR_ISSUES_SENT_TO_SLACK if will_post_to_slack else None,
+                            self._get_slack_channel_description(project)
+                            if will_post_to_slack
+                            else None,
                         ]
                         if desc
                     ]

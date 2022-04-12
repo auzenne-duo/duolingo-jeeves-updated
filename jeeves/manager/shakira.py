@@ -24,7 +24,10 @@ _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
 }
 
-_SLACK_CHANNELS_TO_JIRA_LABELS = {SlackChannel.VISUAL_POLISH: "visual-polish"}
+_SLACK_CHANNELS_TO_JIRA_LABELS = {
+    SlackChannel.VISUAL_POLISH: "visual-polish",
+    SlackChannel.LITERACY_TESTING: "shakira",
+}
 
 
 class ShakiraManager:
@@ -100,7 +103,7 @@ class ShakiraManager:
         Create an issue in JIRA and/or post the issue to Slack, depending on the client_specified_slack_channel_name, feature, and slack_report_type fields.
 
         parameters:
-            project: e.g. DLAA, DLAI, DLAW
+            project: e.g. DLAA, DLAI, DLAW, LIT
             feature: e.g. Achievements
             slack_report_type: e.g. "Lesson content / accepted translations" or "Visual polish".
             client_specified_slack_channel_name: e.g. #visual-polish. If this is set, override the other parameters and post in this channel.

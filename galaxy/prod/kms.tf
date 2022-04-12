@@ -136,6 +136,18 @@ data "aws_kms_secrets" "secrets" {
   }
 
   secret {
+    name    = "shakira_jira_api_token_literacy"
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwHKnzfnS1RLzYLA9f5p7ZieAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMHucySkSW/QvX6vWjAgEQgDNcz0uuxFNZIG6Be99JkEk4PcFkH4hucCZWjXEDBHajZIeabZeHXp0HW5kaPfj/tJGPWgs="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "api"
+      environment = var.environment
+    }
+  }
+
+  secret {
     name    = "shakira_slack_api_token"
     payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwFI1e5Lsx5tLcUcoumub4s0AAAAlzCBlAYJKoZIhvcNAQcGoIGGMIGDAgEAMH4GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMv+VqTnIT6MdE486GAgEQgFFvmuUTcdVcpiLq8SX3rCG4oYV8uCHzRDwNN4cQWiCilEkABkV4+GSLXDx/2xidYJ8lviIwfUnqgZpDCoRk3U2dUxOjPT2xw/OGJaSxrAQmGnM="
 
