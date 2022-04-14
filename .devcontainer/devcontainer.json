@@ -9,7 +9,6 @@
   "postStartCommand": "/postStart",
   "remoteUser": "vscode",
   "settings": {
-    "files.autoSave": "off",
     "git.autofetch": true
   },
   "updateContentCommand": "/updateContent"

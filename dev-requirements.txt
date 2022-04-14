@@ -4,7 +4,7 @@
 #
 #    pip-compile dev-requirements.in
 #
---index-url https://pypi.duolingo.com/pypi/
+--index-url https://pypi.duolingo.com/simple/
 
 apipkg==1.5
     # via execnet

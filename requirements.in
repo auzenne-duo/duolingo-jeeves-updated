@@ -1,4 +1,4 @@
---index-url https://pypi.duolingo.com/pypi/
+--index-url https://pypi.duolingo.com/simple/
 
 attrs==20.2.0
 blinker

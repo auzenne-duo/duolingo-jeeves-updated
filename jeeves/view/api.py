@@ -18,8 +18,12 @@ from jeeves.manager.shakira_jira import ShakiraJiraClient
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.util.date_util import date_to_str, datetime_to_str, get_utc_today
-from jeeves.util.date_util import time_series_str_to_datetime as str_to_datetime
+from jeeves.util.date_util import (
+    date_to_str,
+    datetime_to_str,
+    get_utc_today,
+    time_series_str_to_datetime as str_to_datetime,
+)
 
 # This is being referenced by the application.py
 blueprint_api = Blueprint("api", __name__)
