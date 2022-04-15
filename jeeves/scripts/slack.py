@@ -1,13 +1,14 @@
 import json
 import os
 import sys
+from typing import Dict, List, Union
 
 import rollbar
 from duolingo_base.config import Config
 from requests import post
 from requests.exceptions import RequestException
 
-from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.dal.spike_index_interface import SpikeDAL
 from jeeves.manager.shakira_slack import SlackChannel
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
@@ -32,7 +33,7 @@ def get_yesterdays_date():
     return date_to_str(get_n_days_ago(get_eastern_today(), 1))
 
 
-def get_top_spikes_yesterday():
+def get_top_spikes_yesterday() -> List[Dict[str, Union[str, float]]]:
     # We are unfortunately limited to four spikes because the Slack API
     # only allows 10 cells for section block fields, which means we can have
     # at most five rows with two columns, and we need one of those rows for the
@@ -40,7 +41,7 @@ def get_top_spikes_yesterday():
     num_spikes_to_list = 4
 
     spikes_yesterday = list(
-        ElasticDAL.yield_spikes_on_date(
+        SpikeDAL.yield_spikes_on_date(
             _SLACK_REPORT_LANG,
             get_yesterdays_date(),
             num_spikes_to_list,
@@ -50,7 +51,7 @@ def get_top_spikes_yesterday():
     return spikes_yesterday
 
 
-def spike_to_fields_array(spike):
+def spike_to_fields_array(spike: Dict[str, Union[str, float]]):
     spike_word_link = f"<https://jeeves.duolingo.com/{_SLACK_REPORT_LANG}/analysis?q={spike['word']}|{spike['word']}>"
     return [
         {"type": "mrkdwn", "text": spike_word_link},
@@ -58,7 +59,7 @@ def spike_to_fields_array(spike):
     ]
 
 
-def generate_slack_message(top_spikes):
+def generate_slack_message(top_spikes: List[Dict[str, Union[str, float]]]):
     plural_adjustment = "" if len(top_spikes) == 1 else "s"
     plural_adj_verb = "is" if len(top_spikes) == 1 else "are"
     message_header = f"*Here {plural_adj_verb} the top {len(top_spikes)} trending word{plural_adjustment} we saw in customer feedback for {get_yesterdays_date()}:*"

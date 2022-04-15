@@ -5,14 +5,11 @@ import rollbar
 from duolingo_base.config import Config
 from duolingo_base.dal import s3
 
-from jeeves.dal.elasticsearch_interface import ElasticDAL  # pylint: disable=E0401
-from jeeves.lib.spike_detector import (  # pylint: disable=E0401
-    detect_spikes_for_date,
-    split_beta_batches_and_run_detector,
-)
-from jeeves.model.supported_languages import SUPPORTED_LANGUAGES  # pylint: disable=E0401
+from jeeves.dal.spike_index_interface import SpikeDAL  # pylint: disable=E0401
+from jeeves.lib.spike_detector import detect_spikes  # pylint: disable=E0401
+from jeeves.util.date_util import date_to_str  # pylint: disable=E0401
 from jeeves.util.date_util import get_utc_today  # pylint: disable=E0401
-from jeeves.util.date_util import date_to_str, str_to_date, yield_intermediate_dates
+from jeeves.util.date_util import str_to_date, yield_intermediate_dates
 
 _config = Config.load_config()
 _config.apply_logging()
@@ -23,7 +20,7 @@ _SPIKE_CALCULATOR_LOCK_FILE = "spike_calculator_lock"
 _LOCK_TIMEOUT = 12
 
 
-def force_recalculate_all_spikes(s3_client: s3.S3Client, s3_bucket_name: str) -> None:
+def force_recalculate_all_spikes() -> None:
     """
     Performs spike detection on all documents currently available, ignoring any
     existing spike data, and indexes the result into Elasticsearch.
@@ -32,28 +29,7 @@ def force_recalculate_all_spikes(s3_client: s3.S3Client, s3_bucket_name: str) ->
     simply write a '1' to the file specified in _FORCE_SPIKE_REFRESH_FILE in the
     appropriate S3 bucket.
     """
-    # By batching documents we can hopefully improve runtime, since spike
-    # detection passes multiple documents to each ES mtermvectors command.
-    _BATCH_TARGET_SIZE = 1000
-    # It is assumed that one page is not larger than one batch, so make sure
-    # _PAGE_SIZE isn't larger than _BATCH_TARGET_SIZE
-    _PAGE_SIZE = 100
-    for lang in SUPPORTED_LANGUAGES.__members__:
-        document_batch = []
-        more_pages = True
-        page_number = 0
-        while more_pages:
-            # This query should eventually return every document
-            paginated_info = ElasticDAL.get_recent_paginated_tickets(
-                lang, "", page=page_number, limit=_PAGE_SIZE
-            )
-            more_pages = paginated_info["deepest_index"] < paginated_info["total_records"]
-            document_batch += paginated_info["data"]
-            page_number += 1
-            if len(document_batch) >= _BATCH_TARGET_SIZE:
-                split_beta_batches_and_run_detector(document_batch, lang)
-                document_batch = []
-        split_beta_batches_and_run_detector(document_batch, lang)
+    detect_spikes()
 
 
 def run_spike_worker() -> None:
@@ -97,7 +73,7 @@ def run_spike_worker() -> None:
 
     try:
         # Quick check to see if we have any spikes
-        min_max_spike_dates = ElasticDAL.get_min_and_max_spike_dates()
+        min_max_spike_dates = SpikeDAL.get_min_and_max_spike_dates()
         have_any_spikes = bool(min_max_spike_dates["max"])
 
         # Check if the force refresh file is present, and create it if not
@@ -113,7 +89,7 @@ def run_spike_worker() -> None:
         if refresh_flag_str.startswith("1") or not have_any_spikes:
             s3_client.upload(s3_bucket_name, _FORCE_SPIKE_REFRESH_FILE, "0")
             print("Forcefully recalculating all spike data", flush=True)
-            force_recalculate_all_spikes(s3_client, s3_bucket_name)
+            force_recalculate_all_spikes()
             return
 
         # For incremental spike detection, determine for what date we most recently
@@ -133,7 +109,7 @@ def run_spike_worker() -> None:
             flush=True,
         )
         for inter_date in yield_intermediate_dates(most_recent_spike_date, todays_date):
-            detect_spikes_for_date(inter_date)
+            detect_spikes(target_date=inter_date)
     finally:
         # Release the lock.
         # We use a finaly clause for this in case we ctrl-c or otherwise kill

@@ -10,6 +10,7 @@ from flask import Blueprint, abort, json, make_response, request, send_from_dire
 
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.dal.spike_index_interface import SpikeDAL
 from jeeves.lib.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import SUBSTRINGS_TO_IGNORE_BY_TERM, JiraFeatureManager
 from jeeves.manager.jira_manager import JiraManager
@@ -141,7 +142,7 @@ def get_spike_data(lang):
         abort(make_response(f"Invalid spike category {spike_category}", 400))
 
     stored_spikes = {}
-    for spike in ElasticDAL.yield_spikes_in_date_range(lang, start_date, end_date, spike_category):
+    for spike in SpikeDAL.yield_spikes_in_date_range(lang, start_date, end_date, spike_category):
         if spike["date"] not in stored_spikes:
             stored_spikes[spike["date"]] = {"spike": []}
         stored_spikes[spike["date"]]["spike"].append((spike["score"], spike["word"]))

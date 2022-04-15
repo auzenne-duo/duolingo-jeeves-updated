@@ -4,25 +4,62 @@ Candidate words are from Zendesk tickets on a target date.
 """
 from collections import defaultdict
 from datetime import date, datetime, time
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
 from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.dal.spike_index_interface import SpikeDAL
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.util.date_util import (
-    date_to_str,
-    get_eastern_today,
-    get_n_days_ago,
-    time_series_str_to_datetime,
-)
+from jeeves.util.date_util import date_to_str, get_n_days_ago, time_series_str_to_datetime
 from jeeves.util.error_util import SpikeDetectorException
 
 
-def split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument], lang: str) -> None:
+def detect_spikes(target_date: Optional[date] = None) -> None:
+    """
+    Essentially a wrapper around _split_beta_batches_and_run_detector that
+    calculates a list of documents on a particular date and uses
+    that list as the list of documents to be considered.
+
+    Parameters:
+        target_date: Date that we want to perform spike detection on. All
+                     documents from this date will be considered in spike
+                     detection.
+                     If no target_date is provided, spikes will be recalculated for all dates.
+    """
+    target_start = datetime.combine(target_date, time.min) if target_date is not None else None
+    target_end = datetime.combine(target_date, time.max) if target_date is not None else None
+
+    _BATCH_TARGET_SIZE = 1000
+    _PAGE_SIZE = 10 if target_date is not None else 100
+
+    for lang in SUPPORTED_LANGUAGES.__members__:
+        doc_batch = []
+        more_pages = True
+        page_number = 0
+        while more_pages:
+            paginated_info = ElasticDAL.get_recent_paginated_tickets(
+                lang,
+                "",
+                page=page_number,
+                limit=_PAGE_SIZE,
+                start_time=target_start,
+                end_time=target_end,
+            )
+            more_pages = paginated_info["deepest_index"] < paginated_info["total_records"]
+            doc_batch += paginated_info["data"]
+            page_number += 1
+            if len(doc_batch) > _BATCH_TARGET_SIZE:
+                _split_beta_batches_and_run_detector(doc_batch, lang)
+                doc_batch = []
+
+        _split_beta_batches_and_run_detector(doc_batch, lang)
+
+
+def _split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument], lang: str) -> None:
     """
     Given a mix of documents from checkpointing, split them into groups
     according to what their shake-to-report categorization is, and run spike
@@ -45,46 +82,6 @@ def split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument], lang: str
 
         if group_to_run:
             run_spike_detector_for_batch(group_to_run, spike_group, lang)
-
-
-def detect_spikes_for_date(target_date: date) -> None:
-    """
-    Essentially a wrapper around split_beta_batches_and_run_detector that
-    calculates a list of documents on a particular date and uses
-    that list as the list of documents to be considered.
-
-    Parameters:
-        target_date: Date that we want to perform spike detection on. All
-                     documents from this date will be considered in spike
-                     detection.
-    """
-    target_start = datetime.combine(target_date, time.min)
-    target_end = datetime.combine(target_date, time.max)
-
-    _BATCH_TARGET_SIZE = 1000
-    _PAGE_SIZE = 10
-
-    for lang in SUPPORTED_LANGUAGES.__members__:
-        doc_batch = []
-        more_pages = True
-        page_number = 0
-        while more_pages:
-            paginated_info = ElasticDAL.get_recent_paginated_tickets(
-                lang,
-                "",
-                page=page_number,
-                limit=_PAGE_SIZE,
-                start_time=target_start,
-                end_time=target_end,
-            )
-            more_pages = paginated_info["deepest_index"] < paginated_info["total_records"]
-            doc_batch += paginated_info["data"]
-            page_number += 1
-            if len(doc_batch) > _BATCH_TARGET_SIZE:
-                split_beta_batches_and_run_detector(doc_batch, lang)
-                doc_batch = []
-
-        split_beta_batches_and_run_detector(doc_batch, lang)
 
 
 # TODO require batch to only contain one language and maybe one date?
@@ -128,29 +125,7 @@ def run_spike_detector_for_batch(
         spike.update({"spike_group": spike_group.name})
 
     if batch_spike_list:
-        ElasticDAL.bulk_index_spikes(batch_spike_list)
-
-
-def run_spike_detector(language, update_start_time):
-    """
-    Runs the spike detector algorithm for a specified language
-
-    Parameters:
-        language(SUPPORTED_LANGUAGES): A language enum; which language to run
-            spike detection on.
-    """
-
-    today = get_eastern_today()  # Shouldn't be UTC
-
-    # We don't want to recalculate existing spikes,
-    # so only consider terms from recent tickets.
-    new_ticket_ids = ElasticDAL.acquire_ticket_ids_since(update_start_time, language.name)
-    word_to_date_to_count = _get_word_to_date_to_count(language.name, new_ticket_ids)
-    recent_spikes = []
-    for i in range(3):
-        target_dt = get_n_days_ago(today, i)
-        recent_spikes += _find_spiked_words(language.name, word_to_date_to_count, target_dt)
-    ElasticDAL.bulk_index_spikes(recent_spikes)
+        SpikeDAL.bulk_index_spikes(batch_spike_list)
 
 
 def _bucket_to_value(bucket):

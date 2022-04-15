@@ -12,6 +12,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.dal.spike_index_interface import SpikeDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
 # import rollbar
@@ -97,7 +98,8 @@ def init():
     else:
         LOG.info("development")
 
-    ElasticDAL.initialize_indices()
+    ElasticDAL.initialize_index()
+    SpikeDAL.initialize_index()
 
 
 def destroy():
