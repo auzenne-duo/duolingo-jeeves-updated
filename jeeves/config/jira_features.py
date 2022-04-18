@@ -56,7 +56,6 @@ JIRA_FEATURES = {
             "Streak": [],
             "Streak Society": [],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
-            "Monthly Goal": [],
             "Practice reminders / notifications": ["reminder", "notification"],
         },
         "Time Spent Learning": {
@@ -64,6 +63,7 @@ JIRA_FEATURES = {
             "Leaderboards": ["leaderboard", "tournament", "league", "context"],
             "Daily Quests": ["quests", "daily quest"],
             "Daily Goal": [],
+            "Monthly Goal": [],
             "XP boost": ["double xp"],
         },
         "Virality": {
