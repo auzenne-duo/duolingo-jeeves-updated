@@ -39,6 +39,7 @@ To run the microservice locally:
 - [Install Docker](https://docs.docker.com/docker-for-mac/install/) and increase the memory limit to 8GB if you haven't already.
 - Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables.
 - Run `make web` to start a microservice locally on Docker.
+- If you hit an error due to another process listening on port 5000, [turn off AirPlay Receiver under Sharing in System Preferences](https://developer.apple.com/forums/thread/682332?answerId=678289022#678289022)
 - Open [`http://localhost:5000/`](http://localhost:5000/).
 
 The following are required when you update requirements.
