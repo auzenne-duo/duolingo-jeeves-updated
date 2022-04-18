@@ -710,7 +710,11 @@ class ElasticsearchDAL:
             .get_managed_document_type()
             .deserialize_from_internal_json(hit["_source"])
             for hit in response["hits"]["hits"]
+            if hit["_score"] >= 0.8
         ]
+        result_docs = list(
+            filter(lambda doc: (target_doc.date_time - doc.date_time).days < 60, result_docs)
+        )
         if should_filter_project:
             result_docs = [doc for doc in result_docs if doc.project == target_doc.project]
         # Filter out issue from its own duplicate list
