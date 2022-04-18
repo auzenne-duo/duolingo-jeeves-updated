@@ -54,6 +54,7 @@ JIRA_FEATURES = {
         },
         "Retention": {
             "Streak": [],
+            "Streak Society": [],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
             "Monthly Goal": [],
             "Practice reminders / notifications": ["reminder", "notification"],
