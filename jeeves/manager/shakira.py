@@ -137,8 +137,10 @@ class ShakiraManager:
             if client_specified_slack_channel_name
             else None
         )
-        slack_channel_from_slack_report_type = _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL.get(
-            slack_report_type
+        slack_channel_from_slack_report_type = (
+            SlackChannel.LITERACY_TESTING
+            if slack_report_type == "literacy"
+            else _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL.get(slack_report_type)
         )
         slack_channel_from_feature = _SHAKIRA_FEATURES_TO_SLACK_CHANNEL.get(feature)
         channel = (
