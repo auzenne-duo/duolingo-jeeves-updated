@@ -35,7 +35,7 @@ JIRA_FEATURES = {
             "Profile": [],
             "Referral": [],
             "Friends": ["friend", "invite"],
-            "Kudos": [],
+            "Kudos": ["congrats"],
         },
         "Onboarding": {
             "Onboarding": ["new user", "on boarding"],
@@ -64,7 +64,7 @@ JIRA_FEATURES = {
             "Daily Quests": ["quests", "daily quest"],
             "Daily Goal": [],
             "Monthly Goal": [],
-            "XP boost": ["double xp"],
+            "XP boost": ["double xp", "2x"],
         },
         "Virality": {
             "in-app sharing": ["sharing", "share", "share card"],
@@ -97,7 +97,7 @@ JIRA_FEATURES = {
             ],
         },
         "New Writing Systems": {
-            "Character Bingo": ["drawing"],
+            "Character Bingo": ["drawing", "tracing"],
             "Transliteration": [],
             "Grammar": ["grammar skills", "grammar tip"],
             "Non-latin alphabet": [],
