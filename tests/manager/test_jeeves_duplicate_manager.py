@@ -84,6 +84,7 @@ def _jira_document(header="I am a header", body="I am body text"):
         feature="",
         priority="High",
         reporter="",
+        reporter_email="",
         assignee="",
         comments=[],
         labels=[],

@@ -41,6 +41,7 @@ class JiraDocument(JeevesDocument):
     feature: str = attr.ib()
     priority: str = attr.ib()
     reporter: str = attr.ib()
+    reporter_email: str = attr.ib()
     assignee: str = attr.ib()
     # Comments is a list of dicts, each dict representing one comment
     # A comment dict contains these keys with corresponding types:
@@ -258,6 +259,7 @@ class JiraDocument(JeevesDocument):
             if external_fields["priority"]
             else "NO PRIORITY GIVEN",
             reporter=external_fields["reporter"]["displayName"],
+            reporter_email=external_fields["reporter"].get("emailAddress", ""),
             assignee=external_fields["assignee"]["displayName"]
             if external_fields["assignee"]
             else "UNASSIGNED",
@@ -328,6 +330,7 @@ class JiraDocument(JeevesDocument):
             feature=internal_json.get("feature", ""),
             priority=internal_json["priority"],
             reporter=internal_json["reporter"],
+            reporter_email=internal_json.get("reporter_email", ""),
             assignee=internal_json["assignee"],
             comments=[cls._deserialize_comment(comment) for comment in internal_json["comments"]],
             labels=internal_json["labels"],
