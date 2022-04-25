@@ -71,7 +71,6 @@ JIRA_FEATURES = {
             "weekly progress report": ["weekly report", "progress report"],
         },
         "None": {
-            "Birdhouse audio room": [],
             "Next lesson ads": [],
         },
     },
