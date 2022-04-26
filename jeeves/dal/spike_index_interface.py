@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Dict, Iterator, List, Optional
 
 import rollbar
 from duolingo_base.config import Config
@@ -8,8 +8,8 @@ from elasticsearch.helpers import bulk
 from elasticsearch_dsl import Mapping, Search
 
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
-from jeeves.model.custom_types import JSON
 from jeeves.model.spike_categories import SpikeCategory
+from jeeves.model.spike_word import SpikeWord
 from jeeves.util.date_util import date_to_str
 from jeeves.util.error_util import SearchUnsuccessfulException
 
@@ -39,7 +39,7 @@ class SpikeIndexDAL:
             m.save(self._spikename, using=self._es)
             rollbar.report_message("Created index {self._spikename} with new mappings", "info")
 
-    def bulk_index_spikes(self, spikes: List[JSON]) -> None:
+    def bulk_index_spikes(self, spikes: List[SpikeWord]) -> None:
         """
         Stores multiple spikes into Elasticsearch
 
@@ -56,8 +56,8 @@ class SpikeIndexDAL:
         bulk_actions = [
             {
                 "_index": self._spikename,
-                "_source": spike,
-                "_id": f"SPIKE_{spike['word']}_{spike['lang']}_{spike['date']}_{spike['spike_group']}",
+                "_source": spike.to_dict(),
+                "_id": spike.get_spike_id(),
             }
             for spike in spikes
         ]
@@ -91,7 +91,7 @@ class SpikeIndexDAL:
 
     def yield_spikes_on_date(
         self, lang: str, date_str: str, num_spikes: int, spike_group: SpikeCategory
-    ) -> Iterator[Dict[str, Union[str, float]]]:
+    ) -> Iterator[SpikeWord]:
         """
         Yields all spikes for a given language, from a particular date.
 
@@ -124,7 +124,7 @@ class SpikeIndexDAL:
         end_date: str,
         spike_group: Optional[str] = "ALL_SPIKES",
         num_spikes: Optional[int] = None,
-    ) -> Iterator[Dict[str, Union[str, float]]]:
+    ) -> Iterator[SpikeWord]:
         """
         Yields all spikes for a given language, between two dates
 
@@ -163,9 +163,10 @@ class SpikeIndexDAL:
             if not response.success():
                 raise SearchUnsuccessfulException(response, "yield spikes on date")
             for hit in response:
-                yield hit
+                yield SpikeWord.from_dict(hit)
         else:
-            yield from s.scan()
+            for res in s.scan():
+                yield SpikeWord.from_dict(res)
 
 
 SpikeDAL = SpikeIndexDAL()

@@ -143,9 +143,9 @@ def get_spike_data(lang):
 
     stored_spikes = {}
     for spike in SpikeDAL.yield_spikes_in_date_range(lang, start_date, end_date, spike_category):
-        if spike["date"] not in stored_spikes:
-            stored_spikes[spike["date"]] = {"spike": []}
-        stored_spikes[spike["date"]]["spike"].append((spike["score"], spike["word"]))
+        if spike.date not in stored_spikes:
+            stored_spikes[spike.date] = {"spike": []}
+        stored_spikes[spike.date]["spike"].append((spike.score, spike.word))
     for day in stored_spikes:
         stored_spikes[day]["spike"].sort(reverse=True)
     return json.jsonify(stored_spikes)

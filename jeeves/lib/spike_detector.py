@@ -13,6 +13,7 @@ from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.dal.spike_index_interface import SpikeDAL
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
+from jeeves.model.spike_word import SpikeWord
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import date_to_str, get_n_days_ago, time_series_str_to_datetime
 from jeeves.util.error_util import SpikeDetectorException
@@ -115,14 +116,14 @@ def run_spike_detector_for_batch(
         ticket.generate_elasticsearch_internal_id(ticket) for ticket in new_ticket_batch
     ]
 
-    batch_spike_list = []
+    batch_spike_list: List[SpikeWord] = []
 
     word_to_date_to_count = _get_word_to_date_to_count(lang, new_ticket_ids)
     for target_dt in new_ticket_dates:
         batch_spike_list += _find_spiked_words(lang, word_to_date_to_count, target_dt)
 
     for spike in batch_spike_list:
-        spike.update({"spike_group": spike_group.name})
+        spike.spike_group = spike_group
 
     if batch_spike_list:
         SpikeDAL.bulk_index_spikes(batch_spike_list)
@@ -166,7 +167,7 @@ def _get_word_to_date_to_count(lang, new_ticket_ids):
     return word_date_count
 
 
-def _find_spiked_words(lang, word_to_date_to_count, target_dt):
+def _find_spiked_words(lang, word_to_date_to_count, target_dt) -> List[SpikeWord]:
     """
     Calculates spike words on a particular date.
 
@@ -195,7 +196,7 @@ def _find_spiked_words(lang, word_to_date_to_count, target_dt):
     )
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
     result = [
-        {"word": word, "score": score, "date": target_date_str, "lang": lang}
+        SpikeWord(word=word, score=score, date=target_date_str, lang=lang, spike_group=None)
         for score, word in score_word_pairs
         if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
     ]

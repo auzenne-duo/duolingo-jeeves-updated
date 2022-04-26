@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from typing import Dict, List, Union
+from typing import List
 
 import rollbar
 from duolingo_base.config import Config
@@ -11,6 +11,7 @@ from requests.exceptions import RequestException
 from jeeves.dal.spike_index_interface import SpikeDAL
 from jeeves.manager.shakira_slack import SlackChannel
 from jeeves.model.spike_categories import SpikeCategory
+from jeeves.model.spike_word import SpikeWord
 from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
 from jeeves.util.error_util import print_request_exception
 
@@ -33,7 +34,7 @@ def get_yesterdays_date():
     return date_to_str(get_n_days_ago(get_eastern_today(), 1))
 
 
-def get_top_spikes_yesterday() -> List[Dict[str, Union[str, float]]]:
+def get_top_spikes_yesterday() -> List[SpikeWord]:
     # We are unfortunately limited to four spikes because the Slack API
     # only allows 10 cells for section block fields, which means we can have
     # at most five rows with two columns, and we need one of those rows for the
@@ -51,15 +52,15 @@ def get_top_spikes_yesterday() -> List[Dict[str, Union[str, float]]]:
     return spikes_yesterday
 
 
-def spike_to_fields_array(spike: Dict[str, Union[str, float]]):
-    spike_word_link = f"<https://jeeves.duolingo.com/{_SLACK_REPORT_LANG}/analysis?q={spike['word']}|{spike['word']}>"
+def spike_to_fields_array(spike: SpikeWord):
+    spike_word_link = f"<{spike.get_jeeves_analysis_url()}|{spike.word}>"
     return [
         {"type": "mrkdwn", "text": spike_word_link},
-        {"type": "plain_text", "text": f"{spike['score']:.1f}"},
+        {"type": "plain_text", "text": f"{spike.score:.1f}"},
     ]
 
 
-def generate_slack_message(top_spikes: List[Dict[str, Union[str, float]]]):
+def generate_slack_message(top_spikes: List[SpikeWord]):
     plural_adjustment = "" if len(top_spikes) == 1 else "s"
     plural_adj_verb = "is" if len(top_spikes) == 1 else "are"
     message_header = f"*Here {plural_adj_verb} the top {len(top_spikes)} trending word{plural_adjustment} we saw in customer feedback for {get_yesterdays_date()}:*"
