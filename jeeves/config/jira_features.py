@@ -36,6 +36,7 @@ JIRA_FEATURES = {
             "Referral": [],
             "Friends": ["friend", "invite"],
             "Kudos": ["congrats"],
+            "DuoNews": ["duo news"],
         },
         "Onboarding": {
             "Onboarding": ["new user", "on boarding"],
@@ -45,9 +46,9 @@ JIRA_FEATURES = {
             "Welcome message": [],
             "Welcome back quest": [],
             "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
-            "What's app related": ["whatsapp"],
-            "India phone number related": [],
-            "Apple sign-in": ["social sign in", "google sign in"],
+            "What's app related": ["whatsapp", "whatsapp opt in"],
+            "India phone number related": ["india"],
+            "Social sign-in": ["apple sign in", "google sign in"],
             "Resurrected user experiences": ["surr", "resurrected", "reactivated"],
             "Registration": ["sign up"],
             "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
@@ -67,8 +68,8 @@ JIRA_FEATURES = {
             "XP boost": ["double xp", "2x"],
         },
         "Virality": {
-            "in-app sharing": ["sharing", "share", "share card"],
-            "weekly progress report": ["weekly report", "progress report"],
+            "In-app sharing": ["sharing", "share", "share card"],
+            "Weekly progress report": ["weekly report", "progress report"],
         },
         "None": {
             "Next lesson ads": [],
@@ -110,7 +111,7 @@ JIRA_FEATURES = {
                 "speech recogni",
             ],
         },
-        "Immersive Sessions": {
+        "Story Product": {
             "Stories": ["story"],
             "Hoots": [],
             "Speaking exercises": ["speak challenge", "speak exercise"],
@@ -150,7 +151,6 @@ JIRA_FEATURES = {
             "Hearts / Unlimited Hearts": [
                 "heart",
             ],
-            "Flashcards": [],
             "Shop items": [],
             "New Years Promo": [],
             "Mistakes inbox": [],
@@ -159,12 +159,14 @@ JIRA_FEATURES = {
             "Family plan": [],
             "Legendary": [],
             "Super": [],
+            "Bookmarking": ["bookmark"],
         },
         "Poseidon": {
             "In-app purchases": ["shop"],
             "Ramp-up challenge": ["ramp up", "ramp-up"],
             "Gems / Lingots": ["gem", "lingot"],
             "Hard mode": [],
+            "Match madness": [],
         },
         "Gold": {
             "Tutors": [],
@@ -173,7 +175,7 @@ JIRA_FEATURES = {
     },
     "New Initiatives": {
         "Events": {
-            "Events": ["overflow tab", "news feed", "Duo news"],
+            "Events": ["overflow tab", "news feed"],
         },
         "Schools": {
             "Schools": [],
@@ -261,6 +263,7 @@ JIRA_FEATURES = {
                 "lag",
                 "latency",
                 "jank",
+                "loading",
             ],
         },
         "Many": {
