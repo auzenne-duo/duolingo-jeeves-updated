@@ -6,7 +6,7 @@ import time
 import timeit
 from collections import defaultdict
 from datetime import date, datetime, time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
@@ -62,32 +62,26 @@ def detect_spikes(target_date: Optional[date] = None) -> None:
         _split_beta_batches_and_run_detector(doc_batch, lang)
 
 
-def _split_beta_batches_and_run_detector(doc_mix: List[JeevesDocument], lang: str) -> None:
+def _split_beta_batches_and_run_detector(documents: List[JeevesDocument], lang: str) -> None:
     """
-    Given a mix of documents from checkpointing, split them into groups
-    according to what their shake-to-report categorization is, and run spike
-    detection on each of those groups.
+    Given a mix of documents from checkpointing, run spike detection for each spike category.
 
     Parameters:
-        doc_mix: A mix of documents, which can contain documents with various values for
-        shake_to_report_category. All of these documents should be in the same language.
+        documents: Jeeves documents, all of which should be in the same language.
     """
-
-    split_batches = defaultdict(list)
-    for document in doc_mix:
-        split_batches[document.shake_to_report_category].append(document)
-
-    for spike_group in SpikeCategory:
-        group_to_run = []
-        for shake_category in SpikeCategory.inter_category_mapping(spike_group):
-            if shake_category in split_batches:
-                group_to_run += split_batches[shake_category]
-
-        if group_to_run:
-            run_spike_detector_for_batch(group_to_run, spike_group, lang)
+    spike_category_to_doc_list = defaultdict(list)
+    for document in documents:
+        for spike_category in SpikeCategory:
+            if SpikeCategory.get_predicate_for_category(spike_category)(document):
+                spike_category_to_doc_list[spike_category].append(document)
+    print(
+        f"Split a batch of {len(documents)} tickets in language {lang}",
+        flush=True,
+    )
+    for spike_category, doc_list in spike_category_to_doc_list.items():
+        run_spike_detector_for_batch(doc_list, spike_category, lang)
 
 
-# TODO require batch to only contain one language and maybe one date?
 def run_spike_detector_for_batch(
     new_ticket_batch: List[JeevesDocument], spike_group: SpikeCategory, lang: str
 ) -> None:
@@ -134,7 +128,7 @@ def run_spike_detector_for_batch(
         SpikeDAL.bulk_index_spikes(batch_spike_list)
 
 
-def _bucket_to_value(bucket):
+def _bucket_to_value(bucket: Dict[str, Union[str, int]]) -> Dict[str, int]:
     date_val = time_series_str_to_datetime(bucket["key_as_string"])
     return {date_to_str(date_val): bucket["doc_count"]}
 
@@ -179,7 +173,9 @@ def _get_word_to_date_to_count(
     return word_date_count
 
 
-def _find_spiked_words(lang, word_to_date_to_count, target_dt) -> List[SpikeWord]:
+def _find_spiked_words(
+    lang: str, word_to_date_to_count: Dict[str, Dict[str, int]], target_dt: datetime.date
+) -> List[SpikeWord]:
     """
     Calculates spike words on a particular date.
 
@@ -215,7 +211,7 @@ def _find_spiked_words(lang, word_to_date_to_count, target_dt) -> List[SpikeWord
     return result
 
 
-def _calculate_spike_score(date_to_count, target_datetime):
+def _calculate_spike_score(date_to_count: Dict[str, int], target_datetime: datetime.date):
     """
     Given a word, returns a score that represents spikiness where spikiness is a z-score
     computed based on word occurrences in the previous `moving_avg_window_size` days.

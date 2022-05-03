@@ -2,7 +2,7 @@
 A utility that offers date-related functions.
 """
 import datetime
-from typing import Iterator
+from typing import Iterator, Optional
 
 import pytz
 from dateutil.parser import parse
@@ -44,7 +44,7 @@ def get_n_days_ago(date_obj, n):
     return date_obj - datetime.timedelta(days=n)
 
 
-def date_to_str(date_obj):
+def date_to_str(date_obj: datetime.date) -> str:
     """
     Converts a date object to string.
 
@@ -87,7 +87,7 @@ def str_to_date(date_str):
     return datetime.date(int(_date_str[0]), int(_date_str[1]), int(_date_str[2]))
 
 
-def time_series_str_to_datetime(date_str):
+def time_series_str_to_datetime(date_str) -> Optional[datetime.datetime]:
     if date_str is None or date_str == "":
         return None
     else:
