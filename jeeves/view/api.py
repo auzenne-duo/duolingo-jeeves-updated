@@ -102,14 +102,16 @@ def manage_tickets(lang):
 
 @blueprint_api.route("/api/1/<lang>/time_series")
 def get_time_series_data(lang):
-    # TODO: support more parameters such as category
     if not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
     word = request.args.get("word")
     if not word:
         abort(make_response("Please provide `word` parameter", 500))
+    spike_category = request.args.get("spike_category", "ALL_SPIKES")
+    if spike_category not in SpikeCategory.__members__:
+        abort(make_response(f"Invalid spike category {spike_category}", 400))
 
-    response_buckets = ElasticDAL.aggregate_time_series(lang, word)
+    response_buckets = ElasticDAL.aggregate_time_series(lang, SpikeCategory[spike_category], word)
 
     if "ERROR" in response_buckets:
         return json.jsonify(response_buckets)

@@ -1,5 +1,7 @@
 from enum import Enum, auto
-from typing import List
+from typing import Callable, List
+
+from elasticsearch_dsl import Search
 
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
 
@@ -48,3 +50,25 @@ class SpikeCategory(Enum):
             ],
         }
         return case_logic[group_category]
+
+    @classmethod
+    def get_elasticsearch_transformer_for_category(
+        cls, group_category: "SpikeCategory"
+    ) -> Callable[[Search], Search]:
+        """
+        Returns an Elasticsearch query dict that will filter JeevesDocuments that should be
+        included in spike analysis for the given spike category.
+        Parameters:
+            group_category: The SpikeCategory we want to check for.
+        Returns:
+            a dict specifying an Elasticsearch query that filters JeevesDocuments.
+        """
+
+        shake_to_report_categories = cls.inter_category_mapping(group_category)
+        if shake_to_report_categories is not None:
+            return lambda s: s.filter(
+                "terms",
+                shake_to_report_category=[category.name for category in shake_to_report_categories],
+            )
+        else:
+            return lambda s: s

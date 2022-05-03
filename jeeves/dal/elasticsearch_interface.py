@@ -14,6 +14,7 @@ from jeeves.config.config import DATA_VERSION_IDENTIFIER
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str
 
 _config = Config.load_config()
@@ -260,13 +261,16 @@ class ElasticsearchDAL:
         except RequestError as e:
             return self._handle_es_request_errors(e)
 
-    def aggregate_time_series(self, lang: str, word: str) -> List[Dict[str, Union[str, int]]]:
+    def aggregate_time_series(
+        self, lang: str, spike_category: SpikeCategory, word: str
+    ) -> List[Dict[str, Union[str, int]]]:
         """
         Calculates per-day counts of how many tickets contain a particular word
 
         Parameters:
-            lang (str): Language to search tickets in.
-            word (str): Term to search against. Supports regular expressions.
+            lang: Language to search tickets in.
+            spike_category: The spike category whose documents we should search within.
+            word: Term to search against. Supports regular expressions.
 
         Returns:
             A list of dicts, where each dict contains a string reprseneting a
@@ -284,6 +288,8 @@ class ElasticsearchDAL:
             .query("query_string", default_field="body_text", query=word, lenient=True)
             .filter("term", language=lang)
         )
+
+        s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
 
         # Elasticsearch just so happens to have functionality for making a date
         # histogram of data, that is, a list of counts of instances of something

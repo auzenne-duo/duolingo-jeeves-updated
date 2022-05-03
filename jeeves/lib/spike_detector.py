@@ -2,9 +2,11 @@
 A script for finding spikes of word occurrences in Zendesk tickets.
 Candidate words are from Zendesk tickets on a target date.
 """
+import time
+import timeit
 from collections import defaultdict
 from datetime import date, datetime, time
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -102,7 +104,10 @@ def run_spike_detector_for_batch(
         spike_group (SpikeCategory): Indicator for which types of documents
                                      are in the current batch.
     """
-    print(f"Running spike detection for a batch of {spike_group.name} tickets in language {lang}")
+    print(
+        f"Running spike detection for a batch of {spike_group.name} tickets in language {lang}",
+        flush=True,
+    )
     different_languages = [
         ticket.language for ticket in new_ticket_batch if ticket.language != lang
     ]
@@ -118,7 +123,7 @@ def run_spike_detector_for_batch(
 
     batch_spike_list: List[SpikeWord] = []
 
-    word_to_date_to_count = _get_word_to_date_to_count(lang, new_ticket_ids)
+    word_to_date_to_count = _get_word_to_date_to_count(lang, spike_group, new_ticket_ids)
     for target_dt in new_ticket_dates:
         batch_spike_list += _find_spiked_words(lang, word_to_date_to_count, target_dt)
 
@@ -134,7 +139,9 @@ def _bucket_to_value(bucket):
     return {date_to_str(date_val): bucket["doc_count"]}
 
 
-def _get_word_to_date_to_count(lang, new_ticket_ids):
+def _get_word_to_date_to_count(
+    lang: str, spike_category: SpikeCategory, new_ticket_ids: List[str]
+) -> Dict[str, Dict[str, int]]:
     """
     Compute a data structure that represents how many times a word appeared
     in our stored tickets, bucketed by date, for each of several words. The
@@ -142,10 +149,10 @@ def _get_word_to_date_to_count(lang, new_ticket_ids):
     provided ticket IDs.
 
     Parameters:
-        lang (str): Restrict search to this language
-        new_ticket_ids (List[str]): IDs of tickets to tokenize for words.
-                                    Those words will be mapped to date-bucketed
-                                    counts of instances in stored tickets.
+        lang: Restrict search to this language.
+        spike_category: Restrict search to documents that belong to this spike category.
+        new_ticket_ids: IDs of tickets to tokenize for words. Those words will be mapped to
+            date-bucketed counts of instances in stored tickets.
 
     Returns:
         A data structure that contains a mapping from each word in the provided
@@ -155,14 +162,19 @@ def _get_word_to_date_to_count(lang, new_ticket_ids):
     # Elasticsearch can take care of tokenization on top of everything else
     terms = ElasticDAL.get_terms_from_docs(new_ticket_ids, lang)
 
+    start_time = timeit.default_timer()
     word_date_count = {}
     for t in terms:
         word_date_count[t] = {}
-        buckets = ElasticDAL.aggregate_time_series(lang, t)
+        buckets = ElasticDAL.aggregate_time_series(lang, spike_category, t)
         if "ERROR" in buckets:
             continue
         for val in [_bucket_to_value(b) for b in buckets]:
             word_date_count[t].update(val)
+    print(
+        f"getting word_date_count took {timeit.default_timer() - start_time} for {len(terms)} terms",
+        flush=True,
+    )
 
     return word_date_count
 
