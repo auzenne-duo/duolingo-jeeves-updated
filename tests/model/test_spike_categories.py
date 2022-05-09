@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Dict, Optional
 
 import pytest
 
@@ -72,11 +72,32 @@ def test_get_predicate_for_category(
     assert SpikeCategory.get_predicate_for_category(spike_category)(doc) == expected
 
 
+get_jeeves_query_params_for_category_test_cases = [
+    (SpikeCategory.EXTERNAL_STR_SPIKES, {"filter": "EXTERNAL"}),
+    (
+        SpikeCategory.ALL_NON_STR_SPIKES,
+        {"q": "shake_to_report_category:(NON_STR_EXTERNAL|NON_STR_INTERNAL)"},
+    ),
+]
+
+
+@pytest.mark.parametrize("spike_category,expected", get_jeeves_query_params_for_category_test_cases)
+def test_get_jeeves_query_params_for_category(
+    spike_category: SpikeCategory, expected: Dict[str, str]
+):
+    assert SpikeCategory.get_jeeves_query_params_for_category(spike_category) == expected
+
+
 def test_get_predicate_for_every_category():
     for spike_category in SpikeCategory:
         SpikeCategory.get_predicate_for_category(spike_category)
 
 
-def test_get_elasticsearch_transformer_for_category():
+def test_get_elasticsearch_transformer_for_every_category():
     for spike_category in SpikeCategory:
         SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)
+
+
+def test_get_jeeves_query_params_for_every_category():
+    for spike_category in SpikeCategory:
+        SpikeCategory.get_jeeves_query_params_for_category(spike_category)

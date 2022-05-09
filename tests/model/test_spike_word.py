@@ -26,7 +26,7 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.score, 10)
         self.assertEqual(result.date, "2022-01-01")
         self.assertEqual(result.lang, "en")
-        self.assertEqual(result.spike_group, "ALL_SPIKES")
+        self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
 
     def test_to_dict(self):
         result = self.testObj.to_dict()
@@ -46,8 +46,3 @@ class TestSpikeWord(unittest.TestCase):
         result = self.testObj.get_spike_id()
 
         self.assertEqual(result, "SPIKE_duo_en_2022-01-01_ALL_SPIKES")
-
-    def test_get_jeeves_analysis_url(self):
-        result = self.testObj.get_jeeves_analysis_url()
-
-        self.assertEqual(result, "https://jeeves.duolingo.com/en/analysis?q=duo")

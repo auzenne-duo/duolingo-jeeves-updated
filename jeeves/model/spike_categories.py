@@ -73,7 +73,6 @@ class SpikeCategory(Enum):
                 ),
                 cls.ALL_SPIKES: lambda doc: True,
             }
-            # This dictionary access will fail if we're missing a spike category in either mapping.
             return category_to_predicate[group_category]
 
     @classmethod
@@ -113,5 +112,55 @@ class SpikeCategory(Enum):
                 ),
                 cls.ALL_SPIKES: lambda s: s,
             }
-            # This dictionary access will fail if we're missing a spike category in either mapping.
+            return category_to_query[group_category]
+
+    @classmethod
+    def get_jeeves_query_params_for_category(
+        cls, group_category: "SpikeCategory"
+    ) -> Dict[str, str]:
+        """
+        Returns query parameters for the /discovery and /analysis pages that will filter
+        JeevesDocuments that should be included in spike analysis for the given spike category.
+
+        Parameters:
+            group_category: The SpikeCategory we want to check for.
+
+        Returns:
+            query parameters as a dictionary. For example:
+            {
+                "q": "duolingo app",
+                "filter": "INTERNAL",
+            }
+            this means that https://jeeves.duolingo.com/en/discovery?q=duolingo%20app&filter=INTERNAL&id=JIRA_175258
+            would display only tickets that fall under this spike category.
+
+            Note that returned parameter values are NOT escaped.
+        """
+
+        shake_to_report_categories = cls._get_shake_to_report_categories_for_spike_category(
+            group_category
+        )
+        if shake_to_report_categories is not None:
+            if len(shake_to_report_categories) == 1:
+                return {"filter": shake_to_report_categories[0].name}
+
+            return {
+                "q": f"shake_to_report_category:({'|'.join([category.name for category in shake_to_report_categories])})"
+            }
+
+        else:
+            category_to_query: Dict[SpikeCategory, str] = {
+                cls.EXTERNAL_V2_IOS_SPIKES: {
+                    "q": "duolingo_metadata.user_information.ios_v2_dev:true",
+                    "filter": "EXTERNAL",
+                },
+                cls.INTERNAL_V2_IOS_SPIKES: {
+                    "q": "duolingo_metadata.user_information.ios_v2_dev:true",
+                    "filter": "INTERNAL",
+                },
+                cls.ALL_V2_IOS_SPIKES: {
+                    "q": "duolingo_metadata.user_information.ios_v2_dev:true",
+                },
+                cls.ALL_SPIKES: {},
+            }
             return category_to_query[group_category]

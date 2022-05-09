@@ -44,3 +44,10 @@ class SpikeDetectorException(Exception):
 
     def __init__(self, message: str):
         super().__init__(message)
+
+
+class SpikeReporterException(Exception):
+    """Exception raised while running the spike reporter bot"""
+
+    def __init__(self, message: str):
+        super().__init__(message)

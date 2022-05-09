@@ -20,7 +20,7 @@ class SpikeWord:
             score=spike_dict["score"],
             date=spike_dict["date"],
             lang=spike_dict["lang"],
-            spike_group=spike_dict["spike_group"],
+            spike_group=SpikeCategory[spike_dict["spike_group"]],
         )
 
     def to_dict(self) -> Dict[str, Union[float, str]]:
@@ -34,6 +34,3 @@ class SpikeWord:
 
     def get_spike_id(self) -> str:
         return f"SPIKE_{self.word}_{self.lang}_{self.date}_{self.spike_group.name}"
-
-    def get_jeeves_analysis_url(self) -> str:
-        return f"https://jeeves.duolingo.com/{self.lang}/analysis?q={self.word}"
