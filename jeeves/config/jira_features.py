@@ -34,9 +34,14 @@ JIRA_FEATURES = {
         "Connections": {
             "Profile": [],
             "Referral": [],
-            "Friends": ["friend", "invite"],
+            "Friends": ["friend", "invite", "contact"],
             "Kudos": ["congrats"],
-            "DuoNews": ["duo news"],
+            "DuoNews": ["duo news", "feed", "news"],
+            "Friends Quest": [
+                "partner",
+                "nudge",
+                "say hi",
+            ],
         },
         "Onboarding": {
             "Onboarding": ["new user", "on boarding"],
