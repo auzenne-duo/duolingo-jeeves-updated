@@ -152,7 +152,7 @@ class DuplicateGraphResolver:
         for (outward_end, inward_end) in remaining_links:
             # We don't need to edit our documents here because the changes will
             # get pulled in from Jira later anyway.
-            link_created = JiraManager.mark_duplicate_remote(outward_end, inward_end)
+            link_created = JiraManager.try_mark_duplicate_remote(outward_end, inward_end)
             if link_created:
                 any_success = True
                 result_list.append(f"S {outward_end} {inward_end}\n")
@@ -166,7 +166,7 @@ class DuplicateGraphResolver:
                 any_failure = True
                 result_list.append(f"F {outward_end} {inward_end}\n")
 
-        JiraManager.set_remote_parent_body(parent_key, parent_data)
+        JiraManager.try_set_remote_parent_body(parent_key, parent_data)
         ElasticDAL.ensure_specific_jira_issue(parent_key, force_download=True)
         DuplicateGraphResolver._update_local_links_from_manifest(result_list)
 

@@ -2,26 +2,20 @@
 Manager for JIRA documents.
 """
 import json
-import os
 import sys
 from datetime import datetime
 from typing import Dict, Optional
 
+import rollbar
 from duolingo_base.dal.s3 import S3Client
-from requests import Session, get, post, put
-from requests.auth import HTTPBasicAuth
-from requests.exceptions import RequestException
+from requests import Session
 
+from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
-from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.util.date_util import date_to_str, parse_external_datetime
-from jeeves.util.error_util import print_request_exception
-
-_USERNAME = os.environ.get("JIRA_USERNAME")
-_API_TOKEN = os.environ.get("JIRA_API_TOKEN")
 
 _JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"]
 _JIRA_ISSUE_TYPE_BUG = "Bug"
@@ -29,68 +23,34 @@ _JIRA_ISSUE_TYPE_BUG = "Bug"
 
 class JiraManager(JeevesManager):
     @staticmethod
-    def _try_set_jira_document_feature_field_key():
-        # copied from shakira_jira, because I didn't want to tie the code together
-        url = "https://duolingo.atlassian.net/rest/api/2/issue/createmeta"
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
-        headers = {"Accept": "application/json"}
-        params = {
-            "expand": "projects.issuetypes.fields",
-            "projectKeys": _JIRA_PROJECTS,
-            "issuetypeNames": _JIRA_ISSUE_TYPE_BUG,
-        }
-
+    def _try_set_jira_document_feature_field_key() -> bool:
         try:
-            r = get(url, auth=auth, headers=headers, params=params)
-            r.raise_for_status()
-
-            response_json = json.loads(r.text)
-            issuetypes = [
-                JiraIssueTypeMetaData.from_json(issuetype)
-                for project in response_json["projects"]
-                for issuetype in project["issuetypes"]
-            ]
+            issuetypes = JiraDAL.get_issuetype_metadata(_JIRA_PROJECTS, _JIRA_ISSUE_TYPE_BUG)
             feature_field_keys = {issuetype.feature_field_key() for issuetype in issuetypes}
             if len(feature_field_keys) == 1:
                 JiraDocument.set_feature_field_key(feature_field_keys.pop())
+                return True
             else:
-                print(
-                    f"Expected one unique feature field key, got {len(feature_field_keys)}",
-                    file=sys.stderr,
+                rollbar.report_message(
+                    f"Expected one unique feature field key, got {len(feature_field_keys)}", "error"
                 )
-        except RequestException as e:
-            print_request_exception(e)
+                return False
+        except:
+            rollbar.report_exc_info(sys.exc_info())
+            return False
 
     @staticmethod
-    def _try_set_feature_for_jira_document(doc: JiraDocument):
-        url = doc.feature_url
-        if url is None or len(url) == 0:
-            return
-
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
-        headers = {"Accept": "application/json"}
-
+    def _try_set_feature_for_jira_document(doc: JiraDocument) -> bool:
         try:
-            r = get(url, auth=auth, headers=headers)
-            r.raise_for_status()
+            feature_name = JiraDAL.get_feature_for_jira_document(doc)
+            if feature_name is None:
+                return False
 
-            response_json = json.loads(r.text)
-            doc.feature = response_json["value"]
-        except RequestException as e:
-            print_request_exception(e)
-        except KeyError:
-            print(
-                f"""Unexpected response from Jira Feature URL:
-                {r.text}""",
-                file=sys.stderr,
-            )
-
-    @staticmethod
-    def _get_attachment_url(attachment_json: JSON):
-        # YK 2022-02-25 This is a hack to get a URL that has a file extension at the end of it but
-        # I don't think this URL is part of the official API so it might suddenly stop working.
-        # Ideally we should store attachments in our own S3 (DEL-852).
-        return f"https://duolingo.atlassian.net/secure/attachment/{attachment_json['id']}/{attachment_json['filename']}"
+            doc.feature = feature_name
+            return True
+        except:
+            rollbar.report_exc_info(sys.exc_info())
+            return False
 
     @staticmethod
     def get_managed_document_type():
@@ -111,6 +71,8 @@ class JiraManager(JeevesManager):
         """
         Please see parent class for documentation
         """
+        # Jira API adjusts the actual max based on the fields requested
+        max_results_per_page = 100
 
         _CHECKPOINT_FILE = JiraManager.get_checkpoint_file_name()
         if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
@@ -118,54 +80,36 @@ class JiraManager(JeevesManager):
             s3_client.upload(bucket_name, _CHECKPOINT_FILE, new_checkpoint_string)
 
         start_timestamp_millis = int(s3_client.download(bucket_name, _CHECKPOINT_FILE))
-        jira_host = "https://duolingo.atlassian.net"
-        template_url = f"{jira_host}/rest/api/3/search"
-        headers = {"Accept": "application/json"}
-        # This is apparently a restriction of the JIRA API; trying to get more
-        # than 1000 issues at a time will only return the first 1000.
-        max_issues_per_fetch = 1000
-
         projects_fetch_string = f"project IN ({','.join(_JIRA_PROJECTS)}) AND updated > {start_timestamp_millis} AND issueType = {_JIRA_ISSUE_TYPE_BUG} ORDER BY updated asc"
 
-        url_params = {"fields": "*all", "maxResults": 0, "startAt": 0, "jql": projects_fetch_string}
+        url_params = {
+            "fields": "*all",
+            "maxResults": max_results_per_page,
+            "startAt": 0,
+            "jql": projects_fetch_string,
+        }
+        total = None
 
-        r = None
         with Session() as s:
-            s.auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
-            s.headers = headers
-            try:
-                # This call is just to make sure we don't download more issues than are available.
-                r = s.get(template_url, params=url_params)
-                r.raise_for_status()
-                response_json = json.loads(r.text)
-                url_params["maxResults"] = min(max_issues_per_fetch, response_json["total"])
+            while total is None or url_params["startAt"] < total:
+                response_json = JiraDAL.search_issues_json(s, params=url_params)
 
-                while url_params["startAt"] < response_json["total"]:
-                    r = s.get(template_url, params=url_params)
-                    r.raise_for_status()
-                    response_json = json.loads(r.text)
-                    for issue in response_json["issues"]:
-                        attachments = []
-                        if "attachment" in issue["fields"]:
-                            for attachment_json in issue["fields"]["attachment"]:
-                                attachments.append(JiraManager._get_attachment_url(attachment_json))
-                        issue["attachments"] = attachments
-                        # Store to S3
-                        issue_updated_time = parse_external_datetime(issue["fields"]["updated"])
-                        issue_updated_date = date_to_str(issue_updated_time)
-                        upload_path = f"{JiraManager.get_managed_document_type().get_data_source_identifier()}/{issue_updated_date}/{issue['id']}"
-                        s3_client.upload(bucket_name, upload_path, json.dumps(issue))
-                        issue_updated_millis = int(issue_updated_time.timestamp() * 1000)
-                        if issue_updated_millis > start_timestamp_millis:
-                            start_timestamp_millis = issue_updated_millis
-                            s3_client.upload(
-                                bucket_name, _CHECKPOINT_FILE, f"{start_timestamp_millis}"
-                            )
+                for issue in response_json["issues"]:
+                    # Store to S3
+                    issue_updated_time = parse_external_datetime(issue["fields"]["updated"])
+                    issue_updated_date = date_to_str(issue_updated_time)
+                    upload_path = f"{JiraManager.get_managed_document_type().get_data_source_identifier()}/{issue_updated_date}/{issue['id']}"
+                    s3_client.upload(bucket_name, upload_path, json.dumps(issue))
+                    issue_updated_millis = int(issue_updated_time.timestamp() * 1000)
+                    if issue_updated_millis > start_timestamp_millis:
+                        start_timestamp_millis = issue_updated_millis
+                        s3_client.upload(bucket_name, _CHECKPOINT_FILE, f"{start_timestamp_millis}")
 
-                    url_params["startAt"] += len(response_json["issues"])
-
-            except RequestException as e:
-                print_request_exception(e)
+                url_params["startAt"] += len(response_json["issues"])
+                if total is None:
+                    # only update total once, rather than trying to hit a moving target of total
+                    # issues downlaoded.
+                    total = response_json["total"]
 
     @staticmethod
     def download_specific_issue(issue_key: str) -> Optional[JeevesDocument]:
@@ -182,24 +126,8 @@ class JiraManager(JeevesManager):
             A JeevesDocument object representing the requested issue if we were
             able to download it, and None otherwise.
         """
-
-        base_api_url = "https://duolingo.atlassian.net/rest/api/3/issue"
-        headers = {"Accept": "application/json"}
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
-
-        request_url = f"{base_api_url}/{issue_key}"
-
-        try:
-            r = get(request_url, auth=auth, headers=headers)
-            r.raise_for_status()
-
-            response_JSON = json.loads(r.text)
-            JiraManager._try_set_jira_document_feature_field_key()
-            return JiraDocument.deserialize_from_external_json(response_JSON)
-
-        except RequestException as e:
-            print_request_exception(e)
-            return None
+        JiraManager._try_set_jira_document_feature_field_key()
+        return JiraDAL.get_issue(issue_key)
 
     @staticmethod
     def _create_paragraph_block(block_contents: str) -> JSON:
@@ -255,7 +183,7 @@ class JiraManager(JeevesManager):
         return body_json
 
     @staticmethod
-    def set_remote_parent_body(parent_key: str, data: Dict[str, Dict[str, int]]) -> bool:
+    def try_set_remote_parent_body(parent_key: str, data: Dict[str, Dict[str, int]]) -> bool:
         """
         Sets the body text of the issue specified by parent_key to content
         specified by the provided data, and saves this change to Jira.
@@ -269,22 +197,12 @@ class JiraManager(JeevesManager):
             True if the Jira API indicates that the operation completed
             successfully, otherwise False.
         """
-        jira_host = "https://duolingo.atlassian.net"
-        target_url = f"{jira_host}/rest/api/3/issue/{parent_key}"
-        headers = {"Accept": "application/json", "Content-Type": "application/json"}
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
-        data_operation = {
-            "update": {
-                "description": [{"set": JiraManager.generate_parent_body_text_from_data(data)}]
-            }
-        }
-
         try:
-            r = put(target_url, headers=headers, auth=auth, data=json.dumps(data_operation))
-            r.raise_for_status()
+            JiraDAL.set_issue_description(
+                parent_key, JiraManager.generate_parent_body_text_from_data(data)
+            )
             return True
-        except RequestException as e:
-            print_request_exception(e)
+        except:
             return False
 
     @staticmethod
@@ -310,36 +228,7 @@ class JiraManager(JeevesManager):
         body_json = JiraManager.generate_parent_body_text_from_data(
             {category: {} for category in category_names}
         )
-
-        issue_data = {
-            "fields": {
-                "project": {
-                    "key": project,
-                },
-                "issuetype": {
-                    "name": "Bug",
-                },
-                "summary": header_text,
-                "description": body_json,
-                "labels": [
-                    "parent_bug",
-                ],
-            }
-        }
-        base_api_url = "https://duolingo.atlassian.net/rest/api/3/issue"
-        headers = {"Accept": "application/json", "Content-Type": "application/json"}
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
-
-        try:
-            r = post(base_api_url, auth=auth, headers=headers, data=json.dumps(issue_data))
-            r.raise_for_status()
-
-            response_JSON = json.loads(r.text)
-            return response_JSON["key"]
-
-        except RequestException as e:
-            print_request_exception(e)
-            return None
+        return JiraDAL.create_bug_issue(project, header_text, body_json)
 
     @staticmethod
     def parse_parent_description(body_text: str) -> Dict[str, Dict[str, int]]:
@@ -437,7 +326,7 @@ class JiraManager(JeevesManager):
         return parent_data
 
     @staticmethod
-    def mark_duplicate_remote(outward_key: str, inward_key: str) -> bool:
+    def try_mark_duplicate_remote(outward_key: str, inward_key: str) -> bool:
         """
         Given two issue keys, one outward and one inward, marks them as
         duplicates of each other on JIRA. We distinguish between outward and
@@ -452,41 +341,13 @@ class JiraManager(JeevesManager):
             inward_key: Issue key on the "inward" side of the duplicate link.
 
         Returns:
-            True if the link is created, otherwise False. This is actually as
-            informative of a return value as we're able to provide. JIRA's API
-            has three failure response codes on the relevant route, those being
-            400 (comment not created), 401 (Unauthorized), and 404 (Other). We
-            are not using comments here so 400 will never be returned. The
-            credentials used here are identical to those used on other JIRA API
-            functionality in this file, so if this request would generate a 401,
-            so would a lot of other, much more visible requests. That only
-            leaves 404 as a failure condition, and JIRA explicitly states that
-            they do not define a response schema for 404 on this route. As a
-            result, we do not have any information beyond "the request failed".
-
-        Note: We do not need to explicitly update Elasticsearch with the link
-              created in this function, since creating the duplicate relation
-              should trigger an update on both of the issues, which will be
-              later picked up by the normal document downloader.
+            True if the link is created, otherwise False.
         """
-
-        issue_link_url = "https://duolingo.atlassian.net/rest/api/3/issueLink"
-        auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
-        headers = {"Accept": "application/json", "Content-Type": "application/json"}
-        data = {
-            "outwardIssue": {"key": outward_key},
-            "inwardIssue": {"key": inward_key},
-            "type": {"name": "Duplicate"},
-        }
-
         try:
-            r = post(issue_link_url, auth=auth, headers=headers, data=json.dumps(data))
-            r.raise_for_status()
-        except RequestException as e:
-            print_request_exception(e)
+            JiraDAL.mark_duplicate(outward_key, inward_key)
+            return True
+        except:
             return False
-
-        return True
 
     @staticmethod
     def get_most_recent_s3_populated_date(s3_client: S3Client, bucket_name: str) -> datetime:

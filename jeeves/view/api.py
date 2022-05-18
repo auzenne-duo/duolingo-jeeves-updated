@@ -296,7 +296,7 @@ def cement_duplicates():
     if not out_key or not in_key:
         abort(make_response("Please provide both `outward_key` and `inward_key`.", 400))
 
-    remote_success = JiraManager.mark_duplicate_remote(out_key, in_key)
+    remote_success = JiraManager.try_mark_duplicate_remote(out_key, in_key)
     if not remote_success:
         abort(
             make_response(
@@ -325,9 +325,9 @@ def submit_duplicates():
         if not isinstance(out_keys, list):
             out_keys = [out_keys]
         elif len(out_keys) == 0:
-            abort(make_response("Please specifify at least one duplicate", 400))
+            abort(make_response("Please specify at least one duplicate", 400))
         remote_successes = [
-            JiraManager.mark_duplicate_remote(out_key, in_key) for out_key in out_keys
+            JiraManager.try_mark_duplicate_remote(out_key, in_key) for out_key in out_keys
         ]
         if False in remote_successes:
             abort(
