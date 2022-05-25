@@ -126,7 +126,6 @@ class DuplicateGraphResolver:
             more parent issues into the same group, an exception will be thrown.
         """
         duplicate_graph = DuplicateGraphResolver.get_duplicate_graph(issue_keys)
-
         doc_reps = [
             ElasticDAL.ensure_specific_jira_issue(key) for key in duplicate_graph.issue_keys
         ]

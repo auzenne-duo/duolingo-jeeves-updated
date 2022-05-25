@@ -7,7 +7,7 @@ from duolingo_base.config import Config
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
 from elasticsearch.helpers import bulk
-from elasticsearch_dsl import Mapping, Q, Search
+from elasticsearch_dsl import A, Mapping, Q, Search
 from elasticsearch_dsl.query import MoreLikeThis
 
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
@@ -16,12 +16,15 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str
+from jeeves.util.error_util import SearchUnsuccessfulException
 
 _config = Config.load_config()
 
 # If we ever change the duplicate detection model, make sure this value is
 # updated appropriately
 _SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
+
+_JIRA_RESOLVED_RESOLUTIONS = ["Done", "Fixed", "Merged"]
 
 
 class ElasticsearchDAL:
@@ -813,6 +816,133 @@ class ElasticsearchDAL:
             if family_member.is_group_parent(family_member):
                 return family_member
         return None
+
+    def get_bugs_count_per_reporter_email(
+        self,
+        min_doc_count: int = 1,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        should_count_resolved_bugs_only: bool = False,
+    ) -> Dict[str, int]:
+        """
+        Counts the number of internal/admin beta bug reports per person.
+
+        Parameters:
+            min_doc_count: If a reporter has reported fewer than this number of bugs, they will not
+                appear in the results.
+            start_time: Limit the search to bugs created (or resolved) after this time. Specified in
+                Eastern time.
+            end_time: Limit the search to bugs created (or resolved) before this time. Specified in
+                Eastern time.
+            should_count_resolved_bugs_only: Limit the search to resolved bugs, rather than any bugs
+                reported.
+
+        Returns:
+            A Dict of reporter_email to document count.
+        """
+        # TODO use filters aggregation to get all of these stats at once!
+        s = Search(using=self._es, index=self._indexname).query("match_all")
+        s = s.filter("term", shake_to_report_category="INTERNAL")
+
+        timestamp_dict = {"time_zone": "America/New_York"}
+        if start_time:
+            timestamp_dict.update({"gte": start_time})
+        if end_time:
+            timestamp_dict.update({"lt": end_time})
+        if should_count_resolved_bugs_only:
+            s = s.filter("range", resolution_date=timestamp_dict)
+        else:
+            s = s.filter("range", creation_date=timestamp_dict)
+
+        if should_count_resolved_bugs_only:
+            # TODO check status of all duplicates as well
+            s = s.filter("terms", resolution__keyword=_JIRA_RESOLVED_RESOLUTIONS)
+
+        # size=65536 is the default search.max_buckets setting
+        s.aggs.bucket(
+            "reporters",
+            "terms",
+            field="reporter_email.keyword",
+            size=65536,
+            min_doc_count=min_doc_count,
+        )
+        response = s.execute()
+
+        if not response.success():
+            raise SearchUnsuccessfulException(response, search_description="get bugs count")
+        reporters = response.aggregations.reporters
+        if (
+            reporters.doc_count_error_upper_bound > 0
+            or reporters.sum_other_doc_count > 0
+            or not reporters.buckets
+        ):
+            raise SearchUnsuccessfulException(
+                response, search_description="aggregate bugs count per reporter"
+            )
+        else:
+            return {reporter.key: reporter.doc_count for reporter in reporters.buckets}
+
+    def get_most_recent_resolved_bugs_per_reporter_email(
+        self,
+        start_time: Optional[datetime] = None,
+        max_doc_count: int = 5,
+    ) -> Dict[str, List[JeevesDocument]]:
+        """
+        Returns the admin/internal beta bugs that were most recently resolved for each reporter.
+
+        Parameters:
+            start_time: Limit the search to bugs created (or resolved) after this time. Specified in
+                Eastern time.
+            max_doc_count: The maximum number of bugs to return for each person.
+
+        Returns:
+            A Dict of reporter_email to a list of JeevesDocuments.
+        """
+        s = (
+            Search(using=self._es, index=self._indexname)
+            .query("match_all")
+            .filter("term", shake_to_report_category="INTERNAL")
+            .filter("terms", resolution__keyword=_JIRA_RESOLVED_RESOLUTIONS)
+        )
+
+        if start_time:
+            timestamp_dict = {"time_zone": "America/New_York", "gte": start_time}
+            s = s.filter("range", creation_date=timestamp_dict)
+
+        top_hits_aggregate = {
+            "most_recent_bugs": A("top_hits", sort="resolution_date", size=max_doc_count)
+        }
+        # size=65536 is the default search.max_buckets setting
+        reporter_buckets_aggregate = A(
+            "terms", field="reporter_email.keyword", size=65536, aggs=top_hits_aggregate
+        )
+        s.aggs.bucket("reporters", reporter_buckets_aggregate)
+
+        response = s.execute()
+
+        if not response.success():
+            raise SearchUnsuccessfulException(
+                response, search_description="get most recent resolved bugs"
+            )
+        reporters = response.aggregations.reporters
+        if (
+            reporters.doc_count_error_upper_bound > 0
+            or reporters.sum_other_doc_count > 0
+            or not reporters.buckets
+        ):
+            raise SearchUnsuccessfulException(
+                response, search_description="aggregate recent resolved bugs per reporter"
+            )
+        else:
+            return {
+                reporter.key: [
+                    IDManagerMap.get_manager_for_identifier(hit["data_source"])
+                    .get_managed_document_type()
+                    .deserialize_from_internal_json(hit.to_dict())
+                    for hit in reporter.most_recent_bugs
+                ]
+                for reporter in reporters.buckets
+            }
 
 
 ElasticDAL = ElasticsearchDAL()
