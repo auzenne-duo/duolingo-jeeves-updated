@@ -10,6 +10,7 @@ from typing import List
 from jeeves.dal.elasticsearch_interface import ElasticDAL
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.model.jira_document import JiraDocument
+from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 
 
 class DuplicateGraphResolver:
@@ -41,6 +42,31 @@ class DuplicateGraphResolver:
                 target_json["linked_duplicate_keys"].append(key)
             updated_docs.append(JiraDocument.deserialize_from_internal_json(target_json))
         ElasticDAL.bulk_index_tickets(updated_docs)
+
+    @staticmethod
+    def get_duplicate_graph(issue_keys: List[str]) -> JiraDuplicateGraph:
+        """
+        Takes issue key(s) and returns information about the set of reachable issues in the graph
+        of duplicates.
+
+        Returns a dict with the following keys:
+        - keys: a Set[str] of issue keys in the duplicate graph.
+        - existing_links: a Set[Tuple[str]] of links that already exist between issues in the graph.
+        """
+
+        existing_links = set()
+        visited = set()
+        unvisited = set(issue_keys)
+        while unvisited:
+            target_key = unvisited.pop()
+            target_issue = ElasticDAL.ensure_specific_jira_issue(target_key, force_download=True)
+            for existing_duplicate in target_issue.linked_duplicate_keys:
+                if existing_duplicate not in visited:
+                    unvisited.add(existing_duplicate)
+                existing_pair = tuple(sorted([target_key, existing_duplicate]))
+                existing_links.add(existing_pair)
+            visited.add(target_key)
+        return JiraDuplicateGraph(issue_keys=visited, existing_issue_links=existing_links)
 
     @staticmethod
     def connect_duplicates_remote(issue_keys: List[str]) -> str:
@@ -99,22 +125,11 @@ class DuplicateGraphResolver:
             we consider the operation a success. If we attempt to merge two or
             more parent issues into the same group, an exception will be thrown.
         """
+        duplicate_graph = DuplicateGraphResolver.get_duplicate_graph(issue_keys)
 
-        # I'm writing this from scratch but this is probably just Dijkstra's?
-        existing_links = set()
-        visited = set()
-        unvisited = set(issue_keys)
-        while unvisited:
-            target_key = unvisited.pop()
-            target_issue = ElasticDAL.ensure_specific_jira_issue(target_key)
-            for existing_duplicate in target_issue.linked_duplicate_keys:
-                if existing_duplicate not in visited:
-                    unvisited.add(existing_duplicate)
-                existing_pair = tuple(sorted([target_key, existing_duplicate]))
-                existing_links.add(existing_pair)
-            visited.add(target_key)
-
-        doc_reps = [ElasticDAL.ensure_specific_jira_issue(key) for key in visited]
+        doc_reps = [
+            ElasticDAL.ensure_specific_jira_issue(key) for key in duplicate_graph.issue_keys
+        ]
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
 
         parent_key = None
@@ -128,7 +143,7 @@ class DuplicateGraphResolver:
             parent_key = JiraManager.upload_template_parent_issue(
                 parent_project, parent_header_text
             )
-            visited.add(parent_key)
+            duplicate_graph.issue_keys.add(parent_key)
         else:
             raise Exception(
                 f"Attempting to fully connect keys [{', '.join(issue_keys)}] into a single group found returned {len(group_parents)} parent issues; please investigate."
@@ -140,12 +155,12 @@ class DuplicateGraphResolver:
         # The set visited should now contain all issues we want to fully connect
         # The set existing_links should now contain all existing links
         all_possible_links = set()
-        keys_list = sorted(list(visited))
+        keys_list = sorted(list(duplicate_graph.issue_keys))
         for i in range(0, len(keys_list) - 1):
             for j in range(i + 1, len(keys_list)):
                 all_possible_links.add((keys_list[i], keys_list[j]))
 
-        remaining_links = all_possible_links - existing_links
+        remaining_links = all_possible_links - duplicate_graph.existing_issue_links
         any_success = False
         any_failure = False
         result_list = []
