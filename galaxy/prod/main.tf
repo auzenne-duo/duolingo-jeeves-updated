@@ -110,8 +110,8 @@ module "duolingo-jeeves-s3-worker" {
   environment                        = var.environment
   service                            = var.service
   subservice                         = "s3-worker"
-  cpu                                = 1024
-  memory                             = 4096
+  cpu                                = 4096
+  memory                             = 1024
   min_count                          = 1 # Minimum number of tasks to run in autoscaling group
   max_count                          = 1 # Maximum number of tasks to run in autoscaling group
   scale_out_count                    = 0
