@@ -52,7 +52,8 @@ module "duolingo-jeeves" {
   http_listener_type                   = "redirect"
   release_version                      = var.release_version
   health_check_grace_period_seconds    = 120
-  latency_threshold_evaluation_periods = 5
+  latency_threshold                    = 1000
+  latency_threshold_evaluation_periods = 10
 
   environment_vars = [
     {
@@ -188,8 +189,8 @@ module "duolingo-jeeves-sqs-worker-1" {
   environment                 = var.environment
   service                     = var.service
   subservice                  = "sqs-worker-1"
-  cpu                         = 1024 # 1024 equals one core
-  memory                      = 4096 # in MB
+  cpu                         = 4096 # 1024 equals one core
+  memory                      = 2048 # in MB
   min_count                   = 1    # Minimum number of tasks to run in autoscaling group
   max_count                   = 40   # Maximum number of tasks to run in autoscaling group
   product                     = var.product
