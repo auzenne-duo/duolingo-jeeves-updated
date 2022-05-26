@@ -6,7 +6,7 @@ from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 
 import jeeves.lib.ticket_crawler as tc
-from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.manager.jeeves_duplicate_manager import JeevesDuplicateManager
 
@@ -32,6 +32,7 @@ def _message_to_document(message):
 
 
 if __name__ == "__main__":
+    apply_registry()
     try:
         sqs_client = sqs.SQSClient(
             _config.get_nested(["sqs_verify_index_pipeline", "queue_url"]),
@@ -39,7 +40,7 @@ if __name__ == "__main__":
             endpoint_url=_config.get_nested(["sqs_verify_index_pipeline", "endpoint_url"]),
         )
 
-        duplicate_manager = JeevesDuplicateManager(ElasticDAL)
+        duplicate_manager = app_registry(JeevesDuplicateManager)
 
         batch_list = []
         while True:
@@ -61,3 +62,5 @@ if __name__ == "__main__":
                 batch_list = []
     except:
         rollbar.report_exc_info(sys.exc_info())
+    finally:
+        close_registry()

@@ -7,8 +7,9 @@ import rollbar
 from duolingo_base.config import Config
 from duolingo_base.dal import s3, sqs
 
+from jeeves import registry as app_registry
 from jeeves.config.config import CRAWL_WINDOW_SIZE
-from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.jeeves_document import JeevesDocument
@@ -87,7 +88,7 @@ def perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
     Parameters:
         ticket_list: List of documents to index
     """
-    ElasticDAL.bulk_index_tickets(ticket_list)
+    app_registry(ElasticsearchDAL).bulk_index_tickets(ticket_list)
 
 
 def _send_s3_doc_to_sqs(
@@ -151,7 +152,9 @@ def _crawl_documents_for_data_source(
 
     data_source_identifier = manager.get_managed_document_type().get_data_source_identifier()
     print(f"Finding latest indexed timestamp for data source {data_source_identifier}", flush=True)
-    latest_timestamp = ElasticDAL.get_most_recent_timestamp(data_source=data_source_identifier)
+    latest_timestamp = app_registry(ElasticsearchDAL).get_most_recent_timestamp(
+        data_source=data_source_identifier
+    )
     any_documents_indexed = bool(latest_timestamp)
 
     if not any_documents_indexed:

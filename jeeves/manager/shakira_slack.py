@@ -214,6 +214,3 @@ class ShakiraSlackApiClient:
             r.raise_for_status()
         except RequestException as e:
             print_request_exception(e)
-
-
-ShakiraSlackClient = ShakiraSlackApiClient()

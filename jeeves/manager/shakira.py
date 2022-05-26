@@ -4,8 +4,10 @@ Interface for interacting with the Slack and JIRA managers for shakira routes.
 
 from typing import Dict, List, Optional, Tuple, Union
 
-from jeeves.manager.shakira_jira import ShakiraJiraClient
-from jeeves.manager.shakira_slack import ShakiraSlackClient
+from duolingo_base.util import registry
+
+from jeeves.manager.shakira_jira import ShakiraJiraApiClient
+from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.slack_channel import SlackChannel
 from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM
 
@@ -30,8 +32,12 @@ _SLACK_CHANNELS_TO_JIRA_LABELS = {
 }
 
 
+@registry.bind(
+    jira_client=registry.reference(ShakiraJiraApiClient),
+    slack_client=registry.reference(ShakiraSlackApiClient),
+)
 class ShakiraManager:
-    def __init__(self, jira_client, slack_client):
+    def __init__(self, jira_client: ShakiraJiraApiClient, slack_client: ShakiraSlackApiClient):
         self._jira_client = jira_client
         self._slack_client = slack_client
 
@@ -222,6 +228,3 @@ class ShakiraManager:
                 if post_id or issue_key
                 else {"error": ("There was a problem reporting the issue.", 500)}
             )
-
-
-Shakira = ShakiraManager(ShakiraJiraClient, ShakiraSlackClient)

@@ -1,10 +1,13 @@
 from datetime import timedelta
 from typing import Dict, List
 
+from duolingo_base.util import registry
+
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.model.jeeves_document import JeevesDocument
 
 
+@registry.bind(elasticsearch_dal=registry.reference(ElasticsearchDAL))
 class JeevesDuplicateManager:
     def __init__(self, elasticsearch_dal: ElasticsearchDAL):
         self._esd = elasticsearch_dal

@@ -4,9 +4,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
-from jeeves.manager.shakira_jira import ShakiraJiraClient
+from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 
-mock_jira_client = ShakiraJiraClient
+mock_jira_client = ShakiraJiraApiClient()
 mock_jira_client.get_features = MagicMock(
     return_value=["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"]
 )
@@ -196,7 +196,7 @@ def test_get_suggested_features(
 
 
 def test_feature_filtering():
-    mock_filtered_jira_client = ShakiraJiraClient
+    mock_filtered_jira_client = ShakiraJiraApiClient()
     mock_filtered_jira_client.get_features = MagicMock(
         return_value=["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"]
     )

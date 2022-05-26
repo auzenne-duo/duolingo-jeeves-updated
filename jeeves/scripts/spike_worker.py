@@ -5,7 +5,8 @@ import rollbar
 from duolingo_base.config import Config
 from duolingo_base.dal import s3
 
-from jeeves.dal.spike_index_interface import SpikeDAL  # pylint: disable=E0401
+from jeeves import apply_registry, close_registry, registry as app_registry
+from jeeves.dal.spike_index_interface import SpikeIndexDAL  # pylint: disable=E0401
 from jeeves.lib.spike_detector import detect_spikes  # pylint: disable=E0401
 from jeeves.util.date_util import date_to_str  # pylint: disable=E0401
 from jeeves.util.date_util import get_utc_today  # pylint: disable=E0401
@@ -73,7 +74,7 @@ def run_spike_worker() -> None:
 
     try:
         # Quick check to see if we have any spikes
-        min_max_spike_dates = SpikeDAL.get_min_and_max_spike_dates()
+        min_max_spike_dates = app_registry(SpikeIndexDAL).get_min_and_max_spike_dates()
         have_any_spikes = bool(min_max_spike_dates["max"])
 
         # Check if the force refresh file is present, and create it if not
@@ -120,6 +121,9 @@ def run_spike_worker() -> None:
 
 if __name__ == "__main__":
     try:
+        apply_registry()
         run_spike_worker()
     except:
         rollbar.report_exc_info(sys.exc_info())
+    finally:
+        close_registry()

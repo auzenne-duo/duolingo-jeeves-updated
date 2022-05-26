@@ -297,3 +297,5 @@ JIRA_FEATURES = {
         },
     },
 }
+
+JIRA_FEATURES_REGISTRY_KEY = "jira_features"

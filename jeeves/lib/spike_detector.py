@@ -10,9 +10,10 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 
+from jeeves import registry as app_registry
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
-from jeeves.dal.elasticsearch_interface import ElasticDAL
-from jeeves.dal.spike_index_interface import SpikeDAL
+from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
@@ -44,7 +45,7 @@ def detect_spikes(target_date: Optional[date] = None) -> None:
         more_pages = True
         page_number = 0
         while more_pages:
-            paginated_info = ElasticDAL.get_recent_paginated_tickets(
+            paginated_info = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
                 lang,
                 "",
                 page=page_number,
@@ -125,7 +126,7 @@ def run_spike_detector_for_batch(
         spike.spike_group = spike_group
 
     if batch_spike_list:
-        SpikeDAL.bulk_index_spikes(batch_spike_list)
+        app_registry(SpikeIndexDAL).bulk_index_spikes(batch_spike_list)
 
 
 def _bucket_to_value(bucket: Dict[str, Union[str, int]]) -> Dict[str, int]:
@@ -154,13 +155,13 @@ def _get_word_to_date_to_count(
         that date.
     """
     # Elasticsearch can take care of tokenization on top of everything else
-    terms = ElasticDAL.get_terms_from_docs(new_ticket_ids, lang)
+    terms = app_registry(ElasticsearchDAL).get_terms_from_docs(new_ticket_ids, lang)
 
     start_time = timeit.default_timer()
     word_date_count = {}
     for t in terms:
         word_date_count[t] = {}
-        buckets = ElasticDAL.aggregate_time_series(lang, spike_category, t)
+        buckets = app_registry(ElasticsearchDAL).aggregate_time_series(lang, spike_category, t)
         if "ERROR" in buckets:
             continue
         for val in [_bucket_to_value(b) for b in buckets]:

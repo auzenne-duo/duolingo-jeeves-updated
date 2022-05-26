@@ -41,7 +41,6 @@ class ElasticsearchDAL:
         Initialize Elasticsearch index
         Should only be called once, during server startup
         """
-
         if not self._es.indices.exists(index=self._indexname):
 
             # We need to explicitly set these types because Elasticsearch will
@@ -943,6 +942,3 @@ class ElasticsearchDAL:
                 ]
                 for reporter in reporters.buckets
             }
-
-
-ElasticDAL = ElasticsearchDAL()

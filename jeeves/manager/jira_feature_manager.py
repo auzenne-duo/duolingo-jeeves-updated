@@ -1,8 +1,11 @@
 import operator
 from typing import Dict, List, Optional, Union
 
+from duolingo_base.util import registry
+
+from jeeves.config.jira_features import JIRA_FEATURES_REGISTRY_KEY
 from jeeves.manager.shakira import _SHAKIRA_FEATURES_TO_SLACK_CHANNEL
-from jeeves.manager.shakira_jira import ShakiraJiraClient
+from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.model.custom_types import AreaWithTeamList
 
 SUBSTRINGS_TO_IGNORE_BY_TERM = {
@@ -22,11 +25,18 @@ SUBSTRINGS_TO_IGNORE_BY_TERM = {
     "USERNAME": ["USERNAME: "],
 }
 
+SUBSTRINGS_TO_IGNORE_REGISTRY_KEY = "substrings_to_ignore_by_term"
 
+
+@registry.bind(
+    jira_client=registry.reference(ShakiraJiraApiClient),
+    features_config=registry.reference(JIRA_FEATURES_REGISTRY_KEY),
+    substrings_to_ignore_by_term=registry.reference(SUBSTRINGS_TO_IGNORE_REGISTRY_KEY),
+)
 class JiraFeatureManager:
     def __init__(
         self,
-        jira_client: ShakiraJiraClient,
+        jira_client: ShakiraJiraApiClient,
         features_config: Dict[str, Dict[str, Dict[str, List[str]]]],
         substrings_to_ignore_by_term: Dict[str, List[str]],
     ):

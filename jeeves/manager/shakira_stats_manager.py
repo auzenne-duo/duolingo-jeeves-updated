@@ -7,8 +7,9 @@ from datetime import date, datetime, time
 from typing import Dict, List
 
 import urllib3
+from duolingo_base.util import registry
 
-from jeeves.dal.elasticsearch_interface import ElasticDAL
+from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shakira_stat import ShakiraStat
 from jeeves.util.date_util import get_eastern_today, get_n_days_ago, str_to_date
@@ -17,7 +18,11 @@ _RECENT_STATS_WINDOW_DAYS = 7
 _RECENT_RESOLVED_BUGS_WINDOW_DAYS = 60
 
 
+@registry.bind(es_dal=registry.reference(ElasticsearchDAL))
 class ShakiraStatsManager:
+    def __init__(self, es_dal: ElasticsearchDAL):
+        self._es_dal = es_dal
+
     def get_all_stats_per_reporter_email(self) -> Dict[str, Dict[ShakiraStat, int]]:
         # YK 2022-05-18 Due to a bug with Jira issue indexing (DEL-1674), these windows will end up
         # being either "Jira issues filed between 4AM to 4AM eastern" or "Jira issues filed between
@@ -32,20 +37,20 @@ class ShakiraStatsManager:
             start_of_today, _RECENT_STATS_WINDOW_DAYS
         )
 
-        all_time_counts = ElasticDAL.get_bugs_count_per_reporter_email(end_time=start_of_today)
-        recent_counts = ElasticDAL.get_bugs_count_per_reporter_email(
+        all_time_counts = self._es_dal.get_bugs_count_per_reporter_email(end_time=start_of_today)
+        recent_counts = self._es_dal.get_bugs_count_per_reporter_email(
             start_time=recent_stats_window_start_datetime, end_time=start_of_today
         )
-        all_time_resolved_counts = ElasticDAL.get_bugs_count_per_reporter_email(
+        all_time_resolved_counts = self._es_dal.get_bugs_count_per_reporter_email(
             should_count_resolved_bugs_only=True, end_time=start_of_today
         )
-        recent_resolved_counts = ElasticDAL.get_bugs_count_per_reporter_email(
+        recent_resolved_counts = self._es_dal.get_bugs_count_per_reporter_email(
             start_time=recent_stats_window_start_datetime,
             end_time=start_of_today,
             should_count_resolved_bugs_only=True,
         )
 
-        stats_per_reporter_email = defaultdict(defaultdict)
+        stats_per_reporter_email = defaultdict(lambda: defaultdict(int))
 
         for reporter, count in all_time_counts.items():
             stats_per_reporter_email[reporter][ShakiraStat.ALL_TIME_COUNT] = count
@@ -68,13 +73,13 @@ class ShakiraStatsManager:
             start_of_today, _RECENT_RESOLVED_BUGS_WINDOW_DAYS
         )
 
-        recent_resolved_bugs = ElasticDAL.get_most_recent_resolved_bugs_per_reporter_email(
+        recent_resolved_bugs = self._es_dal.get_most_recent_resolved_bugs_per_reporter_email(
             start_time=recent_resolved_bugs_window_start_datetime
         )
         return recent_resolved_bugs
 
     def get_date_of_oldest_indexed_document(self) -> date:
-        return str_to_date(ElasticDAL.get_min_and_max_document_dates()["min"])
+        return str_to_date(self._es_dal.get_min_and_max_document_dates()["min"])
 
     def get_jeeves_url_for_reporter(self, reporter: str):
         reporter_query = f'reporter:"{reporter}"'
@@ -83,6 +88,3 @@ class ShakiraStatsManager:
     def get_jeeves_url_for_reporter_email(self, reporter_email: str):
         reporter_query = f'reporter_email:"{reporter_email}"'
         return f"https://jeeves.duolingo.com/en/discovery?q={urllib3.parse.quote(reporter_query)}&filter=INTERNAL"
-
-
-ShakiraStats = ShakiraStatsManager()

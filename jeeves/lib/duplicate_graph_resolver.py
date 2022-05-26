@@ -7,15 +7,22 @@ make sense or would cause a circular dependency.
 from collections import defaultdict
 from typing import List
 
-from jeeves.dal.elasticsearch_interface import ElasticDAL
+from duolingo_base.util import registry
+
+from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 
+# TODO this class should be a manager not a lib
 
+
+@registry.bind(es_dal=registry.reference(ElasticsearchDAL))
 class DuplicateGraphResolver:
-    @staticmethod
-    def _update_local_links_from_manifest(manifest: List[str]) -> None:
+    def __init__(self, es_dal: ElasticsearchDAL):
+        self._es_dal = es_dal
+
+    def _update_local_links_from_manifest(self, manifest: List[str]) -> None:
         """
         Given a list of manifest results (see connect_duplicates_remote),
         modify our locally stored information to include the links successfully
@@ -24,7 +31,6 @@ class DuplicateGraphResolver:
         Parameters:
             manifest: A results manifest generated in connect_duplicates_remote
         """
-
         issues_to_link = defaultdict(list)
         for line in manifest:
             line_items = line.strip().split(" ")
@@ -35,16 +41,15 @@ class DuplicateGraphResolver:
                 issues_to_link[line_items[i + 1]].append(line_items[2 - i])
 
         updated_docs = []
-        docs = [ElasticDAL.find_jira_by_key(key) for key in issues_to_link]
+        docs = [self._es_dal.find_jira_by_key(key) for key in issues_to_link]
         for target_doc in docs:
             target_json = target_doc.serialize_to_json(target_doc)
             for key in issues_to_link[target_doc.issue_key]:
                 target_json["linked_duplicate_keys"].append(key)
             updated_docs.append(JiraDocument.deserialize_from_internal_json(target_json))
-        ElasticDAL.bulk_index_tickets(updated_docs)
+        self._es_dal.bulk_index_tickets(updated_docs)
 
-    @staticmethod
-    def get_duplicate_graph(issue_keys: List[str]) -> JiraDuplicateGraph:
+    def get_duplicate_graph(self, issue_keys: List[str]) -> JiraDuplicateGraph:
         """
         Takes issue key(s) and returns information about the set of reachable issues in the graph
         of duplicates.
@@ -59,7 +64,7 @@ class DuplicateGraphResolver:
         unvisited = set(issue_keys)
         while unvisited:
             target_key = unvisited.pop()
-            target_issue = ElasticDAL.ensure_specific_jira_issue(target_key, force_download=True)
+            target_issue = self._es_dal.ensure_specific_jira_issue(target_key, force_download=True)
             for existing_duplicate in target_issue.linked_duplicate_keys:
                 if existing_duplicate not in visited:
                     unvisited.add(existing_duplicate)
@@ -68,8 +73,7 @@ class DuplicateGraphResolver:
             visited.add(target_key)
         return JiraDuplicateGraph(issue_keys=visited, existing_issue_links=existing_links)
 
-    @staticmethod
-    def connect_duplicates_remote(issue_keys: List[str]) -> str:
+    def connect_duplicates_remote(self, issue_keys: List[str]) -> str:
         """
         Marks a new issue as a duplicate of each of several existing issues on
         Jira, and ensures that any issues with a finite degree of separation
@@ -125,9 +129,9 @@ class DuplicateGraphResolver:
             we consider the operation a success. If we attempt to merge two or
             more parent issues into the same group, an exception will be thrown.
         """
-        duplicate_graph = DuplicateGraphResolver.get_duplicate_graph(issue_keys)
+        duplicate_graph = self.get_duplicate_graph(issue_keys)
         doc_reps = [
-            ElasticDAL.ensure_specific_jira_issue(key) for key in duplicate_graph.issue_keys
+            self._es_dal.ensure_specific_jira_issue(key) for key in duplicate_graph.issue_keys
         ]
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
 
@@ -148,7 +152,7 @@ class DuplicateGraphResolver:
                 f"Attempting to fully connect keys [{', '.join(issue_keys)}] into a single group found returned {len(group_parents)} parent issues; please investigate."
             )
 
-        parent_doc = ElasticDAL.ensure_specific_jira_issue(parent_key)
+        parent_doc = self._es_dal.ensure_specific_jira_issue(parent_key)
         parent_data = JiraManager.parse_parent_description(parent_doc.body_text)
 
         # The set visited should now contain all issues we want to fully connect
@@ -171,18 +175,18 @@ class DuplicateGraphResolver:
                 any_success = True
                 result_list.append(f"S {outward_end} {inward_end}\n")
                 if outward_end == parent_key:
-                    child_issue = ElasticDAL.find_jira_by_key(inward_end)
+                    child_issue = self._es_dal.find_jira_by_key(inward_end)
                     JiraManager.update_parent_data_from_child(parent_data, child_issue)
                 elif inward_end == parent_key:
-                    child_issue = ElasticDAL.find_jira_by_key(outward_end)
+                    child_issue = self._es_dal.find_jira_by_key(outward_end)
                     JiraManager.update_parent_data_from_child(parent_data, child_issue)
             else:
                 any_failure = True
                 result_list.append(f"F {outward_end} {inward_end}\n")
 
         JiraManager.try_set_remote_parent_body(parent_key, parent_data)
-        ElasticDAL.ensure_specific_jira_issue(parent_key, force_download=True)
-        DuplicateGraphResolver._update_local_links_from_manifest(result_list)
+        self._es_dal.ensure_specific_jira_issue(parent_key, force_download=True)
+        self._update_local_links_from_manifest(result_list)
 
         result_manifest = "".join(result_list)
         # If we had no successes and no failures, then we didn't create any new

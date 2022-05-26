@@ -8,14 +8,13 @@ from datetime import datetime
 
 from flask import Blueprint, abort, json, make_response, request, send_from_directory
 
-from jeeves.config.jira_features import JIRA_FEATURES
-from jeeves.dal.elasticsearch_interface import ElasticDAL
-from jeeves.dal.spike_index_interface import SpikeDAL
+from jeeves import registry as app_registry
+from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.lib.duplicate_graph_resolver import DuplicateGraphResolver
-from jeeves.manager.jira_feature_manager import SUBSTRINGS_TO_IGNORE_BY_TERM, JiraFeatureManager
+from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.jira_manager import JiraManager
-from jeeves.manager.shakira import Shakira
-from jeeves.manager.shakira_jira import ShakiraJiraClient
+from jeeves.manager.shakira import ShakiraManager
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
@@ -34,10 +33,6 @@ _LOG = logging.getLogger("application")
 _DEPLOYED_TIMESTAMP = datetime_to_str(get_utc_today())
 
 _init_timestamp = datetime_to_str(get_utc_today())
-
-_jira_feature_manager = JiraFeatureManager(
-    ShakiraJiraClient, JIRA_FEATURES, SUBSTRINGS_TO_IGNORE_BY_TERM
-)
 
 
 @blueprint_api.route("/api/1/hello")
@@ -72,7 +67,7 @@ def manage_tickets(lang):
     def get_tickets_by_word():
         limit = int(request.args.get("limit", "10"))
 
-        paginated_info = ElasticDAL.get_recent_paginated_tickets(
+        paginated_info = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
             lang, word, page, limit, start_time, end_time, beta_filter, jeeves_id
         )
 
@@ -111,7 +106,9 @@ def get_time_series_data(lang):
     if spike_category not in SpikeCategory.__members__:
         abort(make_response(f"Invalid spike category {spike_category}", 400))
 
-    response_buckets = ElasticDAL.aggregate_time_series(lang, SpikeCategory[spike_category], word)
+    response_buckets = app_registry(ElasticsearchDAL).aggregate_time_series(
+        lang, SpikeCategory[spike_category], word
+    )
 
     if "ERROR" in response_buckets:
         return json.jsonify(response_buckets)
@@ -134,7 +131,7 @@ def get_spike_data(lang):
 
     # I could only get around this call with an ugly conditional statement.
     # At the very least, it should be pretty fast and the user won't notice.
-    min_max_possible_dates = ElasticDAL.get_min_and_max_document_dates()
+    min_max_possible_dates = app_registry(ElasticsearchDAL).get_min_and_max_document_dates()
 
     start_date = request.args.get("start_date", min_max_possible_dates["min"])
     end_date = request.args.get("end_date", min_max_possible_dates["max"])
@@ -144,7 +141,9 @@ def get_spike_data(lang):
         abort(make_response(f"Invalid spike category {spike_category}", 400))
 
     stored_spikes = {}
-    for spike in SpikeDAL.yield_spikes_in_date_range(lang, start_date, end_date, spike_category):
+    for spike in app_registry(SpikeIndexDAL).yield_spikes_in_date_range(
+        lang, start_date, end_date, spike_category
+    ):
         if spike.date not in stored_spikes:
             stored_spikes[spike.date] = {"spike": []}
         stored_spikes[spike.date]["spike"].append((spike.score, spike.word))
@@ -188,21 +187,23 @@ def get_shake_to_report_tokens():
 
     project = request.args.get("project")
 
-    token_dict = Shakira.get_shake_to_report_tokens(project)
+    token_dict = app_registry(ShakiraManager).get_shake_to_report_tokens(project)
 
     return json.jsonify(token_dict)
 
 
 @blueprint_api.route("/api/1/shakira/features")
 def get_jira_project_features():
+    jira_feature_manager = app_registry(JiraFeatureManager)
+
     project = request.args.get("project")
     if project:
-        project_error_message = Shakira.get_project_error_message(project)
+        project_error_message = app_registry(ShakiraManager).get_project_error_message(project)
         if project_error_message:
             abort(make_response(project_error_message, 400))
-        features = _jira_feature_manager.get_features_v1(project)
+        features = jira_feature_manager.get_features_v1(project)
     else:
-        features = _jira_feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
+        features = jira_feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
     if features and len(features) > 0:
         return json.jsonify({"features": features})
     else:
@@ -216,7 +217,7 @@ def report_issue():
     """
     try:
         issue_data = json.loads(request.form["issueData"])
-        issue_status = Shakira.report_issue(
+        issue_status = app_registry(ShakiraManager).report_issue(
             project=issue_data["project"],
             feature=issue_data.get("feature"),
             slack_report_type=None,
@@ -266,7 +267,7 @@ def perform_duplicate_jira_detection():
     return json.jsonify(
         [
             issue.serialize_to_json(issue)
-            for issue in ElasticDAL.find_potential_jira_duplicates(
+            for issue in app_registry(ElasticsearchDAL).find_potential_jira_duplicates(
                 issue_key,
                 num_results=num_results,
                 should_filter_project=should_filter_project,
@@ -284,7 +285,10 @@ def execute_arbitrary_query():
     print(json_data)
 
     return json.jsonify(
-        [doc.serialize_to_json(doc) for doc in ElasticDAL.execute_arbitrary_query(json_data)]
+        [
+            doc.serialize_to_json(doc)
+            for doc in app_registry(ElasticsearchDAL).execute_arbitrary_query(json_data)
+        ]
     )
 
 
@@ -369,7 +373,7 @@ def fully_connect_duplicates():
     if isinstance(issue_keys, str):
         issue_keys = [issue_keys]
 
-    result_manifest = DuplicateGraphResolver.connect_duplicates_remote(issue_keys)
+    result_manifest = app_registry(DuplicateGraphResolver).connect_duplicates_remote(issue_keys)
     first_line = result_manifest.split("\n")[0]
     result_dict = {"overall": first_line, "manifest": result_manifest}
     return json.jsonify(result_dict)
@@ -384,7 +388,7 @@ def get_slack_report_types():
         name (str): The name of the Slack report type.
         alsoPostsToJira (bool): Whether this Slack report type also creates an associated Jira issue.
     """
-    return json.jsonify(Shakira.get_slack_report_types())
+    return json.jsonify(app_registry(ShakiraManager).get_slack_report_types())
 
 
 @blueprint_api.route("/api/2/shakira/features_by_team_and_area")
@@ -392,7 +396,8 @@ def get_features_by_team_and_area():
     """
     Returns a list of features, organized by area and team.
     """
-    areasWithTeams = _jira_feature_manager.get_features_by_team_and_area()
+    jira_feature_manager = app_registry(JiraFeatureManager)
+    areasWithTeams = jira_feature_manager.get_features_by_team_and_area()
     if areasWithTeams and len(areasWithTeams) > 0:
         return json.jsonify(areasWithTeams)
     else:
@@ -423,15 +428,17 @@ def get_suggested_features():
     description = request.args.get("description")
     generated_description = request.args.get("generated_description")
 
+    jira_feature_manager = app_registry(JiraFeatureManager)
+
     if project:
-        project_error_message = Shakira.get_project_error_message(project)
+        project_error_message = app_registry(ShakiraManager).get_project_error_message(project)
         if project_error_message:
             abort(make_response(project_error_message, 400))
-        features = _jira_feature_manager.get_suggested_features(
+        features = jira_feature_manager.get_suggested_features(
             project, summary, description, generated_description
         )
     else:
-        features = _jira_feature_manager.get_suggested_features(
+        features = jira_feature_manager.get_suggested_features(
             ["DLAA", "DLAI", "DLAW"], summary, description, generated_description
         )
 
@@ -448,7 +455,7 @@ def report_issue_v2():
     """
     try:
         issue_data = json.loads(request.form["issueData"])
-        issue_status = Shakira.report_issue(
+        issue_status = app_registry(ShakiraManager).report_issue(
             project=issue_data["project"],
             feature=issue_data.get("feature"),
             slack_report_type=issue_data.get("slackReportType"),
@@ -483,7 +490,7 @@ def catch_all(path):
 
 
 def _get_status(lang):
-    most_recent_elastic_timestamp = ElasticDAL.get_most_recent_timestamp(lang)
+    most_recent_elastic_timestamp = app_registry(ElasticsearchDAL).get_most_recent_timestamp(lang)
 
     return {
         "deployed_timestamp": _DEPLOYED_TIMESTAMP,

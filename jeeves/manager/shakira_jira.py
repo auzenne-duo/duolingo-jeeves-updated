@@ -117,7 +117,7 @@ class ShakiraJiraApiClient:
             )
         except RequestException as e:
             print_request_exception(e)
-            return None
+            return []
 
     def get_features(self, projects: Union[str, List[str]]) -> List[str]:
         """
@@ -326,6 +326,3 @@ class ShakiraJiraApiClient:
             r.raise_for_status()
         except RequestException as e:
             print_request_exception(e)
-
-
-ShakiraJiraClient = ShakiraJiraApiClient()

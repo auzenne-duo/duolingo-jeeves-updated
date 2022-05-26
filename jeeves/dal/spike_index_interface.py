@@ -167,6 +167,3 @@ class SpikeIndexDAL:
         else:
             for res in s.scan():
                 yield SpikeWord.from_dict(res)
-
-
-SpikeDAL = SpikeIndexDAL()

@@ -9,7 +9,8 @@ from duolingo_base.config import Config
 from requests import post
 from requests.exceptions import RequestException
 
-from jeeves.dal.spike_index_interface import SpikeDAL
+from jeeves import apply_registry, close_registry, registry as app_registry
+from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.manager.shakira_slack import SlackChannel
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
@@ -54,7 +55,7 @@ def get_top_spikes_yesterday(spike_category: SpikeCategory) -> List[SpikeWord]:
     num_spikes_to_list = 4
 
     spikes_yesterday = list(
-        SpikeDAL.yield_spikes_on_date(
+        app_registry(SpikeIndexDAL).yield_spikes_on_date(
             _SLACK_REPORT_LANG,
             get_yesterdays_date(),
             num_spikes_to_list,
@@ -120,6 +121,7 @@ def generate_slack_message(spike_category: SpikeCategory, top_spikes: List[Spike
 
 
 if __name__ == "__main__":
+    apply_registry()
     try:
         url = f"{_SLACK_API}/chat.postMessage"
         headers = {
@@ -151,3 +153,5 @@ if __name__ == "__main__":
                     rollbar.report_exc_info(sys.exc_info())
     except:
         rollbar.report_exc_info(sys.exc_info())
+    finally:
+        close_registry()

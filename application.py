@@ -6,18 +6,14 @@ import logging
 import os
 
 from duolingo_base.config import Config
-from duolingo_base.util import registry
 from duolingo_base.view.auth import auth_after_request, requires_auth
 from flask import Flask, request
 from flask_cors import CORS
 
-from jeeves.dal.elasticsearch_interface import ElasticDAL
-from jeeves.dal.spike_index_interface import SpikeDAL
+from jeeves import apply_registry_to_app, close_registry, registry as app_registry
+from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-
-# import rollbar
-# import rollbar.contrib.flask
-
 
 LOG = logging.getLogger("application")
 
@@ -53,7 +49,7 @@ def auth_before_request():
 application.before_request(auth_before_request)
 application.after_request(auth_after_request)
 
-application.registry = registry.initialize()
+apply_registry_to_app(application)
 
 # Register blueprints
 
@@ -81,25 +77,13 @@ def init():
     logging.getLogger("jeeves").setLevel(log_level)
     LOG.info("initializing")
 
-    # Initialize Rollbar
-    #     rollbar_config_dict = config.get_nested(['rollbar'])
-    #     rollbar.init(rollbar_config_dict['access_token'],
-    #                  environment=rollbar_config_dict['environment'],
-    #                  root=os.path.dirname(os.path.realpath(__file__)),
-    #                  allow_logging_basic_config=False)
-    #     got_request_exception.connect(rollbar.contrib.flask.report_exception, application)
-
-    # Start registry
-    application.registry.start()
-
-    # Configure development / production environment
     if is_production_env:
         LOG.info("production")
     else:
         LOG.info("development")
 
-    ElasticDAL.initialize_index()
-    SpikeDAL.initialize_index()
+    app_registry(ElasticsearchDAL).initialize_index()
+    app_registry(SpikeIndexDAL).initialize_index()
 
 
 def destroy():
@@ -108,7 +92,7 @@ def destroy():
     """
     LOG.info("stopping")
 
-    application.registry.close()
+    close_registry()
 
 
 if __name__ == "__main__":

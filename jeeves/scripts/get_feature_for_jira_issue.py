@@ -19,24 +19,26 @@ to the $DUPLICATE_DETECTOR_MODEL file path:
 
 import sys
 
-from jeeves.config.jira_features import JIRA_FEATURES
-from jeeves.manager.jira_feature_manager import SUBSTRINGS_TO_IGNORE_BY_TERM, JiraFeatureManager
+from jeeves import apply_registry, close_registry, registry as app_registry
+from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.jira_manager import JiraManager
-from jeeves.manager.shakira_jira import ShakiraJiraClient
 
 if __name__ == "__main__":
-    jira_doc = JiraManager.download_specific_issue(sys.argv[1])
+    apply_registry()
+    try:
+        jira_doc = JiraManager.download_specific_issue(sys.argv[1])
 
-    print(f"Issue summary     : {jira_doc.header_text}")
-    print(f"Issue description : {jira_doc.body_text}")
-    print(f"Issue metadata    : {jira_doc.duolingo_metadata.get('raw')}")
+        print(f"Issue summary     : {jira_doc.header_text}")
+        print(f"Issue description : {jira_doc.body_text}")
+        print(f"Issue metadata    : {jira_doc.duolingo_metadata.get('raw')}")
 
-    mgr = JiraFeatureManager(ShakiraJiraClient, JIRA_FEATURES, SUBSTRINGS_TO_IGNORE_BY_TERM)
-    suggested_features = mgr.get_suggested_features(
-        ["DLAA", "DLAI", "DLAW"],
-        summary=jira_doc.header_text,
-        description=jira_doc.body_text,
-        generated_description=jira_doc.duolingo_metadata.get("raw"),
-    )
+        suggested_features = app_registry(JiraFeatureManager).get_suggested_features(
+            ["DLAA", "DLAI", "DLAW"],
+            summary=jira_doc.header_text,
+            description=jira_doc.body_text,
+            generated_description=jira_doc.duolingo_metadata.get("raw"),
+        )
 
-    print(f"Suggested features: {', '.join(suggested_features['suggested_features'])}")
+        print(f"Suggested features: {', '.join(suggested_features['suggested_features'])}")
+    finally:
+        close_registry()
