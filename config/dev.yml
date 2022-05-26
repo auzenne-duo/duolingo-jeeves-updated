@@ -31,3 +31,5 @@ s3_document_cache:
 rollbar:
   enabled: True
   environment: development
+  scrub_fields:
+    - net_credentials
