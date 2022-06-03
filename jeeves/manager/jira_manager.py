@@ -12,6 +12,7 @@ from requests import Session
 
 from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.jeeves_manager import JeevesManager
+from jeeves.manager.shakira import _VIA_JEEVES_LABEL
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
@@ -80,7 +81,13 @@ class JiraManager(JeevesManager):
             s3_client.upload(bucket_name, _CHECKPOINT_FILE, new_checkpoint_string)
 
         start_timestamp_millis = int(s3_client.download(bucket_name, _CHECKPOINT_FILE))
-        projects_fetch_string = f"project IN ({','.join(_JIRA_PROJECTS)}) AND updated > {start_timestamp_millis} AND issueType = {_JIRA_ISSUE_TYPE_BUG} ORDER BY updated asc"
+        projects_fetch_string = (
+            f"project IN ({','.join(_JIRA_PROJECTS)}) "
+            + f"AND updated > {start_timestamp_millis} "
+            + f"AND issueType = {_JIRA_ISSUE_TYPE_BUG} "
+            + f"AND labels != {_VIA_JEEVES_LABEL} "
+            + f"ORDER BY updated asc"
+        )
 
         url_params = {
             "fields": "*all",

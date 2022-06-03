@@ -206,7 +206,7 @@ class ShakiraJiraApiClient:
         self,
         project: str,
         feature: Optional[str],
-        label: Optional[str],
+        labels: List[str],
         summary: str,
         description: Optional[str],
         generated_description: Optional[str],
@@ -221,7 +221,7 @@ class ShakiraJiraApiClient:
         parameters:
             project: e.g. DLAA, DLAI, DLAW, LIT
             feature: e.g. Achievements
-            label: e.g. Visual polish
+            labels: A list of labels to add to the Jira issue.
             summary: Rougly one-sentence summary of issue.
             description: Longer issue description.
             generated_description: Generated information such as app version, fullstory url, session type, etc.
@@ -262,8 +262,6 @@ class ShakiraJiraApiClient:
                 feature_value_id = issuetype.get_id_for_allowed_feature_value(feature)
                 if feature_field_key and feature_value_id:
                     fields[feature_field_key] = {"id": feature_value_id}
-
-            labels = [label] if label else []
 
             reporter_id = None
             if reporter_email:

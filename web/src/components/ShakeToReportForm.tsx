@@ -167,7 +167,7 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
               : "DLAW",
           reporterEmail: user?.email,
           slackReportType: slackChannel?.name,
-          summary: summary.trim(),
+          summary: `[via Jeeves] ${summary.trim()}`,
         },
         await getAttachments(ticket.attachments ?? []),
       );

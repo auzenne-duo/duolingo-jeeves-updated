@@ -11,6 +11,9 @@ from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.slack_channel import SlackChannel
 from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM
 
+_VIA_JEEVES_MARKER = "[via Jeeves]"
+_VIA_JEEVES_LABEL = "via-jeeves"
+
 _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "Visual polish": SlackChannel.VISUAL_POLISH,
     "Lesson content / accepted translations": SlackChannel.FEEDBACK_LANGUAGE,
@@ -143,6 +146,13 @@ class ShakiraManager:
             if client_specified_slack_channel_name
             else None
         )
+        if client_specified_slack_channel_name and not client_specified_slack_channel:
+            return {
+                "error": (
+                    f"Invalid slack channel - must be one of {[c.name for c in list(SlackChannel)]}",
+                    400,
+                )
+            }
         slack_channel_from_slack_report_type = (
             SlackChannel.LITERACY_TESTING
             if slack_report_type == "literacy"
@@ -154,16 +164,11 @@ class ShakiraManager:
             or slack_channel_from_slack_report_type
             or slack_channel_from_feature
         )
-        jira_label_from_channel = _SLACK_CHANNELS_TO_JIRA_LABELS.get(channel)
-        screenshot = files.get("screenshot")
 
-        if client_specified_slack_channel_name and not client_specified_slack_channel:
-            return {
-                "error": (
-                    f"Invalid slack channel - must be one of {[c.name for c in list(SlackChannel)]}",
-                    400,
-                )
-            }
+        jira_label_from_channel = _SLACK_CHANNELS_TO_JIRA_LABELS.get(channel)
+        jeeves_label = _VIA_JEEVES_LABEL if summary.startswith(_VIA_JEEVES_MARKER) else None
+
+        screenshot = files.get("screenshot")
 
         should_post_to_slack = channel is not None
         should_post_to_jira = jira_label_from_channel is not None or not should_post_to_slack
@@ -174,7 +179,9 @@ class ShakiraManager:
             issue_key = self._jira_client.create_issue(
                 project=project,
                 feature="v2 feedback" if slack_report_type == "v2 feedback" else feature,
-                label=jira_label_from_channel,
+                labels=[
+                    label for label in [jira_label_from_channel, jeeves_label] if label is not None
+                ],
                 summary=summary,
                 description=description,
                 generated_description=generated_description,

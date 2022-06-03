@@ -61,7 +61,7 @@ def test_report_issue_to_jira_only():
     shakira_jira_mock.create_issue.assert_called_once_with(
         project="DLAA",
         feature="Callouts",
-        label=None,
+        labels=[],
         summary="summary",
         description=None,
         generated_description=None,
@@ -144,7 +144,7 @@ def test_report_issue_to_both_v1():
     shakira_jira_mock.create_issue.assert_called_once_with(
         project="DLAA",
         feature="Visual polish",
-        label="visual-polish",
+        labels=["visual-polish"],
         summary="summary",
         description=None,
         generated_description=None,
@@ -181,7 +181,7 @@ def test_report_issue_to_both_v2():
     shakira_jira_mock.create_issue.assert_called_once_with(
         project="DLAA",
         feature="Callouts",
-        label="visual-polish",
+        labels=["visual-polish"],
         summary="summary",
         description=None,
         generated_description=None,
@@ -218,8 +218,37 @@ def test_report_v2_feedback():
     shakira_jira_mock.create_issue.assert_called_once_with(
         project="DLAA",
         feature="v2 feedback",
-        label=None,
+        labels=[],
         summary="summary",
+        description=None,
+        generated_description=None,
+        reporter_email=None,
+        pre_release=False,
+        will_post_to_slack=False,
+    )
+    assert not shakira_slack_mock.post_issue.called
+
+
+def test_report_issue_from_jeeves():
+    shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+    shakira_manager.report_issue(
+        project="DLAA",
+        feature="Callouts",
+        slack_report_type=None,
+        client_specified_slack_channel_name=None,
+        summary="[via Jeeves] summary",
+        description=None,
+        generated_description=None,
+        reporter_email=None,
+        pre_release=False,
+        files={},
+    )
+
+    shakira_jira_mock.create_issue.assert_called_once_with(
+        project="DLAA",
+        feature="Callouts",
+        labels=["via-jeeves"],
+        summary="[via Jeeves] summary",
         description=None,
         generated_description=None,
         reporter_email=None,
