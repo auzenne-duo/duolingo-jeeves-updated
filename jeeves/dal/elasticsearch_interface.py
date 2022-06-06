@@ -605,7 +605,7 @@ class ElasticsearchDAL:
 
             results_page_start += results_page_size
 
-    def ensure_specific_jira_issue(
+    def _ensure_specific_jira_issue(
         self, issue_key: str, force_download: bool = False
     ) -> Optional[JeevesDocument]:
         """
@@ -694,7 +694,7 @@ class ElasticsearchDAL:
             A list of suspected duplicate issues.
         """
 
-        target_doc = self.ensure_specific_jira_issue(issue_key)
+        target_doc = self._ensure_specific_jira_issue(issue_key)
 
         if not target_doc:
             print(f"Requested issue with key {issue_key} could not be found.")
@@ -760,33 +760,6 @@ class ElasticsearchDAL:
 
         return result_docs
 
-    def find_jira_by_key(self, issue_key: str) -> Optional[JeevesDocument]:
-        """
-        Queries for a particular Jira issue using an issue key.
-
-        If found, returns an object representation of the document,
-        otherwise returns None.
-
-        Parameters:
-            issue_key: The issue key of the document we want to query.
-
-        Returns:
-            An object representation of the queried document, or None.
-        """
-
-        s = Search(using=self._es, index=self._indexname).filter(
-            "term", issue_key__keyword=issue_key
-        )
-        results = self.execute_arbitrary_query(s.to_dict())
-        if len(results) == 0:
-            return None
-        elif len(results) == 1:
-            return results[0]
-        else:
-            raise Exception(
-                f"Found two documents with identical issue_key value {issue_key}, please investigate."
-            )
-
     def get_parent_for_jira(self, target_doc: JeevesDocument) -> Optional[JeevesDocument]:
         """
         Given a document, determines if it is a Jira document that has a parent
@@ -811,7 +784,7 @@ class ElasticsearchDAL:
             return None
 
         for family_member_key in target_doc.linked_duplicate_keys:
-            family_member = self.ensure_specific_jira_issue(family_member_key)
+            family_member = self._ensure_specific_jira_issue(family_member_key)
             if family_member.is_group_parent(family_member):
                 return family_member
         return None

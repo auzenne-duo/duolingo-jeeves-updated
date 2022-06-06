@@ -11,9 +11,8 @@ from flask import Blueprint, abort, json, make_response, request, send_from_dire
 from jeeves import registry as app_registry
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
-from jeeves.lib.duplicate_graph_resolver import DuplicateGraphResolver
+from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
-from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.shakira import ShakiraManager
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
@@ -300,7 +299,7 @@ def cement_duplicates():
     if not out_key or not in_key:
         abort(make_response("Please provide both `outward_key` and `inward_key`.", 400))
 
-    remote_success = JiraManager.try_mark_duplicate_remote(out_key, in_key)
+    remote_success = app_registry(DuplicateGraphResolver).try_mark_duplicate_remote(out_key, in_key)
     if not remote_success:
         abort(
             make_response(
@@ -331,7 +330,8 @@ def submit_duplicates():
         elif len(out_keys) == 0:
             abort(make_response("Please specify at least one duplicate", 400))
         remote_successes = [
-            JiraManager.try_mark_duplicate_remote(out_key, in_key) for out_key in out_keys
+            app_registry(DuplicateGraphResolver).try_mark_duplicate_remote(out_key, in_key)
+            for out_key in out_keys
         ]
         if False in remote_successes:
             abort(
