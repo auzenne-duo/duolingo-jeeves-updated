@@ -21,6 +21,8 @@ from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import date_to_str, get_n_days_ago, time_series_str_to_datetime
 from jeeves.util.error_util import SpikeDetectorException
 
+SPIKE_EXCLUDE_WORDS_REGISTRY_KEY = "spike_exclude_words"
+
 
 def detect_spikes(target_date: Optional[date] = None) -> None:
     """
@@ -119,8 +121,13 @@ def run_spike_detector_for_batch(
     batch_spike_list: List[SpikeWord] = []
 
     word_to_date_to_count = _get_word_to_date_to_count(lang, spike_group, new_ticket_ids)
+    filtered_word_to_date_to_count = {
+        word: date_to_count
+        for word, date_to_count in word_to_date_to_count.items()
+        if word not in app_registry(SPIKE_EXCLUDE_WORDS_REGISTRY_KEY)
+    }
     for target_dt in new_ticket_dates:
-        batch_spike_list += _find_spiked_words(lang, word_to_date_to_count, target_dt)
+        batch_spike_list += _find_spiked_words(lang, filtered_word_to_date_to_count, target_dt)
 
     for spike in batch_spike_list:
         spike.spike_group = spike_group
