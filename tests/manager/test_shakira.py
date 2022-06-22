@@ -37,6 +37,7 @@ def test_get_slack_report_types():
             {"name": "Visual polish", "alsoPostsToJira": True},
             {"name": "Lesson content issue", "alsoPostsToJira": False},
             {"name": "TTS is missing/mispronounced", "alsoPostsToJira": False},
+            {"name": "Localization issue", "alsoPostsToJira": False},
             {"name": "Feature request", "alsoPostsToJira": False},
         ],
         result,

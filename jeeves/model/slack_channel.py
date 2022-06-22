@@ -8,6 +8,7 @@ class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
     FEEDBACK_LANGUAGE = "#feedback-language", "C0KHQRPDZ"
     FEEDBACK_PRODUCT = "#feedback-product", "C013VGDCU5R"
     FEEDBACK_TTS = "#feedback-tts", "C01FWHDCLP4"
+    FEEDBACK_LOCALIZATION = "#feedback-localization", "C8BAQPLN4"
 
     BUG_TRIAGE = "#bug-triage", "C91UF7WAZ"
     JEEVES = "#jeeves", "C6A1F2CNA"

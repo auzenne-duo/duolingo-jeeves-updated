@@ -26,6 +26,7 @@ _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "Lesson content issue": SlackChannel.FEEDBACK_LANGUAGE,
     "TTS is missing/mispronounced": SlackChannel.FEEDBACK_TTS,
     "Visual polish": SlackChannel.VISUAL_POLISH,
+    "Localization issue": SlackChannel.FEEDBACK_LOCALIZATION,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
 }
 
