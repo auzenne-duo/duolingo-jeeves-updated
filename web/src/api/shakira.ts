@@ -11,7 +11,7 @@ interface IssueData {
   summary: string;
 }
 
-type JiraProject = "DLAA" | "DLAI" | "DLAW";
+export type JiraProject = "DLAA" | "DLAI" | "DLAW";
 
 interface ReportIssueJiraResult {
   issueKey: string;

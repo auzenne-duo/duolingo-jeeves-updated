@@ -70,6 +70,17 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
   const [generatedDescription] = React.useState(ticket.duolingo_metadata.raw);
   const [issue, setIssue] = React.useState<shakiraApi.ReportIssueResult>();
   const [markedDuplicates, setMarkedDuplicates] = React.useState<number[]>([]);
+  const [project, setProject] = React.useState<
+    shakiraApi.JiraProject | undefined
+  >(
+    ticket.platform === "Android"
+      ? "DLAA"
+      : ticket.platform === "iOS"
+      ? "DLAI"
+      : ticket.platform === "Web"
+      ? "DLAW"
+      : undefined,
+  );
   const [slackChannel, setSlackChannel] =
     React.useState<shakiraApi.SlackReportType>();
   const [step, setStep] = React.useState<
@@ -124,7 +135,10 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
     e.preventDefault();
     // TODO: use customValidity API to show errors?
     //  See https://github.com/duolingo/duolingo-web/pull/3755.
-    if (!(e.target as HTMLFormElement).checkValidity()) {
+    if (
+      !(e.target as HTMLFormElement).checkValidity() ||
+      project === undefined
+    ) {
       return;
     }
     switch (step) {
@@ -159,12 +173,7 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
           generatedDescription,
           // This data isn't available in Jeeves yet.
           preRelease: false,
-          project:
-            ticket.platform === "Android"
-              ? "DLAA"
-              : ticket.platform === "iOS"
-              ? "DLAI"
-              : "DLAW",
+          project,
           reporterEmail: user?.email,
           slackReportType: slackChannel?.name,
           summary: `[via Jeeves] ${summary.trim()}`,
@@ -288,6 +297,18 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
         placeholder="What went wrong in more detail?"
         rows={5}
         value={description}
+      />
+      <Select
+        disabled={isLoading}
+        onChange={e => setProject(e.target.value as shakiraApi.JiraProject)}
+        options={[
+          { disabled: true, text: "Choose project", value: "" },
+          { text: "DLAA", value: "DLAA" },
+          { text: "DLAI", value: "DLAI" },
+          { text: "DLAW", value: "DLAW" },
+        ]}
+        required={true}
+        value={project ?? ""}
       />
       <Select
         disabled={isLoading}
