@@ -234,6 +234,8 @@ def _calculate_spike_score(date_to_count: Dict[str, int], target_datetime: datet
         date_to_str(get_n_days_ago(target_datetime, i + 1)) for i in range(HISTORY_WINDOW_SIZE)
     )
     count_history = [count for date, count in date_to_count.items() if date in valid_range]
+    if not count_history:
+        return -1
     mean = np.mean(count_history)
     std = np.std(count_history)
     zscore = (target_count - mean) / std if std != 0 else np.inf
