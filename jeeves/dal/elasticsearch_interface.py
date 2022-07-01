@@ -24,8 +24,6 @@ _config = Config.load_config()
 # updated appropriately
 _SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
 
-_JIRA_RESOLVED_RESOLUTIONS = ["Done", "Fixed", "Merged"]
-
 
 class ElasticsearchDAL:
     def __init__(self) -> None:
@@ -794,7 +792,7 @@ class ElasticsearchDAL:
         min_doc_count: int = 1,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-        should_count_resolved_bugs_only: bool = False,
+        resolution_filter: Optional[List[str]] = None,
     ) -> Dict[str, int]:
         """
         Counts the number of internal/admin beta bug reports per person.
@@ -806,29 +804,32 @@ class ElasticsearchDAL:
                 Eastern time.
             end_time: Limit the search to bugs created (or resolved) before this time. Specified in
                 Eastern time.
-            should_count_resolved_bugs_only: Limit the search to resolved bugs, rather than any bugs
-                reported.
+            resolution_filter: Limit the search to bugs with any of the listed resolutions.
 
         Returns:
             A Dict of reporter_email to document count.
         """
         # TODO use filters aggregation to get all of these stats at once!
-        s = Search(using=self._es, index=self._indexname).query("match_all")
-        s = s.filter("term", shake_to_report_category="INTERNAL")
+        s = (
+            Search(using=self._es, index=self._indexname)
+            .query("match_all")
+            .filter("term", shake_to_report_category="INTERNAL")
+            .filter("term", language="en")
+        )
 
         timestamp_dict = {"time_zone": "America/New_York"}
         if start_time:
             timestamp_dict.update({"gte": start_time})
         if end_time:
             timestamp_dict.update({"lt": end_time})
-        if should_count_resolved_bugs_only:
+        if resolution_filter:
             s = s.filter("range", resolution_date=timestamp_dict)
         else:
             s = s.filter("range", creation_date=timestamp_dict)
 
-        if should_count_resolved_bugs_only:
+        if resolution_filter:
             # TODO check status of all duplicates as well
-            s = s.filter("terms", resolution__keyword=_JIRA_RESOLVED_RESOLUTIONS)
+            s = s.filter("terms", resolution__keyword=resolution_filter)
 
         # size=65536 is the default search.max_buckets setting
         s.aggs.bucket(
@@ -856,6 +857,7 @@ class ElasticsearchDAL:
 
     def get_most_recent_resolved_bugs_per_reporter_email(
         self,
+        resolution_filter: List[str],
         start_time: Optional[datetime] = None,
         max_doc_count: int = 5,
     ) -> Dict[str, List[JeevesDocument]]:
@@ -863,6 +865,7 @@ class ElasticsearchDAL:
         Returns the admin/internal beta bugs that were most recently resolved for each reporter.
 
         Parameters:
+            resolution_filter: Limit the search to bugs with any of the listed resolutions.
             start_time: Limit the search to bugs created (or resolved) after this time. Specified in
                 Eastern time.
             max_doc_count: The maximum number of bugs to return for each person.
@@ -874,15 +877,18 @@ class ElasticsearchDAL:
             Search(using=self._es, index=self._indexname)
             .query("match_all")
             .filter("term", shake_to_report_category="INTERNAL")
-            .filter("terms", resolution__keyword=_JIRA_RESOLVED_RESOLUTIONS)
+            .filter("term", language="en")
+            .filter("terms", resolution__keyword=resolution_filter)
         )
 
         if start_time:
             timestamp_dict = {"time_zone": "America/New_York", "gte": start_time}
-            s = s.filter("range", creation_date=timestamp_dict)
+            s = s.filter("range", resolution_date=timestamp_dict)
 
         top_hits_aggregate = {
-            "most_recent_bugs": A("top_hits", sort="resolution_date", size=max_doc_count)
+            "most_recent_bugs": A(
+                "top_hits", sort=[{"resolution_date": {"order": "desc"}}], size=max_doc_count
+            )
         }
         # size=65536 is the default search.max_buckets setting
         reporter_buckets_aggregate = A(

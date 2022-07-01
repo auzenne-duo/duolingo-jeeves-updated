@@ -16,8 +16,8 @@
         {"name": "SPIKE_REPORTER_SLACK_API_TOKEN", "value": "${cookie_secret}"}
     ],
     "logConfiguration": {
-    "logDriver": "awslogs",
-        "options": {
+      "logDriver": "awslogs",
+      "options": {
         "awslogs-region": "${region}",
         "awslogs-group": "${service}",
         "awslogs-stream-prefix": "${service}",

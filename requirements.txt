@@ -108,6 +108,8 @@ pymemcache==3.4.2
     # via duolingo-base
 pyparsing==2.4.7
     # via packaging
+pystache==0.6.0
+    # via -r requirements.in
 python-dateutil==2.8.1
     # via
     #   botocore

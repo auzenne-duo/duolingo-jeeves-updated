@@ -10,8 +10,10 @@
         "softLimit": 65535,
         "hardLimit": 65535
     }],
-      "environment": ${environment_vars},
-    "command": ["python", "./jeeves/scripts/update_jeeves_data.py"],
+    "command": ["python","./jeeves/scripts/send_bug_digest_emails.py"],
+    "environment": [
+        {"name": "PYTHONPATH", "value": "/code"}
+    ],
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
@@ -19,7 +21,7 @@
         "awslogs-group": "${service}",
         "awslogs-stream-prefix": "${service}",
         "mode": "non-blocking"
-        }
+      }
     }
   }
 ]

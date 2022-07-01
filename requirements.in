@@ -12,6 +12,7 @@ Flask
 flask-cors
 numpy
 protobuf==3.15.8 # otherwise duolingo-notify > duolingo-proto bumps it to 3.20.1 which is too high
+pystache
 pytz
 sentence-transformers
 simplejson

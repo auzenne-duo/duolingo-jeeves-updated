@@ -13,13 +13,13 @@
     "environment": ${environment_vars},
     "command": ["python", "./jeeves/scripts/update_jeeves_data.py"],
     "logConfiguration": {
-    "logDriver": "awslogs",
-        "options": {
+      "logDriver": "awslogs",
+      "options": {
         "awslogs-region": "${region}",
         "awslogs-group": "${service}",
         "awslogs-stream-prefix": "${service}",
         "mode": "non-blocking"
-        }
+      }
     }
   }
 ]

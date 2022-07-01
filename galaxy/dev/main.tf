@@ -248,3 +248,20 @@ module "duolingo-jeeves-spike-worker" {
   schedule_expression  = "rate(15 minutes)"
   release_version      = var.release_version
 }
+
+module "duolingo-jeeves-email-sender" {
+  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  environment          = var.environment
+  service              = var.service
+  subservice           = "email-sender"
+  cpu                  = 256 # 1024 equals one core
+  memory               = 512 # in MB
+  min_count            = 1   # Minimum number of tasks to run in autoscaling group
+  max_count            = 1   # Maximum number of tasks to run in autoscaling group
+  product              = var.product
+  owner                = var.owner       # The name of the owner for this service
+  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  container_definition = "email-sender.json"
+  schedule_expression  = "cron(* * * * ? 1970)" # "cron(0/20 * * * ? *)"
+  release_version      = var.release_version
+}
