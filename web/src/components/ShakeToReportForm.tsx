@@ -131,6 +131,11 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
   const feature = _feature ?? suggestedFeature;
   const isLoading = submitting || (step === "features" && !canShowFeatures);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Do not trigger shortcuts.
+    e.stopPropagation();
+  };
+
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async e => {
     e.preventDefault();
     // TODO: use customValidity API to show errors?
@@ -419,7 +424,12 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
   return (
     <>
       {header}
-      <form className={styles.form} noValidate={true} onSubmit={handleSubmit}>
+      <form
+        className={styles.form}
+        noValidate={true}
+        onKeyDown={handleKeyDown}
+        onSubmit={handleSubmit}
+      >
         {content}
         {footer}
       </form>
