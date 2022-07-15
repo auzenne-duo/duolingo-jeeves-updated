@@ -2,6 +2,9 @@
   "features": {
     "docker-in-docker": "latest"
   },
+  "hostRequirements": {
+    "memory": "8gb"
+  },
   "image": "ghcr.io/duolingo/codespaces",
   "onCreateCommand": "/onCreate",
   "postAttachCommand": "/postAttach",
