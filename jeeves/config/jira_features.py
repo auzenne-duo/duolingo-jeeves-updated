@@ -64,6 +64,7 @@ JIRA_FEATURES = {
             "Streak freeze / repair": ["streak freeze", "streak repair"],
             "Practice reminders / notifications": ["reminder", "notification"],
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
+            "Lesson complete": ["complete"],
         },
         "Time Spent Learning": {
             "Achievements": ["achievement"],
