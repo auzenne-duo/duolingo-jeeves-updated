@@ -91,7 +91,6 @@ JIRA_FEATURES = {
         "Generated Sessions": {
             "Skill tree migration": ["course update"],
             "Crowns": [],
-            "Course messaging": [],
             "Decayed Skills": ["cracked skill", "guilded skill"],
             "Generated sessions": [],
         },
@@ -106,11 +105,9 @@ JIRA_FEATURES = {
         "New Writing Systems": {
             "Character Bingo": ["drawing", "tracing"],
             "Transliteration": [],
-            "Grammar": ["grammar skills", "grammar tip"],
             "Non-latin alphabet": [],
         },
         "Speaking": {
-            "Pronunciation Review": ["speaking challenge"],
             "Audio Lessons": ["audio lesson", "podcast"],
             "Speech recognizer (in house)": [
                 "speech recognition",
