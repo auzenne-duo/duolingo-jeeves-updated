@@ -24,7 +24,14 @@ export const getBlob = async (url: string): Promise<Blob> => {
   return response.blob();
 };
 
-export const post = async <T>(url: string, data = {}): Promise<T> => {
+export const patch = async <T>(url: string, data = {}): Promise<T> =>
+  post(url, data, "PATCH");
+
+export const post = async <T>(
+  url: string,
+  data = {},
+  method = "POST",
+): Promise<T> => {
   const response = await fetch(resolveUrl(url), {
     body: data instanceof FormData ? data : JSON.stringify(data),
     credentials: "include",
@@ -35,7 +42,7 @@ export const post = async <T>(url: string, data = {}): Promise<T> => {
           []
         : [["Content-Type", "application/json"]]),
     ] as [string, string][],
-    method: "POST",
+    method,
   });
   if (!response.ok) {
     throw Error(`Request failed with status ${response.status}.`);

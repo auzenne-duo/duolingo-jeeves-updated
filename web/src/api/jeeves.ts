@@ -2,7 +2,7 @@ import { convertTimeZone } from "util";
 
 import { format, formatISO, parseISO } from "date-fns";
 
-import { get } from "api/client";
+import { get, patch } from "api/client";
 import { transformQuery } from "elastic";
 
 /** Converts a date and time to a format that the API supports. */
@@ -41,7 +41,7 @@ export const getSpikes = async (
 ): Promise<
   {
     date: Date;
-    spikes: [number, string][];
+    spikes: JSONAPI.SpikeWord[];
   }[]
 > => {
   const params = new URLSearchParams();
@@ -138,3 +138,12 @@ export const getTimeSeries = async (
     value: value ?? 0,
   }));
 };
+
+export const setSpikeConfirmed = async (
+  spike_id: string,
+  desired_state: boolean,
+) =>
+  patch<boolean>("/1/set_spike_confirm", {
+    spike_id: spike_id,
+    desired_state: desired_state,
+  });

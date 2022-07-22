@@ -6,7 +6,7 @@ import logging
 import os
 from datetime import datetime
 
-from flask import Blueprint, abort, json, make_response, request, send_from_directory
+from flask import Blueprint, Response, abort, json, make_response, request, send_from_directory
 
 from jeeves import registry as app_registry
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
@@ -145,10 +145,27 @@ def get_spike_data(lang):
     ):
         if spike.date not in stored_spikes:
             stored_spikes[spike.date] = {"spike": []}
-        stored_spikes[spike.date]["spike"].append((spike.score, spike.word))
+        stored_spikes[spike.date]["spike"].append(
+            {
+                "score": spike.score,
+                "word": spike.word,
+                "confirmed": spike.confirmed,
+                "spike_id": spike.get_spike_id(),
+            }
+        )
     for day in stored_spikes:
-        stored_spikes[day]["spike"].sort(reverse=True)
+        stored_spikes[day]["spike"].sort(key=lambda spike: spike["score"], reverse=True)
     return json.jsonify(stored_spikes)
+
+
+@blueprint_api.route("/api/1/set_spike_confirm", methods=["PATCH"])
+def set_spike_confirm():
+    spike_id = request.json.get("spike_id")
+    desired_state = request.json.get("desired_state")
+    response = app_registry(SpikeIndexDAL).set_spike_confirm_setting(spike_id, desired_state)
+    if not response:
+        return Response(status=500)
+    return json.jsonify(response)
 
 
 @blueprint_api.route("/api/1/<lang>/info")

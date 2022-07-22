@@ -89,10 +89,17 @@ declare namespace JSONAPI {
   type Spikes = Record<
     string,
     | {
-        spike: [number, string][];
+        spike: SpikeWord[];
       }
     | undefined
   >;
+
+  interface SpikeWord {
+    confirmed: boolean;
+    score: number;
+    word: string;
+    spike_id: string;
+  }
 
   interface Team {
     features: string[];

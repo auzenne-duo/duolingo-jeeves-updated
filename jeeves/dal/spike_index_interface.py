@@ -52,6 +52,7 @@ class SpikeIndexDAL:
                     - score (float): How sharp the spike was.
                     - spike_group (str): Name of spike category the spike belongs
                                          to (see SpikeCategories.py).
+                    - confirmed (bool): Whether or not the spike has been confirmed as a bug
         """
         bulk_actions = [
             {
@@ -62,6 +63,22 @@ class SpikeIndexDAL:
             for spike in spikes
         ]
         bulk(self._es, bulk_actions)
+
+    def set_spike_confirm_setting(self, spike_id: str, desired_state: bool) -> None:
+        """
+        Sets the confirmed stat of a spikeword by spike_id to the specified state
+
+        Parameters:
+            spike_id: id string corresponding to a SpikeWord document
+            desired_state: desired boolean setting of the confirmed state
+
+        Returns:
+            True if the update succeeded; otherwise False
+        """
+        response = self._es.update(
+            index=self._spikename, id=spike_id, body={"doc": {"confirmed": desired_state}}
+        )
+        return response["_shards"]["total"] == response["_shards"]["successful"]
 
     def get_min_and_max_spike_dates(self) -> Dict[str, str]:
         """

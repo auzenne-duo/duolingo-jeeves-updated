@@ -18,6 +18,7 @@ class TestSpikeWord(unittest.TestCase):
             "date": "2022-01-01",
             "lang": "en",
             "spike_group": "ALL_SPIKES",
+            "confirmed": True,
         }
 
         result = SpikeWord.from_dict(testDict)
@@ -27,6 +28,25 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.date, "2022-01-01")
         self.assertEqual(result.lang, "en")
         self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
+        self.assertEqual(result.confirmed, True)
+
+    def test_from_dict_no_confirmed(self):
+        testDict = {
+            "word": "duo",
+            "score": 10,
+            "date": "2022-01-01",
+            "lang": "en",
+            "spike_group": "ALL_SPIKES",
+        }
+
+        result = SpikeWord.from_dict(testDict)
+
+        self.assertEqual(result.word, "duo")
+        self.assertEqual(result.score, 10)
+        self.assertEqual(result.date, "2022-01-01")
+        self.assertEqual(result.lang, "en")
+        self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
+        self.assertEqual(result.confirmed, False)
 
     def test_to_dict(self):
         result = self.testObj.to_dict()
@@ -39,6 +59,7 @@ class TestSpikeWord(unittest.TestCase):
                 "date": "2022-01-01",
                 "lang": "en",
                 "spike_group": "ALL_SPIKES",
+                "confirmed": False,
             },
         )
 

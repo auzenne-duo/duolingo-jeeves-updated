@@ -4,6 +4,7 @@ import { formatISO } from "date-fns";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
+import ConfirmButton from "components/ConfirmButton";
 import Table from "components/Table";
 import styles from "styles/SpikeTable.scss";
 
@@ -12,7 +13,7 @@ interface Props {
   isLoading?: boolean;
   language: JSONAPI.LanguageId;
   linkFilter?: JSONAPI.ShakeToReportCategory;
-  spikes: [number, string][];
+  spikes: JSONAPI.SpikeWord[];
 }
 
 const SpikeTable = ({
@@ -25,7 +26,7 @@ const SpikeTable = ({
   <Table className={styles.table}>
     <thead>
       <tr>
-        <th colSpan={2}>
+        <th colSpan={3}>
           Trending words on{" "}
           {date ? formatISO(date, { representation: "date" }) : null}
         </th>
@@ -33,24 +34,28 @@ const SpikeTable = ({
       <tr>
         <th>Spikiness</th>
         <th>Word</th>
+        <th>Confirmed</th>
       </tr>
     </thead>
     <tbody>
-      {spikes.map(([value, word]) => {
+      {spikes.map(spike => {
         const params = new URLSearchParams();
         if (linkFilter) {
           params.set("filter", linkFilter);
         }
-        params.set("q", word);
+        params.set("q", spike.word);
         return (
-          <tr key={word}>
-            <td>{value.toFixed(1)}</td>
+          <tr key={spike.word}>
+            <td>{spike.score.toFixed(1)}</td>
             <td>
               <Link
                 to={`/${language}/analysis?${encodeURLSearchParams(params)}`}
               >
-                {word}
+                {spike.word}
               </Link>
+            </td>
+            <td className={styles.center}>
+              <ConfirmButton spike={spike} />
             </td>
           </tr>
         );

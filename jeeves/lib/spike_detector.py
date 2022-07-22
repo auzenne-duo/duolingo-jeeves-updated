@@ -212,7 +212,14 @@ def _find_spiked_words(
     )
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
     result = [
-        SpikeWord(word=word, score=score, date=target_date_str, lang=lang, spike_group=None)
+        SpikeWord(
+            word=word,
+            score=score,
+            date=target_date_str,
+            lang=lang,
+            spike_group=None,
+            confirmed=False,
+        )
         for score, word in score_word_pairs
         if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
     ]
