@@ -54,7 +54,7 @@ const SpikeTable = ({
                 {spike.word}
               </Link>
             </td>
-            <td className={styles.center}>
+            <td className={styles.toggle}>
               <ConfirmButton spike={spike} />
             </td>
           </tr>
