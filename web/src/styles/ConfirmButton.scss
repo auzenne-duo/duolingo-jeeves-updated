@@ -1,0 +1,18 @@
+.confirm-username {
+  margin-left: 10px;
+}
+
+ul {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+ul:before {
+  content: " ";
+  height: 100%;
+}
+ul:before,
+ul li {
+  display: inline-block;
+  vertical-align: middle;
+}

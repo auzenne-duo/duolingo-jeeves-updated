@@ -13,6 +13,7 @@ class SpikeWord:
     lang: str = attr.ib()
     spike_group: Optional[SpikeCategory] = attr.ib()
     confirmed: bool = attr.ib(default=False)
+    user_id: int = attr.ib(default=0)
 
     @classmethod
     def from_dict(cls, spike_dict):
@@ -23,6 +24,7 @@ class SpikeWord:
             lang=spike_dict["lang"],
             spike_group=SpikeCategory[spike_dict["spike_group"]],
             confirmed=spike_dict["confirmed"] if "confirmed" in spike_dict else False,
+            user_id=spike_dict["user_id"] if "user_id" in spike_dict else 0,
         )
 
     def to_dict(self) -> Dict[str, Union[float, str]]:
@@ -33,6 +35,7 @@ class SpikeWord:
             "lang": self.lang,
             "spike_group": self.spike_group.name,
             "confirmed": self.confirmed,
+            "user_id": self.user_id,
         }
 
     def get_spike_id(self) -> str:

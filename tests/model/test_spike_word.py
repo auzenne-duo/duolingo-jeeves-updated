@@ -8,7 +8,13 @@ class TestSpikeWord(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestSpikeWord, self).__init__(*args, **kwargs)
         self.testObj = SpikeWord(
-            word="duo", score=10, date="2022-01-01", lang="en", spike_group=SpikeCategory.ALL_SPIKES
+            word="duo",
+            score=10,
+            date="2022-01-01",
+            lang="en",
+            spike_group=SpikeCategory.ALL_SPIKES,
+            confirmed=False,
+            user_id=10,
         )
 
     def test_from_dict(self):
@@ -19,6 +25,7 @@ class TestSpikeWord(unittest.TestCase):
             "lang": "en",
             "spike_group": "ALL_SPIKES",
             "confirmed": True,
+            "user_id": 10,
         }
 
         result = SpikeWord.from_dict(testDict)
@@ -29,6 +36,7 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.lang, "en")
         self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
         self.assertEqual(result.confirmed, True)
+        self.assertEqual(result.user_id, 10)
 
     def test_from_dict_no_confirmed(self):
         testDict = {
@@ -47,6 +55,7 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.lang, "en")
         self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
         self.assertEqual(result.confirmed, False)
+        self.assertEqual(result.user_id, 0)
 
     def test_to_dict(self):
         result = self.testObj.to_dict()
@@ -60,6 +69,7 @@ class TestSpikeWord(unittest.TestCase):
                 "lang": "en",
                 "spike_group": "ALL_SPIKES",
                 "confirmed": False,
+                "user_id": 10,
             },
         )
 
