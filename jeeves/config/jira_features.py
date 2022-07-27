@@ -91,7 +91,7 @@ JIRA_FEATURES = {
         "Generated Sessions": {
             "Skill tree migration": ["course update"],
             "Crowns": [],
-            "Decayed Skills": ["cracked skill", "guilded skill"],
+            "Decayed Skills": ["cracked skill", "guilded skill", "gilded"],
             "Generated sessions": [],
         },
         "Grading": {
@@ -126,6 +126,7 @@ JIRA_FEATURES = {
                 "*ios_v2_dev*: true",
                 "android_v2_dev: true",
                 "web_v2_dev: true",
+                "path",
             ],
         },
         "Speech Lab": {
@@ -254,7 +255,7 @@ JIRA_FEATURES = {
                 "correct bottom sheet",
                 "grading drawer",
             ],
-            "Incorrect XP Awarded": [],
+            "Incorrect XP Awarded": ["wrong xp"],
             "Challenge layout issues": [
                 "exercise",
                 "question",
