@@ -4,7 +4,7 @@ of one. This code is in its own file because putting it anywhere else wouldn't
 make sense or would cause a circular dependency.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from duolingo_base.util import registry
 
@@ -113,6 +113,7 @@ class DuplicateGraphResolver:
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
 
         parent_key = None
+        deprecated_parent_issue_keys = []
         if len(group_parents) == 1:
             parent_key = group_parents[0].issue_key
         elif len(group_parents) == 0:
@@ -125,9 +126,9 @@ class DuplicateGraphResolver:
                 parent_key
             )
         else:
-            raise Exception(
-                f"Attempting to fully connect keys [{', '.join(issue_keys)}] into a single group found returned {len(group_parents)} parent issues; please investigate."
-            )
+            (parent_key, deprecated_parent_issues) = self.choose_parent_issue(group_parents)
+            deprecated_parent_issue_keys = [issue.issue_key for issue in deprecated_parent_issues]
+            self._deprecate_parent_issues(deprecated_parent_issues)
 
         parent_doc = duplicate_graph.issue_keys_to_documents[parent_key]
         parent_data = parse_parent_description(parent_doc.body_text)
@@ -151,10 +152,10 @@ class DuplicateGraphResolver:
             if link_created:
                 any_success = True
                 result_list.append(f"S {outward_end} {inward_end}\n")
-                if outward_end == parent_key:
+                if outward_end == parent_key and inward_end not in deprecated_parent_issue_keys:
                     child_issue = duplicate_graph.issue_keys_to_documents[inward_end]
                     update_parent_data_from_child(parent_data, child_issue)
-                elif inward_end == parent_key:
+                elif inward_end == parent_key and outward_end not in deprecated_parent_issue_keys:
                     child_issue = duplicate_graph.issue_keys_to_documents[outward_end]
                     update_parent_data_from_child(parent_data, child_issue)
             else:
@@ -239,9 +240,41 @@ class DuplicateGraphResolver:
             successfully, otherwise False.
         """
         try:
-            self._jira_dal.set_issue_description(
-                parent_key, generate_parent_body_text_from_data(data)
+            self._jira_dal.update_issue(
+                parent_key, description=generate_parent_body_text_from_data(data)
             )
             return True
         except:
             return False
+
+    def choose_parent_issue(
+        self, parent_issues: List[JiraDocument]
+    ) -> Tuple[str, List[JiraDocument]]:
+        def _choose_parent_issue_from_filtered_list(filtered_list: List[JiraDocument]):
+            sorted_filtered_list = sorted(
+                filtered_list, key=lambda issue: issue.updated_date, reverse=True
+            )
+            new_parent = sorted_filtered_list[0]
+            return (
+                new_parent.issue_key,
+                [issue for issue in parent_issues if issue.issue_key != new_parent.issue_key],
+            )
+
+        issues_in_progress = [issue for issue in parent_issues if issue.status == "In Progress"]
+        if len(issues_in_progress) > 0:
+            return _choose_parent_issue_from_filtered_list(issues_in_progress)
+
+        issues_not_resolved = [issue for issue in parent_issues if issue.resolution != ""]
+        if len(issues_not_resolved) > 0:
+            return _choose_parent_issue_from_filtered_list(issues_not_resolved)
+
+        return _choose_parent_issue_from_filtered_list(parent_issues)
+
+    def _deprecate_parent_issues(self, parent_issues: List[JiraDocument]):
+        for issue in parent_issues:
+            self._jira_dal.update_issue(
+                issue.issue_key,
+                summary=f"(deprecated) {issue.header_text}"[:255],
+                remove_parent_bug_label=True,
+            )
+            self._jira_dal.close_issue_as_duplicate(issue.issue_key)

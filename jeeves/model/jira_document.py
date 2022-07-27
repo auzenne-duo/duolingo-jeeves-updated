@@ -20,6 +20,8 @@ from jeeves.util.metadata_standardizer import MetaStdizer
 _SHAKE_TO_REPORT_MARKER = "Reported with shake-to-report"
 _BIRDS_EYE_MARKER = "Reported via Bird's Eye, shake-to-report"
 
+PARENT_BUG_LABEL = "parent_bug"
+
 
 @attr.s(kw_only=True)
 class JiraDocument(JeevesDocument):

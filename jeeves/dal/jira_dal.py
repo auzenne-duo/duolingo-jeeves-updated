@@ -1,12 +1,12 @@
 import json
 import os
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from requests import RequestException, Session, get, post, put
 from requests.auth import HTTPBasicAuth
 
 from jeeves.model.custom_types import JSON
-from jeeves.model.jira_document import JiraDocument
+from jeeves.model.jira_document import PARENT_BUG_LABEL, JiraDocument
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.util.error_util import print_request_exception
 
@@ -140,16 +140,49 @@ class JiraApiDAL:
             print_request_exception(e)
             raise
 
-    def set_issue_description(self, issue_key: str, description: str):
+    def update_issue(
+        self,
+        issue_key: str,
+        summary: Optional[str] = None,
+        description: Optional[JSON] = None,
+        remove_parent_bug_label: bool = False,
+    ):
         """
-        Replace the issue's description with the given string.
+        Update the issue's fields.
         """
         url = self._host + "/rest/api/3/issue/" + issue_key
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
-        data_operation = {"update": {"description": [{"set": description}]}}
+        update_dict = {}
+        if summary:
+            update_dict["summary"] = [{"set": summary}]
+        if description:
+            update_dict["description"] = [{"set": description}]
+        if remove_parent_bug_label:
+            update_dict["labels"] = [{"remove": PARENT_BUG_LABEL}]
+
+        data_operation = {"update": update_dict}
 
         try:
             r = put(url, headers=headers, auth=self._auth, data=json.dumps(data_operation))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e)
+            raise
+
+    def close_issue_as_duplicate(self, issue_key: str):
+        """
+        Close the issue with the Duplicate resolution
+        """
+        url = self._host + f"/rest/api/3/issue/{issue_key}/transitions"
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+
+        data_operation = {
+            "transition": {"id": 251},
+            "fields": {"resolution": {"name": "Duplicate"}},
+        }
+
+        try:
+            r = post(url, headers=headers, auth=self._auth, data=json.dumps(data_operation))
             r.raise_for_status()
         except RequestException as e:
             print_request_exception(e)
@@ -180,7 +213,7 @@ class JiraApiDAL:
                 "summary": summary,
                 "description": description_json,
                 "labels": [
-                    "parent_bug",
+                    PARENT_BUG_LABEL,
                 ],
             }
         }
