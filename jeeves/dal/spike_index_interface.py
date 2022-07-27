@@ -36,7 +36,6 @@ class SpikeIndexDAL:
             m = Mapping()
             m.field("lang", "keyword")
             m.field("spike_group", "keyword")
-            m.field("user_id", "number")
             m.save(self._spikename, using=self._es)
             rollbar.report_message("Created index {self._spikename} with new mappings", "info")
 
@@ -65,22 +64,19 @@ class SpikeIndexDAL:
         ]
         bulk(self._es, bulk_actions)
 
-    def set_spike_confirm_setting(self, spike_id: str, desired_state: bool, user_id: int) -> None:
+    def set_spike_confirm_setting(self, spike_id: str, desired_state: bool) -> None:
         """
         Sets the confirmed stat of a spikeword by spike_id to the specified state
 
         Parameters:
             spike_id: id string corresponding to a SpikeWord document
             desired_state: desired boolean setting of the confirmed state
-            user_id: number of a user's id (jwt)
 
         Returns:
             True if the update succeeded; otherwise False
         """
         response = self._es.update(
-            index=self._spikename,
-            id=spike_id,
-            body={"doc": {"confirmed": desired_state, "user_id": user_id}},
+            index=self._spikename, id=spike_id, body={"doc": {"confirmed": desired_state}}
         )
         return response["_shards"]["total"] == response["_shards"]["successful"]
 

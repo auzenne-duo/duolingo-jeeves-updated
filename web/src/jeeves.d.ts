@@ -4,11 +4,6 @@ declare namespace JSONAPI {
     teams: Team[];
   }
 
-  interface ConfirmedResponse {
-    confirmed: boolean;
-    user_id: number;
-  }
-
   interface DuolingoMetadata {
     app_version?: string;
     course?: string;
@@ -104,7 +99,6 @@ declare namespace JSONAPI {
     score: number;
     word: string;
     spike_id: string;
-    user_id?: number;
   }
 
   interface Team {

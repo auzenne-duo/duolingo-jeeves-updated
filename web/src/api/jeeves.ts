@@ -1,8 +1,9 @@
+import { convertTimeZone } from "util";
+
 import { format, formatISO, parseISO } from "date-fns";
 
 import { get, patch } from "api/client";
 import { transformQuery } from "elastic";
-import { convertTimeZone } from "util";
 
 /** Converts a date and time to a format that the API supports. */
 const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
@@ -142,7 +143,7 @@ export const setSpikeConfirmed = async (
   spike_id: string,
   desired_state: boolean,
 ) =>
-  patch<JSONAPI.ConfirmedResponse>("/1/set_spike_confirm", {
+  patch<boolean>("/1/set_spike_confirm", {
     spike_id: spike_id,
     desired_state: desired_state,
   });

@@ -4,7 +4,7 @@ import { get } from "api/client";
 
 const API_ORIGIN = "https://www.duolingo.com/2017-06-30";
 
-const USER_FIELDS = ["email", "username"].join(",");
+const USER_FIELDS = ["email"].join(",");
 
 export const getLoggedIn = () => {
   const loggedInUserId = getLoggedInUserId();
@@ -25,9 +25,6 @@ export const getLoggedInUserId = () => {
   }
   return jwtUserId;
 };
-
-export const getUser = (userId: number) =>
-  get<Monolith.User>(`${API_ORIGIN}/users/${userId}?fields=${USER_FIELDS}`);
 
 const parseUserId = (jwt: string) => {
   try {
