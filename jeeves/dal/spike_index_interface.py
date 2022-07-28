@@ -64,21 +64,22 @@ class SpikeIndexDAL:
         ]
         bulk(self._es, bulk_actions)
 
-    def set_spike_confirm_setting(self, spike_id: str, desired_state: bool) -> None:
+    def set_spike_confirm_setting(self, spike_id: str, desired_state: bool, user_id: int) -> None:
         """
         Sets the confirmed stat of a spikeword by spike_id to the specified state
 
         Parameters:
             spike_id: id string corresponding to a SpikeWord document
             desired_state: desired boolean setting of the confirmed state
-
-        Returns:
-            True if the update succeeded; otherwise False
+            user_id: number of a user's id
         """
         response = self._es.update(
-            index=self._spikename, id=spike_id, body={"doc": {"confirmed": desired_state}}
+            index=self._spikename,
+            id=spike_id,
+            body={"doc": {"confirmed": desired_state, "user_id": user_id}},
         )
-        return response["_shards"]["total"] == response["_shards"]["successful"]
+        if response["_shards"]["total"] != response["_shards"]["successful"]:
+            raise Exception(f"Update to confirmed setting of spike {spike_id} failed")
 
     def get_min_and_max_spike_dates(self) -> Dict[str, str]:
         """

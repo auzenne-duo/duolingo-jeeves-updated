@@ -6,7 +6,8 @@ import logging
 import os
 from datetime import datetime
 
-from flask import Blueprint, Response, abort, json, make_response, request, send_from_directory
+from duolingo_base.view.auth import requires_auth
+from flask import Blueprint, abort, g, json, make_response, request, send_from_directory
 
 from jeeves import registry as app_registry
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
@@ -151,6 +152,7 @@ def get_spike_data(lang):
                 "word": spike.word,
                 "confirmed": spike.confirmed,
                 "spike_id": spike.get_spike_id(),
+                "user_id": spike.user_id,
             }
         )
     for day in stored_spikes:
@@ -159,13 +161,13 @@ def get_spike_data(lang):
 
 
 @blueprint_api.route("/api/1/set_spike_confirm", methods=["PATCH"])
+@requires_auth(permission="access-jeeves")
 def set_spike_confirm():
     spike_id = request.json.get("spike_id")
     desired_state = request.json.get("desired_state")
-    response = app_registry(SpikeIndexDAL).set_spike_confirm_setting(spike_id, desired_state)
-    if not response:
-        return Response(status=500)
-    return json.jsonify(response)
+    user_id = g.user_id
+    app_registry(SpikeIndexDAL).set_spike_confirm_setting(spike_id, desired_state, user_id)
+    return json.jsonify({"confirmed": desired_state, "user_id": user_id})
 
 
 @blueprint_api.route("/api/1/<lang>/info")
