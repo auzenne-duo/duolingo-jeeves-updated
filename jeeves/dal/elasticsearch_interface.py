@@ -2,7 +2,6 @@ import sys
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from typing import Dict, Iterator, List, Optional, Set, Union
-from xmlrpc.client import DateTime
 
 import numpy as np
 import rollbar
@@ -429,7 +428,7 @@ class ElasticsearchDAL:
 
         return len(docs) / ((end_date - start_date).total_seconds() / 86400)
 
-    def generate_term_stats(self, start_date: DateTime, language: str):
+    def generate_term_stats(self, start_date: datetime, language: str):
         """
         Scrolls through all documents of a specific language and counts the number of occurences.
         Then saves the mean (occurences per day) and std for terms that appear at least MIN_SAMPLES_THRESHOLD times

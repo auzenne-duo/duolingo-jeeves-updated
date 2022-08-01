@@ -17,4 +17,4 @@ DATA_VERSION_IDENTIFIER = "5.1.2"
 MIN_SAMPLES_THRESHOLD = 10
 
 # For the cold start experiment, this date determines how we filter tickets to simulate a cold start
-COLD_START_DATE = "2022-07-27-+00:00"
+COLD_START_DATE = "2022-07-27-+0000"
