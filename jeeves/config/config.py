@@ -12,3 +12,9 @@ CRAWL_WINDOW_SIZE = 90
 
 # Version number, useful for controlling data storage
 DATA_VERSION_IDENTIFIER = "5.1.2"
+
+# For storing stats on words, only consider words that appear more commonly across the corpus
+MIN_SAMPLES_THRESHOLD = 10
+
+# For the cold start experiment, this date determines how we filter tickets to simulate a cold start
+COLD_START_DATE = "2022-07-27-+00:00"

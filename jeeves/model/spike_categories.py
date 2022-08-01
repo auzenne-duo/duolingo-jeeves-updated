@@ -1,10 +1,13 @@
+from datetime import datetime
 from enum import Enum, auto
 from typing import Callable, Dict, List, Optional
 
 from elasticsearch_dsl import Search
 
+from jeeves.config.config import COLD_START_DATE
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
+from jeeves.util.date_util import datetime_to_str
 
 
 class SpikeCategory(Enum):
@@ -22,6 +25,8 @@ class SpikeCategory(Enum):
     INTERNAL_V2_IOS_SPIKES = auto()
     ALL_V2_IOS_SPIKES = auto()
     ALL_SPIKES = auto()
+    COLD_START_SPIKES = auto()
+    BASELINE_FREQ_COLD_START_SPIKES = auto()
 
     @classmethod
     def _get_shake_to_report_categories_for_spike_category(
@@ -71,6 +76,10 @@ class SpikeCategory(Enum):
                 cls.ALL_V2_IOS_SPIKES: lambda doc: bool(
                     doc.duolingo_metadata.get("user_information", {}).get("ios_v2_dev", False)
                 ),
+                cls.COLD_START_SPIKES: lambda doc: doc.date_time
+                > datetime.strptime(COLD_START_DATE, "%Y-%m-%d-%z"),
+                cls.BASELINE_FREQ_COLD_START_SPIKES: lambda doc: doc.date_time
+                > datetime.strptime(COLD_START_DATE, "%Y-%m-%d-%z"),
                 cls.ALL_SPIKES: lambda doc: True,
             }
             return category_to_predicate[group_category]
@@ -109,6 +118,18 @@ class SpikeCategory(Enum):
                 ).filter("term", shake_to_report_category=STRC.INTERNAL.name),
                 cls.ALL_V2_IOS_SPIKES: lambda s: s.filter(
                     "term", duolingo_metadata__user_information__ios_v2_dev=True
+                ),
+                cls.COLD_START_SPIKES: lambda s: s.filter(
+                    "range",
+                    date_time={
+                        "gte": datetime_to_str(datetime.strptime(COLD_START_DATE, "%Y-%m-%d-%z"))
+                    },
+                ),
+                cls.BASELINE_FREQ_COLD_START_SPIKES: lambda s: s.filter(
+                    "range",
+                    date_time={
+                        "gte": datetime_to_str(datetime.strptime(COLD_START_DATE, "%Y-%m-%d-%z"))
+                    },
                 ),
                 cls.ALL_SPIKES: lambda s: s,
             }
@@ -160,6 +181,13 @@ class SpikeCategory(Enum):
                 },
                 cls.ALL_V2_IOS_SPIKES: {
                     "q": "duolingo_metadata.user_information.ios_v2_dev:true",
+                },
+                cls.ALL_V2_IOS_SPIKES: {
+                    "q": "duolingo_metadata.user_information.ios_v2_dev:true",
+                },
+                cls.COLD_START_SPIKES: {"from": f"{COLD_START_DATE}T04%3A00%3A00.000Z"},
+                cls.BASELINE_FREQ_COLD_START_SPIKES: {
+                    "from": f"{COLD_START_DATE}T04%3A00%3A00.000Z"
                 },
                 cls.ALL_SPIKES: {},
             }

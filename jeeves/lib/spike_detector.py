@@ -22,6 +22,7 @@ from jeeves.util.date_util import date_to_str, get_n_days_ago, time_series_str_t
 from jeeves.util.error_util import SpikeDetectorException
 
 SPIKE_EXCLUDE_WORDS_REGISTRY_KEY = "spike_exclude_words"
+SPIKE_TERM_STATS_REGISTRY_KEY = "spike_term_stats"
 
 
 def detect_spikes(target_date: Optional[date] = None) -> None:
@@ -127,10 +128,9 @@ def run_spike_detector_for_batch(
         if word not in app_registry(SPIKE_EXCLUDE_WORDS_REGISTRY_KEY)
     }
     for target_dt in new_ticket_dates:
-        batch_spike_list += _find_spiked_words(lang, filtered_word_to_date_to_count, target_dt)
-
-    for spike in batch_spike_list:
-        spike.spike_group = spike_group
+        batch_spike_list += _find_spiked_words(
+            lang, filtered_word_to_date_to_count, target_dt, spike_group
+        )
 
     if batch_spike_list:
         app_registry(SpikeIndexDAL).bulk_index_spikes(batch_spike_list)
@@ -182,7 +182,10 @@ def _get_word_to_date_to_count(
 
 
 def _find_spiked_words(
-    lang: str, word_to_date_to_count: Dict[str, Dict[str, int]], target_dt: datetime.date
+    lang: str,
+    word_to_date_to_count: Dict[str, Dict[str, int]],
+    target_dt: datetime.date,
+    spike_group: SpikeCategory,
 ) -> List[SpikeWord]:
     """
     Calculates spike words on a particular date.
@@ -202,8 +205,17 @@ def _find_spiked_words(
     """
     target_date_str = date_to_str(target_dt)
 
+    average_num_tickets = app_registry(ElasticsearchDAL).get_average_num_tickets_per_day(
+        spike_group, lang
+    )
+
     score_word_pairs = [
-        (_calculate_spike_score(date_to_count, target_dt), word)
+        (
+            _calculate_spike_score(
+                date_to_count, target_dt, word, spike_group, average_num_tickets, lang
+            ),
+            word,
+        )
         for word, date_to_count in word_to_date_to_count.items()
     ]
     print(
@@ -217,7 +229,7 @@ def _find_spiked_words(
             score=score,
             date=target_date_str,
             lang=lang,
-            spike_group=None,
+            spike_group=spike_group,
             confirmed=False,
         )
         for score, word in score_word_pairs
@@ -226,24 +238,64 @@ def _find_spiked_words(
     return result
 
 
-def _calculate_spike_score(date_to_count: Dict[str, int], target_datetime: datetime.date):
+def _calculate_spike_score(
+    date_to_count: Dict[str, int],
+    target_datetime: datetime.date,
+    word: str,
+    spike_group: SpikeCategory,
+    average_num_tickets: int,
+    lang: str,
+):
     """
     Given a word, returns a score that represents spikiness where spikiness is a z-score
     computed based on word occurrences in the previous `moving_avg_window_size` days.
 
     https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data
+
+    If the spike group is BASELINE_FREQ_COLD_START_SPIKES:
+        For days within HISTORY_WINDOW_SIZE that have no count, we take a weighted mean and std using
+        the baseline stats for that term. We normalize by number of docs per day using the ratio of
+        average_num_tickets for a dataset to the baseline avg_docs_per_day. If a word is not in the baseline
+        dataset, then it is treated normally.
     """
     date_str = date_to_str(target_datetime)
     target_count = date_to_count.get(date_str, 0)
     if target_count < COUNT_THRESHOLD:
         return -1
-    valid_range = set(
+    valid_range = [
         date_to_str(get_n_days_ago(target_datetime, i + 1)) for i in range(HISTORY_WINDOW_SIZE)
-    )
+    ]
+    baseline_stats = app_registry(SPIKE_TERM_STATS_REGISTRY_KEY)
+    word_stats = baseline_stats["words"]
+
     count_history = [count for date, count in date_to_count.items() if date in valid_range]
     if not count_history:
         return -1
     mean = np.mean(count_history)
     std = np.std(count_history)
+
+    if (
+        spike_group == SpikeCategory.BASELINE_FREQ_COLD_START_SPIKES
+        and word in word_stats
+        and lang == "en"
+    ):
+        day_count = len(count_history)
+        # adjust based on average number of tickets
+        baseline_mean = (
+            average_num_tickets * word_stats[word]["mean"] / baseline_stats["avg_docs_per_day"]
+        )
+        baseline_std = (
+            average_num_tickets * word_stats[word]["std"] / baseline_stats["avg_docs_per_day"]
+        )
+
+        # take weighted mean and std based on number of real samples in the HISTORY_WINDOW_SIZE
+        mean = (
+            day_count * mean + (HISTORY_WINDOW_SIZE - day_count) * baseline_mean
+        ) / HISTORY_WINDOW_SIZE
+        std = (
+            (day_count * std**2 + (HISTORY_WINDOW_SIZE - day_count) * baseline_std**2)
+            / HISTORY_WINDOW_SIZE
+        ) ** 0.5
+
     zscore = (target_count - mean) / std if std != 0 else np.inf
     return zscore

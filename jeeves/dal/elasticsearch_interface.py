@@ -1,8 +1,12 @@
 import sys
-from datetime import date, datetime
+from collections import Counter, defaultdict
+from datetime import date, datetime, timedelta
 from typing import Dict, Iterator, List, Optional, Set, Union
+from xmlrpc.client import DateTime
 
+import numpy as np
 import rollbar
+from dateutil import parser
 from duolingo_base.config import Config
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
@@ -10,7 +14,7 @@ from elasticsearch.helpers import bulk
 from elasticsearch_dsl import A, Mapping, Q, Search
 from elasticsearch_dsl.query import MoreLikeThis
 
-from jeeves.config.config import DATA_VERSION_IDENTIFIER
+from jeeves.config.config import DATA_VERSION_IDENTIFIER, HISTORY_WINDOW_SIZE, MIN_SAMPLES_THRESHOLD
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
@@ -262,7 +266,10 @@ class ElasticsearchDAL:
             return self._handle_es_request_errors(e)
 
     def aggregate_time_series(
-        self, lang: str, spike_category: SpikeCategory, word: str
+        self,
+        lang: str,
+        spike_category: SpikeCategory,
+        word: str,
     ) -> List[Dict[str, Union[str, int]]]:
         """
         Calculates per-day counts of how many tickets contain a particular word
@@ -389,6 +396,125 @@ class ElasticsearchDAL:
 
         return doc_ids
 
+    def get_average_num_tickets_per_day(self, spike_category: SpikeCategory, lang: str):
+        """
+        Calculates the average number of tickets per day for the past HISTORY_WINDOW_SIZE days or the number of days
+        that exist for a specific spikeCategory and language - whichever is smaller.
+
+        Parameters:
+            spike_category: The spike category whose documents we should search within.
+            lang (str): Filter ticket search to only this language.
+
+        Returns:
+            (float) Average number of docs per day for the most recent days
+        """
+
+        date_range = self.get_min_and_max_document_dates()
+        start_date = datetime.strptime(date_range["min"], "%Y-%m-%d")
+        end_date = datetime.strptime(date_range["max"], "%Y-%m-%d")
+        range_start = max(start_date, end_date - timedelta(days=HISTORY_WINDOW_SIZE))
+
+        date_str = datetime_to_str(range_start)
+
+        s = (
+            Search(using=self._es, index=self._indexname)
+            .filter("range", date_time={"gt": date_str})
+            .filter("term", language=lang)
+        )
+        s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
+
+        docs = list(s.scan())
+        start_date = parser.parse(min(docs, key=lambda doc: doc.date_time).date_time)
+        end_date = parser.parse(max(docs, key=lambda doc: doc.date_time).date_time)
+
+        return len(docs) / ((end_date - start_date).total_seconds() / 86400)
+
+    def generate_term_stats(self, start_date: DateTime, language: str):
+        """
+        Scrolls through all documents of a specific language and counts the number of occurences.
+        Then saves the mean (occurences per day) and std for terms that appear at least MIN_SAMPLES_THRESHOLD times
+        To conform with the spike_detector algorithm, the mean is only taken over days that have at least 1 occurence.
+
+        Parameters:
+            start_date (DateTime): Earliest date after which to sample tickets
+            lang (str): Filter ticket search to only this language.
+
+        Returns:
+            (dict {str: {"mean": float, "std": float}}) mapping from each word to its mean and std of daily count over the sample window
+        """
+        date_str = datetime_to_str(start_date)
+        query = {
+            "size": 1000,
+            "query": {
+                "bool": {
+                    "filter": [
+                        {"range": {"date_time": {"gt": date_str}}},
+                        {"term": {"language": language}},
+                    ]
+                }
+            },
+        }
+
+        resp = self._es.search(  # pylint: disable=unexpected-keyword-arg
+            index=self._indexname,
+            body=query,
+            scroll="2s",
+        )
+
+        old_scroll_id = resp["_scroll_id"]
+        doc_count = 0
+        word_to_day_to_count = defaultdict(Counter)
+        date_to_doc_count = Counter()
+
+        while len(resp["hits"]["hits"]):
+            # make note of the date for each document for later use
+            id_to_date = {doc["_id"]: doc["_source"]["date_time"] for doc in resp["hits"]["hits"]}
+            if len(id_to_date) == 0:
+                break
+
+            # using the document ids, have ES tokenize and return the text in terms
+            request_body = {"ids": list(id_to_date.keys()), "parameters": {"fields": ["body_text"]}}
+            m_term_vec_out = self._es.mtermvectors(body=request_body, index=self._indexname)
+
+            for doc in m_term_vec_out["docs"]:
+                if len(doc["term_vectors"]) == 0:
+                    continue
+
+                doc_count += 1
+                terms = doc["term_vectors"]["body_text"]["terms"]
+
+                date_str = id_to_date[doc["_id"]]
+                date = parser.parse(date_str)
+                date_key = date.strftime("%Y-%m-%d")
+                date_to_doc_count[date_key] += 1
+
+                for term in self._filter_terms(terms):
+                    word_to_day_to_count[term][date_key] += 1
+
+                if doc_count % 1000 == 0:
+                    print("doc count", doc_count)
+
+            resp = self._es.scroll(  # pylint: disable=unexpected-keyword-arg
+                scroll_id=old_scroll_id, scroll="2s"
+            )
+            old_scroll_id = resp["_scroll_id"]
+
+        stats = {}
+        for word, counts in word_to_day_to_count.items():
+            samples = [count for _, count in counts.items()]
+            if len(samples) < MIN_SAMPLES_THRESHOLD:
+                continue
+            mean = np.mean(samples)
+            std = np.std(samples)
+            stats[word] = {"mean": mean, "std": std}
+
+        return (
+            {
+                "avg_docs_per_day": np.mean(list(date_to_doc_count.values())),
+                "words": stats,
+            },
+        )
+
     def _get_terms_from_slice(self, doc_ids_slice: List[str], lang: str) -> Set[str]:
         """
         Helper function for get_terms_from_docs, below.
@@ -416,16 +542,26 @@ class ElasticsearchDAL:
             ]
             # Flatten terms_lists into single list
             terms = set([item for sublist in terms_lists for item in sublist])
-            # Quick and dirty way of filtering out any terms containing
-            # digits. If a term contains digits its probably either a user
-            # describing an amount of something or system information
-            # we've attached. In the former case, the digit is probably not
-            # a useful spike word, and in the latter case, the output tends
-            # to get flooded by versions of iOS, which is also not useful.
-            terms = set([s for s in terms if not any(i.isdigit() for i in s)])
-            return terms
+            return self._filter_terms(terms)
         except:
             return set()
+
+    def _filter_terms(self, terms):
+        """
+        Quick and dirty way of filtering out any terms containing
+        digits. If a term contains digits its probably either a user
+        describing an amount of something or system information
+        we've attached. In the former case, the digit is probably not
+        a useful spike word, and in the latter case, the output tends
+        to get flooded by versions of iOS, which is also not useful.
+
+        Parameters:
+            terms ({str}): set of words
+
+        Return:
+            terms ({str}): set of filtered words with any term containing digits removed
+        """
+        return {s for s in terms if not any(i.isdigit() for i in s)}
 
     def get_terms_from_docs(self, doc_ids: List[str], lang: str) -> Set[str]:
         """

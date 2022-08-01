@@ -1,3 +1,4 @@
+import json
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -9,6 +10,7 @@ from jeeves import apply_registry, close_registry, register, registry as app_reg
 from jeeves.dal.spike_index_interface import SpikeIndexDAL  # pylint: disable=E0401
 from jeeves.lib.spike_detector import (  # pylint: disable=E0401
     SPIKE_EXCLUDE_WORDS_REGISTRY_KEY,
+    SPIKE_TERM_STATS_REGISTRY_KEY,
     detect_spikes,
 )
 from jeeves.util.date_util import date_to_str  # pylint: disable=E0401
@@ -22,6 +24,7 @@ _config.apply_rollbar()
 _FORCE_SPIKE_REFRESH_FILE = "force_spike_refresh_flag"
 _SPIKE_CALCULATOR_LOCK_FILE = "spike_calculator_lock"
 _SPIKE_EXCLUDE_WORDS_FILE = "spike_exclude_words"
+_SPIKE_TERM_STATS_FILE = "spike_term_stats"
 _LOCK_TIMEOUT = 12
 
 
@@ -91,6 +94,18 @@ def run_spike_worker() -> None:
         )
     else:
         register(SPIKE_EXCLUDE_WORDS_REGISTRY_KEY, [])
+
+    # Load baseline term stats
+    spike_term_stats_file_list = list(
+        s3_client.yield_filenames(s3_bucket_name, path_prefix=_SPIKE_TERM_STATS_FILE)
+    )
+    if spike_term_stats_file_list:
+        register(
+            SPIKE_TERM_STATS_REGISTRY_KEY,
+            json.loads(s3_client.download(s3_bucket_name, _SPIKE_TERM_STATS_FILE).decode("utf-8")),
+        )
+    else:
+        register(SPIKE_TERM_STATS_REGISTRY_KEY, {"words": {}})
 
     try:
         # Quick check to see if we have any spikes
