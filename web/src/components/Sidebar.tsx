@@ -60,6 +60,13 @@ const Sidebar = ({ onItemClick }: Props) => {
       </LinkItem>
       <LinkItem
         onClick={onItemClick}
+        title="See how many reported spikewords were confirmed bugs."
+        to={`/${lang}/confirmation-stats`}
+      >
+        Spike Confirmation Stats
+      </LinkItem>
+      <LinkItem
+        onClick={onItemClick}
         title="Visualize Zendesk tickets over time with a keyword filter."
         to={`/${lang}/analysis`}
       >

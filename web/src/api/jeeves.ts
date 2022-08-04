@@ -11,6 +11,24 @@ const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
 const formatLocalDate = (date: Date) =>
   formatISO(date, { representation: "date" });
 
+export const getConfirmationStats = async (
+  lang: JSONAPI.LanguageId,
+  {
+    spike_category,
+  }: {
+    spike_category?: JSONAPI.SpikeCategory;
+  } = {},
+): Promise<JSONAPI.ConfirmationStats> => {
+  const params = new URLSearchParams();
+  spike_category && params.set("spike_category", spike_category);
+
+  const data = await get<JSONAPI.ConfirmationStats>(
+    `/1/${lang}/confirmation_stats?${params.toString()}`,
+  );
+
+  return data;
+};
+
 export const getInfo = async (
   lang: JSONAPI.LanguageId,
 ): Promise<{

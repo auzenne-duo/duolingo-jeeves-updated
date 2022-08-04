@@ -81,6 +81,37 @@ class SpikeIndexDAL:
         if response["_shards"]["total"] != response["_shards"]["successful"]:
             raise Exception(f"Update to confirmed setting of spike {spike_id} failed")
 
+    def get_spike_confirmation_stats(self, lang, spike_category):
+        agg_spec = {
+            "spikes_by_month": {
+                "date_histogram": {
+                    "field": "date",
+                    "calendar_interval": "month",
+                    "format": "yyyy-MM-dd",
+                },
+                "aggs": {"confirm_status": {"terms": {"field": "confirmed"}}},
+            }
+        }
+
+        query = {
+            "bool": {
+                "filter": [{"term": {"lang": lang}}, {"term": {"spike_group": spike_category}}]
+            }
+        }
+
+        response = self._es.search(index=self._spikename, body={"aggs": agg_spec, "query": query})
+        confirm_and_total_count = {}
+        for month_bucket in response["aggregations"]["spikes_by_month"]["buckets"]:
+            num_confirmed = 0
+            for confirmed_bucket in month_bucket["confirm_status"]["buckets"]:
+                if confirmed_bucket["key"]:
+                    num_confirmed = confirmed_bucket["doc_count"]
+            confirm_and_total_count[month_bucket["key_as_string"]] = {
+                "confirmed": num_confirmed,
+                "total": month_bucket["doc_count"],
+            }
+        return confirm_and_total_count
+
     def get_min_and_max_spike_dates(self) -> Dict[str, str]:
         """
         Returns the earliest and latest dates among all spikes in our data.

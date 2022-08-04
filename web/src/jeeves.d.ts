@@ -9,6 +9,10 @@ declare namespace JSONAPI {
     user_id: number;
   }
 
+  interface ConfirmationStats {
+    [key: string]: { confirmed: number; total: number };
+  }
+
   interface DuolingoMetadata {
     app_version?: string;
     course?: string;

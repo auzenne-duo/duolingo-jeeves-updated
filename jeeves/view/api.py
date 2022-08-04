@@ -170,6 +170,14 @@ def set_spike_confirm():
     return json.jsonify({"confirmed": desired_state, "user_id": user_id})
 
 
+@blueprint_api.route("/api/1/<lang>/confirmation_stats")
+def get_confirmation_stats(lang):
+    spike_category = request.args.get("spike_category", default="ALL_SPIKES")
+    return json.jsonify(
+        app_registry(SpikeIndexDAL).get_spike_confirmation_stats(lang, spike_category)
+    )
+
+
 @blueprint_api.route("/api/1/<lang>/info")
 def show_info(lang):
     if not _is_language_supported(lang):
