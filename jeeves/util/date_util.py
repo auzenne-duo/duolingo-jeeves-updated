@@ -92,6 +92,9 @@ def time_series_str_to_datetime(date_str) -> Optional[datetime.datetime]:
         return None
     else:
         if "T" in date_str:
+            # Remove colon since python <3.6 can't parse it
+            if date_str[-3] == ":":
+                date_str = date_str[:-3] + date_str[-2:]
             return datetime.datetime.strptime(date_str, _ELASTICSEARCH_FORMAT)
         return datetime.datetime.strptime(date_str, _DATE_FORMAT)
 

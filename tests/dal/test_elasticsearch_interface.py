@@ -33,17 +33,17 @@ class TestElasticSearchInterface(unittest.TestCase):
         }
         self.mock_doc_2 = {
             "_id": 2,
-            "_source": {"date_time": "2022-01-10"},
+            "_source": {"date_time": "2022-01-04"},
             "term_vectors": {"body_text": {"terms": {"example", "hello"}}},
         }
         self.mock_doc_3 = {
             "_id": 3,
-            "_source": {"date_time": "2022-01-10"},
+            "_source": {"date_time": "2022-01-04"},
             "term_vectors": {"body_text": {"terms": {"hello", "gr8"}}},
         }
         self.mock_doc_4 = {
             "_id": 4,
-            "_source": {"date_time": "2022-01-10"},
+            "_source": {"date_time": "2022-01-4"},
             "term_vectors": {"body_text": {"terms": {"hello", "rare"}}},
         }
         self.mock_scan = MagicMock(return_value=[self.mock_hit_2, self.mock_hit_1])
@@ -81,6 +81,10 @@ class TestElasticSearchInterface(unittest.TestCase):
         mock_search.filter().filter.assert_called_with("term", language="en")
 
     @patch("jeeves.dal.elasticsearch_interface.MIN_SAMPLES_THRESHOLD", 2)
+    @patch(
+        "jeeves.dal.elasticsearch_interface.datetime",
+        MagicMock(today=MagicMock(return_value=datetime(2022, 1, 4))),
+    )
     def test_generate_term_stats(self):
         self.es.search.return_value = {
             "_scroll_id": 10,
@@ -124,13 +128,11 @@ class TestElasticSearchInterface(unittest.TestCase):
             body={"ids": [3, 4], "parameters": {"fields": ["body_text"]}}, index=self.expected_index
         )
 
-        expected = (
-            {
-                "avg_docs_per_day": 2,
-                "words": {
-                    "hello": {"mean": 2, "std": np.std([3, 1])},
-                    "example": {"mean": 1, "std": 0},
-                },
+        expected = {
+            "avg_docs_per_day": 2,
+            "words": {
+                "hello": {"mean": np.mean([3, 1, 0, 0]), "std": np.std([3, 1, 0, 0])},
+                "example": {"mean": np.mean([1, 1, 0, 0]), "std": np.std([1, 1, 0, 0])},
             },
-        )
+        }
         self.assertEqual(result, expected)

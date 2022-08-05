@@ -18,7 +18,12 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.util.date_util import date_to_str, get_n_days_ago, time_series_str_to_datetime
+from jeeves.util.date_util import (
+    date_to_str,
+    get_n_days_ago,
+    str_to_date,
+    time_series_str_to_datetime,
+)
 from jeeves.util.error_util import SpikeDetectorException
 
 SPIKE_EXCLUDE_WORDS_REGISTRY_KEY = "spike_exclude_words"
@@ -83,7 +88,8 @@ def _split_beta_batches_and_run_detector(documents: List[JeevesDocument], lang: 
         flush=True,
     )
     for spike_category, doc_list in spike_category_to_doc_list.items():
-        run_spike_detector_for_batch(doc_list, spike_category, lang)
+        if doc_list:
+            run_spike_detector_for_batch(doc_list, spike_category, lang)
 
 
 def run_spike_detector_for_batch(
@@ -121,7 +127,9 @@ def run_spike_detector_for_batch(
 
     batch_spike_list: List[SpikeWord] = []
 
-    word_to_date_to_count = _get_word_to_date_to_count(lang, spike_group, new_ticket_ids)
+    word_to_date_to_count = _get_word_to_date_to_count(
+        lang, spike_group, new_ticket_ids, min(new_ticket_dates)
+    )
     filtered_word_to_date_to_count = {
         word: date_to_count
         for word, date_to_count in word_to_date_to_count.items()
@@ -142,7 +150,10 @@ def _bucket_to_value(bucket: Dict[str, Union[str, int]]) -> Dict[str, int]:
 
 
 def _get_word_to_date_to_count(
-    lang: str, spike_category: SpikeCategory, new_ticket_ids: List[str]
+    lang: str,
+    spike_category: SpikeCategory,
+    new_ticket_ids: List[str],
+    min_target_date: datetime.date,
 ) -> Dict[str, Dict[str, int]]:
     """
     Compute a data structure that represents how many times a word appeared
@@ -168,7 +179,9 @@ def _get_word_to_date_to_count(
     word_date_count = {}
     for t in terms:
         word_date_count[t] = {}
-        buckets = app_registry(ElasticsearchDAL).aggregate_time_series(lang, spike_category, t)
+        buckets = app_registry(ElasticsearchDAL).aggregate_time_series(
+            lang, spike_category, t, get_n_days_ago(min_target_date, HISTORY_WINDOW_SIZE)
+        )
         if "ERROR" in buckets:
             continue
         for val in [_bucket_to_value(b) for b in buckets]:
@@ -209,10 +222,25 @@ def _find_spiked_words(
         spike_group, lang
     )
 
+    min_max_datetimes = app_registry(ElasticsearchDAL).get_min_and_max_document_dates(
+        lang, spike_group
+    )
+    window_start_date = max(
+        str_to_date(min_max_datetimes["min"]),
+        get_n_days_ago(target_dt, HISTORY_WINDOW_SIZE),
+    )
+    data_window_size = (target_dt - window_start_date).days
+
     score_word_pairs = [
         (
             _calculate_spike_score(
-                date_to_count, target_dt, word, spike_group, average_num_tickets, lang
+                date_to_count,
+                target_dt,
+                data_window_size,
+                word,
+                spike_group,
+                average_num_tickets,
+                lang,
             ),
             word,
         )
@@ -241,6 +269,7 @@ def _find_spiked_words(
 def _calculate_spike_score(
     date_to_count: Dict[str, int],
     target_datetime: datetime.date,
+    data_window_size: int,
     word: str,
     spike_group: SpikeCategory,
     average_num_tickets: int,
@@ -262,13 +291,13 @@ def _calculate_spike_score(
     target_count = date_to_count.get(date_str, 0)
     if target_count < COUNT_THRESHOLD:
         return -1
-    valid_range = [
-        date_to_str(get_n_days_ago(target_datetime, i + 1)) for i in range(HISTORY_WINDOW_SIZE)
-    ]
     baseline_stats = app_registry(SPIKE_TERM_STATS_REGISTRY_KEY)
     word_stats = baseline_stats["words"]
 
-    count_history = [count for date, count in date_to_count.items() if date in valid_range]
+    count_history = [
+        date_to_count.get(date_to_str(get_n_days_ago(target_datetime, i)), 0)
+        for i in range(data_window_size)
+    ]
     if not count_history:
         return -1
     mean = np.mean(count_history)

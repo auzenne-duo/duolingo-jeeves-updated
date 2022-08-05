@@ -5,7 +5,6 @@ from typing import Dict, Iterator, List, Optional, Set, Union
 
 import numpy as np
 import rollbar
-from dateutil import parser
 from duolingo_base.config import Config
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
@@ -18,7 +17,12 @@ from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
-from jeeves.util.date_util import date_to_str, datetime_to_str
+from jeeves.util.date_util import (
+    date_to_str,
+    datetime_to_str,
+    str_to_date,
+    time_series_str_to_datetime,
+)
 from jeeves.util.error_util import SearchUnsuccessfulException
 
 _config = Config.load_config()
@@ -269,6 +273,7 @@ class ElasticsearchDAL:
         lang: str,
         spike_category: SpikeCategory,
         word: str,
+        start_date: datetime.date = None,
     ) -> List[Dict[str, Union[str, int]]]:
         """
         Calculates per-day counts of how many tickets contain a particular word
@@ -277,16 +282,14 @@ class ElasticsearchDAL:
             lang: Language to search tickets in.
             spike_category: The spike category whose documents we should search within.
             word: Term to search against. Supports regular expressions.
+            start_date (datetime): The beginning of a date range to search for tickets in.
+                                   Results will not have timestamps before this value.
+                                   Optional value.
 
         Returns:
             A list of dicts, where each dict contains a string reprseneting a
             date and an int representing a count of how many times the input
             term appeared on that date.
-
-        TODO:
-            Currently, there is no ability to restrict the query by date.
-            It might be nice to implement that filter here instead of needing
-            to possibly discard data later.
         """
 
         s = (
@@ -294,6 +297,9 @@ class ElasticsearchDAL:
             .query("query_string", default_field="body_text", query=word, lenient=True)
             .filter("term", language=lang)
         )
+
+        if start_date:
+            s = s.filter("range", date_time={"gte": start_date})
 
         s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
 
@@ -409,8 +415,8 @@ class ElasticsearchDAL:
         """
 
         date_range = self.get_min_and_max_document_dates()
-        start_date = datetime.strptime(date_range["min"], "%Y-%m-%d")
-        end_date = datetime.strptime(date_range["max"], "%Y-%m-%d")
+        start_date = str_to_date(date_range["min"])
+        end_date = str_to_date(date_range["max"])
         range_start = max(start_date, end_date - timedelta(days=HISTORY_WINDOW_SIZE))
 
         date_str = datetime_to_str(range_start)
@@ -423,8 +429,8 @@ class ElasticsearchDAL:
         s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
 
         docs = list(s.scan())
-        start_date = parser.parse(min(docs, key=lambda doc: doc.date_time).date_time)
-        end_date = parser.parse(max(docs, key=lambda doc: doc.date_time).date_time)
+        start_date = time_series_str_to_datetime(min(docs, key=lambda doc: doc.date_time).date_time)
+        end_date = time_series_str_to_datetime(max(docs, key=lambda doc: doc.date_time).date_time)
 
         return len(docs) / ((end_date - start_date).total_seconds() / 86400)
 
@@ -483,14 +489,14 @@ class ElasticsearchDAL:
                 terms = doc["term_vectors"]["body_text"]["terms"]
 
                 date_str = id_to_date[doc["_id"]]
-                date = parser.parse(date_str)
-                date_key = date.strftime("%Y-%m-%d")
+                date = time_series_str_to_datetime(date_str)
+                date_key = date_to_str(date)
                 date_to_doc_count[date_key] += 1
 
                 for term in self._filter_terms(terms):
                     word_to_day_to_count[term][date_key] += 1
 
-                if doc_count % 1000 == 0:
+                if doc_count % 5000 == 0:
                     print("doc count", doc_count)
 
             resp = self._es.scroll(  # pylint: disable=unexpected-keyword-arg
@@ -499,20 +505,22 @@ class ElasticsearchDAL:
             old_scroll_id = resp["_scroll_id"]
 
         stats = {}
-        for word, counts in word_to_day_to_count.items():
-            samples = [count for _, count in counts.items()]
+
+        num_days = (datetime.today() - start_date).days + 1
+        for word, day_to_count in word_to_day_to_count.items():
+            samples = [count for _, count in day_to_count.items()]
             if len(samples) < MIN_SAMPLES_THRESHOLD:
                 continue
+            # add zeros for all the days missing data
+            samples = samples + [0] * (num_days - len(samples))
             mean = np.mean(samples)
             std = np.std(samples)
             stats[word] = {"mean": mean, "std": std}
 
-        return (
-            {
-                "avg_docs_per_day": np.mean(list(date_to_doc_count.values())),
-                "words": stats,
-            },
-        )
+        return {
+            "avg_docs_per_day": np.mean(list(date_to_doc_count.values())),
+            "words": stats,
+        }
 
     def _get_terms_from_slice(self, doc_ids_slice: List[str], lang: str) -> Set[str]:
         """
@@ -587,14 +595,25 @@ class ElasticsearchDAL:
 
         return terms
 
-    def get_min_and_max_document_dates(self) -> Dict[str, str]:
+    def get_min_and_max_document_dates(
+        self, lang: str = None, spike_category: SpikeCategory = SpikeCategory.ALL_SPIKES
+    ) -> Dict[str, str]:
         """
         Returns the earliest and latest dates among all documents in our data.
         Return value is a dict with keys `min` and `max` and string
         representations of dates as values.
+        Optionally can be filtered by spike category and language.
+
+        Parameters:
+            lang: Language to search tickets in.
+            spike_category: The spike category whose documents we should search within.
         """
 
         s = Search(using=self._es, index=self._indexname)
+        if lang:
+            s = s.filter("term", language=lang)
+        s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
+
         s.aggs.metric("min_date", "min", field="date_time", format="yyyy-MM-dd")
         s.aggs.metric("max_date", "max", field="date_time", format="yyyy-MM-dd")
 
