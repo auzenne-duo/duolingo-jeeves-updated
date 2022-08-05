@@ -35,6 +35,15 @@
   }
 }
 
+.filters-confirmation-stats {
+  composes: filters;
+
+  @media (min-width: $width-ipad) {
+    grid-template-columns: min-content min-content;
+    margin-left: auto;
+  }
+}
+
 .hide-on-mobile {
   @media not screen and (min-width: $width-ipad) {
     display: none;

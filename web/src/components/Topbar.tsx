@@ -40,6 +40,7 @@ const Topbar = () => {
   const location = useLocation();
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
   const isAnalysisPage = useRouteMatch("/:lang/analysis");
+  const isConfirmationStatsPage = useRouteMatch("/:lang/confirmation-stats");
   const isDiscoveryPage = useRouteMatch("/:lang/discovery");
   const isSpikePage = useRouteMatch("/:lang/spike");
   const search = useSearchParams();
@@ -195,6 +196,8 @@ const Topbar = () => {
             `filters${
               isAnalysisPage
                 ? "-analysis"
+                : isConfirmationStatsPage
+                ? "-confirmation-stats"
                 : isDiscoveryPage
                 ? "-discovery"
                 : isSpikePage
@@ -274,7 +277,7 @@ const Topbar = () => {
             value={filter ?? ""}
           />
         ) : null}
-        {isSpikePage ? (
+        {isSpikePage || isConfirmationStatsPage ? (
           <Select
             className={styles["hide-on-mobile"]}
             onChange={handleFilterChange}
