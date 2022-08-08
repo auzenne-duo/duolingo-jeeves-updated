@@ -296,9 +296,12 @@ def _calculate_spike_score(
 
     count_history = [
         date_to_count.get(date_to_str(get_n_days_ago(target_datetime, i)), 0)
-        for i in range(data_window_size)
+        for i in reversed(range(data_window_size))
     ]
-    if not count_history:
+
+    # if there are no previous instances of this term in the past HISTORY_WINDOW_SIZE days, return -1
+    print("count history", count_history)
+    if sum(count_history[:-1]) == 0:
         return -1
     mean = np.mean(count_history)
     std = np.std(count_history)
