@@ -17,12 +17,7 @@ from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
-from jeeves.util.date_util import (
-    date_to_str,
-    datetime_to_str,
-    str_to_date,
-    time_series_str_to_datetime,
-)
+from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime, str_to_date
 from jeeves.util.error_util import SearchUnsuccessfulException
 
 _config = Config.load_config()
@@ -426,11 +421,12 @@ class ElasticsearchDAL:
             .filter("range", date_time={"gt": date_str})
             .filter("term", language=lang)
         )
+
         s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
 
         docs = list(s.scan())
-        start_date = time_series_str_to_datetime(min(docs, key=lambda doc: doc.date_time).date_time)
-        end_date = time_series_str_to_datetime(max(docs, key=lambda doc: doc.date_time).date_time)
+        start_date = parse_external_datetime(min(docs, key=lambda doc: doc.date_time).date_time)
+        end_date = parse_external_datetime(max(docs, key=lambda doc: doc.date_time).date_time)
 
         return len(docs) / ((end_date - start_date).total_seconds() / 86400)
 
@@ -489,7 +485,7 @@ class ElasticsearchDAL:
                 terms = doc["term_vectors"]["body_text"]["terms"]
 
                 date_str = id_to_date[doc["_id"]]
-                date = time_series_str_to_datetime(date_str)
+                date = parse_external_datetime(date_str)
                 date_key = date_to_str(date)
                 date_to_doc_count[date_key] += 1
 
