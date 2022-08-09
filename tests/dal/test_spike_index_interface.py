@@ -22,19 +22,22 @@ class TestSpikeIndexInterface(unittest.TestCase):
         self.es.update = MagicMock(return_value=successful_response)
         self.dal.set_spike_confirm_setting("13", True, 10)
         self.es.update.assert_called_with(
-            index=spikename, id="13", body={"doc": {"confirmed": True, "user_id": 10}}
+            index=spikename, id="13", body={"doc": {"confirmed": True, "user_id": 10}}, refresh=True
         )
 
     def test_set_spike_confirm_to_false(self):
         self.es.update = MagicMock(return_value=successful_response)
         self.dal.set_spike_confirm_setting("13-id", False, 10)
         self.es.update.assert_called_with(
-            index=spikename, id="13-id", body={"doc": {"confirmed": False, "user_id": 10}}
+            index=spikename,
+            id="13-id",
+            body={"doc": {"confirmed": False, "user_id": 10}},
+            refresh=True,
         )
 
     def test_set_spike_confirm_failed(self):
         self.es.update = MagicMock(return_value=failed_response)
         self.assertRaises(Exception, self.dal.set_spike_confirm_setting, "13", True, 10)
         self.es.update.assert_called_with(
-            index=spikename, id="13", body={"doc": {"confirmed": True, "user_id": 10}}
+            index=spikename, id="13", body={"doc": {"confirmed": True, "user_id": 10}}, refresh=True
         )

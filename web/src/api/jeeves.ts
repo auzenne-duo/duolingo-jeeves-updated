@@ -55,12 +55,7 @@ export const getSpikes = async (
     spike_category?: JSONAPI.SpikeCategory;
     start_date?: Date;
   } = {},
-): Promise<
-  {
-    date: Date;
-    spikes: JSONAPI.SpikeWord[];
-  }[]
-> => {
+): Promise<JSONAPI.SpikeDataResponse[]> => {
   const params = new URLSearchParams();
 
   // Spike detection is precomputed and does not support specifying a time zone.

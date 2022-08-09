@@ -95,6 +95,11 @@ declare namespace JSONAPI {
     | "INTERNAL_NON_STR_SPIKES"
     | "INTERNAL_STR_SPIKES";
 
+  interface SpikeDataResponse {
+    date: Date;
+    spikes: JSONAPI.SpikeWord[];
+  }
+
   type Spikes = Record<
     string,
     | {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Toggle } from "web-ui";
 
 import { setSpikeConfirmed } from "api/jeeves";
@@ -11,38 +11,41 @@ interface Props {
 }
 
 const ConfirmButton = ({ spike }: Props) => {
-  const [isConfirmed, setIsConfirmed] = React.useState(spike.confirmed);
-  const [userId, setUserId] = React.useState(spike.user_id);
+  const queryClient = useQueryClient();
 
   const { data: username } = useQuery(
-    ["users", userId],
+    ["users", spike.user_id],
     () => {
-      if (userId === undefined) {
+      if (spike.user_id === undefined) {
         throw Error("Query shouldn't be enabled.");
       }
-      return getUser(userId);
+      return getUser(spike.user_id);
     },
     {
-      enabled: !!userId,
+      enabled: !!spike.user_id,
       select: data => data.username,
+    },
+  );
+
+  const mutation = useMutation(
+    () => setSpikeConfirmed(spike.spike_id, !spike.confirmed),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("spikes");
+      },
     },
   );
 
   return (
     <>
       <Toggle
-        checked={isConfirmed}
+        checked={spike.confirmed}
         className={styles.toggle}
         onChange={async () => {
-          const response = await setSpikeConfirmed(
-            spike.spike_id,
-            !isConfirmed,
-          );
-          setIsConfirmed(response.confirmed);
-          setUserId(response.user_id);
+          mutation.mutate();
         }}
       />
-      {isConfirmed && username && (
+      {spike.confirmed && username && (
         <span className={styles["confirm-username"]}>(by {username})</span>
       )}
     </>

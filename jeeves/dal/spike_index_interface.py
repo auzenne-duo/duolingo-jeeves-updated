@@ -73,10 +73,11 @@ class SpikeIndexDAL:
             desired_state: desired boolean setting of the confirmed state
             user_id: number of a user's id
         """
-        response = self._es.update(
+        response = self._es.update(  # pylint: disable=E1123
             index=self._spikename,
             id=spike_id,
             body={"doc": {"confirmed": desired_state, "user_id": user_id}},
+            refresh=True,
         )
         if response["_shards"]["total"] != response["_shards"]["successful"]:
             raise Exception(f"Update to confirmed setting of spike {spike_id} failed")
