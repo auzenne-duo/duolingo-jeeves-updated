@@ -26,7 +26,7 @@ JIRA_FEATURES = {
         "China": {
             "WeChat": [],
             "China Phone number": [],
-            "Words list": [],
+            "China Compliances": [],
             "China Android Plus": [],
             "Year in Review": [],
             "Cantonese": [],
@@ -35,6 +35,7 @@ JIRA_FEATURES = {
             "Profile": [],
             "Referral": [],
             "Friends": ["friend", "invite", "contact"],
+            "Friends Quest": [],
             "Kudos": ["congrats"],
             "DuoNews": ["duo news", "feed", "news"],
             "Friends Quest": [
@@ -59,12 +60,13 @@ JIRA_FEATURES = {
             "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
         },
         "Retention": {
-            "Streak": [],
+            "Streak": ["streak challenge"],
             "Streak Society": [],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
             "Practice reminders / notifications": ["reminder", "notification"],
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
             "Lesson complete": ["complete"],
+            "In Lesson Items": [],
         },
         "Time Spent Learning": {
             "Achievements": ["achievement"],
@@ -73,6 +75,7 @@ JIRA_FEATURES = {
             "Daily Goal": [],
             "Monthly Goal": [],
             "XP boost": ["double xp", "2x"],
+            "Quests Tab": [],
         },
         "Virality": {
             "In-app sharing": ["sharing", "share", "share card"],
