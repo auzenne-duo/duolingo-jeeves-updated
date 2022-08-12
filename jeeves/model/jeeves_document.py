@@ -23,6 +23,7 @@ class JeevesDocument(ABC):
     header_text: str = attr.ib(default="")
     body_text: str = attr.ib()
     language: str = attr.ib()
+    lemmatized_terms: List[str] = attr.ib(default=[])
     links: List[str] = attr.ib(default=[])
     shake_to_report_category: ShakeToReportCategory = attr.ib()
     attachments: List[str] = attr.ib()

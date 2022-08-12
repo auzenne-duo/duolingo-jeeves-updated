@@ -1,3 +1,4 @@
+import re
 import sys
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
@@ -6,6 +7,9 @@ from typing import Dict, Iterator, List, Optional, Set, Union
 import numpy as np
 import rollbar
 from duolingo_base.config import Config
+from duolingo_nlp.nlp.meta import Language
+from duolingo_nlp.nlp.pipeline import Pipeline, PredefinedPipelineType
+from duolingo_nlp.nlp.word import WordProperty, WordRelation
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
 from elasticsearch.helpers import bulk
@@ -17,7 +21,7 @@ from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
-from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime, str_to_date
+from jeeves.util.date_util import date_to_str, datetime_to_str, time_series_str_to_datetime
 from jeeves.util.error_util import SearchUnsuccessfulException
 
 _config = Config.load_config()
@@ -35,6 +39,9 @@ class ElasticsearchDAL:
         self._es = Elasticsearch([host], port=port)
 
         self._indexname = f"jeeves_tickets_v_{DATA_VERSION_IDENTIFIER}"
+        self.annotator = Pipeline.make_predefined(
+            Language.ENGLISH, pipeline_type=PredefinedPipelineType.TRANKIT, remote=True
+        )
 
     def initialize_index(self) -> None:
         """
@@ -269,9 +276,10 @@ class ElasticsearchDAL:
         spike_category: SpikeCategory,
         word: str,
         start_date: datetime.date = None,
+        use_lemmas: bool = True,
     ) -> List[Dict[str, Union[str, int]]]:
         """
-        Calculates per-day counts of how many tickets contain a particular word
+        Calculates per-day counts of how many tickets contain a particular word. For English, we use lemmatized terms
 
         Parameters:
             lang: Language to search tickets in.
@@ -280,6 +288,7 @@ class ElasticsearchDAL:
             start_date (datetime): The beginning of a date range to search for tickets in.
                                    Results will not have timestamps before this value.
                                    Optional value.
+            use_lemmas (bool): Flag determining if lemmatized terms should be used over searching for word in body_text
 
         Returns:
             A list of dicts, where each dict contains a string reprseneting a
@@ -287,11 +296,12 @@ class ElasticsearchDAL:
             term appeared on that date.
         """
 
-        s = (
-            Search(using=self._es, index=self._indexname)
-            .query("query_string", default_field="body_text", query=word, lenient=True)
-            .filter("term", language=lang)
-        )
+        s = Search(using=self._es, index=self._indexname).filter("term", language=lang)
+
+        if lang == "en" and use_lemmas:
+            s = s.filter("term", lemmatized_terms=word)
+        else:
+            s = s.query("query_string", default_field="body_text", query=word, lenient=True)
 
         if start_date:
             s = s.filter("range", date_time={"gte": start_date})
@@ -313,14 +323,76 @@ class ElasticsearchDAL:
         try:
             response = s.execute()
             if not response.success():
-                print("Attempt to aggregate time series failed.", file=sys.stderr)
-                print("Here's what the call to execute() returned:", file=sys.stderr)
-                print(response.to_dict(), file=sys.stderr)
+                raise SearchUnsuccessfulException(
+                    response, search_description="aggregate time series"
+                )
             response_buckets = response.aggregations.replacementtimeseries.buckets
             return response_buckets
 
         except RequestError as e:
             return self._handle_es_request_errors(e)
+
+    def lemmatize_text(self, text: str) -> List[str]:
+        """
+        Filters text for emojis and punctuation and returns a list of unique lemmas
+
+        Parameters:
+            text: str body of text
+        """
+
+        stop_punctuation = '!\n\r"‘’“”#$%&()*+,.…:;<=>?@[/\\]^`{|}~'
+        join_punctuation = "-_'‘’"
+        emoji_pattern = re.compile(
+            "["
+            "\U0001F600-\U0001F64F"  # emoticons
+            "\U0001F300-\U0001F5FF"  # symbols & pictographs
+            "\U0001F680-\U0001F6FF"  # transport & map symbols
+            "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+            "\U0001F1F2-\U0001F1F4"  # Macau flag
+            "\U0001F1E6-\U0001F1FF"  # flags
+            "\U0001F600-\U0001F64F"
+            "\U00002702-\U000027B0"
+            "\U000024C2-\U0001F251"
+            "\U0001f926-\U0001f937"
+            "\U0001F1F2"
+            "\U0001F1F4"
+            "\U0001F620"
+            "\u200d"
+            "\u2640-\u2642"
+            "]+",
+            flags=re.UNICODE,
+        )
+
+        no_emoji_text = emoji_pattern.sub(r"", text)
+
+        clean_text = no_emoji_text.translate(
+            str.maketrans(stop_punctuation, " " * len(stop_punctuation), join_punctuation)
+        )
+
+        annotation = self.annotator.annotate(clean_text)
+        return list(
+            self._filter_terms(
+                {
+                    next(
+                        annotation.words_in_relation_from(token.word_type, WordRelation.LEMMA)
+                    ).get_property(WordProperty.SURFACE)
+                    for token in annotation.tokenization
+                }
+            )
+        )
+
+    def lemmatize_tickets(self, tickets: List[JeevesDocument]) -> None:
+        """
+        Populates each tickets' lemmatized_terms field by lemmatizing the body text
+
+        Parameters:
+            tickets: Object representation of tickets.
+        """
+
+        for ticket in tickets:
+            if ticket.language != "en":
+                continue
+            ticket.lemmatized_terms = self.lemmatize_text(ticket.body_text)
 
     def bulk_index_tickets(self, tickets: List[JeevesDocument]) -> None:
         """
@@ -329,6 +401,8 @@ class ElasticsearchDAL:
         Parameters:
             tickets: Object representation of tickets to store.
         """
+        self.lemmatize_tickets(tickets)
+
         bulk_actions = [
             {
                 "_index": self._indexname,
@@ -396,49 +470,70 @@ class ElasticsearchDAL:
 
         return doc_ids
 
-    def get_average_num_tickets_per_day(self, spike_category: SpikeCategory, lang: str):
+    def get_num_tickets_by_day(
+        self,
+        end_date: datetime,
+        spike_category: SpikeCategory,
+        lang: str,
+        start_date: Optional[datetime] = None,
+    ) -> List[Dict[str, int]]:
         """
-        Calculates the average number of tickets per day for the past HISTORY_WINDOW_SIZE days or the number of days
-        that exist for a specific spikeCategory and language - whichever is smaller.
+        Calculates the number of tickets by day up to HISTORY_WINDOW_SIZE days in the past
 
         Parameters:
+            end_date (datetime): Retrieves data up until and including end_date
             spike_category: The spike category whose documents we should search within.
             lang (str): Filter ticket search to only this language.
 
         Returns:
-            (float) Average number of docs per day for the most recent days
+            (dict date (str): count (int)) mapping of date strings to count of documents for that date
         """
+        end_date = end_date + timedelta(days=1)
+        if start_date:
+            start_date_str = datetime_to_str(start_date)
+        else:
+            range_start = end_date - timedelta(days=HISTORY_WINDOW_SIZE)
+            start_date_str = datetime_to_str(range_start)
+        end_date_str = datetime_to_str(end_date)
 
-        date_range = self.get_min_and_max_document_dates()
-        start_date = str_to_date(date_range["min"])
-        end_date = str_to_date(date_range["max"])
-        range_start = max(start_date, end_date - timedelta(days=HISTORY_WINDOW_SIZE))
-
-        date_str = datetime_to_str(range_start)
-
-        s = (
-            Search(using=self._es, index=self._indexname)
-            .filter("range", date_time={"gt": date_str})
-            .filter("term", language=lang)
-        )
-
+        s = Search(using=self._es, index=self._indexname).filter("term", language=lang)
+        s = s.filter("range", date_time={"gte": start_date_str, "lte": end_date_str})
         s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
 
-        docs = list(s.scan())
-        start_date = parse_external_datetime(min(docs, key=lambda doc: doc.date_time).date_time)
-        end_date = parse_external_datetime(max(docs, key=lambda doc: doc.date_time).date_time)
+        # Elasticsearch just so happens to have functionality for making a date
+        # histogram of data, that is, a list of counts of instances of something
+        # bucketed by time intervals.
+        s.aggs.bucket(
+            "doc_count_by_day",
+            "date_histogram",
+            field="date_time",
+            calendar_interval="day",
+            time_zone="America/New_York",
+            format="yyyy-MM-dd",
+        )
 
-        return len(docs) / ((end_date - start_date).total_seconds() / 86400)
+        try:
+            response = s.execute()
+            if not response.success():
+                raise SearchUnsuccessfulException(
+                    response, search_description="aggregate doc count by day"
+                )
+            response_buckets = response.aggregations.doc_count_by_day.buckets
+            return {sample["key_as_string"]: sample["doc_count"] for sample in response_buckets}
 
-    def generate_term_stats(self, start_date: datetime, language: str):
+        except RequestError as e:
+            return self._handle_es_request_errors(e)
+
+    def generate_term_stats(self, start_date: datetime):
         """
         Scrolls through all documents of a specific language and counts the number of occurences.
         Then saves the mean (occurences per day) and std for terms that appear at least MIN_SAMPLES_THRESHOLD times
         To conform with the spike_detector algorithm, the mean is only taken over days that have at least 1 occurence.
 
+        Currently only supports English
+
         Parameters:
             start_date (DateTime): Earliest date after which to sample tickets
-            lang (str): Filter ticket search to only this language.
 
         Returns:
             (dict {str: {"mean": float, "std": float}}) mapping from each word to its mean and std of daily count over the sample window
@@ -450,7 +545,7 @@ class ElasticsearchDAL:
                 "bool": {
                     "filter": [
                         {"range": {"date_time": {"gt": date_str}}},
-                        {"term": {"language": language}},
+                        {"term": {"language": "en"}},
                     ]
                 }
             },
@@ -468,28 +563,19 @@ class ElasticsearchDAL:
         date_to_doc_count = Counter()
 
         while len(resp["hits"]["hits"]):
-            # make note of the date for each document for later use
-            id_to_date = {doc["_id"]: doc["_source"]["date_time"] for doc in resp["hits"]["hits"]}
-            if len(id_to_date) == 0:
-                break
-
-            # using the document ids, have ES tokenize and return the text in terms
-            request_body = {"ids": list(id_to_date.keys()), "parameters": {"fields": ["body_text"]}}
-            m_term_vec_out = self._es.mtermvectors(body=request_body, index=self._indexname)
-
-            for doc in m_term_vec_out["docs"]:
-                if len(doc["term_vectors"]) == 0:
+            for doc in resp["hits"]["hits"]:
+                if len(doc["_source"]["lemmatized_terms"]) == 0:
                     continue
 
                 doc_count += 1
-                terms = doc["term_vectors"]["body_text"]["terms"]
+                terms = doc["_source"]["lemmatized_terms"]
 
-                date_str = id_to_date[doc["_id"]]
-                date = parse_external_datetime(date_str)
+                date_str = doc["_source"]["date_time"]
+                date = time_series_str_to_datetime(date_str)
                 date_key = date_to_str(date)
                 date_to_doc_count[date_key] += 1
 
-                for term in self._filter_terms(terms):
+                for term in terms:
                     word_to_day_to_count[term][date_key] += 1
 
                 if doc_count % 5000 == 0:
@@ -518,6 +604,23 @@ class ElasticsearchDAL:
             "words": stats,
         }
 
+    def _filter_terms(self, terms):
+        """
+        Quick and dirty way of filtering out any terms containing
+        digits. If a term contains digits its probably either a user
+        describing an amount of something or system information
+        we've attached. In the former case, the digit is probably not
+        a useful spike word, and in the latter case, the output tends
+        to get flooded by versions of iOS, which is also not useful.
+
+        Parameters:
+            terms ({str}): set of words
+
+        Return:
+            terms ({str}): set of filtered words with any term containing digits removed
+        """
+        return {s for s in terms if not any(i.isdigit() for i in s)}
+
     def _get_terms_from_slice(self, doc_ids_slice: List[str], lang: str) -> Set[str]:
         """
         Helper function for get_terms_from_docs, below.
@@ -531,6 +634,19 @@ class ElasticsearchDAL:
         Returns:
             Set of strings, representing terms from the requested documents.
         """
+        if lang == "en":
+            response = self._es.search(
+                index=self._indexname,
+                body={"query": {"ids": {"values": doc_ids_slice}}, "size": len(doc_ids_slice)},
+            )
+            return set(
+                [
+                    lemma
+                    for doc in response["hits"]["hits"]
+                    for lemma in doc["_source"]["lemmatized_terms"]
+                ]
+            )
+
         request_body_params = {"fields": ["body_text"]}
         if lang == "ja":
             request_body_params["per_field_analyzer"] = {"body_text": "kuromoji"}
@@ -548,23 +664,6 @@ class ElasticsearchDAL:
             return self._filter_terms(terms)
         except:
             return set()
-
-    def _filter_terms(self, terms):
-        """
-        Quick and dirty way of filtering out any terms containing
-        digits. If a term contains digits its probably either a user
-        describing an amount of something or system information
-        we've attached. In the former case, the digit is probably not
-        a useful spike word, and in the latter case, the output tends
-        to get flooded by versions of iOS, which is also not useful.
-
-        Parameters:
-            terms ({str}): set of words
-
-        Return:
-            terms ({str}): set of filtered words with any term containing digits removed
-        """
-        return {s for s in terms if not any(i.isdigit() for i in s)}
 
     def get_terms_from_docs(self, doc_ids: List[str], lang: str) -> Set[str]:
         """

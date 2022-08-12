@@ -24,29 +24,28 @@ class TestElasticSearchInterface(unittest.TestCase):
         self.es = mock_es
         self.dal = ElasticsearchDAL()
 
-        self.mock_hit_1 = MagicMock(date_time="2022-01-02T12:00:00+00:00")
-        self.mock_hit_2 = MagicMock(date_time="2022-01-10T00:00:00+00:00")
+        self.mock_hits = [
+            {"key_as_string": "2022-01-01", "key": 1648440000000, "doc_count": 1},
+            {"key_as_string": "2022-01-02", "key": 1648526400000, "doc_count": 0},
+            {"key_as_string": "2022-01-03", "key": 1648612800000, "doc_count": 3},
+        ]
+
         self.mock_doc_1 = {
             "_id": 1,
-            "_source": {"date_time": "2022-01-02"},
-            "term_vectors": {"body_text": {"terms": {"example", "hello", "gr8"}}},
+            "_source": {"date_time": "2022-01-02", "lemmatized_terms": ["example", "hello"]},
         }
         self.mock_doc_2 = {
             "_id": 2,
-            "_source": {"date_time": "2022-01-04"},
-            "term_vectors": {"body_text": {"terms": {"example", "hello"}}},
+            "_source": {"date_time": "2022-01-04", "lemmatized_terms": ["example", "hello"]},
         }
         self.mock_doc_3 = {
             "_id": 3,
-            "_source": {"date_time": "2022-01-04"},
-            "term_vectors": {"body_text": {"terms": {"hello", "gr8"}}},
+            "_source": {"date_time": "2022-01-04", "lemmatized_terms": ["hello"]},
         }
         self.mock_doc_4 = {
             "_id": 4,
-            "_source": {"date_time": "2022-01-4"},
-            "term_vectors": {"body_text": {"terms": {"hello", "rare"}}},
+            "_source": {"date_time": "2022-01-4", "lemmatized_terms": ["hello", "rare"]},
         }
-        self.mock_scan = MagicMock(return_value=[self.mock_hit_2, self.mock_hit_1])
         self.expected_index = f"jeeves_tickets_v_{DATA_VERSION_IDENTIFIER}"
 
     @patch("jeeves.dal.elasticsearch_interface.Search", Mock(return_value=mock_search))
@@ -54,31 +53,47 @@ class TestElasticSearchInterface(unittest.TestCase):
         "jeeves.dal.elasticsearch_interface.ElasticsearchDAL.get_min_and_max_document_dates",
         Mock(return_value={"min": "2022-01-01", "max": "2022-02-01"}),
     )
-    def test_get_average_num_tickets_per_day(self):
-        mock_search.filter().filter().scan = self.mock_scan
-
-        self.assertEqual(
-            self.dal.get_average_num_tickets_per_day(SpikeCategory.ALL_SPIKES, "en"), 2 / 7.5
+    def test_get_num_tickets_by_day(self):
+        mock_search.filter().filter().execute().aggregations.doc_count_by_day.buckets = (
+            self.mock_hits
         )
 
-        mock_search.filter.assert_called_with("range", date_time={"gt": "2022-01-01T00:00:00Z"})
-        mock_search.filter().filter.assert_called_with("term", language="en")
+        result = self.dal.get_num_tickets_by_day(
+            datetime(2022, 3, 1), SpikeCategory.ALL_SPIKES, "en"
+        )
+        expected = {"2022-01-01": 1, "2022-01-02": 0, "2022-01-03": 3}
+        self.assertEqual(expected, result)
+
+        mock_search.filter.assert_called_with("term", language="en")
+        mock_search.filter().filter.assert_called_with(
+            "range", date_time={"gte": "2022-01-01T00:00:00Z", "lte": "2022-03-02T00:00:00Z"}
+        )
 
     @patch("jeeves.dal.elasticsearch_interface.Search", Mock(return_value=mock_search))
     @patch(
         "jeeves.dal.elasticsearch_interface.ElasticsearchDAL.get_min_and_max_document_dates",
-        Mock(return_value={"min": "2020-01-01", "max": "2022-01-12"}),
+        Mock(return_value={"min": "2022-01-01", "max": "2022-02-01"}),
     )
-    @patch("jeeves.dal.elasticsearch_interface.HISTORY_WINDOW_SIZE", 10)
-    def test_get_average_num_tickets_per_day_early_min(self):
-        mock_search.filter().filter().scan = self.mock_scan
-
-        self.assertEqual(
-            self.dal.get_average_num_tickets_per_day(SpikeCategory.ALL_SPIKES, "en"), 2 / 7.5
+    def test_get_num_tickets_by_day_start_date(self):
+        mock_response = [
+            {"key_as_string": "2022-01-01", "key": 1648440000000, "doc_count": 1},
+            {"key_as_string": "2022-01-02", "key": 1648526400000, "doc_count": 0},
+            {"key_as_string": "2022-01-03", "key": 1648612800000, "doc_count": 3},
+        ]
+        mock_search.filter().filter().execute().aggregations.doc_count_by_day.buckets = (
+            mock_response
         )
 
-        mock_search.filter.assert_called_with("range", date_time={"gt": "2022-01-02T00:00:00Z"})
-        mock_search.filter().filter.assert_called_with("term", language="en")
+        result = self.dal.get_num_tickets_by_day(
+            datetime(2022, 3, 1), SpikeCategory.ALL_SPIKES, "en", start_date=datetime(2021, 1, 2)
+        )
+        expected = {"2022-01-01": 1, "2022-01-02": 0, "2022-01-03": 3}
+        self.assertEqual(expected, result)
+
+        mock_search.filter.assert_called_with("term", language="en")
+        mock_search.filter().filter.assert_called_with(
+            "range", date_time={"gte": "2021-01-02T00:00:00Z", "lte": "2022-03-02T00:00:00Z"}
+        )
 
     @patch("jeeves.dal.elasticsearch_interface.MIN_SAMPLES_THRESHOLD", 2)
     @patch(
@@ -86,21 +101,17 @@ class TestElasticSearchInterface(unittest.TestCase):
         MagicMock(today=MagicMock(return_value=datetime(2022, 1, 4))),
     )
     def test_generate_term_stats(self):
-        self.es.search.return_value = {
-            "_scroll_id": 10,
-            "hits": {"hits": [self.mock_doc_1, self.mock_doc_2]},
-        }
         self.es.scroll.side_effect = [
             {"_scroll_id": 10, "hits": {"hits": [self.mock_doc_3, self.mock_doc_4]}},
             {"_scroll_id": 10, "hits": {"hits": []}},
         ]
-        self.es.mtermvectors.side_effect = [
-            {"docs": [self.mock_doc_1, self.mock_doc_2]},
-            {"docs": [self.mock_doc_3, self.mock_doc_4]},
-        ]
+        self.es.search.return_value = {
+            "_scroll_id": 10,
+            "hits": {"hits": [self.mock_doc_1, self.mock_doc_2]},
+        }
 
         start_date = datetime.strptime("2022-01-01", "%Y-%m-%d")
-        result = self.dal.generate_term_stats(start_date, "en")
+        result = self.dal.generate_term_stats(start_date)
 
         expected_query = {
             "size": 1000,
@@ -113,7 +124,7 @@ class TestElasticSearchInterface(unittest.TestCase):
                 }
             },
         }
-        self.es.search.assert_called_with(
+        self.es.search.assert_any_call(
             index=self.expected_index,
             body=expected_query,
             scroll="2s",
@@ -121,15 +132,8 @@ class TestElasticSearchInterface(unittest.TestCase):
 
         self.es.scroll.assert_called_with(scroll_id=10, scroll="2s")
 
-        self.es.mtermvectors.assert_any_call(
-            body={"ids": [1, 2], "parameters": {"fields": ["body_text"]}}, index=self.expected_index
-        )
-        self.es.mtermvectors.assert_any_call(
-            body={"ids": [3, 4], "parameters": {"fields": ["body_text"]}}, index=self.expected_index
-        )
-
         expected = {
-            "avg_docs_per_day": 2,
+            "avg_docs_per_day": 2.0,
             "words": {
                 "hello": {"mean": np.mean([3, 1, 0, 0]), "std": np.std([3, 1, 0, 0])},
                 "example": {"mean": np.mean([1, 1, 0, 0]), "std": np.std([1, 1, 0, 0])},

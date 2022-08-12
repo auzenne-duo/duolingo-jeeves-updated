@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from jeeves.lib.spike_detector import _calculate_spike_score
+from jeeves.lib.spike_detector import _calculate_combined_mean_std, _calculate_spike_score
 from jeeves.model.spike_categories import SpikeCategory
 
 
@@ -19,7 +19,7 @@ class TestSpikeDetector(unittest.TestCase):
             datetime.date(2022, 1, 4),
             4,
             "bug",
-            SpikeCategory.BASELINE_FREQ_COLD_START_SPIKES,
+            SpikeCategory.ALL_SPIKES,
             10,
             "en",
         )
@@ -34,7 +34,7 @@ class TestSpikeDetector(unittest.TestCase):
             datetime.date(2022, 1, 4),
             4,
             "bug",
-            SpikeCategory.BASELINE_FREQ_COLD_START_SPIKES,
+            SpikeCategory.ALL_SPIKES,
             10,
             "en",
         )
@@ -48,7 +48,7 @@ class TestSpikeDetector(unittest.TestCase):
             datetime.date(2022, 1, 4),
             4,
             "bug",
-            SpikeCategory.BASELINE_FREQ_COLD_START_SPIKES,
+            SpikeCategory.ALL_SPIKES,
             10,
             "en",
         )
@@ -56,3 +56,20 @@ class TestSpikeDetector(unittest.TestCase):
         count_history = [0, 0, 6, 6]
         expected = (6 - np.mean(count_history)) / (np.std(count_history))
         self.assertEqual(expected, result)
+
+    def test_calculate_combined_mean_std(self):
+        dist_1 = [0, 0, 1]
+        dist_2 = [10, 1]
+        dist_all = dist_1 + dist_2
+
+        mean, std = _calculate_combined_mean_std(
+            len(dist_1),
+            np.mean(dist_1),
+            np.std(dist_1),
+            len(dist_2),
+            np.mean(dist_2),
+            np.std(dist_2),
+        )
+        expected_mean, expected_std = np.mean(dist_all), np.std(dist_all)
+        self.assertAlmostEqual(expected_mean, mean)
+        self.assertAlmostEqual(expected_std, std)

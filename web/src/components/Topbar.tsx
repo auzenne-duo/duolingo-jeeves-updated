@@ -290,11 +290,6 @@ const Topbar = () => {
                 value: "EXTERNAL_NON_STR_SPIKES",
               },
               { text: "Admin reports", value: "INTERNAL_STR_SPIKES" },
-              { text: "Cold Control", value: "COLD_START_SPIKES" },
-              {
-                text: "Cold Experiment",
-                value: "BASELINE_FREQ_COLD_START_SPIKES",
-              },
             ]}
             value={filter ?? "ALL_SPIKES"}
           />

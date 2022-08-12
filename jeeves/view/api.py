@@ -105,9 +105,10 @@ def get_time_series_data(lang):
     spike_category = request.args.get("spike_category", "ALL_SPIKES")
     if spike_category not in SpikeCategory.__members__:
         abort(make_response(f"Invalid spike category {spike_category}", 400))
+    use_lemmas = request.args.get("use_lemmas", False)
 
     response_buckets = app_registry(ElasticsearchDAL).aggregate_time_series(
-        lang, SpikeCategory[spike_category], word
+        lang, SpikeCategory[spike_category], word, use_lemmas=use_lemmas
     )
 
     if "ERROR" in response_buckets:
