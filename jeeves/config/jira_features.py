@@ -157,7 +157,7 @@ JIRA_FEATURES = {
         },
     },
     "Monetization": {
-        "Plus": {
+        "Super Packaging": {
             "Ads / rewarded ads": ["ads"],
             "Plus": [],
             "Plus reward videos": [],
@@ -166,13 +166,6 @@ JIRA_FEATURES = {
             ],
             "Shop items": [],
             "New Years Promo": [],
-            "Mistakes inbox": [],
-            "Practice Hub": [],
-            "Mastery / Progress quiz": ["mastery quiz", "progress quiz"],
-            "Family plan": [],
-            "Legendary": [],
-            "Super": [],
-            "Bookmarking": ["bookmark"],
         },
         "Poseidon": {
             "In-app purchases": ["shop"],
@@ -184,6 +177,15 @@ JIRA_FEATURES = {
         "Gold": {
             "Tutors": [],
             "Gold": [],
+        },
+        "Super Features": {
+            "Bookmarking": ["bookmark"],
+            "Side Quests": ["side quest"],
+            "Mistakes inbox": [],
+            "Practice Hub": [],
+            "Mastery / Progress quiz": ["mastery quiz", "progress quiz"],
+            "Family plan": [],
+            "Legendary": [],
         },
     },
     "New Initiatives": {
