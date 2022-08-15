@@ -40,6 +40,7 @@ interface Props {
   language: JSONAPI.LanguageId;
   onRangeChange?: (e: RangeChangeEvent) => void;
   query: string;
+  useLemmas: boolean;
   zoomFrom?: Date;
   zoomTo?: Date;
 }
@@ -48,6 +49,7 @@ const TrendGraph = ({
   language: lang,
   onRangeChange,
   query,
+  useLemmas,
   zoomFrom,
   zoomTo,
 }: Props) => {
@@ -55,8 +57,8 @@ const TrendGraph = ({
     useFeaturesByTeamAndArea();
 
   const { data } = useQuery(
-    ["time-series", { areas, lang, query }],
-    () => getTimeSeries(lang, { areas, word: query }),
+    ["time-series", { areas, lang, query, useLemmas }],
+    () => getTimeSeries(lang, { areas, useLemmas, word: query }),
     {
       enabled: areasLoaded && !!query,
     },

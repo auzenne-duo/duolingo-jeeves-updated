@@ -76,6 +76,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
     ? parseInt(search.get("page") as string, 10)
     : 1;
   const team = search.get("team");
+  const useLemmas = search.get("use-lemmas") === "true";
 
   const query = [
     search.get("q") ?? "",
@@ -107,6 +108,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
         limit: PER_PAGE,
         page: page - 1,
         start_time: from,
+        use_lemmas: useLemmas,
         word: query,
       }),
     { enabled: areasLoaded, keepPreviousData: true },
@@ -300,6 +302,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
               handleRangeChangeDebouncer(() => handleRangeChangeRef.current(e))
             }
             query={query}
+            useLemmas={useLemmas}
             zoomFrom={from}
             zoomTo={to}
           />

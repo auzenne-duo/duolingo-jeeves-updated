@@ -185,6 +185,7 @@ class ElasticsearchDAL:
         end_time: Optional[datetime] = None,
         beta_filter_category: Optional[str] = False,
         jeeves_id: Optional[str] = None,
+        use_lemmas: bool = False,
     ) -> Dict[str, Union[int, List[JeevesDocument]]]:
         """
         Returns stored user tickets from Elasticsearch in a paginated manner.
@@ -215,6 +216,7 @@ class ElasticsearchDAL:
                              all other arguments because no additional filtering
                              should be performed if the user already knows which
                              document they want. Optional value.
+            use_lemmas (bool): Flag determining if lemmatized terms should be used over searching for word in body_text
 
         Returns:
             A dictionary containing the following:
@@ -245,7 +247,10 @@ class ElasticsearchDAL:
             )
 
             if word:
-                s = s.query("query_string", default_field="body_text", query=word, lenient=True)
+                if lang == "en" and use_lemmas:
+                    s = s.filter("term", lemmatized_terms=word)
+                else:
+                    s = s.query("query_string", default_field="body_text", query=word, lenient=True)
             else:
                 s = s.query("match_all")
 

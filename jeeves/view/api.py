@@ -51,6 +51,7 @@ def manage_tickets(lang):
     jeeves_id = request.args.get("jeeves_id", None)
 
     page = int(request.args.get("page", "0"))
+    use_lemmas = request.args.get("use-lemmas", "false") == "true"
     word = request.args.get("word", "")
 
     beta_filter = request.args.get("beta_filter", None)
@@ -68,7 +69,7 @@ def manage_tickets(lang):
         limit = int(request.args.get("limit", "10"))
 
         paginated_info = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
-            lang, word, page, limit, start_time, end_time, beta_filter, jeeves_id
+            lang, word, page, limit, start_time, end_time, beta_filter, jeeves_id, use_lemmas
         )
 
         if "ERROR" in paginated_info:
@@ -83,7 +84,7 @@ def manage_tickets(lang):
             next_url_beta_filter = f"&beta_filter={beta_filter}" if beta_filter else ""
             return_packet.update(
                 {
-                    "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}{next_url_beta_filter}"
+                    "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}{next_url_beta_filter}&use-lemmas={use_lemmas}"
                 }
             )
 
@@ -105,7 +106,7 @@ def get_time_series_data(lang):
     spike_category = request.args.get("spike_category", "ALL_SPIKES")
     if spike_category not in SpikeCategory.__members__:
         abort(make_response(f"Invalid spike category {spike_category}", 400))
-    use_lemmas = request.args.get("use_lemmas", False)
+    use_lemmas = request.args.get("use-lemmas", "false") == "true"
 
     response_buckets = app_registry(ElasticsearchDAL).aggregate_time_series(
         lang, SpikeCategory[spike_category], word, use_lemmas=use_lemmas

@@ -100,6 +100,7 @@ export const getTickets = (
     limit,
     page,
     start_time,
+    use_lemmas,
     word,
   }: {
     areas: JSONAPI.Area[];
@@ -108,6 +109,7 @@ export const getTickets = (
     limit?: number;
     page?: number;
     start_time?: Date;
+    use_lemmas?: boolean;
     word?: string;
   },
 ) => {
@@ -118,6 +120,7 @@ export const getTickets = (
   limit && params.set("limit", `${limit}`);
   page && params.set("page", `${page}`);
   start_time && params.set("start_time", formatDateTime(start_time));
+  use_lemmas && params.set("use-lemmas", use_lemmas ? "true" : "false");
   word && params.set("word", transformQuery(word, areas));
 
   return get<JSONAPI.Tickets>(`/1/${lang}/tickets?${params.toString()}`);
@@ -127,9 +130,11 @@ export const getTimeSeries = async (
   lang: JSONAPI.LanguageId,
   {
     areas,
+    useLemmas,
     word,
   }: {
     areas: JSONAPI.Area[];
+    useLemmas?: boolean;
     word: string;
   },
 ): Promise<
@@ -142,7 +147,7 @@ export const getTimeSeries = async (
     await get<JSONAPI.TimeSeries>(
       `/1/${lang}/time_series?word=${encodeURIComponent(
         transformQuery(word, areas),
-      )}`,
+      )}&use-lemmas=${useLemmas ?? false}`,
     )
   ).values;
   return Object.entries(data).map(([date, value]) => ({

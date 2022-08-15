@@ -49,7 +49,9 @@ const SpikeTable = ({
             <td>{spike.score.toFixed(1)}</td>
             <td>
               <Link
-                to={`/${language}/analysis?${encodeURLSearchParams(params)}`}
+                to={`/${language}/analysis?${encodeURLSearchParams(
+                  params,
+                )}&use-lemmas=true`}
               >
                 {spike.word}
               </Link>

@@ -73,6 +73,7 @@ def get_jeeves_analysis_query_params(spike_word: SpikeWord):
     jeeves_query["q"] = (
         f"{lucene_query} AND ({category_query['q']})" if "q" in category_query else lucene_query
     )
+    jeeves_query["use-lemmas"] = "true"
     return jeeves_query
 
 
