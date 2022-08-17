@@ -22,7 +22,12 @@ class TestSlackScript(unittest.TestCase):
         result = get_jeeves_analysis_query_params(testObj)
         self.assertEqual(
             result,
-            {"q": '"duo"', "filter": "NON_STR_EXTERNAL", "use-lemmas": "true"},
+            {
+                "q": "duo",
+                "filter": "NON_STR_EXTERNAL",
+                "use-lemmas": "true",
+                "spike-category": "EXTERNAL_NON_STR_SPIKES",
+            },
         )
 
         testObj = SpikeWord(
@@ -36,8 +41,9 @@ class TestSlackScript(unittest.TestCase):
         self.assertEqual(
             result,
             {
-                "q": '"duo" AND (duolingo_metadata.user_information.ios_v2_dev:true)',
+                "q": "duo",
                 "filter": "INTERNAL",
+                "spike-category": "INTERNAL_V2_IOS_SPIKES",
                 "use-lemmas": "true",
             },
         )
@@ -81,7 +87,7 @@ class TestSlackScript(unittest.TestCase):
                         {"type": "mrkdwn", "text": "*Spikiness*"},
                         {
                             "type": "mrkdwn",
-                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=%22duo%22&use-lemmas=true|duo>",
+                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duo>",
                         },
                         {"type": "plain_text", "text": "10.0"},
                     ],
@@ -123,12 +129,12 @@ class TestSlackScript(unittest.TestCase):
                         {"type": "mrkdwn", "text": "*Spikiness*"},
                         {
                             "type": "mrkdwn",
-                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=%22duo%22&use-lemmas=true|duo>",
+                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duo>",
                         },
                         {"type": "plain_text", "text": "10.0"},
                         {
                             "type": "mrkdwn",
-                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=%22duolingo%22&use-lemmas=true|duolingo>",
+                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duolingo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duolingo>",
                         },
                         {"type": "plain_text", "text": "9.1"},
                     ],

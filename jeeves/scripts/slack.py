@@ -66,14 +66,11 @@ def get_top_spikes_yesterday(spike_category: SpikeCategory) -> List[SpikeWord]:
 
 
 def get_jeeves_analysis_query_params(spike_word: SpikeWord):
-    lucene_query = f'"{spike_word.word}"'
     category_query = SpikeCategory.get_jeeves_query_params_for_category(spike_word.spike_group)
-
     jeeves_query = category_query
-    jeeves_query["q"] = (
-        f"{lucene_query} AND ({category_query['q']})" if "q" in category_query else lucene_query
-    )
+    jeeves_query["q"] = spike_word.word
     jeeves_query["use-lemmas"] = "true"
+    jeeves_query["spike-category"] = spike_word.spike_group.name
     return jeeves_query
 
 

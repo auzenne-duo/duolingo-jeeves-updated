@@ -186,6 +186,7 @@ class ElasticsearchDAL:
         end_time: Optional[datetime] = None,
         beta_filter_category: Optional[str] = False,
         jeeves_id: Optional[str] = None,
+        spike_category: Optional[SpikeCategory] = SpikeCategory.ALL_SPIKES,
         use_lemmas: bool = False,
         filter_jiras_from_jeeves: bool = False,
     ) -> Dict[str, Union[int, List[JeevesDocument]]]:
@@ -218,6 +219,7 @@ class ElasticsearchDAL:
                              all other arguments because no additional filtering
                              should be performed if the user already knows which
                              document they want. Optional value.
+            spike_category: The spike category whose documents we should search within. Optional value.
             use_lemmas (bool): Flag determining if lemmatized terms should be used over searching for word in body_text.
             filter_jiras_from_jeeves (bool): If true, Jira issues that were posted from Jeeves will be excluded from results.
 
@@ -259,6 +261,7 @@ class ElasticsearchDAL:
 
             if beta_filter_category:
                 s = s.filter("term", shake_to_report_category=beta_filter_category)
+            s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
 
             if filter_jiras_from_jeeves:
                 s = s.query("bool", must_not=[Q({"match": {"labels": JIRA_VIA_JEEVES_LABEL}})])

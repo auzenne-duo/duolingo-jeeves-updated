@@ -40,6 +40,7 @@ interface Props {
   language: JSONAPI.LanguageId;
   onRangeChange?: (e: RangeChangeEvent) => void;
   query: string;
+  spikeCategory: JSONAPI.SpikeCategory;
   useLemmas: boolean;
   zoomFrom?: Date;
   zoomTo?: Date;
@@ -49,6 +50,7 @@ const TrendGraph = ({
   language: lang,
   onRangeChange,
   query,
+  spikeCategory,
   useLemmas,
   zoomFrom,
   zoomTo,
@@ -57,10 +59,16 @@ const TrendGraph = ({
     useFeaturesByTeamAndArea();
 
   const { data } = useQuery(
-    ["time-series", { areas, lang, query, useLemmas }],
-    () => getTimeSeries(lang, { areas, useLemmas, word: query }),
+    ["time-series", { areas, lang, query, spikeCategory, useLemmas }],
+    () =>
+      getTimeSeries(lang, {
+        areas,
+        spike_category: spikeCategory,
+        use_lemmas: useLemmas,
+        word: query,
+      }),
     {
-      enabled: areasLoaded && !!query,
+      enabled: !areasLoaded && !!query,
     },
   );
 

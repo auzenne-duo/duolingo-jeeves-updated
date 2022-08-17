@@ -51,6 +51,9 @@ def manage_tickets(lang):
     jeeves_id = request.args.get("jeeves_id", None)
 
     page = int(request.args.get("page", "0"))
+    spike_category = request.args.get("spike-category", "ALL_SPIKES")
+    if spike_category not in SpikeCategory.__members__:
+        abort(make_response(f"Invalid spike category {spike_category}", 400))
     use_lemmas = request.args.get("use-lemmas", "false") == "true"
     word = request.args.get("word", "")
 
@@ -77,6 +80,7 @@ def manage_tickets(lang):
             end_time,
             beta_filter,
             jeeves_id,
+            SpikeCategory[spike_category],
             use_lemmas,
             filter_jiras_from_jeeves=True,
         )
@@ -93,7 +97,8 @@ def manage_tickets(lang):
             next_url_beta_filter = f"&beta_filter={beta_filter}" if beta_filter else ""
             return_packet.update(
                 {
-                    "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}{next_url_beta_filter}&use-lemmas={use_lemmas}"
+                    "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}\
+                        {next_url_beta_filter}&use-lemmas={use_lemmas}&spike-category={spike_category}"
                 }
             )
 
@@ -112,7 +117,7 @@ def get_time_series_data(lang):
     word = request.args.get("word")
     if not word:
         abort(make_response("Please provide `word` parameter", 500))
-    spike_category = request.args.get("spike_category", "ALL_SPIKES")
+    spike_category = request.args.get("spike-category", "ALL_SPIKES")
     if spike_category not in SpikeCategory.__members__:
         abort(make_response(f"Invalid spike category {spike_category}", 400))
     use_lemmas = request.args.get("use-lemmas", "false") == "true"

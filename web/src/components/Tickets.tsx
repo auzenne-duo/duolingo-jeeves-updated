@@ -75,6 +75,8 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const page = search.get("page")
     ? parseInt(search.get("page") as string, 10)
     : 1;
+  const spikeCategory = (search.get("spike-category") ??
+    "ALL_SPIKES") as JSONAPI.SpikeCategory;
   const team = search.get("team");
   const useLemmas = search.get("use-lemmas") === "true";
 
@@ -95,7 +97,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
 
   const listQueryKey = [
     "tickets",
-    { areas, filter, from, lang, page, query, to },
+    { areas, filter, from, lang, page, query, spikeCategory, to },
   ];
 
   const { data, error, isLoading, isPreviousData } = useQuery(
@@ -107,11 +109,12 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
         end_time: to,
         limit: PER_PAGE,
         page: page - 1,
+        spike_category: spikeCategory,
         start_time: from,
         use_lemmas: useLemmas,
         word: query,
       }),
-    { enabled: areasLoaded, keepPreviousData: true },
+    { enabled: !areasLoaded, keepPreviousData: true },
   );
 
   const tickets = data?.data;
@@ -302,6 +305,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
               handleRangeChangeDebouncer(() => handleRangeChangeRef.current(e))
             }
             query={query}
+            spikeCategory={spikeCategory}
             useLemmas={useLemmas}
             zoomFrom={from}
             zoomTo={to}

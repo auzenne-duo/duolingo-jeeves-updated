@@ -99,6 +99,7 @@ export const getTickets = (
     end_time,
     limit,
     page,
+    spike_category,
     start_time,
     use_lemmas,
     word,
@@ -108,6 +109,7 @@ export const getTickets = (
     end_time?: Date;
     limit?: number;
     page?: number;
+    spike_category?: JSONAPI.SpikeCategory;
     start_time?: Date;
     use_lemmas?: boolean;
     word?: string;
@@ -119,6 +121,7 @@ export const getTickets = (
   end_time && params.set("end_time", formatDateTime(end_time));
   limit && params.set("limit", `${limit}`);
   page && params.set("page", `${page}`);
+  spike_category && params.set("spike-category", spike_category);
   start_time && params.set("start_time", formatDateTime(start_time));
   use_lemmas && params.set("use-lemmas", use_lemmas ? "true" : "false");
   word && params.set("word", transformQuery(word, areas));
@@ -130,11 +133,13 @@ export const getTimeSeries = async (
   lang: JSONAPI.LanguageId,
   {
     areas,
-    useLemmas,
+    spike_category,
+    use_lemmas,
     word,
   }: {
     areas: JSONAPI.Area[];
-    useLemmas?: boolean;
+    spike_category?: JSONAPI.SpikeCategory;
+    use_lemmas?: boolean;
     word: string;
   },
 ): Promise<
@@ -147,7 +152,9 @@ export const getTimeSeries = async (
     await get<JSONAPI.TimeSeries>(
       `/1/${lang}/time_series?word=${encodeURIComponent(
         transformQuery(word, areas),
-      )}&use-lemmas=${useLemmas ?? false}`,
+      )}&use-lemmas=${use_lemmas ?? false}&spike-category=${
+        spike_category ?? "ALL_SPIKES"
+      }`,
     )
   ).values;
   return Object.entries(data).map(([date, value]) => ({
