@@ -12,11 +12,11 @@ from requests import Session
 
 from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.jeeves_manager import JeevesManager
-from jeeves.manager.shakira import _VIA_JEEVES_LABEL
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.util.date_util import date_to_str, parse_external_datetime
+from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 
 _JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"]
 _JIRA_ISSUE_TYPE_BUG = "Bug"
@@ -85,7 +85,7 @@ class JiraManager(JeevesManager):
             f"project IN ({','.join(_JIRA_PROJECTS)}) "
             + f"AND updated > {start_timestamp_millis} "
             + f"AND issueType = {_JIRA_ISSUE_TYPE_BUG} "
-            + f"AND labels != {_VIA_JEEVES_LABEL} "
+            + f"AND labels != {JIRA_VIA_JEEVES_LABEL} "
             + f"ORDER BY updated asc"
         )
 

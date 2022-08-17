@@ -23,6 +23,7 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str, time_series_str_to_datetime
 from jeeves.util.error_util import SearchUnsuccessfulException
+from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 
 _config = Config.load_config()
 
@@ -186,6 +187,7 @@ class ElasticsearchDAL:
         beta_filter_category: Optional[str] = False,
         jeeves_id: Optional[str] = None,
         use_lemmas: bool = False,
+        filter_jiras_from_jeeves: bool = False,
     ) -> Dict[str, Union[int, List[JeevesDocument]]]:
         """
         Returns stored user tickets from Elasticsearch in a paginated manner.
@@ -216,7 +218,8 @@ class ElasticsearchDAL:
                              all other arguments because no additional filtering
                              should be performed if the user already knows which
                              document they want. Optional value.
-            use_lemmas (bool): Flag determining if lemmatized terms should be used over searching for word in body_text
+            use_lemmas (bool): Flag determining if lemmatized terms should be used over searching for word in body_text.
+            filter_jiras_from_jeeves (bool): If true, Jira issues that were posted from Jeeves will be excluded from results.
 
         Returns:
             A dictionary containing the following:
@@ -256,6 +259,9 @@ class ElasticsearchDAL:
 
             if beta_filter_category:
                 s = s.filter("term", shake_to_report_category=beta_filter_category)
+
+            if filter_jiras_from_jeeves:
+                s = s.query("bool", must_not=[Q({"match": {"labels": JIRA_VIA_JEEVES_LABEL}})])
 
         try:
             total_records = s.count()
@@ -301,7 +307,11 @@ class ElasticsearchDAL:
             term appeared on that date.
         """
 
-        s = Search(using=self._es, index=self._indexname).filter("term", language=lang)
+        s = (
+            Search(using=self._es, index=self._indexname)
+            .filter("term", language=lang)
+            .query("bool", must_not=[Q({"match": {"labels": JIRA_VIA_JEEVES_LABEL}})])
+        )
 
         if lang == "en" and use_lemmas:
             s = s.filter("term", lemmatized_terms=word)

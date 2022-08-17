@@ -9,10 +9,9 @@ from duolingo_base.util import registry
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.slack_channel import SlackChannel
-from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM
+from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM, JIRA_VIA_JEEVES_LABEL
 
 _VIA_JEEVES_MARKER = "[via Jeeves]"
-_VIA_JEEVES_LABEL = "via-jeeves"
 
 _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "Visual polish": SlackChannel.VISUAL_POLISH,
@@ -167,7 +166,7 @@ class ShakiraManager:
         )
 
         jira_label_from_channel = _SLACK_CHANNELS_TO_JIRA_LABELS.get(channel)
-        jeeves_label = _VIA_JEEVES_LABEL if summary.startswith(_VIA_JEEVES_MARKER) else None
+        jeeves_label = JIRA_VIA_JEEVES_LABEL if summary.startswith(_VIA_JEEVES_MARKER) else None
 
         screenshot = files.get("screenshot")
 

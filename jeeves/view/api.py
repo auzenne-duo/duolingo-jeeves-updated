@@ -69,7 +69,16 @@ def manage_tickets(lang):
         limit = int(request.args.get("limit", "10"))
 
         paginated_info = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
-            lang, word, page, limit, start_time, end_time, beta_filter, jeeves_id, use_lemmas
+            lang,
+            word,
+            page,
+            limit,
+            start_time,
+            end_time,
+            beta_filter,
+            jeeves_id,
+            use_lemmas,
+            filter_jiras_from_jeeves=True,
         )
 
         if "ERROR" in paginated_info:

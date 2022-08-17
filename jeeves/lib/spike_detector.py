@@ -65,6 +65,7 @@ def detect_spikes(target_date: Optional[date] = None) -> None:
                 limit=_PAGE_SIZE,
                 start_time=target_start,
                 end_time=target_end,
+                filter_jiras_from_jeeves=True,
             )
             more_pages = paginated_info["deepest_index"] < paginated_info["total_records"]
             doc_batch += paginated_info["data"]
