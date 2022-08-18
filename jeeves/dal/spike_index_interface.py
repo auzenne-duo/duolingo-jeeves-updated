@@ -217,3 +217,11 @@ class SpikeIndexDAL:
         else:
             for res in s.scan():
                 yield SpikeWord.from_dict(res)
+
+    def get_spike_by_id(self, spike_id: str) -> SpikeWord:
+        s = Search(using=self._es, index=self._spikename).filter("term", _id=spike_id)
+
+        response = s.execute()
+        if response:
+            return SpikeWord.from_dict(response[0])
+        return None

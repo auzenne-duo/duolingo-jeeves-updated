@@ -260,7 +260,6 @@ def _find_spiked_words(
                 target_dt,
                 data_window_size,
                 word,
-                spike_group,
                 average_num_tickets,
                 lang,
             ),
@@ -273,18 +272,23 @@ def _find_spiked_words(
         flush=True,
     )
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
-    result = [
-        SpikeWord(
-            word=word,
-            score=score,
-            date=target_date_str,
-            lang=lang,
-            spike_group=spike_group,
-            confirmed=False,
-        )
-        for score, word in score_word_pairs
-        if (not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD)
-    ]
+
+    result = []
+    for score, word in score_word_pairs:
+        if not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD:
+            spike_word = SpikeWord(
+                word=word,
+                score=score,
+                date=target_date_str,
+                lang=lang,
+                spike_group=spike_group,
+                confirmed=False,
+            )
+            # check if spike word has been confirmed
+            prev_spike = app_registry(SpikeIndexDAL).get_spike_by_id(spike_word.get_spike_id())
+            if prev_spike:
+                spike_word.confirmed = prev_spike.confirmed
+            result.append(spike_word)
     return result
 
 
@@ -293,7 +297,6 @@ def _calculate_spike_score(
     target_datetime: datetime.date,
     data_window_size: int,
     word: str,
-    spike_group: SpikeCategory,
     average_num_tickets: int,
     lang: str,
 ):

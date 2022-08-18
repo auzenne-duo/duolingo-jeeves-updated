@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 
 from jeeves.lib.spike_detector import _calculate_combined_mean_std, _calculate_spike_score
-from jeeves.model.spike_categories import SpikeCategory
 
 
 @patch("jeeves.lib.spike_detector.app_registry", MagicMock())
@@ -19,7 +18,6 @@ class TestSpikeDetector(unittest.TestCase):
             datetime.date(2022, 1, 4),
             4,
             "bug",
-            SpikeCategory.ALL_SPIKES,
             10,
             "en",
         )
@@ -34,7 +32,6 @@ class TestSpikeDetector(unittest.TestCase):
             datetime.date(2022, 1, 4),
             4,
             "bug",
-            SpikeCategory.ALL_SPIKES,
             10,
             "en",
         )
@@ -48,7 +45,6 @@ class TestSpikeDetector(unittest.TestCase):
             datetime.date(2022, 1, 4),
             4,
             "bug",
-            SpikeCategory.ALL_SPIKES,
             10,
             "en",
         )
