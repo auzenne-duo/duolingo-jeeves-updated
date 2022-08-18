@@ -68,7 +68,7 @@ const TrendGraph = ({
         word: query,
       }),
     {
-      enabled: !areasLoaded && !!query,
+      enabled: areasLoaded && !!query,
     },
   );
 

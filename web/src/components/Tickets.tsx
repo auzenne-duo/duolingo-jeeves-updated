@@ -114,7 +114,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
         use_lemmas: useLemmas,
         word: query,
       }),
-    { enabled: !areasLoaded, keepPreviousData: true },
+    { enabled: areasLoaded, keepPreviousData: true },
   );
 
   const tickets = data?.data;
