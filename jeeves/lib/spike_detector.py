@@ -288,6 +288,7 @@ def _find_spiked_words(
             prev_spike = app_registry(SpikeIndexDAL).get_spike_by_id(spike_word.get_spike_id())
             if prev_spike:
                 spike_word.confirmed = prev_spike.confirmed
+                spike_word.user_id = prev_spike.user_id
             result.append(spike_word)
     return result
 
