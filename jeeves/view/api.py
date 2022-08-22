@@ -88,7 +88,10 @@ def manage_tickets(lang):
         if "ERROR" in paginated_info:
             return paginated_info
 
-        values = [ticket.serialize_to_json(ticket) for ticket in paginated_info["data"]]
+        tickets = paginated_info["data"]
+        app_registry(DuplicateGraphResolver).populate_parent_child_issue_fields(tickets)
+
+        values = [ticket.serialize_to_json(ticket) for ticket in tickets]
 
         return_packet = {"data": values}
         return_packet.update({"total_records": paginated_info["total_records"]})

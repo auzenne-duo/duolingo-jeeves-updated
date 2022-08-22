@@ -1,6 +1,7 @@
 import unittest
 from datetime import datetime
 from typing import List
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -18,9 +19,16 @@ now_datetime = datetime.now()
 yesterday_datetime = get_n_days_ago(now_datetime, 1)
 
 
-def _jira_document(issue_number, status="To Do", resolution="", updated_date=now_datetime):
+def _jira_document(
+    issue_number,
+    status="To Do",
+    resolution="",
+    updated_date=now_datetime,
+    linked_duplicate_keys=None,
+    labels=None,
+):
     doc = JiraDocument(
-        data_source="AppFigures",
+        data_source="JIRA",
         document_id="doc1",
         jeeves_uid="uid1",
         date_time=updated_date,
@@ -44,7 +52,7 @@ def _jira_document(issue_number, status="To Do", resolution="", updated_date=now
         issue_links=[],
         issue_type="Bug",
         project="DLAA",
-        linked_duplicate_keys=[],
+        linked_duplicate_keys=linked_duplicate_keys if linked_duplicate_keys else [],
         creation_date=updated_date,
         updated_date=updated_date,
         resolution_date=None,
@@ -58,7 +66,7 @@ def _jira_document(issue_number, status="To Do", resolution="", updated_date=now
         reporter_email="",
         assignee="",
         comments=[],
-        labels=[],
+        labels=labels if labels else [],
         embedding_vector=[],
     )
     issue_number += 1
@@ -128,3 +136,47 @@ def test_choose_parent_issue(
         [issue.issue_key for issue in actual_other_parent_issues],
         [issue.issue_key for issue in expected_other_parents],
     )
+
+
+parent_of_dupes = _jira_document(
+    issue_number=1, linked_duplicate_keys=["DLAA-2"], labels=["parent_bug"]
+)
+child_2 = _jira_document(issue_number=2, linked_duplicate_keys=["DLAA-1", "DLAA-3"])
+child_3 = _jira_document(issue_number=3, linked_duplicate_keys=["DLAA-2"])
+no_dupes = _jira_document(issue_number=4)
+no_parent_5 = _jira_document(issue_number=5, linked_duplicate_keys=["DLAA-6"])
+no_parent_6 = _jira_document(issue_number=6, linked_duplicate_keys=["DLAA-5"])
+jira_documents = {
+    "DLAA-1": parent_of_dupes,
+    "DLAA-2": child_2,
+    "DLAA-3": child_3,
+    "DLAA-4": no_dupes,
+    "DLAA-5": no_parent_5,
+    "DLAA-6": no_parent_6,
+}
+
+populate_parent_child_issue_fields_test_cases = [
+    (parent_of_dupes, None, ["DLAA-2", "DLAA-3"]),
+    (child_2, "DLAA-1", None),
+    (child_3, "DLAA-1", None),
+    (no_dupes, None, None),
+    (no_parent_6, None, None),
+]
+
+
+@pytest.mark.parametrize(
+    "jira_doc,expected_parent_issue,expected_child_issues",
+    populate_parent_child_issue_fields_test_cases,
+)
+def test_populate_parent_child_issue_fields(
+    jira_doc: JiraDocument,
+    expected_parent_issue: str,
+    expected_child_issues: List[str],
+):
+    mock_jira_dal = MagicMock(get_bulk_issues=lambda keys: [jira_documents[key] for key in keys])
+    duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, mock_jira_dal)
+
+    duplicate_graph_resolver.populate_parent_child_issue_fields([jira_doc])
+    unittest.TestCase()
+    assert jira_doc.parent_issue == expected_parent_issue
+    assert jira_doc.child_issues == expected_child_issues

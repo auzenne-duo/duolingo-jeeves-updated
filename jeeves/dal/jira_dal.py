@@ -122,20 +122,46 @@ class JiraApiDAL:
             print_request_exception(e)
             raise
 
+    def get_bulk_issues(self, issue_keys: List[str]) -> List[JiraDocument]:
+        """
+        Downloads issues as JiraDocuments.
+        """
+        docs = []
+        # Download JiraDocuments in chunks to avoid too long of urls
+        slice_size = 100
+        for i in range(0, len(issue_keys), slice_size):
+            url = (
+                self._host
+                + f"/rest/api/3/search?jql=key%20in%20({',%20'.join(issue_keys[i:i+slice_size])})"
+            )
+            headers = {"Accept": "application/json"}
+            response_json = self.make_jira_get(url, headers)
+            docs.extend(
+                [
+                    JiraDocument.deserialize_from_external_json(issue)
+                    for issue in response_json["issues"]
+                ]
+            )
+        return docs
+
     def get_issue(self, issue_key: str) -> JiraDocument:
         """
         Download a particular issue as a JiraDocument.
         """
         url = self._host + "/rest/api/3/issue/" + issue_key
         headers = {"Accept": "application/json"}
+        # TODO warning if JiraDocument._feature_field_key is not set!
+        return JiraDocument.deserialize_from_external_json(self.make_jira_get(url, headers))
 
+    def make_jira_get(self, url: str, headers: Dict):
+        """
+        Performs a get request
+        """
         try:
             r = get(url, auth=self._auth, headers=headers)
             r.raise_for_status()
 
-            response_json = json.loads(r.text)
-            # TODO warning if JiraDocument._feature_field_key is not set!
-            return JiraDocument.deserialize_from_external_json(response_json)
+            return json.loads(r.text)
         except RequestException as e:
             print_request_exception(e)
             raise

@@ -20,6 +20,7 @@ from jeeves.config.config import DATA_VERSION_IDENTIFIER, HISTORY_WINDOW_SIZE, M
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.model.jira_document import JiraDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str, time_series_str_to_datetime
 from jeeves.util.error_util import SearchUnsuccessfulException
@@ -412,6 +413,17 @@ class ElasticsearchDAL:
                 continue
             ticket.lemmatized_terms = self.lemmatize_text(ticket.body_text)
 
+    def populate_jira_embedding_vectors(self, tickets: List[JeevesDocument]) -> None:
+        """
+        Populates each jira tickets' embedding vector
+
+        Parameters:
+            tickets: Object representation of tickets.
+        """
+        for ticket in tickets:
+            if ticket.data_source == JiraDocument.get_data_source_identifier():
+                JiraDocument.calculate_embedding_vector(ticket)
+
     def bulk_index_tickets(self, tickets: List[JeevesDocument]) -> None:
         """
         Store multiple tickets into Elasticsearch.
@@ -420,6 +432,7 @@ class ElasticsearchDAL:
             tickets: Object representation of tickets to store.
         """
         self.lemmatize_tickets(tickets)
+        self.populate_jira_embedding_vectors(tickets)
 
         bulk_actions = [
             {

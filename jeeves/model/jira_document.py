@@ -52,6 +52,10 @@ class JiraDocument(JeevesDocument):
     labels: List[str] = attr.ib()
     embedding_vector: List[float] = attr.ib()
 
+    # non-indexed fields
+    parent_issue: str = None
+    child_issues: List[str] = None
+
     @classmethod
     def _initialize_duplicate_detector(cls):
         if cls._duplicate_detector is None:
@@ -188,8 +192,6 @@ class JiraDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
-        cls._initialize_duplicate_detector()
-
         external_fields = external_json["fields"]
 
         body_text = (
@@ -272,11 +274,7 @@ class JiraDocument(JeevesDocument):
             if "comment" in external_fields
             else [],
             labels=external_fields["labels"],
-            embedding_vector=cls._duplicate_detector.calculate_embedding_vector(
-                external_fields["summary"]
-            )
-            if cls._duplicate_detector is not None
-            else [],
+            embedding_vector=[],
         )
 
     @classmethod
@@ -387,3 +385,23 @@ class JiraDocument(JeevesDocument):
             return False
 
         return "parent_bug" in target.labels
+
+    @classmethod
+    def calculate_embedding_vector(cls, target: "JiraDocument") -> bool:
+        """
+        Given a JeevesDocument object, populate the embedding vector field
+
+        Parameters:
+            target: The JeevesDocument object we want to have an embedding vector
+        """
+        assert target.data_source == cls.get_data_source_identifier()
+        if target.embedding_vector:
+            return
+
+        cls._initialize_duplicate_detector()
+
+        target.embedding_vector = (
+            cls._duplicate_detector.calculate_embedding_vector(target.header_text)
+            if cls._duplicate_detector is not None
+            else []
+        )

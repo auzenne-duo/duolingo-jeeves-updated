@@ -10,6 +10,7 @@ from duolingo_base.util import registry
 
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
+from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 from jeeves.util.parent_jira_issue_util import (
@@ -25,26 +26,46 @@ class DuplicateGraphResolver:
         self._es_dal = es_dal
         self._jira_dal = jira_dal
 
-    def get_duplicate_graph(self, issue_keys: List[str]) -> JiraDuplicateGraph:
+    def get_duplicate_graph(
+        self, issue_keys: List[str], key_to_doc: Dict[str, JiraDocument] = None
+    ) -> JiraDuplicateGraph:
         """
         Takes issue key(s) and returns information about the set of reachable issues in the graph
         of duplicates.
+
+        key_to_doc memoizes keys that we have fetched the doc for from JiraAPI
 
         Returns a dict with the following keys:
         - issue_keys_to_documents: a Dict[str, JiraDocument] of issue keys in the duplicate graph
             mapped to their document representations.
         - existing_links: a Set[Tuple[str]] of links that already exist between issues in the graph.
         """
+        if key_to_doc is None:
+            key_to_doc = {}
 
         existing_links = set()
         visited = {}
         unvisited = set(issue_keys)
+        docs_to_fetch = {issue_key for issue_key in issue_keys if issue_key not in key_to_doc}
         while unvisited:
-            target_key = unvisited.pop()
-            target_issue = self._jira_dal.get_issue(target_key)
+            # prioritize visiting loaded issues
+            unvisited_loaded_issues = [issue for issue in unvisited if issue in key_to_doc]
+            if unvisited_loaded_issues:
+                target_key = unvisited_loaded_issues[0]
+                unvisited.remove(target_key)
+            else:
+                target_key = unvisited.pop()
+            # download issues in bulk as needed
+            if not target_key in key_to_doc:
+                docs = self._jira_dal.get_bulk_issues(list(docs_to_fetch))
+                key_to_doc.update({doc.issue_key: doc for doc in docs})
+                docs_to_fetch = set()
+            target_issue = key_to_doc[target_key]
             for existing_duplicate in target_issue.linked_duplicate_keys:
                 if existing_duplicate not in visited.keys():
                     unvisited.add(existing_duplicate)
+                    if existing_duplicate not in key_to_doc:
+                        docs_to_fetch.add(existing_duplicate)
                 existing_pair = tuple(sorted([target_key, existing_duplicate]))
                 existing_links.add(existing_pair)
             visited[target_key] = target_issue
@@ -278,3 +299,47 @@ class DuplicateGraphResolver:
                 remove_parent_bug_label=True,
             )
             self._jira_dal.close_issue_as_duplicate(issue.issue_key)
+
+    def populate_parent_child_issue_fields(self, issues: List[JeevesDocument]):
+        """
+        Sets the parent_issue and child_issues fields of JiraDocuments by getting the duplicate graph
+        to determine duplicate parent or children.
+
+        Parameters:
+            issues: list of Jeeves documents
+        """
+        filtered_issues = [
+            issue
+            for issue in issues
+            if JiraDocument.get_data_source_identifier() == issue.get_data_source_identifier()
+            and issue.linked_duplicate_keys != []
+        ]
+
+        if not filtered_issues:
+            return
+        docs_to_fetch = {
+            key
+            for issue in filtered_issues
+            for key in issue.linked_duplicate_keys + [issue.issue_key]
+        }
+        docs = self._jira_dal.get_bulk_issues(list(docs_to_fetch))
+        key_to_doc = {doc.issue_key: doc for doc in docs}
+        for issue in filtered_issues:
+            duplicate_graph = self.get_duplicate_graph(
+                [issue.issue_key] + issue.linked_duplicate_keys, key_to_doc=key_to_doc
+            )
+
+            if JiraDocument.is_group_parent(issue):
+                issue.child_issues = sorted(
+                    list(set(duplicate_graph.issue_keys_to_documents) - {issue.issue_key})
+                )
+            else:
+                parent_keys = [
+                    key
+                    for key, issue in duplicate_graph.issue_keys_to_documents.items()
+                    if JiraDocument.is_group_parent(issue)
+                ]
+                if len(parent_keys) == 1:
+                    issue.parent_issue = parent_keys[0]
+                elif len(parent_keys) > 1:
+                    raise Exception("more than one Jira issue as parent")
