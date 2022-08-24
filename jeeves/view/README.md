@@ -181,11 +181,11 @@ Same as `/api/1/shakira/report_issue`.
 issue_keys: A list of Jira issue keys whose neighborhoods we want to combine into a fully connected graph.
 ```
 
-This route does quite a number of things. The primary use is to take contiguous groups of duplicate issues and link them into a single fully-connected graph, ensuring there is exactly one parent issue in that graph.
+This route takes a list of Jira issues and creates a fully connected graph<sup>1</sup> out of the given issues and their reachable duplicates<sup>2</sup>. It also ensures that there is exactly one parent issue<sup>3</sup> among these duplicate issues.
 
-In this context, a fully-connected graph of issues is a group of issues where every issue in the group is marked as a duplicate of every other issue in the group. This route constructs such a group, using not only the issues passed in via the input, but also all issues that are duplicates of the input issues, as well as all issues that are duplicates of duplicates of the input issues, and so on. If there is a way to link issue A to issue Z by following any number of intermediate statements like "A is a duplicate of B", "B is a duplicate of C", ..., "Y is a duplicate of Z", and issue A is passed as one of the arguments to this route, then issues A, Z, and all of the intermediate links will become part of the fully-connected graph and will thus all be marked duplicates of each other and all other issues (and their duplicates) in the input list.
-
-A _parent issue_ is a special type of issue that's created by Jeeves; it serves as a singular point of reference for all other duplicates in the fully-connected graph (since if they're all duplicates of each other they theoretically represent the same bug). Parent issues are denoted by having the label "parent-bug". When this route is called, all of the networks of duplicates specified by the input issues are checked for parent issues. If exactly one parent issue is found amongst all of them, then no further action is taken and that parent issue becomes the parent issue for the resulting fully-connected graph. If no parent issue is found, then a new one will be created and incuded in the graph. If two or more are found, the operation will be aborted and an error will be thrown.
+- <sup>1</sup>Fully connected graph: Every Jira issue in the graph is directly linked as duplicate to every other Jira issue in the graph.
+- <sup>2</sup>Reachable duplicates: From a Jira issue A, issue B is reachable if we can reach B from A by following duplicate links, even if the two are not directly linked as duplicates.
+- <sup>3</sup>Parent issue: An issue created by Jeeves with the "parent-bug" label that summarizes the metadata in its child issues.
 
 ---
 
