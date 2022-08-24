@@ -28,6 +28,17 @@ fi
 S3_FILE_STORAGE="s3://jeeves-document-cache"
 DUPLICATE_DETECTOR_REMOTE_PATH="$S3_FILE_STORAGE/duplicate-detector-model"
 
+# ----- lint -----
+if [[ $TERRAFORM_ENV == "prod" ]]; then
+  echo "No linting in prod environment."
+else
+
+  # --- run eslint ---
+  WORKDIR="/code"
+  CMD="cd /code && make install eslint"
+  docker run --rm --volume "$(pwd):$WORKDIR" node:12.13.1 sh -c "$CMD"
+fi
+
 # ----- build -----
 
 mkdir ./duplicate-detector-model

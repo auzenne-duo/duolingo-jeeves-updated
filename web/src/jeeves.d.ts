@@ -9,9 +9,7 @@ declare namespace JSONAPI {
     user_id: number;
   }
 
-  interface ConfirmationStats {
-    [key: string]: { confirmed: number; total: number };
-  }
+  type ConfirmationStats = Record<string, { confirmed: number; total: number }>;
 
   interface DuolingoMetadata {
     app_version?: string;
@@ -97,7 +95,7 @@ declare namespace JSONAPI {
 
   interface SpikeDataResponse {
     date: Date;
-    spikes: JSONAPI.SpikeWord[];
+    spikes: SpikeWord[];
   }
 
   type Spikes = Record<

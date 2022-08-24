@@ -41,9 +41,7 @@ const ConfirmButton = ({ spike }: Props) => {
       <Toggle
         checked={spike.confirmed}
         className={styles.toggle}
-        onChange={async () => {
-          mutation.mutate();
-        }}
+        onChange={() => mutation.mutate()}
       />
       {spike.confirmed && username && (
         <span className={styles["confirm-username"]}>(by {username})</span>

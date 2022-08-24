@@ -1,7 +1,7 @@
-import cn from "classnames";
 import * as React from "react";
 import { Button } from "web-ui";
 
+import cn from "classnames";
 import styles from "styles/IconButton.scss";
 
 interface Props {
