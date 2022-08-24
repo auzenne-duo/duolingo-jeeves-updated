@@ -307,8 +307,12 @@ class ElasticsearchDAL:
                 "data": self._parse_response_to_docs(response),
             }
             if response.to_dict()["hits"]["hits"]:
-                retval["sort_id"] = str(response.to_dict()["hits"]["hits"][-1]["sort"][0])
-                retval["prev_sort_id"] = str(response.to_dict()["hits"]["hits"][0]["sort"][0])
+                retval["sort_id"] = str(
+                    response.to_dict()["hits"]["hits"][-1].get("sort", [None])[0]
+                )
+                retval["prev_sort_id"] = str(
+                    response.to_dict()["hits"]["hits"][0].get("sort", [None])[0]
+                )
             return retval
 
         except RequestError as e:
