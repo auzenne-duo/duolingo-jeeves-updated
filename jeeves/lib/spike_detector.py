@@ -55,24 +55,29 @@ def detect_spikes(target_date: Optional[date] = None) -> None:
 
     for lang in SUPPORTED_LANGUAGES.__members__:
         doc_batch = []
-        more_pages = True
-        page_number = 0
-        while more_pages:
+        sort_id = None
+        count = 0
+        while True:
             paginated_info = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
                 lang,
                 "",
-                page=page_number,
+                sort_id=sort_id,
                 limit=_PAGE_SIZE,
                 start_time=target_start,
                 end_time=target_end,
                 filter_jiras_from_jeeves=True,
             )
-            more_pages = paginated_info["deepest_index"] < paginated_info["total_records"]
+
             doc_batch += paginated_info["data"]
-            page_number += 1
             if len(doc_batch) > _BATCH_TARGET_SIZE:
                 _split_beta_batches_and_run_detector(doc_batch, lang)
                 doc_batch = []
+            count += len(paginated_info["data"])
+            if count >= paginated_info["total_records"]:
+                break
+            if not "sort_id" in paginated_info:
+                break
+            sort_id = paginated_info["sort_id"]
 
         _split_beta_batches_and_run_detector(doc_batch, lang)
 

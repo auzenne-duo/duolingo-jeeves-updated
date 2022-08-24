@@ -61,7 +61,6 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const location = useLocation();
   const { lang } = useParams<{
     lang: JSONAPI.LanguageId;
-    page: string | undefined;
   }>();
   const queryClient = useQueryClient();
   const search = useSearchParams();
@@ -72,9 +71,11 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const area = search.get("area");
   const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
   const id = search.get("id");
-  const page = search.get("page")
-    ? parseInt(search.get("page") as string, 10)
-    : 1;
+  const offset = search.get("offset")
+    ? parseInt(search.get("offset") as string, 10)
+    : 0;
+  const prevSortId = search.get("prev-sort-id");
+  const sortId = search.get("sort-id");
   const spikeCategory = (search.get("spike-category") ??
     "ALL_SPIKES") as JSONAPI.SpikeCategory;
   const team = search.get("team");
@@ -89,15 +90,20 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
     .map((term, _i, list) => (list.length > 1 ? `(${term})` : term))
     .join(" AND ");
 
-  const nextQuery = useSearchParams();
-  nextQuery.set("page", `${page + 1}`);
-
-  const prevQuery = useSearchParams();
-  prevQuery.set("page", `${page - 1}`);
-
   const listQueryKey = [
     "tickets",
-    { areas, filter, from, lang, page, query, spikeCategory, to },
+    {
+      areas,
+      filter,
+      from,
+      lang,
+      offset,
+      prevSortId,
+      query,
+      sortId,
+      spikeCategory,
+      to,
+    },
   ];
 
   const { data, error, isLoading, isPreviousData } = useQuery(
@@ -108,7 +114,9 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
         beta_filter: filter ?? undefined,
         end_time: to,
         limit: PER_PAGE,
-        page: page - 1,
+        offset,
+        prev_sort_id: prevSortId ?? undefined,
+        sort_id: sortId ?? undefined,
         spike_category: spikeCategory,
         start_time: from,
         use_lemmas: useLemmas,
@@ -119,16 +127,24 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
 
   const tickets = data?.data;
 
+  const nextQuery = useSearchParams();
+  nextQuery.set("offset", `${offset + PER_PAGE}`);
+  nextQuery.set("sort-id", `${data?.next_sort_id}`);
+  nextQuery.delete("prev-sort-id");
   const nextLink =
-    data?.next_url && !isPreviousData
+    data?.next_sort_id && !isPreviousData
       ? {
           ...location,
           search: encodeURLSearchParams(nextQuery),
         }
       : undefined;
 
+  const prevQuery = useSearchParams();
+  prevQuery.set("offset", `${offset - PER_PAGE}`);
+  prevQuery.set("prev-sort-id", `${data?.prev_sort_id}`);
+  prevQuery.delete("sort-id");
   const prevLink =
-    page > 1
+    offset > 0
       ? {
           ...location,
           search: encodeURLSearchParams(prevQuery),
@@ -286,14 +302,14 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
     return undefined;
   }, [id, nextLink, prevLink, setId, tickets]);
 
-  // This has a dependency on both `isPreviousData` and `page` so
+  // This has a dependency on both `isPreviousData` and `offset` so
   // that the page is scrolled to the top when either cached or
   // fresh query data is loaded.
   React.useEffect(() => {
     if (!isPreviousData) {
       window.scrollTo(0, 0);
     }
-  }, [isPreviousData, page]);
+  }, [isPreviousData, offset]);
 
   return (
     <>
@@ -407,7 +423,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
           </ul>
           <div className={styles.pagination}>
             {getPaginationString({
-              page,
+              offset,
               perPage: PER_PAGE,
               total: data?.total_records,
             })}

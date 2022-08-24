@@ -174,7 +174,8 @@ declare namespace JSONAPI {
 
   interface Tickets {
     data: Ticket[];
-    next_url?: string;
+    next_sort_id?: string;
+    prev_sort_id?: string;
     total_records: number;
   }
 

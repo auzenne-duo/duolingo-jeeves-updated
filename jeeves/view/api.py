@@ -50,7 +50,6 @@ def manage_tickets(lang):
 
     jeeves_id = request.args.get("jeeves_id", None)
 
-    page = int(request.args.get("page", "0"))
     spike_category = request.args.get("spike-category", "ALL_SPIKES")
     if spike_category not in SpikeCategory.__members__:
         abort(make_response(f"Invalid spike category {spike_category}", 400))
@@ -70,40 +69,39 @@ def manage_tickets(lang):
 
     def get_tickets_by_word():
         limit = int(request.args.get("limit", "10"))
+        offset = int(request.args.get("offset", "0"))
+        sort_id = request.args.get("sort-id", None)
+        sort_id = int(sort_id) if sort_id else None
+        prev_sort_id = request.args.get("prev-sort-id", None)
+        prev_sort_id = int(prev_sort_id) if prev_sort_id else None
 
-        paginated_info = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
+        paginated_tickets = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
             lang,
             word,
-            page,
-            limit,
             start_time,
             end_time,
             beta_filter,
             jeeves_id,
+            limit,
+            sort_id,
+            prev_sort_id,
+            offset,
             SpikeCategory[spike_category],
             use_lemmas,
             filter_jiras_from_jeeves=True,
         )
 
-        if "ERROR" in paginated_info:
-            return paginated_info
-
-        tickets = paginated_info["data"]
+        tickets = paginated_tickets["data"]
         app_registry(DuplicateGraphResolver).populate_parent_child_issue_fields(tickets)
-
         values = [ticket.serialize_to_json(ticket) for ticket in tickets]
+        total_records = paginated_tickets["total_records"]
 
-        return_packet = {"data": values}
-        return_packet.update({"total_records": paginated_info["total_records"]})
+        return_packet = {"data": values, "total_records": total_records}
 
-        if paginated_info["deepest_index"] < paginated_info["total_records"]:
-            next_url_beta_filter = f"&beta_filter={beta_filter}" if beta_filter else ""
-            return_packet.update(
-                {
-                    "next_url": f"/api/1/{lang}/tickets?word={word}&limit={limit}&page={page+1}\
-                        {next_url_beta_filter}&use-lemmas={use_lemmas}&spike-category={spike_category}"
-                }
-            )
+        if total_records > offset:
+            return_packet["next_sort_id"] = paginated_tickets["sort_id"]
+        if offset > 0:
+            return_packet["prev_sort_id"] = paginated_tickets["prev_sort_id"]
 
         return return_packet
 

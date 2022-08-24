@@ -204,7 +204,7 @@ recent_duplicate_exists_test_cases = [
 
 elasticsearch_mock = ElasticsearchDAL()
 elasticsearch_mock.get_recent_paginated_tickets = MagicMock(
-    return_value=[_zendesk_email_document()]
+    return_value={"data": [_zendesk_email_document()]}
 )
 duplicate_manager = JeevesDuplicateManager(elasticsearch_mock)
 

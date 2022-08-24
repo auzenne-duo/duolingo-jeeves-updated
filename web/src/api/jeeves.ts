@@ -99,7 +99,9 @@ export const getTickets = (
     beta_filter,
     end_time,
     limit,
-    page,
+    offset,
+    prev_sort_id,
+    sort_id,
     spike_category,
     start_time,
     use_lemmas,
@@ -109,7 +111,9 @@ export const getTickets = (
     beta_filter?: JSONAPI.ShakeToReportCategory;
     end_time?: Date;
     limit?: number;
-    page?: number;
+    offset?: number; // offset is the index of the first displayed ticket
+    prev_sort_id?: string;
+    sort_id?: string;
     spike_category?: JSONAPI.SpikeCategory;
     start_time?: Date;
     use_lemmas?: boolean;
@@ -121,7 +125,9 @@ export const getTickets = (
   beta_filter && params.set("beta_filter", beta_filter);
   end_time && params.set("end_time", formatDateTime(end_time));
   limit && params.set("limit", `${limit}`);
-  page && params.set("page", `${page}`);
+  offset && params.set("offset", `${offset}`);
+  prev_sort_id && params.set("prev-sort-id", prev_sort_id);
+  sort_id && params.set("sort-id", sort_id);
   spike_category && params.set("spike-category", spike_category);
   start_time && params.set("start_time", formatDateTime(start_time));
   use_lemmas && params.set("use-lemmas", use_lemmas ? "true" : "false");

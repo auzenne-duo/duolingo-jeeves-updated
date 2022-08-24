@@ -77,19 +77,16 @@ export const getFilterLink = (
 };
 
 export const getPaginationString = ({
-  page,
+  offset,
   perPage,
   total,
 }: {
-  page: number;
+  offset: number;
   perPage: number;
   total: number | undefined;
 }) =>
   total
-    ? `${(page - 1) * perPage + 1}-${Math.min(
-        page * perPage,
-        total,
-      )} of ${total}`
+    ? `${offset + 1}-${Math.min(offset + perPage, total)} of ${total}`
     : undefined;
 
 export const getUntruncatedTitle = (t: JSONAPI.Ticket) =>

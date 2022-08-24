@@ -15,6 +15,7 @@ from elasticsearch.exceptions import RequestError
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl import A, Mapping, Q, Search
 from elasticsearch_dsl.query import MoreLikeThis
+from elasticsearch_dsl.response import Response  # pylint: disable=unused-import
 
 from jeeves.config.config import DATA_VERSION_IDENTIFIER, HISTORY_WINDOW_SIZE, MIN_SAMPLES_THRESHOLD
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
@@ -108,6 +109,20 @@ class ElasticsearchDAL:
         """
 
         response = s.execute()
+        return self._parse_response_to_docs(response)
+
+    def _parse_response_to_docs(self, response: Response) -> List[JeevesDocument]:
+        """
+        Given an Elasticsearch_DSL Response object, performs the necessary logic
+        to convert the results into a list of document
+        objects.
+
+        Parameters:
+            response (dict): An Elasticsearch_DSL Response object
+
+        Returns:
+            The response hits as a list of JeevesDocument objects.
+        """
         if not response.success():
             raise Exception(
                 f"""
@@ -181,12 +196,14 @@ class ElasticsearchDAL:
         self,
         lang: str,
         word: str,
-        page: int = 0,
-        limit: int = 10,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
         beta_filter_category: Optional[str] = False,
         jeeves_id: Optional[str] = None,
+        limit: int = 10,
+        sort_id: int = None,
+        prev_sort_id: int = None,
+        offset: int = 0,
         spike_category: Optional[SpikeCategory] = SpikeCategory.ALL_SPIKES,
         use_lemmas: bool = False,
         filter_jiras_from_jeeves: bool = False,
@@ -201,10 +218,6 @@ class ElasticsearchDAL:
             lang (str): Language to search for tickets in.
             word (str): Query to search against in Elasticsearch. An empty string
                         will match to all documents. Uses regular expressions.
-            page (int): Desired page number of results.
-                        Used when multiple pages of results are needed.
-            limit (int): The maximum number of results per page.
-                         The final page of results may have fewer than this many.
             start_time (datetime): The beginning of a date range to search for tickets in.
                                    Results will not have timestamps before this value.
                                    Optional value.
@@ -220,18 +233,24 @@ class ElasticsearchDAL:
                              all other arguments because no additional filtering
                              should be performed if the user already knows which
                              document they want. Optional value.
+            limit (int): Number of docs to return
+            sort_id (int): ID number of doc at the start of the range
+            prev_sort_id (int): ID number of doc at the start of the range, but now the range extends backwards
+                                Only one of sort_id or prev_sort_id should be present
+            offset (int): if neither sort_id nor prev_sort_id are provided, query returns the docs at positions offset
+                         to offset+limit. Note this only works up to 10,000.
             spike_category: The spike category whose documents we should search within. Optional value.
             use_lemmas (bool): Flag determining if lemmatized terms should be used over searching for word in body_text.
             filter_jiras_from_jeeves (bool): If true, Jira issues that were posted from Jeeves will be excluded from results.
 
         Returns:
             A dictionary containing the following:
-            - data: A list of support ticket objects, representing the requested
+            - data (list[hits]): A list of support ticket objects, representing the requested
               page of results. Results are sorted, larger timestamps first.
-            - total_records: An integer representing the total number of hits
+            - total_records (int): An integer representing the total number of hits
               for the search criteria
-            - deepest_index: An integer representing the index in the search
-              of the last expected element
+            - sort_id (str): sort_id of the last doc in the batch
+            - prev_sort_id (str): sort_id of the first doc in the batch
         """
 
         s = Search(using=self._es, index=self._indexname)
@@ -267,19 +286,29 @@ class ElasticsearchDAL:
             if filter_jiras_from_jeeves:
                 s = s.query("bool", must_not=[Q({"match": {"labels": JIRA_VIA_JEEVES_LABEL}})])
 
+            s = s.extra(size=limit)
+            if sort_id:
+                s = s.extra(search_after=[sort_id])
+            elif prev_sort_id:
+                # reverse the sort to get the tickets before the previous sort id
+                s = s.sort("date_time").extra(search_after=[prev_sort_id])
+            else:
+                s = s[offset : offset + limit]
+
         try:
             total_records = s.count()
+            response = s.execute()
+            if prev_sort_id:
+                # correct the order of the tickets caused by the reverse sort
+                response.hits.hits.reverse()
 
-            retval = {"total_records": total_records}
-
-            lower_limit = limit * page
-            upper_limit = lower_limit + limit
-            s = s[lower_limit:upper_limit]
-
-            retval.update({"deepest_index": upper_limit})
-
-            retval.update({"data": self._execute_search_for_documents(s)})
-
+            retval = {
+                "total_records": total_records,
+                "data": self._parse_response_to_docs(response),
+            }
+            if response.to_dict()["hits"]["hits"]:
+                retval["sort_id"] = str(response.to_dict()["hits"]["hits"][-1]["sort"][0])
+                retval["prev_sort_id"] = str(response.to_dict()["hits"]["hits"][0]["sort"][0])
             return retval
 
         except RequestError as e:
@@ -777,12 +806,15 @@ class ElasticsearchDAL:
             filter_params = {"term": {f"{field}": {"value": f"{value}"}}}
             s = s.query("bool", filter=[Q(filter_params)])
 
-        yield from [
-            IDManagerMap.get_manager_for_identifier(hit.data_source)
-            .get_managed_document_type()
-            .deserialize_from_internal_json(hit.to_dict())
-            for hit in s.scan()
-        ]
+        try:
+            yield from [
+                IDManagerMap.get_manager_for_identifier(hit.data_source)
+                .get_managed_document_type()
+                .deserialize_from_internal_json(hit.to_dict())
+                for hit in s.scan()
+            ]
+        except RequestError as e:
+            return self._handle_es_request_errors(e)
 
     def count_by_arbitrary_keywords(self, field_value_pairs: Dict[str, str]) -> int:
         """
