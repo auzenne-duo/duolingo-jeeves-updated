@@ -10,6 +10,7 @@ from duolingo_base.util import registry
 
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
+from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
@@ -25,6 +26,7 @@ class DuplicateGraphResolver:
     def __init__(self, es_dal: ElasticsearchDAL, jira_dal: JiraApiDAL):
         self._es_dal = es_dal
         self._jira_dal = jira_dal
+        self._jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
 
     def get_duplicate_graph(
         self, issue_keys: List[str], key_to_doc: Dict[str, JiraDocument] = None
@@ -57,7 +59,7 @@ class DuplicateGraphResolver:
                 target_key = unvisited.pop()
             # download issues in bulk as needed
             if not target_key in key_to_doc:
-                docs = self._jira_dal.get_bulk_issues(list(docs_to_fetch))
+                docs = self._jira_manager.download_bulk_issues_with_features(list(docs_to_fetch))
                 key_to_doc.update({doc.issue_key: doc for doc in docs})
                 docs_to_fetch = set()
             target_issue = key_to_doc[target_key]
@@ -132,6 +134,8 @@ class DuplicateGraphResolver:
         duplicate_graph = self.get_duplicate_graph(issue_keys)
         doc_reps = [doc for doc in duplicate_graph.issue_keys_to_documents.values()]
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
+        features = [doc.feature for doc in doc_reps if doc.feature]
+        most_common_feature = max(set(features), key=features.count) if features else None
 
         parent_key = None
         deprecated_parent_issue_keys = []
@@ -183,7 +187,7 @@ class DuplicateGraphResolver:
                 any_failure = True
                 result_list.append(f"F {outward_end} {inward_end}\n")
 
-        self._try_set_remote_parent_body(parent_key, parent_data)
+        self._try_set_remote_parent_body_and_feature(parent_key, parent_data, most_common_feature)
 
         result_manifest = "".join(result_list)
         # If we had no successes and no failures, then we didn't create any new
@@ -246,7 +250,9 @@ class DuplicateGraphResolver:
         except:
             return False
 
-    def _try_set_remote_parent_body(self, parent_key: str, data: Dict[str, Dict[str, int]]) -> bool:
+    def _try_set_remote_parent_body_and_feature(
+        self, parent_key: str, data: Dict[str, Dict[str, int]], feature: str
+    ) -> bool:
         """
         Sets the body text of the issue specified by parent_key to content
         specified by the provided data, and saves this change to Jira.
@@ -262,7 +268,7 @@ class DuplicateGraphResolver:
         """
         try:
             self._jira_dal.update_issue(
-                parent_key, description=generate_parent_body_text_from_data(data)
+                parent_key, description=generate_parent_body_text_from_data(data), feature=feature
             )
             return True
         except:
@@ -322,7 +328,8 @@ class DuplicateGraphResolver:
             for issue in filtered_issues
             for key in issue.linked_duplicate_keys + [issue.issue_key]
         }
-        docs = self._jira_dal.get_bulk_issues(list(docs_to_fetch))
+
+        docs = self._jira_manager.download_bulk_issues_with_features(list(docs_to_fetch))
         key_to_doc = {doc.issue_key: doc for doc in docs}
         for issue in filtered_issues:
             duplicate_graph = self.get_duplicate_graph(

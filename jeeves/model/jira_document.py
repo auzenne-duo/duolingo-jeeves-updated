@@ -188,6 +188,10 @@ class JiraDocument(JeevesDocument):
         cls._feature_field_key = feature_field_key
 
     @classmethod
+    def get_feature_field_key(cls) -> str:
+        return cls._feature_field_key
+
+    @classmethod
     def deserialize_from_external_json(cls, external_json: JSON) -> JeevesDocument:
         """
         Please see parent class for documentation

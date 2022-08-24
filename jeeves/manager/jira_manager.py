@@ -4,7 +4,7 @@ Manager for JIRA documents.
 import json
 import sys
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 import rollbar
 from duolingo_base.dal.s3 import S3Client
@@ -135,6 +135,21 @@ class JiraManager(JeevesManager):
         """
         JiraManager._try_set_jira_document_feature_field_key()
         return JiraDAL.get_issue(issue_key)
+
+    @staticmethod
+    def download_bulk_issues_with_features(issue_keys: List[str]) -> List[JiraDocument]:
+        """
+        Sets the feature field key for jira documents and then downloads the issues by key
+
+        Parameters:
+            issue_keys: Issue keys of the issues we wish to download.
+
+        Returns:
+            List of JeevesDocuments object representing the requested issues we were
+            able to download.
+        """
+        JiraManager._try_set_jira_document_feature_field_key()
+        return JiraDAL.get_bulk_issues(issue_keys)
 
     @staticmethod
     def get_most_recent_s3_populated_date(s3_client: S3Client, bucket_name: str) -> datetime:

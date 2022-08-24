@@ -172,6 +172,7 @@ class JiraApiDAL:
         summary: Optional[str] = None,
         description: Optional[JSON] = None,
         remove_parent_bug_label: bool = False,
+        feature: Optional[str] = None,
     ):
         """
         Update the issue's fields.
@@ -179,15 +180,19 @@ class JiraApiDAL:
         url = self._host + "/rest/api/3/issue/" + issue_key
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
         update_dict = {}
+        fields_dict = {}
         if summary:
             update_dict["summary"] = [{"set": summary}]
         if description:
             update_dict["description"] = [{"set": description}]
         if remove_parent_bug_label:
             update_dict["labels"] = [{"remove": PARENT_BUG_LABEL}]
+        if feature:
+            feature_field_key = JiraDocument.get_feature_field_key()
+            if feature_field_key:
+                fields_dict[feature_field_key] = {"value": feature}
 
-        data_operation = {"update": update_dict}
-
+        data_operation = {"update": update_dict, "fields": fields_dict}
         try:
             r = put(url, headers=headers, auth=self._auth, data=json.dumps(data_operation))
             r.raise_for_status()

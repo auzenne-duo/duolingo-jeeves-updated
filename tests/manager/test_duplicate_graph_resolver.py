@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 from typing import List
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -26,6 +26,7 @@ def _jira_document(
     updated_date=now_datetime,
     linked_duplicate_keys=None,
     labels=None,
+    feature="",
 ):
     doc = JiraDocument(
         data_source="JIRA",
@@ -60,7 +61,7 @@ def _jira_document(
         resolution="",
         components=[],
         feature_url="",
-        feature="",
+        feature=feature,
         priority="High",
         reporter="",
         reporter_email="",
@@ -143,9 +144,11 @@ parent_of_dupes = _jira_document(
 )
 child_2 = _jira_document(issue_number=2, linked_duplicate_keys=["DLAA-1", "DLAA-3"])
 child_3 = _jira_document(issue_number=3, linked_duplicate_keys=["DLAA-2"])
-no_dupes = _jira_document(issue_number=4)
-no_parent_5 = _jira_document(issue_number=5, linked_duplicate_keys=["DLAA-6"])
-no_parent_6 = _jira_document(issue_number=6, linked_duplicate_keys=["DLAA-5"])
+no_dupes = _jira_document(issue_number=4, feature="shake")
+no_parent_5 = _jira_document(
+    issue_number=5, linked_duplicate_keys=["DLAA-6"], feature="achievements"
+)
+no_parent_6 = _jira_document(issue_number=6, linked_duplicate_keys=["DLAA-5"], feature="shake")
 jira_documents = {
     "DLAA-1": parent_of_dupes,
     "DLAA-2": child_2,
@@ -154,6 +157,12 @@ jira_documents = {
     "DLAA-5": no_parent_5,
     "DLAA-6": no_parent_6,
 }
+
+
+mock_jira_manager = MagicMock()
+mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
+    jira_documents[key] for key in keys
+]
 
 populate_parent_child_issue_fields_test_cases = [
     (parent_of_dupes, None, ["DLAA-2", "DLAA-3"]),
@@ -168,15 +177,78 @@ populate_parent_child_issue_fields_test_cases = [
     "jira_doc,expected_parent_issue,expected_child_issues",
     populate_parent_child_issue_fields_test_cases,
 )
+@patch(
+    "jeeves.manager.duplicate_graph_resolver.IDManagerMap",
+    MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
+)
 def test_populate_parent_child_issue_fields(
     jira_doc: JiraDocument,
     expected_parent_issue: str,
     expected_child_issues: List[str],
 ):
-    mock_jira_dal = MagicMock(get_bulk_issues=lambda keys: [jira_documents[key] for key in keys])
+    mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
+        jira_documents[key] for key in keys
+    ]
     duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, mock_jira_dal)
 
     duplicate_graph_resolver.populate_parent_child_issue_fields([jira_doc])
     unittest.TestCase()
     assert jira_doc.parent_issue == expected_parent_issue
     assert jira_doc.child_issues == expected_child_issues
+
+
+class TestDuplicateGraphResolver(unittest.TestCase):
+    @patch(
+        "jeeves.manager.duplicate_graph_resolver.IDManagerMap",
+        MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
+    )
+    def test_connect_duplicates_remote(self):
+        magic_mock_jira_dal = MagicMock()
+        magic_mock_jira_dal.get_issue.return_value = MagicMock(
+            body_text="APP VERSIONS:\nNOT PRESENT: 2\n6.117.0.1: 1\n\n\nPLATFORMS:\nNOT PRESENT: 2\niOS: 1\n\n\nCOURSES:\nNOT PRESENT: 2\nDUOLINGO_FR_EN: 1\n\n\nINTERFACE LANGUAGES:\nNOT PRESENT: 2\nen: 1\n\n\nOPERATING SYSTEMS:\nNOT PRESENT: 2\niOS 14.4.1: 1\n\n\nAREAS:\n\n"
+        )
+        magic_mock_jira_dal.create_bug_issue.return_value = "parent_key"
+
+        duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, magic_mock_jira_dal)
+        duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
+        expected_description = {
+            "type": "doc",
+            "version": 1,
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "APP VERSIONS:\nNOT PRESENT: 5\n6.117.0.1: 1\n"}
+                    ],
+                },
+                {
+                    "type": "paragraph",
+                    "content": [{"type": "text", "text": "PLATFORMS:\nNOT PRESENT: 5\niOS: 1\n"}],
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "COURSES:\nNOT PRESENT: 5\nDUOLINGO_FR_EN: 1\n"}
+                    ],
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "INTERFACE LANGUAGES:\nNOT PRESENT: 5\nen: 1\n"}
+                    ],
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "OPERATING SYSTEMS:\nNOT PRESENT: 5\niOS 14.4.1: 1\n",
+                        }
+                    ],
+                },
+                {"type": "paragraph", "content": [{"type": "text", "text": "AREAS:\n"}]},
+            ],
+        }
+        magic_mock_jira_dal.update_issue.assert_any_call(
+            "parent_key", description=expected_description, feature="shake"
+        )
