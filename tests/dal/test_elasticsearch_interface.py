@@ -140,3 +140,9 @@ class TestElasticSearchInterface(unittest.TestCase):
             },
         }
         self.assertEqual(result, expected)
+
+    def test_filter_text(self):
+        text = "(@DailyWelshWords). In :right_arrow: (theory), @duolingo-hq *I* https://duolingo.squarespace.com/tips can't bob@gmail.com read 💁👌🎍😍"
+        expected = "In theory I cant read"
+        result = self.dal.filter_text(text)
+        self.assertEqual(result, expected)

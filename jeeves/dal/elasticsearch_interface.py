@@ -384,18 +384,20 @@ class ElasticsearchDAL:
         except RequestError as e:
             return self._handle_es_request_errors(e)
 
-    def lemmatize_text(self, text: str) -> List[str]:
+    def filter_text(self, text: str) -> str:
         """
-        Filters text for emojis and punctuation and returns a list of unique lemmas
+        Returns filtered text
 
         Parameters:
-            text: str body of text
+            text (str): body of text
         """
-
         stop_punctuation = '!\n\r"‘’“”#$%&()*+,.…:;<=>?@[/\\]^`{|}~'
         join_punctuation = "-_'‘’"
-        emoji_pattern = re.compile(
-            "["
+        email_pattern = "[\w0-9-._]*@[\w0-9-._]+"  # also handles handles like @duolingo
+        emote_pattern = ":[\w_]+:"
+        url_pattern = "https?://[\w./0-9-?=_]+"
+        filter_pattern = re.compile(
+            f"{email_pattern}|{emote_pattern}|{url_pattern}|["
             "\U0001F600-\U0001F64F"  # emoticons
             "\U0001F300-\U0001F5FF"  # symbols & pictographs
             "\U0001F680-\U0001F6FF"  # transport & map symbols
@@ -415,13 +417,24 @@ class ElasticsearchDAL:
             flags=re.UNICODE,
         )
 
-        no_emoji_text = emoji_pattern.sub(r"", text)
+        no_emoji_text = filter_pattern.sub(r"", text)
 
         clean_text = no_emoji_text.translate(
             str.maketrans(stop_punctuation, " " * len(stop_punctuation), join_punctuation)
         )
 
-        annotation = self.annotator.annotate(clean_text)
+        # remove extra white spaces
+        return re.sub(" +", " ", clean_text).strip()
+
+    def lemmatize_text(self, text: str) -> List[str]:
+        """
+        Tokenizes and annotates text and returns a list of unique lemmas
+
+        Parameters:
+            text: str body of text
+        """
+
+        annotation = self.annotator.annotate(self.filter_text(text))
         return list(
             self._filter_terms(
                 {
