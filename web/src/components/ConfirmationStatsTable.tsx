@@ -1,13 +1,13 @@
 import React from "react";
 
 import Table from "components/Table";
-import styles from "styles/ConfirmationTable.scss";
+import styles from "styles/ConfirmationStatsTable.scss";
 
 interface Props {
-  confirmationStats: JSONAPI.ConfirmationStats;
+  spikeStats: JSONAPI.SpikeStats;
 }
 
-const ConfirmationTable = ({ confirmationStats }: Props) => (
+const ConfirmationStatsTable = ({ spikeStats }: Props) => (
   <Table className={styles.table}>
     <thead>
       <tr>
@@ -18,11 +18,11 @@ const ConfirmationTable = ({ confirmationStats }: Props) => (
       </tr>
     </thead>
     <tbody>
-      {Object.entries(confirmationStats).map(([date, value]) => {
+      {spikeStats.month_count.map(value => {
         const percent = Math.round((100 * value.confirmed) / value.total);
         return (
-          <tr key={date}>
-            <td>{date}</td>
+          <tr key={value.date_str}>
+            <td>{value.date_str}</td>
             <td>{value.total}</td>
             <td>{value.confirmed}</td>
             <td>{percent}%</td>
@@ -33,4 +33,4 @@ const ConfirmationTable = ({ confirmationStats }: Props) => (
   </Table>
 );
 
-export default ConfirmationTable;
+export default ConfirmationStatsTable;

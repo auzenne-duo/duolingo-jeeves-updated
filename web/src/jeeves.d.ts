@@ -9,8 +9,6 @@ declare namespace JSONAPI {
     user_id: number;
   }
 
-  type ConfirmationStats = Record<string, { confirmed: number; total: number }>;
-
   interface DuolingoMetadata {
     app_version?: string;
     course?: string;
@@ -106,12 +104,25 @@ declare namespace JSONAPI {
     | undefined
   >;
 
+  interface SpikeStats {
+    month_count: { date_str: string; confirmed: number; total: number }[];
+    word_count: SpikeWordStats[];
+  }
+
   interface SpikeWord {
     confirmed: boolean;
     score: number;
     word: string;
     spike_id: string;
     user_id?: number;
+  }
+
+  interface SpikeWordStats {
+    dates: string[];
+    num_confirmed: number;
+    stem: string;
+    terms: string[];
+    total: number;
   }
 
   interface Team {

@@ -31,24 +31,25 @@ type SelectListChangeEvent = Parameters<
 >[0];
 
 const Topbar = () => {
-  const { from, to } = useDateRangeFilter({
-    daysAgo: useRouteMatch("/:lang/spike") ? 3 : undefined,
-    monthsAgo: useRouteMatch("/:lang/analysis") ? 3 : undefined,
-  });
   const { data: areas = [] } = useFeaturesByTeamAndArea();
   const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
   const isAnalysisPage = useRouteMatch("/:lang/analysis");
-  const isConfirmationStatsPage = useRouteMatch("/:lang/confirmation-stats");
   const isDiscoveryPage = useRouteMatch("/:lang/discovery");
   const isSpikePage = useRouteMatch("/:lang/spike");
+  const isSpikeStatsPage = useRouteMatch("/:lang/spike-stats");
   const search = useSearchParams();
 
   const area = search.get("area");
   const filter = search.get("filter");
   const query = search.get("q") ?? "";
   const team = search.get("team");
+
+  const { from, to } = useDateRangeFilter({
+    daysAgo: isSpikePage ? 3 : undefined,
+    monthsAgo: isAnalysisPage || isSpikeStatsPage ? 3 : undefined,
+  });
 
   const [state, dispatch] = React.useContext(AppStateContext);
   const [input, setInput] = React.useState(query);
@@ -196,12 +197,12 @@ const Topbar = () => {
             `filters${
               isAnalysisPage
                 ? "-analysis"
-                : isConfirmationStatsPage
-                ? "-confirmation-stats"
                 : isDiscoveryPage
                 ? "-discovery"
                 : isSpikePage
                 ? "-spike"
+                : isSpikeStatsPage
+                ? "-spike-stats"
                 : ""
             }`
           ]
@@ -226,7 +227,7 @@ const Topbar = () => {
             />
           </>
         ) : null}
-        {isAnalysisPage || isSpikePage ? (
+        {isAnalysisPage || isSpikePage || isSpikeStatsPage ? (
           <DateRangeInput
             alignPopover="end"
             className={styles["hide-on-mobile"]}
@@ -277,7 +278,7 @@ const Topbar = () => {
             value={filter ?? ""}
           />
         ) : null}
-        {isSpikePage || isConfirmationStatsPage ? (
+        {isSpikePage || isSpikeStatsPage ? (
           <Select
             className={styles["hide-on-mobile"]}
             onChange={handleFilterChange}

@@ -60,10 +60,10 @@ const Sidebar = ({ onItemClick }: Props) => {
       </LinkItem>
       <LinkItem
         onClick={onItemClick}
-        title="See how many reported spikewords were confirmed bugs."
-        to={`/${lang}/confirmation-stats`}
+        title="See how many reported spikewords were confirmed bugs and how often spikewords appear."
+        to={`/${lang}/spike-stats`}
       >
-        Spike Confirmation Stats
+        Spike Stats
       </LinkItem>
       <LinkItem
         onClick={onItemClick}

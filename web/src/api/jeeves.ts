@@ -12,24 +12,6 @@ const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
 const formatLocalDate = (date: Date) =>
   formatISO(date, { representation: "date" });
 
-export const getConfirmationStats = async (
-  lang: JSONAPI.LanguageId,
-  {
-    spike_category,
-  }: {
-    spike_category?: JSONAPI.SpikeCategory;
-  } = {},
-): Promise<JSONAPI.ConfirmationStats> => {
-  const params = new URLSearchParams();
-  spike_category && params.set("spike_category", spike_category);
-
-  const data = await get<JSONAPI.ConfirmationStats>(
-    `/1/${lang}/confirmation_stats?${params.toString()}`,
-  );
-
-  return data;
-};
-
 export const getInfo = async (
   lang: JSONAPI.LanguageId,
 ): Promise<{
@@ -75,6 +57,30 @@ export const getSpikes = async (
     date: parseISO(`${date}T00:00:00`),
     spikes: value?.spike ?? [],
   }));
+};
+
+export const getSpikeStats = async (
+  lang: JSONAPI.LanguageId,
+  {
+    end_date,
+    spike_category,
+    start_date,
+  }: {
+    end_date?: Date;
+    spike_category?: JSONAPI.SpikeCategory;
+    start_date?: Date;
+  } = {},
+): Promise<JSONAPI.SpikeStats> => {
+  const params = new URLSearchParams();
+  end_date && params.set("end_date", formatLocalDate(end_date));
+  spike_category && params.set("spike_category", spike_category);
+  start_date && params.set("start_date", formatLocalDate(start_date));
+
+  const data = await get<JSONAPI.SpikeStats>(
+    `/1/${lang}/spike_stats?${params.toString()}`,
+  );
+
+  return data;
 };
 
 export const getTicket = async (

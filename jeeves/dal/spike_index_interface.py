@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import date
 from typing import Dict, Iterator, List, Optional
 
@@ -6,11 +7,12 @@ from duolingo_base.config import Config
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl import Mapping, Search
+from nltk.stem.snowball import SnowballStemmer
 
 from jeeves.config.config import DATA_VERSION_IDENTIFIER
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
-from jeeves.util.date_util import date_to_str
+from jeeves.util.date_util import date_to_str, str_to_date
 from jeeves.util.error_util import SearchUnsuccessfulException
 
 _config = Config.load_config()
@@ -66,7 +68,7 @@ class SpikeIndexDAL:
 
     def set_spike_confirm_setting(self, spike_id: str, desired_state: bool, user_id: int) -> None:
         """
-        Sets the confirmed stat of a spikeword by spike_id to the specified state
+        Sets the confirmed status of a spikeword by spike_id to the specified state
 
         Parameters:
             spike_id: id string corresponding to a SpikeWord document
@@ -82,7 +84,52 @@ class SpikeIndexDAL:
         if response["_shards"]["total"] != response["_shards"]["successful"]:
             raise Exception(f"Update to confirmed setting of spike {spike_id} failed")
 
-    def get_spike_confirmation_stats(self, lang, spike_category):
+    def calculate_spike_stats(
+        self,
+        lang: str,
+        spike_category: SpikeCategory,
+        spike_threshold: int = 3,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+    ):
+        """
+        Returns stats on number of spikes, confirms, and the most common spikewords
+
+        Parameters:
+            lang (str): Language to calculate spike stats for.
+            spike_category: Which group we want spikes from
+                         (see jeeves/model/spike_categories.py)
+            spike_threshold (int): How many times a spike word must occur to count as common
+            start_date (str): Date to search from
+            end_date (str): Date to search to
+
+        Return:
+            dict {
+                month_count: [
+                    {
+                        date_str: (str) date string such as "2022-08-01"
+                        confirmed: int,
+                        total: int,
+                    }
+                ]
+                word_count: [
+                    {
+                        stem: (str) stemmed word for the spike word group (doubl for double/doubled)
+                        dates: (List[str]) list of date strings when the spike occurred
+                        num_confirmed: (int) number of confirmed occurrences
+                        total: (int) number of spike occurrences
+                        terms: (List[str]) terms included in the stem group
+                    },
+                    ...
+                ]
+            }
+        """
+        timestamp_dict = {}
+        if start_date:
+            timestamp_dict["gte"] = start_date
+        if end_date:
+            timestamp_dict["lte"] = end_date
+
         agg_spec = {
             "spikes_by_month": {
                 "date_histogram": {
@@ -99,19 +146,75 @@ class SpikeIndexDAL:
                 "filter": [{"term": {"lang": lang}}, {"term": {"spike_group": spike_category}}]
             }
         }
+        if timestamp_dict:
+            query["bool"]["filter"].append({"range": {"date": timestamp_dict}})
 
         response = self._es.search(index=self._spikename, body={"aggs": agg_spec, "query": query})
-        confirm_and_total_count = {}
+        confirm_and_total_count = []
         for month_bucket in response["aggregations"]["spikes_by_month"]["buckets"]:
             num_confirmed = 0
             for confirmed_bucket in month_bucket["confirm_status"]["buckets"]:
                 if confirmed_bucket["key"]:
                     num_confirmed = confirmed_bucket["doc_count"]
-            confirm_and_total_count[month_bucket["key_as_string"]] = {
-                "confirmed": num_confirmed,
-                "total": month_bucket["doc_count"],
-            }
-        return confirm_and_total_count
+            confirm_and_total_count.append(
+                {
+                    "confirmed": num_confirmed,
+                    "date_str": month_bucket["key_as_string"],
+                    "total": month_bucket["doc_count"],
+                }
+            )
+
+        snow_stemmer = SnowballStemmer(language="english")
+        s = (
+            Search(using=self._es, index=self._spikename)
+            .filter("term", lang=lang)
+            .filter("term", spike_group=spike_category)
+        )
+
+        if timestamp_dict:
+            s = s.filter("range", date=timestamp_dict)
+        word_to_dates = defaultdict(lambda: {"dates": [], "words": set()})
+        for res in s.scan():
+            stem = snow_stemmer.stem(res.word)
+            word_to_dates[stem]["dates"].append((str_to_date(res.date), res.confirmed))
+            word_to_dates[stem]["words"].add(res.word)
+
+        word_count = []
+
+        # filter for unique dates by detecting clusters of consecutive dates
+        for word, data in word_to_dates.items():
+
+            dates = data["dates"]
+            dates.sort(key=lambda x: x[0])
+
+            date, confirm_status = dates[0]
+            unique_dates = {date: confirm_status}
+            last_added_date = date
+            for i, (date, confirm_status) in enumerate(dates):
+                if i != 0:
+                    if (date - dates[i - 1][0]).days > 1:
+                        unique_dates[date] = confirm_status
+                        last_added_date = date
+                    else:
+                        unique_dates[last_added_date] = (
+                            unique_dates[last_added_date] or confirm_status
+                        )
+
+            num_confirmed = sum(unique_dates.values())
+            if len(unique_dates) >= spike_threshold or num_confirmed >= 1:
+                date_strs = [date_to_str(date_obj) for date_obj in unique_dates]
+                terms = sorted(list(word_to_dates[word]["words"]))
+                word_count.append(
+                    {
+                        "stem": word,
+                        "dates": date_strs,
+                        "num_confirmed": num_confirmed,
+                        "total": len(unique_dates),
+                        "terms": terms,
+                    }
+                )
+
+        return {"month_count": confirm_and_total_count, "word_count": word_count}
 
     def get_min_and_max_spike_dates(self) -> Dict[str, str]:
         """

@@ -7,10 +7,10 @@ import Lightbox from "components/Lightbox";
 import MenuDrawer from "components/MenuDrawer";
 import Topbar from "components/Topbar";
 import Analysis from "components/pages/Analysis";
-import ConfirmationStats from "components/pages/ConfirmationStats";
 import Dashboard from "components/pages/Dashboard";
 import Discovery from "components/pages/Discovery";
 import Spike from "components/pages/Spike";
+import SpikeStats from "components/pages/SpikeStats";
 import AppStateContext, {
   initialState,
   reducer,
@@ -97,8 +97,8 @@ const App = () => {
               <Route path="/:lang/analysis">
                 <Analysis />
               </Route>
-              <Route path="/:lang/confirmation-stats">
-                <ConfirmationStats />
+              <Route path="/:lang/spike-stats">
+                <SpikeStats />
               </Route>
               <Route path="/:lang/discovery">
                 <Discovery />

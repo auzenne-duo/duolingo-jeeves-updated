@@ -187,11 +187,21 @@ def set_spike_confirm():
     return json.jsonify({"confirmed": desired_state, "user_id": user_id})
 
 
-@blueprint_api.route("/api/1/<lang>/confirmation_stats")
-def get_confirmation_stats(lang):
+@blueprint_api.route("/api/1/<lang>/spike_stats")
+def get_spike_stats(lang):
+    min_max_possible_dates = app_registry(SpikeIndexDAL).get_min_and_max_spike_dates()
+    start_date = request.args.get("start_date", min_max_possible_dates["min"])
+    end_date = request.args.get("end_date", min_max_possible_dates["max"])
     spike_category = request.args.get("spike_category", default="ALL_SPIKES")
+    spike_threshold = request.args.get("spike_threshold", default=3)
     return json.jsonify(
-        app_registry(SpikeIndexDAL).get_spike_confirmation_stats(lang, spike_category)
+        app_registry(SpikeIndexDAL).calculate_spike_stats(
+            lang,
+            spike_category,
+            spike_threshold=spike_threshold,
+            start_date=start_date,
+            end_date=end_date,
+        )
     )
 
 
