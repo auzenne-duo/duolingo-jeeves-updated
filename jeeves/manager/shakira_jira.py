@@ -290,6 +290,59 @@ class ShakiraJiraApiClient:
                 print_request_exception(e)
                 return None
 
+    def get_issue_details(self, project: str, issue_key: str) -> Optional[Dict]:
+        """
+        Get details for JIRA issue with key issue_key
+        For reference: https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get
+
+        parameters:
+            issue_key: JIRA issue to get details for e.g. DLAA-5690
+
+        """
+        url = f"{_HOST}/rest/api/3/issue/{issue_key}"
+        headers = {"Accept": "application/json"}  # header required by JIRA API
+        auth = self._get_jira_auth(project)
+
+        try:
+            r = get(url, auth=auth, headers=headers)
+            r.raise_for_status()
+            response = json.loads(r.text)
+            return response
+        except RequestException as e:
+            print_request_exception(e)
+            return None
+
+    def link_issues(
+        self,
+        project: str,
+        outward_issue_key: str,
+        inward_issue_key: str,
+        link_type: str = "Relates",
+    ):
+        """
+        Link two Jira issues
+        For reference: https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-links/#api-group-issue-links
+
+        parameters:
+            outward_issue_key: JIRA issue to create link from e.g. DLAA-5690
+            inward_issue_key: JIRA issue to create link to e.g. DLAA-5691
+
+        """
+
+        url = f"{_HOST}/rest/api/3/issueLink"
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        auth = self._get_jira_auth(project)
+        data = {
+            "outwardIssue": {"key": outward_issue_key},
+            "inwardIssue": {"key": inward_issue_key},
+            "type": {"name": link_type},
+        }
+        try:
+            r = post(url, auth=auth, headers=headers, data=json.dumps(data))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e)
+
     def upload_attachments(self, project: str, issue_key: str, files: Dict[str, "FileStorage"]):
         """
         Upload attachment to JIRA issue with key issue_key
@@ -302,7 +355,7 @@ class ShakiraJiraApiClient:
         """
         url = f"{_API}/issue/{issue_key}/attachments"
         headers = {"X-Atlassian-Token": "no-check"}  # header required by JIRA API
-        auth = auth = self._get_jira_auth(project)
+        auth = self._get_jira_auth(project)
         jira_files = [
             (
                 "file",  # The JIRA API requires every file to have the form name 'file'

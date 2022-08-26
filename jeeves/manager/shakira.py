@@ -101,6 +101,7 @@ class ShakiraManager:
         feature: Optional[str],
         slack_report_type: Optional[str],
         client_specified_slack_channel_name: Optional[str],
+        related_issue_key: Optional[str],
         summary: str,
         description: Optional[str],
         generated_description: Optional[str],
@@ -116,6 +117,7 @@ class ShakiraManager:
             feature: e.g. Achievements
             slack_report_type: e.g. "Lesson content / accepted translations" or "Visual polish".
             client_specified_slack_channel_name: e.g. #visual-polish. If this is set, override the other parameters and post in this channel.
+            related_issue_key: e.g. "DEL-1773". If this is set the related issue will be linked to the new issue.
             summary: Roughly one-sentence summary of issue.
             description: Longer issue description.
             generated_description: Generated information such as app version, fullstory url, session type, etc.
@@ -170,7 +172,22 @@ class ShakiraManager:
 
         screenshot = files.get("screenshot")
 
-        should_post_to_slack = channel is not None
+        post_to_slack_only = channel is not None and jira_label_from_channel is None
+        if related_issue_key and not post_to_slack_only:
+            related_issue_details = self._jira_client.get_issue_details(
+                project=project, issue_key=related_issue_key
+            )
+            related_issue_exists = (
+                related_issue_details is not None and related_issue_details.get("id") is not None
+            )
+        else:
+            related_issue_exists = False
+
+        related_issue_invalid = related_issue_key is not None and not related_issue_exists
+
+        should_post_to_slack = (
+            channel is not None and not related_issue_invalid
+        ) or post_to_slack_only
         should_post_to_jira = jira_label_from_channel is not None or not should_post_to_slack
 
         issue_key = None
@@ -192,6 +209,13 @@ class ShakiraManager:
             if issue_key:
                 self._jira_client.upload_attachments(project, issue_key, files)
                 issue_url = self._jira_client.issue_url(issue_key)
+
+                if related_issue_exists:
+                    self._jira_client.link_issues(
+                        project=project,
+                        outward_issue_key=related_issue_key,
+                        inward_issue_key=issue_key,
+                    )
 
             if not should_post_to_slack:
                 return (
