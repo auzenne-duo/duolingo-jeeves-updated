@@ -106,7 +106,7 @@ class DuplicateGraphResolver:
         If exactly 0 such documents are found, a new document is created and
         added to the existing set of documents. If exactly 1 document is found,
         it will be used as the parent issue for the whole group. If 2 or more
-        documents are found, an exception will be thrown.
+        documents are found, one parent will be chosen and the rest deprecated.
 
         Parameters:
             existing_keys: A list of issue keys of issues that we want to
@@ -151,9 +151,9 @@ class DuplicateGraphResolver:
                 parent_key
             )
         else:
-            (parent_key, deprecated_parent_issues) = self.choose_parent_issue(group_parents)
-            deprecated_parent_issue_keys = [issue.issue_key for issue in deprecated_parent_issues]
-            self._deprecate_parent_issues(deprecated_parent_issues)
+            parent_key, deprecated_parent_issue_keys = self.resolve_multiple_parent_issues(
+                group_parents
+            )
 
         parent_doc = duplicate_graph.issue_keys_to_documents[parent_key]
         parent_data = parse_parent_description(parent_doc.body_text)
@@ -274,6 +274,14 @@ class DuplicateGraphResolver:
         except:
             return False
 
+    def resolve_multiple_parent_issues(
+        self, group_parents: List[JiraDocument]
+    ) -> Tuple[str, List[str]]:
+        (parent_key, deprecated_parent_issues) = self.choose_parent_issue(group_parents)
+        deprecated_parent_issue_keys = [issue.issue_key for issue in deprecated_parent_issues]
+        self._deprecate_parent_issues(deprecated_parent_issues)
+        return parent_key, deprecated_parent_issue_keys
+
     def choose_parent_issue(
         self, parent_issues: List[JiraDocument]
     ) -> Tuple[str, List[JiraDocument]]:
@@ -341,12 +349,12 @@ class DuplicateGraphResolver:
                     list(set(duplicate_graph.issue_keys_to_documents) - {issue.issue_key})
                 )
             else:
-                parent_keys = [
-                    key
+                parent_issues = [
+                    issue
                     for key, issue in duplicate_graph.issue_keys_to_documents.items()
                     if JiraDocument.is_group_parent(issue)
                 ]
-                if len(parent_keys) == 1:
-                    issue.parent_issue = parent_keys[0]
-                elif len(parent_keys) > 1:
-                    raise Exception("more than one Jira issue as parent")
+                if len(parent_issues) == 1:
+                    issue.parent_issue = parent_issues[0].issue_key
+                elif len(parent_issues) > 1:
+                    issue.parent_issue, _ = self.resolve_multiple_parent_issues(parent_issues)
