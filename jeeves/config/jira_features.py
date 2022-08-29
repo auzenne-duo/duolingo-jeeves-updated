@@ -28,7 +28,6 @@ JIRA_FEATURES = {
             "China Phone number": [],
             "China Compliances": [],
             "China Android Plus": [],
-            "Year in Review": [],
             "Cantonese": [],
         },
         "Connections": {
@@ -45,13 +44,13 @@ JIRA_FEATURES = {
             ],
         },
         "Onboarding": {
-            "Onboarding": ["new user", "on boarding"],
+            "Onboarding": ["new user", "on boarding", "funboarding"],
             "Placement Test": [],
+            "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
         },
         "Priority Markets": {
             "Welcome message": [],
             "Welcome back quest": [],
-            "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
             "What's app related": ["whatsapp", "whatsapp opt in"],
             "India phone number related": ["india"],
             "Social sign-in": ["apple sign in", "google sign in"],
@@ -78,8 +77,9 @@ JIRA_FEATURES = {
             "Quests Tab": [],
         },
         "Virality": {
-            "In-app sharing": ["sharing", "share", "share card"],
+            "In-app sharing": ["sharing", "share", "share card", "rewarded sharing"],
             "Weekly progress report": ["weekly report", "progress report"],
+            "Year in Review": [],
         },
         "None": {
             "Next lesson ads": [],
