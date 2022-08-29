@@ -15,7 +15,7 @@ variable "environment" {
 }
 
 variable "owner" {
-  default = "Yijin Kang"
+  default = "yijin@duolingo.com"
 }
 
 variable "ecs_cluster" {
