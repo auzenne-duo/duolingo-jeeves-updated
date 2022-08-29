@@ -173,6 +173,7 @@ class JiraApiDAL:
         description: Optional[JSON] = None,
         remove_parent_bug_label: bool = False,
         feature: Optional[str] = None,
+        priority: Optional[str] = None,
     ):
         """
         Update the issue's fields.
@@ -191,6 +192,8 @@ class JiraApiDAL:
             feature_field_key = JiraDocument.get_feature_field_key()
             if feature_field_key:
                 fields_dict[feature_field_key] = {"value": feature}
+        if priority:
+            update_dict["priority"] = [{"set": priority}]
 
         data_operation = {"update": update_dict, "fields": fields_dict}
         try:

@@ -4,7 +4,7 @@ of one. This code is in its own file because putting it anywhere else wouldn't
 make sense or would cause a circular dependency.
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from duolingo_base.util import registry
 
@@ -19,6 +19,7 @@ from jeeves.util.parent_jira_issue_util import (
     parse_parent_description,
     update_parent_data_from_child,
 )
+from jeeves.util.priority_estimator import PriorityEstimator
 
 
 @registry.bind(es_dal=registry.reference(ElasticsearchDAL), jira_dal=registry.reference(JiraApiDAL))
@@ -136,6 +137,9 @@ class DuplicateGraphResolver:
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
         features = [doc.feature for doc in doc_reps if doc.feature]
         most_common_feature = max(set(features), key=features.count) if features else None
+        priority = PriorityEstimator.estimate_priority(
+            "".join([doc.header_text for doc in doc_reps]), len(doc_reps) - len(group_parents)
+        )
 
         parent_key = None
         deprecated_parent_issue_keys = []
@@ -187,7 +191,7 @@ class DuplicateGraphResolver:
                 any_failure = True
                 result_list.append(f"F {outward_end} {inward_end}\n")
 
-        self._try_set_remote_parent_body_and_feature(parent_key, parent_data, most_common_feature)
+        self._try_set_remote_parent(parent_key, parent_data, most_common_feature, priority)
 
         result_manifest = "".join(result_list)
         # If we had no successes and no failures, then we didn't create any new
@@ -250,8 +254,12 @@ class DuplicateGraphResolver:
         except:
             return False
 
-    def _try_set_remote_parent_body_and_feature(
-        self, parent_key: str, data: Dict[str, Dict[str, int]], feature: str
+    def _try_set_remote_parent(
+        self,
+        parent_key: str,
+        data: Dict[str, Dict[str, int]],
+        feature: Optional[str],
+        priority: Optional[str],
     ) -> bool:
         """
         Sets the body text of the issue specified by parent_key to content
@@ -261,6 +269,8 @@ class DuplicateGraphResolver:
             parent_key: The issue key of the parent issue we want to edit
             data: The data we will use to generate the new parent body. See
                   parse_parent_description for format.
+            feature: The string to be used for the issue's feature field
+            priority: The string to be used for the issue's priority field
 
         Returns:
             True if the Jira API indicates that the operation completed
@@ -268,7 +278,10 @@ class DuplicateGraphResolver:
         """
         try:
             self._jira_dal.update_issue(
-                parent_key, description=generate_parent_body_text_from_data(data), feature=feature
+                parent_key,
+                description=generate_parent_body_text_from_data(data),
+                feature=feature,
+                priority=priority,
             )
             return True
         except:

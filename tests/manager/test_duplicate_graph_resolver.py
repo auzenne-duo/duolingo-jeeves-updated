@@ -11,6 +11,7 @@ from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.date_util import get_n_days_ago
+from jeeves.util.priority_estimator import JiraPriority
 
 mock_es_dal = ElasticsearchDAL()
 mock_jira_dal = JiraApiDAL()
@@ -27,13 +28,14 @@ def _jira_document(
     linked_duplicate_keys=None,
     labels=None,
     feature="",
+    header_text="I am a header",
 ):
     doc = JiraDocument(
         data_source="JIRA",
         document_id="doc1",
         jeeves_uid="uid1",
         date_time=updated_date,
-        header_text="I am a header",
+        header_text=header_text,
         body_text="I am body text",
         language="en",
         links=[],
@@ -144,9 +146,12 @@ parent_of_dupes = _jira_document(
 )
 child_2 = _jira_document(issue_number=2, linked_duplicate_keys=["DLAA-1", "DLAA-3"])
 child_3 = _jira_document(issue_number=3, linked_duplicate_keys=["DLAA-2"])
-no_dupes = _jira_document(issue_number=4, feature="shake")
+no_dupes = _jira_document(issue_number=4, feature="shake", header_text="site is crashing")
 no_parent_5 = _jira_document(
-    issue_number=5, linked_duplicate_keys=["DLAA-6"], feature="achievements"
+    issue_number=5,
+    linked_duplicate_keys=["DLAA-6"],
+    feature="achievements",
+    header_text="site crashed",
 )
 no_parent_6 = _jira_document(issue_number=6, linked_duplicate_keys=["DLAA-5"], feature="shake")
 jira_documents = {
@@ -250,5 +255,8 @@ class TestDuplicateGraphResolver(unittest.TestCase):
             ],
         }
         magic_mock_jira_dal.update_issue.assert_any_call(
-            "parent_key", description=expected_description, feature="shake"
+            "parent_key",
+            description=expected_description,
+            feature="shake",
+            priority=JiraPriority.HIGH.value,
         )

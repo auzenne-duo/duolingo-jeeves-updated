@@ -72,6 +72,7 @@ def test_report_issue_to_jira_only():
         reporter_email=None,
         pre_release=False,
         will_post_to_slack=False,
+        priority="Low",
     )
     assert not shakira_slack_mock.post_issue.called
 
@@ -104,6 +105,7 @@ def test_report_issue_with_valid_related_jira_ticket():
         reporter_email=None,
         pre_release=False,
         will_post_to_slack=True,
+        priority="Low",
     )
 
     shakira_jira_mock.get_issue_details.assert_called_once_with(
@@ -153,6 +155,7 @@ def test_report_issue_with_invalid_related_jira_ticket():
         reporter_email=None,
         pre_release=False,
         will_post_to_slack=False,
+        priority="Low",
     )
 
     shakira_jira_mock.get_issue_details.assert_called_once_with(
@@ -272,6 +275,7 @@ def test_report_issue_to_both_v1():
         reporter_email=None,
         pre_release=False,
         will_post_to_slack=True,
+        priority="Low",
     )
     shakira_slack_mock.post_issue.assert_called_once_with(
         project="DLAA",
@@ -310,6 +314,7 @@ def test_report_issue_to_both_v2():
         reporter_email=None,
         pre_release=False,
         will_post_to_slack=True,
+        priority="Low",
     )
     shakira_slack_mock.post_issue.assert_called_once_with(
         project="DLAA",
@@ -350,6 +355,7 @@ def test_report_v2_feedback():
         reporter_email=None,
         pre_release=False,
         will_post_to_slack=False,
+        priority="Low",
     )
     assert not shakira_slack_mock.post_issue.called
 
@@ -380,5 +386,6 @@ def test_report_issue_from_jeeves():
         reporter_email=None,
         pre_release=False,
         will_post_to_slack=False,
+        priority="Low",
     )
     assert not shakira_slack_mock.post_issue.called

@@ -9,6 +9,7 @@ from duolingo_base.util import registry
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.slack_channel import SlackChannel
+from jeeves.util.priority_estimator import PriorityEstimator
 from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM, JIRA_VIA_JEEVES_LABEL
 
 _VIA_JEEVES_MARKER = "[via Jeeves]"
@@ -189,7 +190,6 @@ class ShakiraManager:
             channel is not None and not related_issue_invalid
         ) or post_to_slack_only
         should_post_to_jira = jira_label_from_channel is not None or not should_post_to_slack
-
         issue_key = None
         issue_url = None
         if should_post_to_jira:
@@ -205,6 +205,7 @@ class ShakiraManager:
                 reporter_email=reporter_email,
                 pre_release=pre_release,
                 will_post_to_slack=should_post_to_slack,
+                priority=PriorityEstimator.estimate_priority(summary),
             )
             if issue_key:
                 self._jira_client.upload_attachments(project, issue_key, files)

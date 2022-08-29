@@ -12,6 +12,7 @@ from requests.exceptions import RequestException
 from werkzeug.datastructures import FileStorage
 
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
+from jeeves.model.jira_priorities import JiraPriority
 from jeeves.util.error_util import print_request_exception
 
 _HOST = "https://duolingo.atlassian.net"
@@ -213,6 +214,7 @@ class ShakiraJiraApiClient:
         reporter_email: Optional[str],
         pre_release: bool,
         will_post_to_slack: Optional[bool],
+        priority: Optional[JiraPriority],
     ) -> Optional[str]:
         """
         Create an issue in JIRA.
@@ -236,7 +238,6 @@ class ShakiraJiraApiClient:
         # We currently only create bugs. In the future this could change based on the feature
         # or be specified by the client.
         issuetype = self._get_metadata_for_specific_issuetype(project, _ISSUE_TYPE_BUG)
-
         if issuetype:
             fields = {
                 "project": {"key": project},
@@ -262,6 +263,9 @@ class ShakiraJiraApiClient:
                 feature_value_id = issuetype.get_id_for_allowed_feature_value(feature)
                 if feature_field_key and feature_value_id:
                     fields[feature_field_key] = {"id": feature_value_id}
+
+            if priority:
+                fields["priority"] = {"name": priority}
 
             reporter_id = None
             if reporter_email:
