@@ -97,8 +97,7 @@ def manage_tickets(lang):
         total_records = paginated_tickets["total_records"]
 
         return_packet = {"data": values, "total_records": total_records}
-
-        if total_records > offset:
+        if total_records > offset + len(values):
             return_packet["next_sort_id"] = paginated_tickets["sort_id"]
         if offset > 0:
             return_packet["prev_sort_id"] = paginated_tickets["prev_sort_id"]
