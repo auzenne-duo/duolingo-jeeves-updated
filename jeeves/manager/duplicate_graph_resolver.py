@@ -137,7 +137,7 @@ class DuplicateGraphResolver:
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
         features = [doc.feature for doc in doc_reps if doc.feature]
         most_common_feature = max(set(features), key=features.count) if features else None
-        priority = PriorityEstimator.estimate_priority(
+        priority, _ = PriorityEstimator.estimate_priority(
             "".join([doc.header_text for doc in doc_reps]), len(doc_reps) - len(group_parents)
         )
 

@@ -186,6 +186,8 @@ class ShakiraManager:
 
         related_issue_invalid = related_issue_key is not None and not related_issue_exists
 
+        priority, keywords = PriorityEstimator.estimate_priority(summary)
+
         should_post_to_slack = (
             channel is not None and not related_issue_invalid
         ) or post_to_slack_only
@@ -205,7 +207,7 @@ class ShakiraManager:
                 reporter_email=reporter_email,
                 pre_release=pre_release,
                 will_post_to_slack=should_post_to_slack,
-                priority=PriorityEstimator.estimate_priority(summary),
+                priority=priority,
             )
             if issue_key:
                 self._jira_client.upload_attachments(project, issue_key, files)
@@ -217,6 +219,15 @@ class ShakiraManager:
                         outward_issue_key=related_issue_key,
                         inward_issue_key=issue_key,
                     )
+
+                # add comment that priority is automatically generated
+                based_on_text = (
+                    f"based on the keyword(s): [{', '.join(keywords)}] and number of similar reports"
+                    if keywords
+                    else "by default"
+                )
+                comment = f"Priority was automatically assigned {priority} {based_on_text}. Please change any incorrect priorities so we can incorporate your feedback!"
+                self._jira_client.add_comment(project, issue_key, comment)
 
             if not should_post_to_slack:
                 return (

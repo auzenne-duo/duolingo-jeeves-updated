@@ -294,6 +294,18 @@ class ShakiraJiraApiClient:
                 print_request_exception(e)
                 return None
 
+    def add_comment(self, project: str, issue_key: str, comment: str) -> None:
+        request = {"body": comment}
+        url = f"{_API}/issue/{issue_key}/comment"
+        headers = {"Content-Type": "application/json"}
+        auth = self._get_jira_auth("DLAW")
+        try:
+            r = post(url, auth=auth, headers=headers, data=json.dumps(request))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e)
+            return None
+
     def get_issue_details(self, project: str, issue_key: str) -> Optional[Dict]:
         """
         Get details for JIRA issue with key issue_key

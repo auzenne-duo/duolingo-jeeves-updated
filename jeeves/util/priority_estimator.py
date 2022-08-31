@@ -13,50 +13,51 @@ class JiraPriority(Enum):
 
 
 class PriorityEstimator:
-    # Note, to counteract high priority words "freez", "break", and "kill",
-    # the phrases "streak freez", "skill", and "line break" are added to low priority
     low_priority_words = {
         "align",
-        "typo",
+        "capital",
+        "center",
+        "depth",
         "font",
-        "spac",
+        "horizontal",
+        "large",
+        "mismatch",
+        "orient",
         "polish",
         "position",
-        "mismatch",
-        "capital",
-        "horizontal",
-        "vertical",
-        "large",
-        "small",
-        "depth",
         "separat",
+        "small",
+        "spac",
         "text",
-        "streak freez",
-        "skill",
-        "line break",
+        "typo",
+        "vertical",
     }
     high_priority_words = {
-        "block",
-        "freez",
-        "froze",
-        "crash",
-        "fail",
-        "undid",
-        "stuck",
         "blank",
-        "force",
+        "block",
         "break",
         "broken",
-        "prevent",
-        "unreach",
-        "purchase",
-        "lock",
-        "restart",
+        "crash",
+        "error",
+        "exit",
+        "fail",
+        "force",
+        "freez",
+        "froze",
         "kill",
-        "reboot",
+        "lock",
         "not show",
-        "nothing",
         "not visible",
+        "nothing",
+        "prevent",
+        "purchase",
+        "reboot",
+        "restart",
+        "stuck",
+        "undid",
+        "unknown",
+        "unreach",
+        "unsupported",
     }
 
     @classmethod
@@ -71,30 +72,35 @@ class PriorityEstimator:
         return:
             priority: JiraPriority of Low, Medium, or High
         """
+        text = text.lower()
+        high_keywords = []
+        low_keywords = []
         low_count = high_count = 0
         for word in cls.low_priority_words:
-            low_count += word in text
+            if word in text:
+                low_count += 1
+                low_keywords.append(word)
         for word in cls.high_priority_words:
-            high_count += word in text
+            if word in text:
+                high_count += 1
+                high_keywords.append(word)
 
-        if high_count > low_count:
+        if high_count:
             severity = 3
-        elif high_count == low_count:
-            severity = 2
-        else:
+        elif low_count:
             severity = 1
-
-        if num_dupes < 1:
-            impact = 1
-        elif 1 <= num_dupes < 3:
-            impact = 2
         else:
-            impact = 3
+            severity = 2
+
+        if num_dupes < 3:
+            impact = 0
+        else:
+            impact = 1
 
         priority = severity + impact
-        if 0 < priority <= 3:
-            return JiraPriority.LOW.value
-        elif 3 < priority <= 4:
-            return JiraPriority.MEDIUM.value
+        if 0 < priority <= 1:
+            return JiraPriority.LOW.value, low_keywords
+        elif 1 < priority <= 2:
+            return JiraPriority.MEDIUM.value, low_keywords
         else:
-            return JiraPriority.HIGH.value
+            return JiraPriority.HIGH.value, high_keywords
