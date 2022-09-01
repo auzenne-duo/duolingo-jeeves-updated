@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, DefaultDict, List
+from typing import Any, DefaultDict, List, Tuple
 from uuid import uuid4
 
 import rollbar
@@ -200,14 +200,10 @@ def _crawl_documents_for_data_source(
             _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
 
 
-def crawl_tickets() -> None:
+def get_s3_client_buckets_and_sqs() -> Tuple[s3.S3Client, str, sqs.SQSClient]:
     """
-    Runs _crawl_documents_for_data_source on each available data source; see
-    that method for more details.
+    Return s3 client, s3 bucket name, and sqs client
     """
-
-    _FORCE_REFRESH_FILE = "force_refresh_flag"
-
     s3_client = None
     if _config.get_nested(["s3_document_cache", "endpoint_url"]):
         s3_client = s3.S3Client(_config.get_nested(["s3_document_cache", "endpoint_url"]))
@@ -220,29 +216,32 @@ def crawl_tickets() -> None:
         region_name=_config.get_nested(["sqs_download_verify_pipeline", "region_name"]),
         endpoint_url=_config.get_nested(["sqs_download_verify_pipeline", "endpoint_url"]),
     )
+    return s3_client, s3_bucket_name, sqs_client
 
+
+def crawl_tickets() -> None:
+    """
+    Runs _crawl_documents_for_data_source on each available data source; see
+    that method for more details.
+    """
+    s3_client, s3_bucket_name, sqs_client = get_s3_client_buckets_and_sqs()
     for manager in IDManagerMap.get_all_managers():
         _crawl_documents_for_data_source(s3_client, s3_bucket_name, sqs_client, manager)
 
-    # Check if the force refresh file is present, and create it if not
-    force_check_list = list(
-        s3_client.yield_filenames(s3_bucket_name, path_prefix=_FORCE_REFRESH_FILE)
-    )
-    if not force_check_list:
-        s3_client.upload(s3_bucket_name, _FORCE_REFRESH_FILE, "0")
 
-    # If the force refresh flag was found, forcefully refresh all documents
-    refresh_flag_str = s3_client.download(s3_bucket_name, _FORCE_REFRESH_FILE).decode("utf-8")
-    if refresh_flag_str.startswith("1"):
-        s3_client.upload(s3_bucket_name, _FORCE_REFRESH_FILE, "0")
-        print("Forcefully refreshing all documents from S3", flush=True)
-        for manager in IDManagerMap.get_all_managers():
-            s3_path_stem = manager.get_managed_document_type().get_data_source_identifier()
-            document_count = 0
-            for s3_file in s3_client.yield_filenames(s3_bucket_name, path_prefix=s3_path_stem):
-                if document_count % 1000 == 0:
-                    print(f"{document_count} {s3_path_stem} documents refreshed", flush=True)
-                if s3_file != manager.get_checkpoint_file_name():
-                    _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
-                    document_count += 1
-            print(f"Finished refreshing documents from {s3_path_stem}", flush=True)
+def force_refresh_tickets() -> None:
+    """
+    Refreshes tickets by getting all the tickets from s3 and adding them to sqs
+    """
+    s3_client, s3_bucket_name, sqs_client = get_s3_client_buckets_and_sqs()
+    print("Forcefully refreshing all documents from S3", flush=True)
+    for manager in IDManagerMap.get_all_managers():
+        s3_path_stem = manager.get_managed_document_type().get_data_source_identifier()
+        document_count = 0
+        for s3_file in s3_client.yield_filenames(s3_bucket_name, path_prefix=s3_path_stem):
+            if document_count % 1000 == 0:
+                print(f"{document_count} {s3_path_stem} documents refreshed", flush=True)
+            if s3_file != manager.get_checkpoint_file_name():
+                _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
+                document_count += 1
+        print(f"Finished refreshing documents from {s3_path_stem}", flush=True)

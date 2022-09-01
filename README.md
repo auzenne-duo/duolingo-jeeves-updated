@@ -77,6 +77,12 @@ s3-worker.json | update_jeeves_data.py | Calls `ticket_crawler.crawl_tickets()`,
 sqs-worker-1.json | sqs_verify_worker.py | Calls `process_document()` from the relevant `jeeves_manager` implementation. This method returns `None` if the corresponding `jeeves_document.check_should_index_document()` method returns `False`. | SQS queue: `config.sqs_download_verify_pipeline` | SQS queue: `config.sqs_verify_index_pipeline`
 sqs-worker-2.json | sqs_index_worker.py | Calls `check_should_index_document()` from the relevant `jeeves_document` implementation to determine if a document should be indexed. For Zendesk email documents, checks for duplicates before indexing. | SQS queue: `config.sqs_verify_index_pipeline` | Document gets indexed in ElasticSearch
 
+## Force Refresh
+
+To force refresh all tickets in jeeves, build this job: [https://jenkins-ci.duolingo.com/job/duolingo-jeeves-refresh-tickets](https://jenkins-ci.duolingo.com/job/duolingo-jeeves-refresh-tickets).
+
+To force refresh all spikes, set the `force_spike_refresh_flag` to 1 in aws bucket `jeeves-document-cache`.
+
 ## Links
 
 - [Jeeves Documentation](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/644121212/Jeeves)
