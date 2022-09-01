@@ -179,15 +179,16 @@ class ZendeskDocument(JeevesDocument):
         }
         # Also also ignore tickets with one or more of the following tags
         _TAGS_TO_IGNORE = {
-            "appeal__r_flag_session",
-            "appeal__m_flag_session",
-            "duolingo_english_test___appeal_results",
-            "closed_by_merge",
+            "abuse",
             "accommodation",
             "accommodation_request",
+            "appeal__r_flag_session",
+            "appeal__m_flag_session",
+            "closed_by_merge",
+            "duolingo_english_test___appeal_results",
             "host",
-            "abuse",
             "institutional",
+            "outbound",
             "purchase_issue",
         }
 
