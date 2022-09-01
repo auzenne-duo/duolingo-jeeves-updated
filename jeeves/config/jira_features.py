@@ -34,7 +34,6 @@ JIRA_FEATURES = {
             "Profile": [],
             "Referral": [],
             "Friends": ["friend", "invite", "contact"],
-            "Friends Quest": [],
             "Kudos": ["congrats"],
             "DuoNews": ["duo news", "feed", "news"],
             "Friends Quest": [
@@ -134,7 +133,6 @@ JIRA_FEATURES = {
                 "*ios_v2_dev*: true",
                 "android_v2_dev: true",
                 "web_v2_dev: true",
-                "path",
             ],
         },
         "Speech Lab": {
@@ -154,6 +152,9 @@ JIRA_FEATURES = {
             "Smart tips": ["smart tip"],
             "Tips": ["tip"],
             "Levels": ["level"],
+        },
+        "Path": {
+            "Path": [],
         },
     },
     "Learning Scaling": {
