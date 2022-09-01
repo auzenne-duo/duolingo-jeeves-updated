@@ -317,7 +317,7 @@ class ShakiraJiraApiClient:
         """
         url = f"{_HOST}/rest/api/3/issue/{issue_key}"
         headers = {"Accept": "application/json"}  # header required by JIRA API
-        auth = self._get_jira_auth(project)
+        auth = self._get_jira_auth("DLAA")
 
         try:
             r = get(url, auth=auth, headers=headers)
@@ -347,7 +347,7 @@ class ShakiraJiraApiClient:
 
         url = f"{_HOST}/rest/api/3/issueLink"
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
-        auth = self._get_jira_auth(project)
+        auth = self._get_jira_auth("DLAA")
         data = {
             "outwardIssue": {"key": outward_issue_key},
             "inwardIssue": {"key": inward_issue_key},
