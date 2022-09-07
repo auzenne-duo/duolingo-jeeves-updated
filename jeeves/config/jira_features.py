@@ -95,6 +95,7 @@ JIRA_FEATURES = {
             "Crowns": [],
             "Decayed Skills": ["cracked skill", "guilded skill", "gilded"],
             "Generated sessions": [],
+            "Smart tips": ["smart tip"],
         },
         "Grading": {
             "Grading issue": [
@@ -112,7 +113,7 @@ JIRA_FEATURES = {
                 "*session type*: alphabet_lesson",
             ],
             "Transliteration": [],
-            "Non-latin alphabet": [],
+            "Non-latin alphabet": ["Korean", "Japanese", "Kanji", "Chinese"],
         },
         "Speaking": {
             "Audio Lessons": ["audio lesson", "listen", "podcast"],
@@ -134,6 +135,7 @@ JIRA_FEATURES = {
                 "android_v2_dev: true",
                 "web_v2_dev: true",
             ],
+            "Tips": ["tip"],
         },
         "Speech Lab": {
             "World character voice": [
@@ -149,8 +151,6 @@ JIRA_FEATURES = {
             ]
         },
         "None": {
-            "Smart tips": ["smart tip"],
-            "Tips": ["tip"],
             "Levels": ["level"],
         },
         "Path": {
