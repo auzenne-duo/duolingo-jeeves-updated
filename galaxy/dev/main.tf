@@ -265,27 +265,3 @@ module "duolingo-jeeves-email-sender" {
   schedule_expression  = "cron(* * * * ? 1970)" # "cron(0/20 * * * ? *)"
   release_version      = var.release_version
 }
-
-module "duolingo-jeeves-dogfood-xp-worker" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
-  environment          = var.environment
-  service              = var.service
-  subservice           = "dogfood-xp-worker"
-  cpu                  = 256 # 1024 equals one core
-  memory               = 512 # in MB
-  min_count            = 1   # Minimum number of tasks to run in autoscaling group
-  max_count            = 1   # Maximum number of tasks to run in autoscaling group
-  product              = var.product
-  owner                = var.owner       # The name of the owner for this service
-  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
-  container_definition = "dogfood-xp-worker.json"
-  schedule_expression  = "cron(0 * * * ? *)"
-  release_version      = var.release_version
-
-  environment_vars = [
-    {
-      name  = "GOOGLE_CREDENTIALS_INFO"
-      value = data.aws_kms_secrets.secrets.plaintext["google-credentials-info"]
-    },
-  ]
-}

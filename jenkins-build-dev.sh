@@ -10,7 +10,6 @@ MODULE_SQS_WORKER_1=duolingo-jeeves-sqs-worker-1
 MODULE_SQS_WORKER_2=duolingo-jeeves-sqs-worker-2
 MODULE_SPIKE_WORKER=duolingo-jeeves-spike-worker
 MODULE_EMAIL_SENDER=duolingo-jeeves-email-sender
-MODULE_DOGFOOD_XP_WORKER=duolingo-jeeves-dogfood-xp-worker
 
 TERRAFORM_ENV=dev
 TERRAFORM_PATH="galaxy/$TERRAFORM_ENV"
@@ -35,4 +34,3 @@ echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SQS_WORKER_1" -v "$BUILD_NUMBE
 echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SQS_WORKER_2" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
 echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SPIKE_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
 echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_EMAIL_SENDER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
-echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_DOGFOOD_XP_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
