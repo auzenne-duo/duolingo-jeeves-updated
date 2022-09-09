@@ -73,6 +73,7 @@ def test_report_issue_to_jira_only():
         pre_release=False,
         will_post_to_slack=False,
         priority="Medium",
+        related_issue_exists=False,
     )
     assert not shakira_slack_mock.post_issue.called
 
@@ -106,6 +107,7 @@ def test_report_issue_with_valid_related_jira_ticket():
         pre_release=False,
         will_post_to_slack=True,
         priority="Medium",
+        related_issue_exists=True,
     )
 
     shakira_jira_mock.get_issue_details.assert_called_once_with(
@@ -156,6 +158,7 @@ def test_report_issue_with_invalid_related_jira_ticket():
         pre_release=False,
         will_post_to_slack=False,
         priority="Medium",
+        related_issue_exists=False,
     )
 
     shakira_jira_mock.get_issue_details.assert_called_once_with(
@@ -276,7 +279,9 @@ def test_report_issue_to_both_v1():
         pre_release=False,
         will_post_to_slack=True,
         priority="Medium",
+        related_issue_exists=False,
     )
+
     shakira_slack_mock.post_issue.assert_called_once_with(
         project="DLAA",
         slack_channel=SlackChannel.VISUAL_POLISH,
@@ -315,6 +320,7 @@ def test_report_issue_to_both_v2():
         pre_release=False,
         will_post_to_slack=True,
         priority="Medium",
+        related_issue_exists=False,
     )
     shakira_slack_mock.post_issue.assert_called_once_with(
         project="DLAA",
@@ -356,6 +362,7 @@ def test_report_v2_feedback():
         pre_release=False,
         will_post_to_slack=False,
         priority="Medium",
+        related_issue_exists=False,
     )
     assert not shakira_slack_mock.post_issue.called
 
@@ -387,5 +394,6 @@ def test_report_issue_from_jeeves():
         pre_release=False,
         will_post_to_slack=False,
         priority="Medium",
+        related_issue_exists=False,
     )
     assert not shakira_slack_mock.post_issue.called

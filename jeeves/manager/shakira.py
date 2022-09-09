@@ -208,6 +208,7 @@ class ShakiraManager:
                 pre_release=pre_release,
                 will_post_to_slack=should_post_to_slack,
                 priority=priority,
+                related_issue_exists=related_issue_exists,
             )
             if issue_key:
                 self._jira_client.upload_attachments(project, issue_key, files)

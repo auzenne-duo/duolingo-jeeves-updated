@@ -39,6 +39,8 @@ _DESCRIPTION_FOR_LITERACY_ISSUES_SENT_TO_SLACK = (
     "This issue will be shared to the #team-literacy-testing Slack channel."
 )
 
+_DESCRIPTION_FOR_ISSUES_WITH_RELATED_TICKET = "This issue is linked to another issue."
+
 
 class ShakiraJiraApiClient:
     def issue_url(self, issue_key: str) -> str:
@@ -215,6 +217,7 @@ class ShakiraJiraApiClient:
         pre_release: bool,
         will_post_to_slack: Optional[bool],
         priority: Optional[JiraPriority],
+        related_issue_exists: Optional[bool],
     ) -> Optional[str]:
         """
         Create an issue in JIRA.
@@ -250,6 +253,9 @@ class ShakiraJiraApiClient:
                             generated_description,
                             self._get_slack_channel_description(project)
                             if will_post_to_slack
+                            else None,
+                            _DESCRIPTION_FOR_ISSUES_WITH_RELATED_TICKET
+                            if related_issue_exists
                             else None,
                         ]
                         if desc
@@ -317,7 +323,7 @@ class ShakiraJiraApiClient:
         """
         url = f"{_HOST}/rest/api/3/issue/{issue_key}"
         headers = {"Accept": "application/json"}  # header required by JIRA API
-        auth = self._get_jira_auth("DLAA")
+        auth = self._get_jira_auth(project)
 
         try:
             r = get(url, auth=auth, headers=headers)
@@ -347,7 +353,7 @@ class ShakiraJiraApiClient:
 
         url = f"{_HOST}/rest/api/3/issueLink"
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
-        auth = self._get_jira_auth("DLAA")
+        auth = self._get_jira_auth(project)
         data = {
             "outwardIssue": {"key": outward_issue_key},
             "inwardIssue": {"key": inward_issue_key},
