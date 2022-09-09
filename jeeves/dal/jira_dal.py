@@ -193,7 +193,7 @@ class JiraApiDAL:
             if feature_field_key:
                 fields_dict[feature_field_key] = {"value": feature}
         if priority:
-            update_dict["priority"] = [{"set": priority}]
+            update_dict["priority"] = [{"set": {"name": priority}}]
 
         data_operation = {"update": update_dict, "fields": fields_dict}
         try:
