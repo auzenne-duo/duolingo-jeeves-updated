@@ -148,7 +148,14 @@ JIRA_FEATURES = {
                 "oscar voice",
                 "lily voice",
                 "character voice",
-            ]
+            ],
+            "Mouth animation": [
+                "mouth animations",
+                "visemes",
+                "lip synch",
+                "lip synching",
+                "synchronization",
+            ],
         },
         "None": {
             "Levels": ["level"],
