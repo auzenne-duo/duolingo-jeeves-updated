@@ -150,6 +150,7 @@ declare namespace JSONAPI {
     duolingo_metadata: {
       raw?: string;
     };
+    email?: string;
     /** Feature field of a Jira ticket. */
     feature?: string;
     /** Title, subject line, etc. */
@@ -172,15 +173,29 @@ declare namespace JSONAPI {
     store?: string;
     tags?: string[];
     /** Only applies to Zendesk tickets. */
-    via?: {
-      channel?: string;
-      source?: {
-        from?: {
-          address?: string;
-          name?: string;
+    via?:
+      | {
+          channel: "api";
+        }
+      | {
+          channel: "email";
+          source: {
+            from: ZendeskEmailAccount;
+          };
+        }
+      | {
+          channel: "mobile_sdk";
+        }
+      | {
+          channel: "twitter";
+          source: {
+            from: ZendeskTwitterAccount;
+            to: ZendeskTwitterAccount;
+          };
+        }
+      | {
+          channel: "web";
         };
-      };
-    };
   }
 
   interface Tickets {
@@ -192,5 +207,17 @@ declare namespace JSONAPI {
 
   interface TimeSeries {
     values: Record<string, number | undefined>;
+  }
+
+  interface ZendeskEmailAccount {
+    address: string;
+    name?: string;
+  }
+
+  interface ZendeskTwitterAccount {
+    name?: string;
+    profile_url: string;
+    twitter_id: string;
+    username: string;
   }
 }

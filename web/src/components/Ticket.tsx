@@ -22,11 +22,19 @@ import JiraIssues from "components/JiraIssues";
 import PlatformIcon from "components/PlatformIcon";
 import ShakeToReportForm from "components/ShakeToReportForm";
 import TagFilter from "components/TagFilter";
-import renderTicketSource from "components/renderTicketSource";
 import AppStateContext from "contexts/AppStateContext";
 import imageBug from "images/ant.svg";
 import imageClose from "images/x.svg";
 import styles from "styles/Ticket.scss";
+
+const getZendeskChannel = (ticket: JSONAPI.Ticket) =>
+  ticket.via?.channel === "email"
+    ? "Email"
+    : ticket.via?.channel === "mobile_sdk"
+    ? "Zendesk mobile"
+    : ticket.via?.channel === "twitter"
+    ? "Twitter"
+    : "Zendesk";
 
 interface Props {
   className?: string;
@@ -323,7 +331,31 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
       <section className={styles.section}>
         <span className={styles.label}>Source</span>
         <div>
-          {ticket.data_source === "JIRA" ? (
+          {ticket.data_source === "AppFigures" ? (
+            <>
+              {ticket.author ? (
+                <>
+                  <TagFilter
+                    className={styles.tag}
+                    field="author"
+                    value={ticket.author}
+                  />{" "}
+                  via{" "}
+                </>
+              ) : null}
+              AppFigures
+              {ticket.store ? (
+                <>
+                  ,{" "}
+                  <TagFilter
+                    className={styles.tag}
+                    field="store"
+                    value={ticket.store}
+                  />
+                </>
+              ) : null}
+            </>
+          ) : ticket.data_source === "JIRA" ? (
             <JiraIssues
               issues={[
                 {
@@ -333,8 +365,29 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
                 },
               ]}
             />
+          ) : ticket.data_source === "Zendesk" ? (
+            <>
+              {ticket.email ? (
+                <>
+                  <a
+                    href={`https://duolingo.com/diagnostics/user/summary/email/${ticket.email}`}
+                  >
+                    {ticket.email}
+                  </a>
+                  {" via "}
+                </>
+              ) : ticket.via?.channel === "twitter" ? (
+                <>
+                  <a href={ticket.via.source.from.profile_url}>
+                    @{ticket.via.source.from.username}
+                  </a>
+                  {" via "}
+                </>
+              ) : null}
+              <a href={ticket.links?.[0]}>{getZendeskChannel(ticket)}</a>
+            </>
           ) : (
-            renderTicketSource(ticket)
+            ticket.data_source
           )}
         </div>
       </section>
