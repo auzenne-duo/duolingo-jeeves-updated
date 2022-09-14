@@ -407,6 +407,18 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
                           platform={t.platform}
                         />
                       </Link>
+                    ) : t.data_source === "Zendesk" &&
+                      t.via?.channel === "twitter" ? (
+                      <Link
+                        className={styles["tag-platform"]}
+                        onClick={e => e.stopPropagation()}
+                        to={getFilterLink(location, "via.channel", "twitter")}
+                      >
+                        <PlatformIcon
+                          className={styles.icon}
+                          platform="Twitter"
+                        />
+                      </Link>
                     ) : null}
                     {date ? (
                       <span
