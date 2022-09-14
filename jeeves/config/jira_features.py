@@ -172,7 +172,6 @@ JIRA_FEATURES = {
     "Monetization": {
         "Super Packaging": {
             "Ads / rewarded ads": ["ads"],
-            "Plus": [],
             "Super": [],
             "Plus reward videos": [],
             "Hearts / Unlimited Hearts": [
