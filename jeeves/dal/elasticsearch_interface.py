@@ -477,7 +477,6 @@ class ElasticsearchDAL:
         Parameters:
             tickets: Object representation of tickets to store.
         """
-        print("bulk indexing", len(tickets), "tickets")
         self.lemmatize_tickets(tickets)
         self.populate_jira_embedding_vectors(tickets)
 
