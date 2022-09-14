@@ -1,11 +1,11 @@
-FROM node:12.13.1-alpine3.10 AS web-requirements
+FROM node:16.13.1-alpine3.15 AS web-requirements
 
 WORKDIR /code
 COPY web/package.json .
 COPY web/package-lock.json .
 RUN npm ci
 
-FROM node:12.13.1-alpine3.10 AS web-builder
+FROM node:16.13.1-alpine3.15 AS web-builder
 
 WORKDIR /code
 COPY web .
