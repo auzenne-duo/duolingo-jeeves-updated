@@ -49,9 +49,11 @@ if __name__ == "__main__":
             documents = [_message_to_document(m) for m in messages]
             documents_deduped = duplicate_manager.dedup_document_batch(documents)
             for doc in documents_deduped:
+                print("should index:", doc.check_should_index_document(doc))
                 if doc.check_should_index_document(
                     doc
                 ) and not duplicate_manager.recent_duplicate_exists(doc):
+                    print("adding doc:", doc.date_time, doc.header_text)
                     batch_list.append(doc)
 
             if messages:

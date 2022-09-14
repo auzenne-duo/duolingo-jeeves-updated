@@ -1,10 +1,14 @@
 """
 Our model for a ticket from the Zendesk API
 """
+import json
+import os
+import time
 from hashlib import sha1
 from typing import List
 
 import attr
+from requests import Response, Session
 
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
@@ -21,10 +25,14 @@ from jeeves.util.cleanup import (
 from jeeves.util.date_util import parse_external_datetime
 from jeeves.util.metadata_standardizer import MetaStdizer
 
+_USER = os.environ.get("ZENDESK_REPORTS_USER")
+_PASSWORD = os.environ.get("ZENDESK_REPORTS_PASSWORD")
+
 
 @attr.s(kw_only=True)
 class ZendeskDocument(JeevesDocument):
 
+    email: str = attr.ib()
     product: str = attr.ib()
     priority: str = attr.ib()
     via: JSON = attr.ib()
@@ -87,6 +95,19 @@ class ZendeskDocument(JeevesDocument):
             duolingo_metadata, aux_platform_information
         )
 
+        email = None
+        if external_json["via"]["channel"] == "web":
+            with Session() as s:
+                s.auth = (_USER, _PASSWORD)
+                user_url = f"https://duolingotest.zendesk.com/api/v2/users/{external_json['requester_id']}.json"
+                r = ZendeskDocument.rate_limited_get(s, user_url)
+                j = json.loads(r.text)
+                if "error" in j:
+                    raise Exception("Error returned from Zendesk")
+                email = j["user"]["email"]
+        elif external_json["via"]["channel"] == "email":
+            email = external_json["via"]["source"]["from"].get("address")
+
         return cls(
             data_source=cls.get_data_source_identifier(),
             document_id=str(external_json["id"]),
@@ -110,6 +131,7 @@ class ZendeskDocument(JeevesDocument):
             screen_content=std_metadata["screen_content"],
             ui_language=std_metadata["ui_language"],
             username=std_metadata["username"],
+            email=email,
             product=detect_product(external_json["tags"], header).name,
             priority=external_json["priority"],
             via=external_json["via"],
@@ -151,6 +173,7 @@ class ZendeskDocument(JeevesDocument):
             ui_language=internal_json["ui_language"],
             username=internal_json["username"],
             product=internal_json["product"],
+            email=internal_json.get("email", ""),
             priority=internal_json["priority"],
             via=internal_json["via"],
             tags=internal_json["tags"],
@@ -240,3 +263,40 @@ class ZendeskDocument(JeevesDocument):
         hash_generator.update(document.requester_id.encode())
 
         return hash_generator.hexdigest()
+
+    @staticmethod
+    def rate_limited_get(s: Session, request_url: str) -> Response:
+        """
+        Zendesk has some rate limits in place that we need to respect. According to
+        https://developer.zendesk.com/rest_api/docs/support/usage_limits, we can
+        track the X-Rate-Limit-Remaining header and slow down our request frequency
+        as we start to run out of requests. This function is a wrapper around
+        Session.get() with such a modification.
+
+        Parameters:
+            s: The Session object that will be making our request.
+            request_url: The URL we want to make a GET request to.
+
+        Returns:
+            The Response object returned by Session.get().
+        """
+
+        r = s.get(request_url)
+
+        if "X-Rate-Limit-Remaining" in r.headers:
+            remaining_limit = int(r.headers["X-Rate-Limit-Remaining"])
+            # These values are pretty arbitrary
+            # We need a gradual throttling like this because multiple instances
+            # of this code can be running at once, all tied to the same Zendesk
+            # account (i.e. prod, dev, and local dev all eat into the rate limit)
+            if remaining_limit < 5:
+                time.sleep(60)
+            elif remaining_limit < 10:
+                time.sleep(30)
+            elif remaining_limit < 50:
+                time.sleep(10)
+            elif remaining_limit < 100:
+                time.sleep(5)
+            elif remaining_limit < 150:
+                time.sleep(1)
+        return r

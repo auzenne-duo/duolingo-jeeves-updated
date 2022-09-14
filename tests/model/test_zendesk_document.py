@@ -30,6 +30,7 @@ class Test(unittest.TestCase):
             "screen_content": "",
             "ui_language": "",
             "username": "",
+            "email": "",
             "product": "LA",
             "priority": None,
             "via": {

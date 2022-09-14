@@ -115,6 +115,7 @@ def _zendesk_document(header="I am a header", body="I am body text"):
         screen_content="",
         ui_language="",
         username="",
+        email="",
         product="LA",
         priority="urgent",
         via={

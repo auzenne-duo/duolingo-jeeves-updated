@@ -198,6 +198,14 @@ module "duolingo-jeeves-sqs-worker-1" {
       name  = "JIRA_API_TOKEN"
       value = data.aws_kms_secrets.secrets.plaintext["jira_api_token_sqs_worker_1"]
     },
+    {
+      name  = "ZENDESK_REPORTS_USER"
+      value = "reports@duolingo.com"
+    },
+    {
+      name  = "ZENDESK_REPORTS_PASSWORD"
+      value = data.aws_kms_secrets.secrets.plaintext["zendesk_reports_password"]
+    },
   ]
 
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-download-verify-dev.id

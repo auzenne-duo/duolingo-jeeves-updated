@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Type
 
 from duolingo_base.dal.s3 import S3Client
-from requests import Response, Session
+from requests import Session
 
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON
@@ -36,43 +36,6 @@ class ZendeskManager(JeevesManager):
         Returns the name of the S3 file used for storing checkpoint data.
         """
         return f"{ZendeskManager.get_managed_document_type().get_data_source_identifier()}/checkpoint_data.txt"
-
-    @staticmethod
-    def _rate_limited_get(s: Session, request_url: str) -> Response:
-        """
-        Zendesk has some rate limits in place that we need to respect. According to
-        https://developer.zendesk.com/rest_api/docs/support/usage_limits, we can
-        track the X-Rate-Limit-Remaining header and slow down our request frequency
-        as we start to run out of requests. This function is a wrapper around
-        Session.get() with such a modification.
-
-        Parameters:
-            s: The Session object that will be making our request.
-            request_url: The URL we want to make a GET request to.
-
-        Returns:
-            The Response object returned by Session.get().
-        """
-
-        r = s.get(request_url)
-
-        if "X-Rate-Limit-Remaining" in r.headers:
-            remaining_limit = int(r.headers["X-Rate-Limit-Remaining"])
-            # These values are pretty arbitrary
-            # We need a gradual throttling like this because multiple instances
-            # of this code can be running at once, all tied to the same Zendesk
-            # account (i.e. prod, dev, and local dev all eat into the rate limit)
-            if remaining_limit < 5:
-                time.sleep(60)
-            elif remaining_limit < 10:
-                time.sleep(30)
-            elif remaining_limit < 50:
-                time.sleep(10)
-            elif remaining_limit < 100:
-                time.sleep(5)
-            elif remaining_limit < 150:
-                time.sleep(1)
-        return r
 
     @staticmethod
     def update_s3_if_necessary(s3_client, bucket_name: str, default_start_timestamp: float) -> None:
@@ -103,7 +66,7 @@ class ZendeskManager(JeevesManager):
                 if len(urls) > 5 and len(Counter(urls[-5:])) == 1:
                     print("Stopped making request to zendesk after consecutive errors")
                     break
-                r = ZendeskManager._rate_limited_get(s, next_url)
+                r = ZendeskDocument.rate_limited_get(s, next_url)
                 j = json.loads(r.text)
                 try:
                     if "error" in j:
@@ -112,7 +75,7 @@ class ZendeskManager(JeevesManager):
                     for ticket_json in j["tickets"]:
                         ticket_id = ticket_json["id"]
                         comments_url = f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
-                        comments_response = ZendeskManager._rate_limited_get(s, comments_url)
+                        comments_response = ZendeskDocument.rate_limited_get(s, comments_url)
                         comments_structure = json.loads(comments_response.text)
                         attachments = []
                         for com in comments_structure.get("comments", {}):

@@ -33,6 +33,7 @@ def _get_document(category: ShakeToReportCategory, ios_v2_dev: Optional[bool] = 
         screen_content="",
         ui_language="",
         username="",
+        email="",
         product="",
         priority="",
         via={},
