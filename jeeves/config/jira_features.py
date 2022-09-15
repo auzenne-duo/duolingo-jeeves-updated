@@ -113,7 +113,16 @@ JIRA_FEATURES = {
                 "*session type*: alphabet_lesson",
             ],
             "Transliteration": [],
-            "Non-latin alphabet": ["Korean", "Japanese", "Kanji", "Chinese"],
+            "Non-latin alphabet": [
+                "Korean",
+                "Japanese",
+                "Kanji",
+                "Chinese",
+                "Bonsai",
+                "Hindi",
+                "Russian",
+                "Arabic",
+            ],
         },
         "Speaking": {
             "Audio Lessons": ["audio lesson", "listen", "podcast"],
@@ -198,7 +207,7 @@ JIRA_FEATURES = {
             "Practice Hub": [],
             "Mastery / Progress quiz": ["mastery quiz", "progress quiz"],
             "Family plan": [],
-            "Legendary": [],
+            "Legendary": ["Legendarize"],
         },
     },
     "New Initiatives": {
@@ -235,6 +244,10 @@ JIRA_FEATURES = {
                 "vikram",
                 "lucy",
                 "miguel",
+                "face",
+                "eye",
+                "arm",
+                "leg",
             ],
             "Animations": ["animat", "motion", "moving", "rive"],
             "Password Reset": [
