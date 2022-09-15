@@ -1,5 +1,11 @@
+@import "constants";
+
 .clickable {
   cursor: pointer;
+}
+
+.triangle {
+  margin-left: $juicy-length;
 }
 
 .widetable {

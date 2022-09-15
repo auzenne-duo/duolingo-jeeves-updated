@@ -67,6 +67,7 @@ const SortTable = <T,>({ columns, data }: Props<T>) => {
               >
                 {c.header}
                 <DisclosureTriangle
+                  className={styles.triangle}
                   direction={
                     columnSortStatus === SortStatus.Ascending ? "down" : "up"
                   }
