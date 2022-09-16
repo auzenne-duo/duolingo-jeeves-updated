@@ -66,7 +66,7 @@ if [[ $TERRAFORM_ENV == "prod" ]]; then
   # --- report deployment to rollbar ---
   curl https://api.rollbar.com/api/1/deploy/ \
     -F access_token="d706122c96ae40a79f2542e0e0cab6bb" \
-    -F environment="$TERRAFORM_ENV" \
+    -F environment="production" \
     -F revision="$GIT_COMMIT" \
     -F local_username="jenkins-ci"
 
