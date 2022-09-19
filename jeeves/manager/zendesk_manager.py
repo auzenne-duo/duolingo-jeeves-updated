@@ -94,9 +94,12 @@ class ZendeskManager(JeevesManager):
                             )
                         except RequestException as e:
                             print_request_exception(
-                                e, rollbar_level="warning" if r.status_code == 404 else "error"
+                                e,
+                                rollbar_level="warning"
+                                if e.response.status_code == 404
+                                else "error",
                             )
-                            if r.status_code == 404:
+                            if e.response.status_code == 404:
                                 continue
                             raise
 
@@ -114,12 +117,12 @@ class ZendeskManager(JeevesManager):
 
                 except RequestException as e:
                     print_request_exception(
-                        e, rollbar_level="warning" if r.status_code == 429 else "error"
+                        e, rollbar_level="warning" if e.response.status_code == 429 else "error"
                     )
                     # If we exceeded a rate limit, we should just wait and try again.
-                    if r.status_code == 429 and "Retry-After" in r.headers:
+                    if e.response.status_code == 429 and "Retry-After" in e.response.headers:
                         print("Exception was due to rate-limiting. Sleeping.")
-                        time.sleep(int(r.headers["Retry-After"]))
+                        time.sleep(int(e.response.headers["Retry-After"]))
                         continue
                     # If something non-recoverable has happened, escalate.
                     raise (e)
