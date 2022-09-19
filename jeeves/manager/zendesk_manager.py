@@ -10,14 +10,13 @@ from datetime import datetime
 from typing import Type
 
 from duolingo_base.dal.s3 import S3Client
-from requests import RequestException, Session
+from requests import Session
 
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.zendesk_document import ZendeskDocument
 from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
-from jeeves.util.error_util import print_request_exception
 
 _USER = os.environ.get("ZENDESK_USER")
 _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
@@ -67,41 +66,23 @@ class ZendeskManager(JeevesManager):
                 if len(urls) > 5 and len(Counter(urls[-5:])) == 1:
                     print("Stopped making request to zendesk after consecutive errors")
                     break
+                r = ZendeskDocument.rate_limited_get(s, next_url)
+                j = json.loads(r.text)
                 try:
-                    r = ZendeskDocument.rate_limited_get(s, next_url)
-                    r.raise_for_status()
-                    j = json.loads(r.text)
-
                     if "error" in j:
                         raise Exception("Error returned from Zendesk")
 
                     for ticket_json in j["tickets"]:
                         ticket_id = ticket_json["id"]
                         comments_url = f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
-
-                        try:
-                            comments_response = ZendeskDocument.rate_limited_get(s, comments_url)
-                            comments_response.raise_for_status()
-                            comments_structure = json.loads(comments_response.text)
-                            attachments = []
-                            for com in comments_structure.get("comments", {}):
-                                for attach in com.get("attachments", {}):
-                                    attachments.append(attach["content_url"])
-                            ticket_json["attachments"] = attachments
-
-                            ZendeskManager._store_document_to_s3(
-                                s3_client, bucket_name, ticket_json
-                            )
-                        except RequestException as e:
-                            print_request_exception(
-                                e,
-                                rollbar_level="warning"
-                                if e.response.status_code == 404
-                                else "error",
-                            )
-                            if e.response.status_code == 404:
-                                continue
-                            raise
+                        comments_response = ZendeskDocument.rate_limited_get(s, comments_url)
+                        comments_structure = json.loads(comments_response.text)
+                        attachments = []
+                        for com in comments_structure.get("comments", {}):
+                            for attach in com.get("attachments", {}):
+                                attachments.append(attach["content_url"])
+                        ticket_json["attachments"] = attachments
+                        ZendeskManager._store_document_to_s3(s3_client, bucket_name, ticket_json)
 
                     if j["end_time"]:
                         print(
@@ -115,9 +96,14 @@ class ZendeskManager(JeevesManager):
                     if j["end_of_stream"]:
                         break
 
-                except RequestException as e:
-                    print_request_exception(
-                        e, rollbar_level="warning" if e.response.status_code == 429 else "error"
+                except Exception as e:
+                    print(
+                        f"""
+                        Exception happened for URL: {next_url}
+                        Status code: {r.status_code}
+                        Returned headers: {r.headers}
+                        Returned body: {r.text}
+                        """
                     )
                     # If we exceeded a rate limit, we should just wait and try again.
                     if e.response.status_code == 429 and "Retry-After" in e.response.headers:
