@@ -1,25 +1,46 @@
 import sys
+from typing import Optional
 
 import rollbar
 from elasticsearch_dsl.response import Response
 from requests.exceptions import RequestException
 
 
-def print_request_exception(e: RequestException):
+def print_request_exception(e: RequestException, rollbar_level: Optional[str] = None):
+    """Print information about a RequestException.
+
+    Parameters:
+        e: The RequestException, probably raised by .raise_for_status()
+        rollbar_level: "critical", "error", "warning", "info", "debug", or None. If None,
+            the error will not be reported to rollbar.
+    """
+
     method = e.request.method if e.request is not None else None
     url = e.request.url if e.request is not None else None
     status_code = e.response.status_code if e.response is not None else None
     reason = e.response.reason if e.response is not None else None
+    headers = e.response.headers if e.response is not None else None
+    body = e.response.text if e.response is not None else None
     print(
         f"""
         An exception occurred for the following request:
         {method} {url}
         The above request generated the following response:
         {status_code}: {reason}
+        Returned headers: {headers}
+        Returned body: {body}
         """,
         file=sys.stderr,
     )
-    rollbar.report_exc_info(sys.exc_info())
+    if rollbar_level:
+        rollbar.report_exc_info(
+            sys.exc_info(),
+            extra_data={
+                "headers": headers,
+                "body": body,
+            },
+            payload_data={"level": rollbar_level},
+        )
 
 
 class SearchUnsuccessfulException(Exception):

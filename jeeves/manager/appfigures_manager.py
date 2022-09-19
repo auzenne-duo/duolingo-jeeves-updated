@@ -122,7 +122,7 @@ class AppfiguresManager(JeevesManager):
                 r = s.get(template_url, params=url_params)
                 r.raise_for_status()
             except RequestException as e:
-                print_request_exception(e)
+                print_request_exception(e, rollbar_level="error")
                 return
             j = json.loads(r.text)
             if j["total"] == num_stored_files:
@@ -153,7 +153,7 @@ class AppfiguresManager(JeevesManager):
                         )
 
                 except RequestException as e:
-                    print_request_exception(e)
+                    print_request_exception(e, rollbar_level="error")
                     break
 
     @staticmethod

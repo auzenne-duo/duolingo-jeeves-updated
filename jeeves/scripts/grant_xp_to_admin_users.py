@@ -120,7 +120,7 @@ def grant_xp(user_id: int, directions: Set[str]):
             try:
                 resp.raise_for_status()
             except requests.RequestException as e:
-                print_request_exception(e)
+                print_request_exception(e, rollbar_level="error")
                 continue
             assert (
                 resp.headers["Content-Type"] == "application/json; charset=UTF-8"

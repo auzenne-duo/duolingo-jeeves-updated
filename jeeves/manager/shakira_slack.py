@@ -66,7 +66,7 @@ class ShakiraSlackApiClient:
                 print(f"Could not post message to Slack: {response_json['error']}", file=sys.stderr)
                 return None
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")
 
     def _post_screenshot(
         self,
@@ -121,7 +121,7 @@ class ShakiraSlackApiClient:
                 print(f"Could not post screenshot to Slack: {response_json['error']}")
                 return None
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")
             return None
 
     def post_issue(
@@ -213,4 +213,4 @@ class ShakiraSlackApiClient:
             )
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")

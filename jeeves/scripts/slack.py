@@ -143,8 +143,7 @@ if __name__ == "__main__":
                     r = post(url, headers=headers, data=json.dumps(data))
                     r.raise_for_status()
                 except RequestException as e:
-                    print_request_exception(e)
-                    rollbar.report_exc_info(sys.exc_info())
+                    print_request_exception(e, rollbar_level="error")
     except:
         rollbar.report_exc_info(sys.exc_info())
     finally:

@@ -17,6 +17,7 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.zendesk_document import ZendeskDocument
 from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
+from jeeves.util.error_util import print_request_exception
 
 _USER = os.environ.get("ZENDESK_USER")
 _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
@@ -77,16 +78,27 @@ class ZendeskManager(JeevesManager):
                     for ticket_json in j["tickets"]:
                         ticket_id = ticket_json["id"]
                         comments_url = f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
-                        comments_response = ZendeskDocument.rate_limited_get(s, comments_url)
-                        comments_response.raise_for_status()
-                        comments_structure = json.loads(comments_response.text)
-                        attachments = []
-                        for com in comments_structure.get("comments", {}):
-                            for attach in com.get("attachments", {}):
-                                attachments.append(attach["content_url"])
-                        ticket_json["attachments"] = attachments
 
-                        ZendeskManager._store_document_to_s3(s3_client, bucket_name, ticket_json)
+                        try:
+                            comments_response = ZendeskDocument.rate_limited_get(s, comments_url)
+                            comments_response.raise_for_status()
+                            comments_structure = json.loads(comments_response.text)
+                            attachments = []
+                            for com in comments_structure.get("comments", {}):
+                                for attach in com.get("attachments", {}):
+                                    attachments.append(attach["content_url"])
+                            ticket_json["attachments"] = attachments
+
+                            ZendeskManager._store_document_to_s3(
+                                s3_client, bucket_name, ticket_json
+                            )
+                        except RequestException as e:
+                            print_request_exception(
+                                e, rollbar_level="warning" if r.status_code == 404 else "error"
+                            )
+                            if r.status_code == 404:
+                                continue
+                            raise
 
                     if j["end_time"]:
                         print(
@@ -101,13 +113,8 @@ class ZendeskManager(JeevesManager):
                         break
 
                 except RequestException as e:
-                    print(
-                        f"""
-                        Exception happened for URL: {next_url}
-                        Status code: {r.status_code}
-                        Returned headers: {r.headers}
-                        Returned body: {r.text}
-                        """
+                    print_request_exception(
+                        e, rollbar_level="warning" if r.status_code == 429 else "error"
                     )
                     # If we exceeded a rate limit, we should just wait and try again.
                     if r.status_code == 429 and "Retry-After" in r.headers:

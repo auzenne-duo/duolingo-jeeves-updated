@@ -119,7 +119,7 @@ class JiraApiDAL:
             response_json = json.loads(r.text, object_hook=_add_attachments_to_issue_json)
             return response_json
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")
             raise
 
     def get_bulk_issues(self, issue_keys: List[str]) -> List[JiraDocument]:
@@ -163,7 +163,7 @@ class JiraApiDAL:
 
             return json.loads(r.text)
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")
             raise
 
     def update_issue(
@@ -200,7 +200,7 @@ class JiraApiDAL:
             r = put(url, headers=headers, auth=self._auth, data=json.dumps(data_operation))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")
             raise
 
     def close_issue_as_duplicate(self, issue_key: str):
@@ -219,7 +219,7 @@ class JiraApiDAL:
             r = post(url, headers=headers, auth=self._auth, data=json.dumps(data_operation))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")
             raise
 
     def create_bug_issue(self, project: str, summary: str, description_json: JSON) -> str:
@@ -259,7 +259,7 @@ class JiraApiDAL:
             response_JSON = json.loads(r.text)
             return response_JSON["key"]
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")
             raise
 
     def mark_duplicate(self, outward_key: str, inward_key: str):
@@ -287,7 +287,7 @@ class JiraApiDAL:
             r = post(url, auth=self._auth, headers=headers, data=json.dumps(data))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e)
+            print_request_exception(e, rollbar_level="error")
             raise
 
 
