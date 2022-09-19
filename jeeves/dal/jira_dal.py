@@ -1,8 +1,9 @@
 import json
 import os
+import time
 from typing import Dict, List, Optional, Union
 
-from requests import RequestException, Session, get, post, put
+from requests import RequestException, Response, Session, get, post, put
 from requests.auth import HTTPBasicAuth
 
 from jeeves.model.custom_types import JSON
@@ -13,11 +14,30 @@ from jeeves.util.error_util import print_request_exception
 _USERNAME = os.environ.get("JIRA_USERNAME")
 _API_TOKEN = os.environ.get("JIRA_API_TOKEN")
 
+_RETRY_LIMIT = 3
+
 
 class JiraApiDAL:
     def __init__(self):
         self._host = "https://duolingo.atlassian.net"
         self._auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
+
+    def _get_with_retry(self, url, headers=None, params=None) -> Response:
+        for _ in range(_RETRY_LIMIT):
+            try:
+                # TODO investigate using a Retry object with the requests library
+                # https://github.com/duolingo/duolingo-jeeves/pull/531#discussion_r974582983
+                r = get(url, headers=headers, params=params)
+                r.raise_for_status()
+                return r
+            except RequestException as e:
+                if e.response.status_code == 429 and "Retry-After" in r.headers:
+                    delay = int(r.headers["Retry-After"])
+                    print(f"Retrying request to {url} after {delay} seconds")
+                    time.sleep(delay)
+                    continue
+                print_request_exception(e)
+                raise
 
     def get_issuetype_metadata(self, projects, issue_types) -> List[JiraIssueTypeMetaData]:
         """
@@ -39,19 +59,13 @@ class JiraApiDAL:
             "issuetypeNames": issue_types,
         }
 
-        try:
-            r = get(url, auth=self._auth, headers=headers, params=params)
-            r.raise_for_status()
-
-            response_json = json.loads(r.text)
-            return [
-                JiraIssueTypeMetaData.from_json(issuetype)
-                for project in response_json["projects"]
-                for issuetype in project["issuetypes"]
-            ]
-        except RequestException as e:
-            print_request_exception(e)
-            raise
+        r = self._get_with_retry(url, headers=headers, params=params)
+        response_json = json.loads(r.text)
+        return [
+            JiraIssueTypeMetaData.from_json(issuetype)
+            for project in response_json["projects"]
+            for issuetype in project["issuetypes"]
+        ]
 
     def get_feature_for_jira_document(self, doc: JiraDocument) -> str:
         """
@@ -63,15 +77,9 @@ class JiraApiDAL:
 
         headers = {"Accept": "application/json"}
 
-        try:
-            r = get(url, auth=self._auth, headers=headers)
-            r.raise_for_status()
-
-            response_json = json.loads(r.text)
-            return response_json["value"]
-        except RequestException as e:
-            print_request_exception(e)
-            raise
+        r = self._get_with_retry(url, headers=headers)
+        response_json = json.loads(r.text)
+        return response_json["value"]
 
     def _get_attachment_url(self, attachment_json: JSON) -> str:
         # YK 2022-02-25 This is a hack to get a URL that has a file extension at the end of it but

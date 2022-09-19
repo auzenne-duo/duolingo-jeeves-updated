@@ -1,8 +1,9 @@
 -r requirements.txt
 
-pip-tools
+pip-tools==5.5.0 # compatible with pip==22.0.4
 pylint
 pytest
 pytest-cov
 pytest-mock
 pytest-xdist
+responses==0.17.0

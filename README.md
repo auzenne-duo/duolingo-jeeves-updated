@@ -47,6 +47,8 @@ The following are required when you update requirements.
 - Run `pip-compile --output-file requirements.txt requirements.in`
 - Run `pip-compile --output-file dev-requirements.txt dev-requirements.in`
 
+If you run into `ImportError: cannot import name 'BAR_TYPES' from 'pip._internal.cli.progress_bars'`, run the following to install a compatible version of pip: `pip install pip==22.0.4`
+
 The data versioning number in `jeeves/config/config.py` should be updated whenever data should be backfilled. Changing this number to a previously unused value will create new data indices in Elasticsearch and the data update scripts will automatically fill them in. As a convention, we have been incrementing the "major" data version number (i.e. before the decimal point) for adding entirely new data sources and for major structural changes, and incrementing the "minor" data version number (i.e. after the decimal point) for smaller changes to existing structures.
 
 ### Frontend
