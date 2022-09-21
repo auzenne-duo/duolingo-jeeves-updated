@@ -11,7 +11,6 @@ from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.date_util import get_n_days_ago
-from jeeves.util.priority_estimator import JiraPriority
 
 mock_es_dal = ElasticsearchDAL()
 mock_jira_dal = JiraApiDAL()
@@ -258,5 +257,5 @@ class TestDuplicateGraphResolver(unittest.TestCase):
             "parent_key",
             description=expected_description,
             feature="shake",
-            priority=JiraPriority.HIGH.value,
+            priority="High",
         )

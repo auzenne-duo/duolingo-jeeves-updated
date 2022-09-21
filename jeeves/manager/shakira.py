@@ -186,7 +186,9 @@ class ShakiraManager:
 
         related_issue_invalid = related_issue_key is not None and not related_issue_exists
 
-        priority, keywords = PriorityEstimator.estimate_priority(summary)
+        feature = "v2 feedback" if slack_report_type == "v2 feedback" else feature
+        reporter_email_username = reporter_email.split("@")[0] if reporter_email else ""
+        priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email_username)
 
         should_post_to_slack = (
             channel is not None and not related_issue_invalid
@@ -197,7 +199,7 @@ class ShakiraManager:
         if should_post_to_jira:
             issue_key = self._jira_client.create_issue(
                 project=project,
-                feature="v2 feedback" if slack_report_type == "v2 feedback" else feature,
+                feature=feature,
                 labels=[
                     label for label in [jira_label_from_channel, jeeves_label] if label is not None
                 ],
@@ -222,12 +224,7 @@ class ShakiraManager:
                     )
 
                 # add comment that priority is automatically generated
-                based_on_text = (
-                    f"based on the keyword(s): [{', '.join(keywords)}] and number of similar reports"
-                    if keywords
-                    else "by default"
-                )
-                comment = f"Priority was automatically assigned {priority} {based_on_text}. Please change any incorrect priorities so we can incorporate your feedback!"
+                comment = f"Priority was automatically assigned {priority}. Please change any incorrect priorities so we can incorporate your feedback!"
                 self._jira_client.add_comment(project, issue_key, comment)
 
             if not should_post_to_slack:

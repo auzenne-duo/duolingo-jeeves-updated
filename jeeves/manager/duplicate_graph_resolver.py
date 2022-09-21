@@ -4,6 +4,7 @@ of one. This code is in its own file because putting it anywhere else wouldn't
 make sense or would cause a circular dependency.
 """
 
+from collections import Counter
 from typing import Dict, List, Optional, Tuple
 
 from duolingo_base.util import registry
@@ -19,7 +20,6 @@ from jeeves.util.parent_jira_issue_util import (
     parse_parent_description,
     update_parent_data_from_child,
 )
-from jeeves.util.priority_estimator import PriorityEstimator
 
 
 @registry.bind(es_dal=registry.reference(ElasticsearchDAL), jira_dal=registry.reference(JiraApiDAL))
@@ -137,9 +137,7 @@ class DuplicateGraphResolver:
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
         features = [doc.feature for doc in doc_reps if doc.feature]
         most_common_feature = max(set(features), key=features.count) if features else None
-        priority, _ = PriorityEstimator.estimate_priority(
-            "".join([doc.header_text for doc in doc_reps]), len(doc_reps) - len(group_parents)
-        )
+        priority = Counter([doc.priority for doc in doc_reps]).most_common(1)[0][0]
 
         parent_key = None
         deprecated_parent_issue_keys = []

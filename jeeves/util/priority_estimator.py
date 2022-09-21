@@ -1,5 +1,15 @@
+import os
 from enum import Enum
-from typing import Optional
+from typing import Dict, List
+
+import numpy as np
+import torch
+from torch.utils.data import DataLoader, RandomSampler, TensorDataset
+from transformers import BertForSequenceClassification, BertTokenizer
+
+BATCH_SIZE = 16
+_PRIORITY_ESTIMATOR_MODEL_PATH = os.environ.get("PRIORITY_ESTIMATOR_MODEL")
+MAX_LENGTH = 40
 
 
 class JiraPriority(Enum):
@@ -12,95 +22,122 @@ class JiraPriority(Enum):
     HIGH = "High"
 
 
+PRIORITY_ORDER = [JiraPriority.LOW, JiraPriority.MEDIUM, JiraPriority.HIGH]
+
+
 class PriorityEstimator:
-    low_priority_words = {
-        "align",
-        "capital",
-        "center",
-        "depth",
-        "font",
-        "horizontal",
-        "large",
-        "mismatch",
-        "orient",
-        "polish",
-        "position",
-        "separat",
-        "small",
-        "spac",
-        "text",
-        "typo",
-        "vertical",
-    }
-    high_priority_words = {
-        "blank",
-        "block",
-        "break",
-        "broken",
-        "crash",
-        "error",
-        "exit",
-        "fail",
-        "force",
-        "freez",
-        "froze",
-        "kill",
-        "lock",
-        "not show",
-        "not visible",
-        "nothing",
-        "prevent",
-        "purchase",
-        "reboot",
-        "restart",
-        "stuck",
-        "undid",
-        "unknown",
-        "unreach",
-        "unsupported",
-    }
+    model = None
+    tokenizer = None
+    optimizer = None
 
     @classmethod
-    def estimate_priority(cls, text: str, num_dupes: Optional[int] = 0) -> JiraPriority:
+    def _initialize_priority_estimator(cls) -> None:
+        if cls.model is None:
+            cls.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
+            cls.model = BertForSequenceClassification.from_pretrained(
+                _PRIORITY_ESTIMATOR_MODEL_PATH
+            )
+            cls.optimizer = torch.optim.AdamW(cls.model.parameters(), lr=5e-5, eps=1e-08)
+
+    @classmethod
+    def preprocessing(cls, input_text: str) -> Dict:
         """
-        Estimates the priority of a ticket based on the presence of keywords
-
-        parameters:
-            text: string of text
-            num_dupes: int number of duplicates that the ticket has
-
-        return:
-            priority: JiraPriority of Low, Medium, or High
+        Returns <class transformers.tokenization_utils_base.BatchEncoding> with the following fields:
+        - input_ids: list of token ids
+        - token_type_ids: list of token type ids
+        - attention_mask: list of indices (0,1) specifying which tokens should considered by the model (return_attention_mask = True).
         """
-        text = text.lower()
-        high_keywords = []
-        low_keywords = []
-        low_count = high_count = 0
-        for word in cls.low_priority_words:
-            if word in text:
-                low_count += 1
-                low_keywords.append(word)
-        for word in cls.high_priority_words:
-            if word in text:
-                high_count += 1
-                high_keywords.append(word)
+        return cls.tokenizer.encode_plus(
+            input_text,
+            add_special_tokens=True,
+            max_length=MAX_LENGTH,
+            pad_to_max_length=True,
+            return_attention_mask=True,
+            return_tensors="pt",
+        )
 
-        if high_count:
-            severity = 3
-        elif low_count:
-            severity = 1
-        else:
-            severity = 2
+    @classmethod
+    def get_token_ids_and_attention_masks(cls, text: List[str]) -> torch.tensor:
+        token_id = []
+        attention_masks = []
 
-        if num_dupes < 3:
-            impact = 0
-        else:
-            impact = 1
+        for sample in text:
+            encoding_dict = cls.preprocessing(sample)
+            token_id.append(encoding_dict["input_ids"])
+            attention_masks.append(encoding_dict["attention_mask"])
+        return torch.cat(token_id, dim=0), torch.cat(attention_masks, dim=0)
 
-        priority = severity + impact
-        if 0 < priority <= 1:
-            return JiraPriority.LOW.value, low_keywords
-        elif 1 < priority <= 2:
-            return JiraPriority.MEDIUM.value, low_keywords
-        else:
-            return JiraPriority.HIGH.value, high_keywords
+    @classmethod
+    def fit_to_data(cls, data: List[str], labels: List[int]) -> None:
+        """
+        Fits the model to given data and labels
+
+        Params:
+            data: list of strings such as "issue summary; feature; reporter"
+            labels: list of labels where 0 is Low, 1 is Medium, and 2 is High
+        """
+        cls._initialize_priority_estimator()
+        token_id, attention_masks = cls.get_token_ids_and_attention_masks(data)
+        labels = torch.tensor(labels)  # pylint: disable=not-callable
+        train_set = TensorDataset(token_id, attention_masks, labels)
+
+        # Prepare DataLoader
+        train_dataloader = DataLoader(
+            train_set, sampler=RandomSampler(train_set), batch_size=BATCH_SIZE
+        )
+        cls.train_model(train_dataloader, epochs=1)
+
+    @classmethod
+    def train_model(cls, train_dataloader: DataLoader, epochs: int = 1) -> None:
+        for _ in range(epochs):
+            # Set model to training mode
+            cls.model.train()
+            for batch in train_dataloader:
+                b_input_ids, b_input_mask, b_labels = batch
+                cls.optimizer.zero_grad()
+                train_output = cls.model(  # pylint: disable=not-callable
+                    b_input_ids,
+                    attention_mask=b_input_mask,
+                    labels=b_labels,
+                )
+                train_output.loss.backward()
+                cls.optimizer.step()
+
+    @classmethod
+    def predict(cls, sentence: str, feature: str, reporter: str) -> np.array:
+        """
+        Predicts priority scores for a given sentence, feature, and reporter
+
+        Params
+            sentence: string of text
+            feature: Jira issue such as "WeChat"
+            reporter: username string of the issue reporter. The username part of an email, such as biglou
+
+        Returns an np array of size 3 with a score for classes of Low, Medium, and High
+        """
+        encoding = cls.preprocessing(f"{sentence}; {feature}; {reporter}")
+        with torch.no_grad():
+            output = cls.model(  # pylint: disable=not-callable
+                encoding["input_ids"],
+                token_type_ids=None,
+                attention_mask=encoding["attention_mask"],
+            )
+
+        return output.logits.cpu().numpy()
+
+    @classmethod
+    def estimate_priority(cls, sentence: str, feature: str = "", reporter: str = "") -> str:
+        """
+        Estimates the priority for a given sentence, Jira issue feature, and a reporter using pretrained Bert model
+        Loads the model using PRIORITY_ESTIMATOR_MODEL environment variable
+
+        Params
+            sentence: string of text
+            feature: Jira issue such as "WeChat"
+            reporter: username string of the issue reporter. The username part of an email, such as biglou
+
+        Returns a string representing estimated priority. Must be one of the vales of JiraPriority enum
+        """
+        cls._initialize_priority_estimator()
+        prediction = cls.predict(sentence, feature, reporter)
+        return PRIORITY_ORDER[np.argmax(prediction)].value

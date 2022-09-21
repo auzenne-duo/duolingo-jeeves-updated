@@ -14,6 +14,7 @@ Flask
 flask-cors
 networkx==2.5.1
 numpy
+pandas==1.1.5
 protobuf==3.18.1 # otherwise duolingo-notify > duolingo-proto bumps it to 3.20.1 which is too high
 pystache
 pytz
