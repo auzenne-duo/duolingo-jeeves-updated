@@ -39,6 +39,10 @@ RUN apt-get update \
       python3-pip \
 #     libpq-dev is a postgres library needed by sqlalchemy
       libpq-dev \
+#     necessary for weasyprint to create pdf files for bug reports
+      libpango-1.0-0 \
+      libharfbuzz0b \
+      libpangoft2-1.0-0 \
  && rm -rf /var/lib/apt/lists/* \
  && ln -s /usr/bin/python3 /usr/bin/python
 

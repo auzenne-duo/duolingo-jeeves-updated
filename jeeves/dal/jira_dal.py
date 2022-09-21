@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from typing import Dict, List, Optional, Union
+from typing import Dict, Iterator, List, Optional, Union
 
 from requests import RequestException, Response, Session, get, post, put
 from requests.auth import HTTPBasicAuth
@@ -130,13 +130,30 @@ class JiraApiDAL:
             print_request_exception(e, rollbar_level="error")
             raise
 
+    def paginate_search_issues(self, url_params) -> Iterator[JSON]:
+        """
+        Executes a jira search with url_params and yields issues
+        """
+        # copy the params input since we will updating "startAt" field
+        url_params = url_params.copy()
+        total = None
+        with Session() as s:
+            while total is None or url_params["startAt"] < total:
+                response_json = self.search_issues_json(s, params=url_params)
+                yield from response_json["issues"]
+                url_params["startAt"] += len(response_json["issues"])
+                if total is None:
+                    # only update total once, rather than trying to hit a moving target of total
+                    # issues downloaded.
+                    total = response_json["total"]
+
     def get_bulk_issues(self, issue_keys: List[str]) -> List[JiraDocument]:
         """
         Downloads issues as JiraDocuments.
         """
         docs = []
         # Download JiraDocuments in chunks to avoid too long of urls
-        slice_size = 100
+        slice_size = 20
         for i in range(0, len(issue_keys), slice_size):
             url = (
                 self._host

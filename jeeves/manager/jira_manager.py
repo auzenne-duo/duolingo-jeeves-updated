@@ -8,7 +8,6 @@ from typing import List, Optional
 
 import rollbar
 from duolingo_base.dal.s3 import S3Client
-from requests import Session
 
 from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.jeeves_manager import JeevesManager
@@ -18,15 +17,15 @@ from jeeves.model.jira_document import JiraDocument
 from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 
-_JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"]
-_JIRA_ISSUE_TYPE_BUG = "Bug"
+JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"]
+JIRA_ISSUE_TYPE_BUG = "Bug"
 
 
 class JiraManager(JeevesManager):
     @staticmethod
     def _try_set_jira_document_feature_field_key() -> bool:
         try:
-            issuetypes = JiraDAL.get_issuetype_metadata(_JIRA_PROJECTS, _JIRA_ISSUE_TYPE_BUG)
+            issuetypes = JiraDAL.get_issuetype_metadata(JIRA_PROJECTS, JIRA_ISSUE_TYPE_BUG)
             feature_field_keys = {issuetype.feature_field_key() for issuetype in issuetypes}
             if len(feature_field_keys) == 1:
                 JiraDocument.set_feature_field_key(feature_field_keys.pop())
@@ -52,6 +51,14 @@ class JiraManager(JeevesManager):
         except:
             rollbar.report_exc_info(sys.exc_info())
             return False
+
+    @staticmethod
+    def get_feature_field():
+        """
+        Tries to set and then return the feature field key
+        """
+        JiraManager._try_set_jira_document_feature_field_key()
+        return JiraDocument.get_feature_field_key()
 
     @staticmethod
     def get_managed_document_type():
@@ -82,9 +89,9 @@ class JiraManager(JeevesManager):
 
         start_timestamp_millis = int(s3_client.download(bucket_name, _CHECKPOINT_FILE))
         projects_fetch_string = (
-            f"project IN ({','.join(_JIRA_PROJECTS)}) "
+            f"project IN ({','.join(JIRA_PROJECTS)}) "
             + f"AND updated > {start_timestamp_millis} "
-            + f"AND issueType = {_JIRA_ISSUE_TYPE_BUG} "
+            + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
             + f"AND labels != {JIRA_VIA_JEEVES_LABEL} "
             + f"ORDER BY updated asc"
         )
@@ -95,28 +102,16 @@ class JiraManager(JeevesManager):
             "startAt": 0,
             "jql": projects_fetch_string,
         }
-        total = None
-
-        with Session() as s:
-            while total is None or url_params["startAt"] < total:
-                response_json = JiraDAL.search_issues_json(s, params=url_params)
-
-                for issue in response_json["issues"]:
-                    # Store to S3
-                    issue_updated_time = parse_external_datetime(issue["fields"]["updated"])
-                    issue_updated_date = date_to_str(issue_updated_time)
-                    upload_path = f"{JiraManager.get_managed_document_type().get_data_source_identifier()}/{issue_updated_date}/{issue['id']}"
-                    s3_client.upload(bucket_name, upload_path, json.dumps(issue))
-                    issue_updated_millis = int(issue_updated_time.timestamp() * 1000)
-                    if issue_updated_millis > start_timestamp_millis:
-                        start_timestamp_millis = issue_updated_millis
-                        s3_client.upload(bucket_name, _CHECKPOINT_FILE, f"{start_timestamp_millis}")
-
-                url_params["startAt"] += len(response_json["issues"])
-                if total is None:
-                    # only update total once, rather than trying to hit a moving target of total
-                    # issues downlaoded.
-                    total = response_json["total"]
+        for issue in JiraDAL.paginate_search_issues(url_params):
+            # Store to S3
+            issue_updated_time = parse_external_datetime(issue["fields"]["updated"])
+            issue_updated_date = date_to_str(issue_updated_time)
+            upload_path = f"{JiraManager.get_managed_document_type().get_data_source_identifier()}/{issue_updated_date}/{issue['id']}"
+            s3_client.upload(bucket_name, upload_path, json.dumps(issue))
+            issue_updated_millis = int(issue_updated_time.timestamp() * 1000)
+            if issue_updated_millis > start_timestamp_millis:
+                start_timestamp_millis = issue_updated_millis
+                s3_client.upload(bucket_name, _CHECKPOINT_FILE, f"{start_timestamp_millis}")
 
     @staticmethod
     def download_specific_issue(issue_key: str) -> Optional[JeevesDocument]:
