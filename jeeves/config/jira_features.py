@@ -34,7 +34,7 @@ JIRA_FEATURES = {
             "Profile": [],
             "Referral": [],
             "Friends": ["friend", "invite", "contact"],
-            "Kudos": ["congrats"],
+            "Kudos": ["congrats", "high five"],
             "DuoNews": ["duo news", "feed", "news"],
             "Friends Quest": [
                 "partner",
@@ -59,7 +59,7 @@ JIRA_FEATURES = {
         },
         "Retention": {
             "Streak": ["streak challenge"],
-            "Streak Society": [],
+            "Streak Society": ["vip"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
             "Practice reminders / notifications": ["reminder", "notification"],
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
@@ -71,7 +71,7 @@ JIRA_FEATURES = {
             "Leaderboards": ["leaderboard", "tournament", "league", "context"],
             "Daily Quests": ["quests", "daily quest"],
             "Daily Goal": [],
-            "Monthly Goal": [],
+            "Monthly Goal": ["month"],
             "XP boost": ["double xp", "2x"],
             "Quests Tab": [],
         },
@@ -301,6 +301,7 @@ JIRA_FEATURES = {
                 "speech bubble",
                 "speaking bubble",
                 "tap token",
+                "token",
                 "word bank",
             ],
             "General performance issues": [
