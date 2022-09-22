@@ -43,6 +43,20 @@ class Test(unittest.TestCase):
     def test_get_standardized_metadata(self):
 
         real_metadata_1 = {
+            "session_information": {
+                "url": "https://www.duolingo.com/skill/ko/Onomatopoeia/1",
+                "session_id": "KhIYBEcvkJioLxiT",
+                "session_type": "lesson",
+                "skill_tree_id": "36bab53b0938a448b9b5c9031c2021e5",
+                "level_number": "1",
+                "lesson_number": "0",
+                "skill_name": "Onomatopoeia",
+                "skill_id": "f0e3636eafacbd7a2c85e05c7ca0f5d7",
+                "challenge_generator_id": "e74128efe39d77602f8535b8cd18cd64",
+                "challenge_type": "translate",
+                "challenge_generator_specific_type": "reverse_tap",
+                "challenge_prompt_text": "After running to the school my heart was pounding.",
+            },
             "system_information": {
                 "app_version": "6.97.2.3",
                 "ios_version": "13.6.1",
@@ -67,14 +81,27 @@ class Test(unittest.TestCase):
         }
         expected_real_1 = {
             "app_version": "6.97.2.3",
+            "challenge_id": "e74128efe39d77602f8535b8cd18cd64",
+            "challenge_prompt_text": "After running to the school my heart was pounding.",
+            "challenge_type": "translate",
+            "challenge_generator_specific_type": "reverse_tap",
             "course": "DUOLINGO_KO_ZH-CN",
+            "lesson_number": "0",
+            "level_number": "1",
             "os_version": "iOS 13.6.1",
             "platform": "iOS",
             "screen_size": "414x896",
             "screen_content": "MatchChallengeVC",
+            "session_id": "KhIYBEcvkJioLxiT",
+            "session_type": "lesson",
+            "skill_id": "f0e3636eafacbd7a2c85e05c7ca0f5d7",
+            "skill_name": "Onomatopoeia",
+            "skill_tree_id": "36bab53b0938a448b9b5c9031c2021e5",
             "ui_language": "en",
             "username": "mancyliao",
         }
+        print(expected_real_1)
+        print(MetaStdizer.get_standardized_metadata(real_metadata_1))
         self.assertEqual(expected_real_1, MetaStdizer.get_standardized_metadata(real_metadata_1))
 
         real_metadata_2 = {
@@ -95,6 +122,24 @@ class Test(unittest.TestCase):
                 "username": "AnjuliGlobal",
                 "current_course": "DUOLINGO_FR_EN (English -> French)",
                 "time_zone": "America/New_York",
+                "challenge_id": "2175bfb7e13345ebbbafbd6d3a0ab4c2",
+                "challenge_prompt_text": "None of you wants to buy clothes?",
+                "challenge_type": "translate",
+                "ios_v2_dev": "false",
+                "lesson_number": "0",
+                "level_number": "1",
+                "path_level_debug_name": "n/a",
+                "path_level_id": "n/a",
+                "path_level_specifics": "[:]",
+                "path_level_type": "n/a",
+                "service_mappings": "none",
+                "session_bundle_id": "en_es_b2c93919b31cde56b1972f5f18ca9a72_level.1.0",
+                "session_id": "S87ajXxr3b72d08i",
+                "session_information": "",
+                "session_type": "lesson",
+                "skill_id": "b2c93919b31cde56b1972f5f18ca9a72",
+                "skill_tree_id": "7eb9f55873194e20f1a3bba34c35d734",
+                "user_input_text": "Ninguno de ustedes quiere comprar ropa",
             },
             "report_method": "screenshot",
             "view_controller_name": "UIViewController",
@@ -112,6 +157,16 @@ class Test(unittest.TestCase):
             "screen_content": "UIViewController",
             "ui_language": "en",
             "username": "AnjuliGlobal",
+            "challenge_id": "2175bfb7e13345ebbbafbd6d3a0ab4c2",
+            "challenge_prompt_text": "None of you wants to buy clothes?",
+            "challenge_type": "translate",
+            "lesson_number": "0",
+            "level_number": "1",
+            "session_bundle_id": "en_es_b2c93919b31cde56b1972f5f18ca9a72_level.1.0",
+            "session_id": "S87ajXxr3b72d08i",
+            "session_type": "lesson",
+            "skill_id": "b2c93919b31cde56b1972f5f18ca9a72",
+            "skill_tree_id": "7eb9f55873194e20f1a3bba34c35d734",
         }
         self.assertEqual(expected_real_2, MetaStdizer.get_standardized_metadata(real_metadata_2))
 

@@ -41,6 +41,22 @@ class MetadataStandardizer:
             hans_ui_lang_re,
         ]
 
+        # possible aliases for field names listed in order of preference
+        self.metatdata_field_aliases = {
+            "challenge_id": ["challenge_id", "challenge_generator_id"],
+            "challenge_prompt_text": ["challenge_text", "challenge_prompt_text"],
+            "challenge_type": ["challenge_type"],
+            "challenge_generator_specific_type": ["challenge_generator_specific_type"],
+            "lesson_number": ["lesson_number"],
+            "level_number": ["level_number"],
+            "session_bundle_id": ["session_bundle_id"],
+            "session_id": ["session_id"],
+            "session_type": ["session_type"],
+            "skill_id": ["skill_id"],
+            "skill_name": ["skill_name"],
+            "skill_tree_id": ["skill_tree_id"],
+        }
+
     def flatten_input_metadata(self, metadata_layer: JSON) -> JSON:
         """
         Given a JSON object that may contain nested JSON objects, produce a JSON
@@ -113,12 +129,24 @@ class MetadataStandardizer:
         formats are given below:
 
         app_version: Format depends on source
+        challenge_id: Id for the challenge
+        challenge_prompt_text: Text shown in challenge
+        challenge_type: Exercise type such as "translate"
+        challenge_generator_specific_type: Specific exercise such as "reverse_tap"
         course: DUOLINGO_<TO_LANGUAGE>_<FROM_LANGUAGE>
         fullstory_url: A link to https://app.fullstory.com
+        lesson_number: Int
+        level_number: Int
         os_version: Format depends on source
         platform: One of 'Android', 'iOS', or 'Web'
         screen_size: <WIDTH>x<HEIGHT>
         screen_content: Format depends on source
+        session_bundle_id: Id for session bundle
+        session_id: Id for session
+        session_type: Such as "lesson"
+        skill_id: Id for skill
+        skill_name: Such as "Hiragana 1"
+        skill_tree_id: Id for skill tree
         ui_language: Two character language code, lowercase
         username: Any string that could be a Duolingo username
 
@@ -234,6 +262,12 @@ class MetadataStandardizer:
 
         if "username" in flat_metadata:
             std_data["username"] = flat_metadata["username"]
+
+        for field, aliases in self.metatdata_field_aliases.items():
+            for alias in aliases:
+                if alias in flat_metadata:
+                    std_data[field] = flat_metadata[alias]
+                    break
 
         return std_data
 
