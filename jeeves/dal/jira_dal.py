@@ -22,12 +22,12 @@ class JiraApiDAL:
         self._host = "https://duolingo.atlassian.net"
         self._auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
 
-    def _get_with_retry(self, url, headers=None, params=None) -> Response:
+    def _get_with_retry(self, url, headers=None, params=None, auth=None) -> Response:
         for _ in range(_RETRY_LIMIT):
             try:
                 # TODO investigate using a Retry object with the requests library
                 # https://github.com/duolingo/duolingo-jeeves/pull/531#discussion_r974582983
-                r = get(url, headers=headers, params=params)
+                r = get(url, headers=headers, params=params, auth=auth)
                 r.raise_for_status()
                 return r
             except RequestException as e:
@@ -59,7 +59,7 @@ class JiraApiDAL:
             "issuetypeNames": issue_types,
         }
 
-        r = self._get_with_retry(url, headers=headers, params=params)
+        r = self._get_with_retry(url, headers=headers, params=params, auth=self._auth)
         response_json = json.loads(r.text)
         return [
             JiraIssueTypeMetaData.from_json(issuetype)
@@ -77,7 +77,7 @@ class JiraApiDAL:
 
         headers = {"Accept": "application/json"}
 
-        r = self._get_with_retry(url, headers=headers)
+        r = self._get_with_retry(url, headers=headers, auth=self._auth)
         response_json = json.loads(r.text)
         return response_json["value"]
 
