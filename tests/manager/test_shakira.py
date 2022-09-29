@@ -41,7 +41,6 @@ class Test(unittest.TestCase):
         case = unittest.TestCase()
         case.assertCountEqual(
             [
-                {"name": "v2 feedback", "alsoPostsToJira": False},
                 {"name": "Visual polish", "alsoPostsToJira": True},
                 {"name": "Lesson content issue", "alsoPostsToJira": False},
                 {"name": "TTS is missing/mispronounced", "alsoPostsToJira": False},
@@ -331,37 +330,6 @@ class Test(unittest.TestCase):
         )
 
         assert not shakira_jira_mock.link_issues.called
-
-    def test_report_v2_feedback(self):
-        shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
-        shakira_manager.report_issue(
-            project="DLAA",
-            feature=None,
-            slack_report_type="v2 feedback",
-            client_specified_slack_channel_name=None,
-            related_issue_key=None,
-            summary="summary",
-            description=None,
-            generated_description=None,
-            reporter_email=None,
-            pre_release=False,
-            files={},
-        )
-
-        shakira_jira_mock.create_issue.assert_called_once_with(
-            project="DLAA",
-            feature="v2 feedback",
-            labels=[],
-            summary="summary",
-            description=None,
-            generated_description=None,
-            reporter_email=None,
-            pre_release=False,
-            will_post_to_slack=False,
-            priority="Medium",
-            related_issue_exists=False,
-        )
-        assert not shakira_slack_mock.post_issue.called
 
     def test_report_issue_from_jeeves(self):
         shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()

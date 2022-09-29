@@ -48,7 +48,7 @@ services:
     volumes:
       - .:/code
       - ~/.aws:/root/.aws
-    command: ["python", "/code/jeeves/scripts/spike_worker.py"]
+    command: ["python", "/code/jeeves/scripts/spike_worker.py", "True"]
     build:
       context: .
       dockerfile: Dockerfile.dev

@@ -3,6 +3,7 @@ import os
 import time
 from typing import Dict, Iterator, List, Optional, Union
 
+import rollbar
 from requests import RequestException, Response, Session, get, post, put
 from requests.auth import HTTPBasicAuth
 
@@ -77,9 +78,19 @@ class JiraApiDAL:
 
         headers = {"Accept": "application/json"}
 
-        r = self._get_with_retry(url, headers=headers, auth=self._auth)
-        response_json = json.loads(r.text)
-        return response_json["value"]
+        try:
+            r = self._get_with_retry(url, headers=headers, auth=self._auth)
+            response_json = json.loads(r.text)
+            return response_json["value"]
+        except RequestException as e:
+            status_code = e.response.status_code if e.response is not None else None
+            reason = e.response.reason if e.response is not None else None
+
+            rollbar.report_message(
+                f"Feature url {url} returned {status_code} {reason}. Falling back to feature {doc.feature}",
+                "warning",
+            )
+            return doc.feature
 
     def _get_attachment_url(self, attachment_json: JSON) -> str:
         # YK 2022-02-25 This is a hack to get a URL that has a file extension at the end of it but

@@ -30,24 +30,6 @@ class TestSlackScript(unittest.TestCase):
             },
         )
 
-        testObj = SpikeWord(
-            word="duo",
-            score=10,
-            date="2022-01-01",
-            lang="en",
-            spike_group=SpikeCategory.INTERNAL_V2_IOS_SPIKES,
-        )
-        result = get_jeeves_analysis_query_params(testObj)
-        self.assertEqual(
-            result,
-            {
-                "q": "duo",
-                "filter": "INTERNAL",
-                "spike-category": "INTERNAL_V2_IOS_SPIKES",
-                "use-lemmas": "true",
-            },
-        )
-
     def test_generate_slack_message_exception(self):
         testObj = SpikeWord(
             word="duo",

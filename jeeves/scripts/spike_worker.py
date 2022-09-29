@@ -7,15 +7,13 @@ from duolingo_base.config import Config
 from duolingo_base.dal import s3
 
 from jeeves import apply_registry, close_registry, register, registry as app_registry
-from jeeves.dal.spike_index_interface import SpikeIndexDAL  # pylint: disable=E0401
-from jeeves.lib.spike_detector import (  # pylint: disable=E0401
+from jeeves.dal.spike_index_interface import SpikeIndexDAL
+from jeeves.lib.spike_detector import (
     SPIKE_EXCLUDE_WORDS_REGISTRY_KEY,
     SPIKE_LEMMA_STATS_REGISTRY_KEY,
     detect_spikes,
 )
-from jeeves.util.date_util import date_to_str  # pylint: disable=E0401
-from jeeves.util.date_util import get_utc_today  # pylint: disable=E0401
-from jeeves.util.date_util import str_to_date, yield_intermediate_dates
+from jeeves.util.date_util import date_to_str, get_utc_today, str_to_date, yield_intermediate_dates
 
 _config = Config.load_config()
 _config.apply_logging()
@@ -37,10 +35,10 @@ def force_recalculate_all_spikes() -> None:
     simply write a '1' to the file specified in _FORCE_SPIKE_REFRESH_FILE in the
     appropriate S3 bucket.
     """
-    detect_spikes()
+    detect_spikes(dry_run=False)
 
 
-def run_spike_worker() -> None:
+def run_spike_worker(dry_run: bool) -> None:
     """
     Main method for the spike worker thread.
     Determines first if a forceful refresh of all spikes is necessary. If so,
@@ -72,12 +70,13 @@ def run_spike_worker() -> None:
         hours=_LOCK_TIMEOUT
     )
 
-    if is_lock_held and not is_lock_expired:
+    if is_lock_held and not is_lock_expired and not dry_run:
         print("Lock already held, exiting early")
         return
-    # Lock was not held, claim the lock.
-    print("Grabbing lock")
-    s3_client.upload(s3_bucket_name, _SPIKE_CALCULATOR_LOCK_FILE, "1")
+    if not dry_run:
+        # Lock was not held, claim the lock.
+        print("Grabbing lock")
+        s3_client.upload(s3_bucket_name, _SPIKE_CALCULATOR_LOCK_FILE, "1")
 
     # Load list of exclude words
     spike_exclude_words_file_list = list(
@@ -145,19 +144,21 @@ def run_spike_worker() -> None:
             flush=True,
         )
         for inter_date in yield_intermediate_dates(most_recent_spike_date, todays_date):
-            detect_spikes(target_date=inter_date)
+            detect_spikes(target_date=inter_date, dry_run=dry_run)
     finally:
         # Release the lock.
         # We use a finaly clause for this in case we ctrl-c or otherwise kill
         # the process out of order.
-        print("Releasing lock")
-        s3_client.upload(s3_bucket_name, _SPIKE_CALCULATOR_LOCK_FILE, "0")
+        if not dry_run:
+            print("Releasing lock")
+            s3_client.upload(s3_bucket_name, _SPIKE_CALCULATOR_LOCK_FILE, "0")
 
 
 if __name__ == "__main__":
     try:
         apply_registry()
-        run_spike_worker()
+        dry_run = bool(sys.argv[1]) if len(sys.argv) > 1 else True
+        run_spike_worker(dry_run)
     except:
         rollbar.report_exc_info(sys.exc_info())
     finally:

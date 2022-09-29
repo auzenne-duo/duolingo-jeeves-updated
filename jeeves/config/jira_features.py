@@ -137,15 +137,6 @@ JIRA_FEATURES = {
             "Hoots": [],
             "Speaking exercises": ["speak challenge", "speak exercise"],
         },
-        "Core v2": {
-            "v2 feedback": [
-                "ios_v2_dev: true",
-                "*ios_v2_dev*: true",
-                "android_v2_dev: true",
-                "web_v2_dev: true",
-            ],
-            "Tips": ["tip"],
-        },
         "Speech Lab": {
             "World character voice": [
                 "voice",
@@ -171,6 +162,7 @@ JIRA_FEATURES = {
         },
         "Path": {
             "Path": [],
+            "Tips": ["tip"],
         },
     },
     "Learning Scaling": {

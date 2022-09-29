@@ -35,7 +35,7 @@ SPIKE_EXCLUDE_WORDS_REGISTRY_KEY = "spike_exclude_words"
 SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
 
 
-def detect_spikes(target_date: Optional[date] = None) -> None:
+def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
     """
     Essentially a wrapper around _split_beta_batches_and_run_detector that
     calculates a list of documents on a particular date and uses
@@ -70,7 +70,7 @@ def detect_spikes(target_date: Optional[date] = None) -> None:
 
             doc_batch += paginated_info["data"]
             if len(doc_batch) > _BATCH_TARGET_SIZE:
-                _split_beta_batches_and_run_detector(doc_batch, lang)
+                _split_beta_batches_and_run_detector(doc_batch, lang, dry_run)
                 doc_batch = []
             count += len(paginated_info["data"])
             if count >= paginated_info["total_records"]:
@@ -79,10 +79,12 @@ def detect_spikes(target_date: Optional[date] = None) -> None:
                 break
             sort_id = paginated_info["sort_id"]
 
-        _split_beta_batches_and_run_detector(doc_batch, lang)
+        _split_beta_batches_and_run_detector(doc_batch, lang, dry_run)
 
 
-def _split_beta_batches_and_run_detector(documents: List[JeevesDocument], lang: str) -> None:
+def _split_beta_batches_and_run_detector(
+    documents: List[JeevesDocument], lang: str, dry_run: bool
+) -> None:
     """
     Given a mix of documents from checkpointing, run spike detection for each spike category.
 
@@ -100,11 +102,11 @@ def _split_beta_batches_and_run_detector(documents: List[JeevesDocument], lang: 
     )
     for spike_category, doc_list in spike_category_to_doc_list.items():
         if doc_list:
-            run_spike_detector_for_batch(doc_list, spike_category, lang)
+            run_spike_detector_for_batch(doc_list, spike_category, lang, dry_run)
 
 
 def run_spike_detector_for_batch(
-    new_ticket_batch: List[JeevesDocument], spike_group: SpikeCategory, lang: str
+    new_ticket_batch: List[JeevesDocument], spike_group: SpikeCategory, lang: str, dry_run: bool
 ) -> None:
     """
     Given a new batch of tickets from checkpointing, runs spike detection on
@@ -152,7 +154,10 @@ def run_spike_detector_for_batch(
         )
 
     if batch_spike_list:
-        app_registry(SpikeIndexDAL).bulk_index_spikes(batch_spike_list)
+        if not dry_run:
+            app_registry(SpikeIndexDAL).bulk_index_spikes(batch_spike_list)
+        else:
+            print(f"{[spike.to_dict() for spike in batch_spike_list]}")
 
 
 def _bucket_to_value(bucket: Dict[str, Union[str, int]]) -> Dict[str, int]:

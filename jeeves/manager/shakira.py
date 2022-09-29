@@ -22,7 +22,6 @@ _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
 }
 
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
-    "v2 feedback": None,
     "Lesson content issue": SlackChannel.FEEDBACK_LANGUAGE,
     "TTS is missing/mispronounced": SlackChannel.FEEDBACK_TTS,
     "Visual polish": SlackChannel.VISUAL_POLISH,
@@ -186,7 +185,6 @@ class ShakiraManager:
 
         related_issue_invalid = related_issue_key is not None and not related_issue_exists
 
-        feature = "v2 feedback" if slack_report_type == "v2 feedback" else feature
         reporter_email_username = reporter_email.split("@")[0] if reporter_email else ""
         priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email_username)
 

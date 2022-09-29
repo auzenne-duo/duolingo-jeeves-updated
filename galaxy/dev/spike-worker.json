@@ -10,7 +10,7 @@
         "softLimit": 65535,
         "hardLimit": 65535
     }],
-    "command": ["python","./jeeves/scripts/spike_worker.py"],
+    "command": ["python","./jeeves/scripts/spike_worker.py", "False"],
     "environment": [
         {"name": "PYTHONPATH", "value": "/code"}
     ],

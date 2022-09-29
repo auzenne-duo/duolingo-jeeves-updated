@@ -1,3 +1,4 @@
+from datetime import date
 from enum import Enum, auto
 from typing import Callable, Dict, List, Optional
 
@@ -5,6 +6,7 @@ from elasticsearch_dsl import Search
 
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
+from jeeves.util.date_util import str_to_date
 
 
 class SpikeCategory(Enum):
@@ -22,6 +24,17 @@ class SpikeCategory(Enum):
     INTERNAL_V2_IOS_SPIKES = auto()
     ALL_V2_IOS_SPIKES = auto()
     ALL_SPIKES = auto()
+
+    @classmethod
+    def _get_deprecated_date_for_spike_category(
+        cls, spike_category: "SpikeCategory"
+    ) -> Optional[date]:
+        spike_category_to_deprecated_date = {
+            cls.EXTERNAL_V2_IOS_SPIKES: str_to_date("2022-09-23"),
+            cls.INTERNAL_V2_IOS_SPIKES: str_to_date("2022-09-23"),
+            cls.ALL_V2_IOS_SPIKES: str_to_date("2022-09-23"),
+        }
+        return spike_category_to_deprecated_date.get(spike_category)
 
     @classmethod
     def _get_shake_to_report_categories_for_spike_category(
@@ -58,22 +71,25 @@ class SpikeCategory(Enum):
         if shake_to_report_categories is not None:
             return lambda doc: doc.shake_to_report_category in shake_to_report_categories
 
-        else:
-            category_to_predicate: Dict[SpikeCategory, Callable[[JeevesDocument], bool]] = {
-                cls.EXTERNAL_V2_IOS_SPIKES: lambda doc: bool(
-                    doc.duolingo_metadata.get("user_information", {}).get("ios_v2_dev", False)
-                )
-                and doc.shake_to_report_category == STRC.EXTERNAL,
-                cls.INTERNAL_V2_IOS_SPIKES: lambda doc: bool(
-                    doc.duolingo_metadata.get("user_information", {}).get("ios_v2_dev", False)
-                )
-                and doc.shake_to_report_category == STRC.INTERNAL,
-                cls.ALL_V2_IOS_SPIKES: lambda doc: bool(
-                    doc.duolingo_metadata.get("user_information", {}).get("ios_v2_dev", False)
-                ),
-                cls.ALL_SPIKES: lambda doc: True,
-            }
-            return category_to_predicate[group_category]
+        deprecated_date = cls._get_deprecated_date_for_spike_category(group_category)
+        category_to_predicate: Dict[SpikeCategory, Callable[[JeevesDocument], bool]] = {
+            cls.EXTERNAL_V2_IOS_SPIKES: lambda doc: bool(
+                doc.duolingo_metadata.get("user_information", {}).get("ios_v2_dev", False)
+            )
+            and doc.shake_to_report_category == STRC.EXTERNAL
+            and (deprecated_date is None or doc.date_time.date() <= deprecated_date),
+            cls.INTERNAL_V2_IOS_SPIKES: lambda doc: bool(
+                doc.duolingo_metadata.get("user_information", {}).get("ios_v2_dev", False)
+            )
+            and doc.shake_to_report_category == STRC.INTERNAL
+            and (deprecated_date is None or doc.date_time.date() <= deprecated_date),
+            cls.ALL_V2_IOS_SPIKES: lambda doc: bool(
+                doc.duolingo_metadata.get("user_information", {}).get("ios_v2_dev", False)
+            )
+            and (deprecated_date is None or doc.date_time.date() <= deprecated_date),
+            cls.ALL_SPIKES: lambda doc: True,
+        }
+        return category_to_predicate[group_category]
 
     @classmethod
     def get_elasticsearch_transformer_for_category(
@@ -99,20 +115,28 @@ class SpikeCategory(Enum):
                 shake_to_report_category=[category.name for category in shake_to_report_categories],
             )
 
-        else:
-            category_to_query: Dict[SpikeCategory, Callable[[Search], Search]] = {
-                cls.EXTERNAL_V2_IOS_SPIKES: lambda s: s.filter(
-                    "term", duolingo_metadata__user_information__ios_v2_dev=True
-                ).filter("term", shake_to_report_category=STRC.EXTERNAL.name),
-                cls.INTERNAL_V2_IOS_SPIKES: lambda s: s.filter(
-                    "term", duolingo_metadata__user_information__ios_v2_dev=True
-                ).filter("term", shake_to_report_category=STRC.INTERNAL.name),
-                cls.ALL_V2_IOS_SPIKES: lambda s: s.filter(
-                    "term", duolingo_metadata__user_information__ios_v2_dev=True
-                ),
-                cls.ALL_SPIKES: lambda s: s,
-            }
-            return category_to_query[group_category]
+        deprecated_date = cls._get_deprecated_date_for_spike_category(group_category)
+        timestamp_dict = {
+            "time_zone": "America/New_York",
+            "lte": deprecated_date,
+        }
+        category_to_query: Dict[SpikeCategory, Callable[[Search], Search]] = {
+            cls.EXTERNAL_V2_IOS_SPIKES: lambda s: s.filter(
+                "term", duolingo_metadata__user_information__ios_v2_dev=True
+            )
+            .filter("term", shake_to_report_category=STRC.EXTERNAL.name)
+            .filter("range", date_time=timestamp_dict),
+            cls.INTERNAL_V2_IOS_SPIKES: lambda s: s.filter(
+                "term", duolingo_metadata__user_information__ios_v2_dev=True
+            )
+            .filter("term", shake_to_report_category=STRC.INTERNAL.name)
+            .filter("range", date_time=timestamp_dict),
+            cls.ALL_V2_IOS_SPIKES: lambda s: s.filter(
+                "term", duolingo_metadata__user_information__ios_v2_dev=True
+            ).filter("range", date_time=timestamp_dict),
+            cls.ALL_SPIKES: lambda s: s,
+        }
+        return category_to_query[group_category]
 
     @classmethod
     def get_jeeves_query_params_for_category(
@@ -148,19 +172,13 @@ class SpikeCategory(Enum):
                 "q": f"shake_to_report_category:({'|'.join([category.name for category in shake_to_report_categories])})"
             }
 
-        else:
-            category_to_query: Dict[SpikeCategory, str] = {
-                cls.EXTERNAL_V2_IOS_SPIKES: {
-                    "q": "duolingo_metadata.user_information.ios_v2_dev:true",
-                    "filter": "EXTERNAL",
-                },
-                cls.INTERNAL_V2_IOS_SPIKES: {
-                    "q": "duolingo_metadata.user_information.ios_v2_dev:true",
-                    "filter": "INTERNAL",
-                },
-                cls.ALL_V2_IOS_SPIKES: {
-                    "q": "duolingo_metadata.user_information.ios_v2_dev:true",
-                },
-                cls.ALL_SPIKES: {},
-            }
-            return category_to_query[group_category]
+        deprecated_date = cls._get_deprecated_date_for_spike_category(group_category)
+        if deprecated_date is not None:
+            # This method is only used for formatting spike reporter messages to Slack.
+            # The spike reporter should not be reporting spikes for deprecated.
+            raise Exception("Attempted to form a Jeeves query for a deprecated spike category.")
+
+        category_to_query: Dict[SpikeCategory, str] = {
+            cls.ALL_SPIKES: {},
+        }
+        return category_to_query[group_category]

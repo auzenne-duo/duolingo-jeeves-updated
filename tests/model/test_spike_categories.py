@@ -9,12 +9,14 @@ from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.zendesk_document import ZendeskDocument
 
 
-def _get_document(category: ShakeToReportCategory, ios_v2_dev: Optional[bool] = None):
+def _get_document(category: ShakeToReportCategory, is_new: bool, ios_v2_dev: Optional[bool] = None):
     return ZendeskDocument(
         data_source="",
         document_id="",
         jeeves_uid="",
-        date_time=datetime.now(),
+        date_time=datetime(year=2022, month=10, day=1)
+        if is_new
+        else datetime(year=2022, month=9, day=1),
         header_text="",
         body_text="",
         language="",
@@ -43,15 +45,17 @@ def _get_document(category: ShakeToReportCategory, ios_v2_dev: Optional[bool] = 
     )
 
 
-external_doc = _get_document(ShakeToReportCategory.EXTERNAL)
-internal_doc = _get_document(ShakeToReportCategory.INTERNAL)
-non_str_external_doc = _get_document(ShakeToReportCategory.NON_STR_EXTERNAL)
-non_str_internal_doc = _get_document(ShakeToReportCategory.NON_STR_INTERNAL)
+external_doc = _get_document(ShakeToReportCategory.EXTERNAL, False)
+internal_doc = _get_document(ShakeToReportCategory.INTERNAL, False)
+non_str_external_doc = _get_document(ShakeToReportCategory.NON_STR_EXTERNAL, False)
+non_str_internal_doc = _get_document(ShakeToReportCategory.NON_STR_INTERNAL, False)
 
-external_v2_doc = _get_document(ShakeToReportCategory.EXTERNAL, ios_v2_dev=True)
-internal_v2_doc = _get_document(ShakeToReportCategory.INTERNAL, ios_v2_dev=True)
-external_not_v2_doc = _get_document(ShakeToReportCategory.EXTERNAL, ios_v2_dev=False)
-internal_not_v2_doc = _get_document(ShakeToReportCategory.INTERNAL, ios_v2_dev=False)
+external_v2_doc = _get_document(ShakeToReportCategory.EXTERNAL, False, ios_v2_dev=True)
+internal_v2_doc = _get_document(ShakeToReportCategory.INTERNAL, False, ios_v2_dev=True)
+new_external_v2_doc = _get_document(ShakeToReportCategory.EXTERNAL, True, ios_v2_dev=True)
+new_internal_v2_doc = _get_document(ShakeToReportCategory.INTERNAL, True, ios_v2_dev=True)
+external_not_v2_doc = _get_document(ShakeToReportCategory.EXTERNAL, False, ios_v2_dev=False)
+internal_not_v2_doc = _get_document(ShakeToReportCategory.INTERNAL, False, ios_v2_dev=False)
 
 get_predicate_for_category_test_cases = [
     (SpikeCategory.EXTERNAL_STR_SPIKES, external_doc, True),
@@ -60,6 +64,7 @@ get_predicate_for_category_test_cases = [
     (SpikeCategory.ALL_NON_STR_SPIKES, non_str_internal_doc, True),
     (SpikeCategory.EXTERNAL_V2_IOS_SPIKES, external_doc, False),
     (SpikeCategory.INTERNAL_V2_IOS_SPIKES, internal_v2_doc, True),
+    (SpikeCategory.INTERNAL_V2_IOS_SPIKES, new_internal_v2_doc, False),
     (SpikeCategory.ALL_V2_IOS_SPIKES, external_v2_doc, True),
     (SpikeCategory.ALL_V2_IOS_SPIKES, internal_not_v2_doc, False),
     (SpikeCategory.ALL_SPIKES, external_doc, True),
@@ -99,6 +104,24 @@ def test_get_elasticsearch_transformer_for_every_category():
         SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)
 
 
-def test_get_jeeves_query_params_for_every_category():
-    for spike_category in SpikeCategory:
+def test_get_jeeves_query_params_for_every_active_category():
+    for spike_category in [
+        SpikeCategory.EXTERNAL_STR_SPIKES,
+        SpikeCategory.INTERNAL_STR_SPIKES,
+        SpikeCategory.ALL_STR_SPIKES,
+        SpikeCategory.EXTERNAL_NON_STR_SPIKES,
+        SpikeCategory.INTERNAL_NON_STR_SPIKES,
+        SpikeCategory.ALL_NON_STR_SPIKES,
+        SpikeCategory.ALL_SPIKES,
+    ]:
         SpikeCategory.get_jeeves_query_params_for_category(spike_category)
+
+
+def test_get_jeeves_query_params_for_every_deprecated_category():
+    for spike_category in [
+        SpikeCategory.EXTERNAL_V2_IOS_SPIKES,
+        SpikeCategory.INTERNAL_V2_IOS_SPIKES,
+        SpikeCategory.ALL_V2_IOS_SPIKES,
+    ]:
+        with pytest.raises(Exception):
+            SpikeCategory.get_jeeves_query_params_for_category(spike_category)
