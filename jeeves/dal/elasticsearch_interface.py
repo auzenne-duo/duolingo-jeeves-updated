@@ -22,8 +22,9 @@ from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
+from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
 from jeeves.model.spike_categories import SpikeCategory
-from jeeves.util.date_util import date_to_str, datetime_to_str, time_series_str_to_datetime
+from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
 from jeeves.util.error_util import SearchUnsuccessfulException
 from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 
@@ -601,7 +602,7 @@ class ElasticsearchDAL:
         except RequestError as e:
             return self._handle_es_request_errors(e)
 
-    def generate_term_stats(self, start_date: datetime):
+    def generate_term_stats(self, start_date: datetime, only_shake_to_report: bool = False):
         """
         Scrolls through all documents of a specific language and counts the number of occurences.
         Then saves the mean (occurences per day) and std for terms that appear at least MIN_SAMPLES_THRESHOLD times
@@ -611,6 +612,7 @@ class ElasticsearchDAL:
 
         Parameters:
             start_date (DateTime): Earliest date after which to sample tickets
+            only_shake_to_report (boolean): if true, filters only for Jira tickets or Zendesk beta users
 
         Returns:
             (dict {str: {"mean": float, "std": float}}) mapping from each word to its mean and std of daily count over the sample window
@@ -627,6 +629,10 @@ class ElasticsearchDAL:
                 }
             },
         }
+        if only_shake_to_report:
+            query["query"]["bool"]["filter"].append(
+                {"terms": {"shake_to_report_category": [STRC.EXTERNAL.name, STRC.INTERNAL.name]}}
+            )
 
         resp = self._es.search(  # pylint: disable=unexpected-keyword-arg
             index=self._indexname,
@@ -648,7 +654,7 @@ class ElasticsearchDAL:
                 terms = doc["_source"]["lemmatized_terms"]
 
                 date_str = doc["_source"]["date_time"]
-                date = time_series_str_to_datetime(date_str)
+                date = parse_external_datetime(date_str)
                 date_key = date_to_str(date)
                 date_to_doc_count[date_key] += 1
 

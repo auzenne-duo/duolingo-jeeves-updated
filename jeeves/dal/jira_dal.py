@@ -21,7 +21,6 @@ _RETRY_LIMIT = 3
 class JiraApiDAL:
     def __init__(self):
         self._host = "https://duolingo.atlassian.net"
-        print("jira auth", _USERNAME, _API_TOKEN)
         self._auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
 
     def _get_with_retry(self, url, headers=None, params=None, auth=None) -> Response:
@@ -172,7 +171,7 @@ class JiraApiDAL:
                 + f"/rest/api/3/search?jql=key%20in%20({',%20'.join(issue_keys[i:i+slice_size])})"
             )
             headers = {"Accept": "application/json"}
-            response_json = self.make_jira_get(url, headers)
+            response_json = json.loads(self.make_jira_get(url, headers))
             docs.extend(
                 [
                     JiraDocument.deserialize_from_external_json(issue)
@@ -188,7 +187,17 @@ class JiraApiDAL:
         url = self._host + "/rest/api/3/issue/" + issue_key
         headers = {"Accept": "application/json"}
         # TODO warning if JiraDocument._feature_field_key is not set!
-        return JiraDocument.deserialize_from_external_json(self.make_jira_get(url, headers))
+        return JiraDocument.deserialize_from_external_json(
+            json.loads(self.make_jira_get(url, headers))
+        )
+
+    def get_attachment_contents(self, attachment_key: str) -> str:
+        """
+        Downloads the contents of a specific attachment
+        """
+        url = self._host + "/rest/api/3/attachment/content/" + attachment_key
+        headers = {"Accept": "application/json"}
+        return self.make_jira_get(url, headers)
 
     def make_jira_get(self, url: str, headers: Dict):
         """
@@ -197,8 +206,7 @@ class JiraApiDAL:
         try:
             r = get(url, auth=self._auth, headers=headers)
             r.raise_for_status()
-
-            return json.loads(r.text)
+            return r.text
         except RequestException as e:
             print_request_exception(e, rollbar_level="error")
             raise

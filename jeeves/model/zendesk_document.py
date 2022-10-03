@@ -3,6 +3,7 @@ Our model for a ticket from the Zendesk API
 """
 import json
 import os
+import re
 import time
 from hashlib import sha1
 from typing import List
@@ -108,6 +109,18 @@ class ZendeskDocument(JeevesDocument):
         elif external_json["via"]["channel"] == "email":
             email = external_json["via"]["source"]["from"].get("address")
 
+        experiment_conditions_pattern = re.compile("^.*experiment_conditions\.txt$")
+        experiment_conditions = {}
+        for attachment_link in external_json["attachments"]:
+            if experiment_conditions_pattern.match(attachment_link):
+                with Session() as s:
+                    s.auth = (_USER, _PASSWORD)
+                    r = ZendeskDocument.rate_limited_get(s, attachment_link)
+                    contents = r.text
+                    for condition in re.findall("[a-zA-Z\d_]+: [a-zA-Z\d_]+", contents):
+                        key, value = condition.split(": ")
+                        experiment_conditions[key] = value
+
         return cls(
             data_source=cls.get_data_source_identifier(),
             document_id=str(external_json["id"]),
@@ -150,6 +163,7 @@ class ZendeskDocument(JeevesDocument):
             tags=external_json["tags"],
             requester_id=str(external_json["requester_id"]),
             metadata=metadata,
+            experiment_conditions=experiment_conditions,
         )
 
     @classmethod
@@ -205,6 +219,7 @@ class ZendeskDocument(JeevesDocument):
             tags=internal_json["tags"],
             requester_id=internal_json["requester_id"],
             metadata=internal_json["metadata"],
+            experiment_conditions=internal_json.get("experiment_conditions", {}),
         )
 
     @classmethod

@@ -2,6 +2,7 @@
 Manager for JIRA documents.
 """
 import json
+import re
 import sys
 from datetime import datetime
 from typing import List, Optional
@@ -164,6 +165,19 @@ class JiraManager(JeevesManager):
         JiraManager._try_set_jira_document_feature_field_key()
         test_doc = JiraDocument.deserialize_from_external_json(doc_json)
         JiraManager._try_set_feature_for_jira_document(test_doc)
+        JiraManager._populate_with_experiment_conditions(test_doc)
         if JiraDocument.check_should_index_document(test_doc):
             return test_doc
         return None
+
+    @staticmethod
+    def _populate_with_experiment_conditions(jira_doc: JiraDocument) -> None:
+        for attachment in jira_doc.jira_attachments:
+            if attachment["filename"] == "experiment_conditions.txt":
+                contents = JiraDAL.get_attachment_contents(attachment["id"])
+                experiment_conditions = {}
+                for condition in re.findall("[a-zA-Z\d_]+: [a-zA-Z\d_]+", contents):
+                    key, value = condition.split(": ")
+                    experiment_conditions[key] = value
+                jira_doc.experiment_conditions = experiment_conditions
+                return

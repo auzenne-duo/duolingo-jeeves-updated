@@ -51,6 +51,7 @@ class JiraDocument(JeevesDocument):
     comments: List[Dict[str, Union[str, datetime.datetime]]] = attr.ib()
     labels: List[str] = attr.ib()
     embedding_vector: List[float] = attr.ib()
+    jira_attachments: List[Dict[str, str]] = attr.ib()
 
     # non-indexed fields
     parent_issue: str = None
@@ -228,6 +229,7 @@ class JiraDocument(JeevesDocument):
             if is_shake_to_report
             else ShakeToReportCategory.NON_STR_INTERNAL,
             attachments=external_json.get("attachments", []),
+            jira_attachments=external_fields.get("attachment", []),
             duolingo_metadata=duolingo_metadata,
             app_version=std_metadata["app_version"],
             challenge_id=std_metadata["challenge_id"],
@@ -291,6 +293,7 @@ class JiraDocument(JeevesDocument):
             else [],
             labels=external_fields["labels"],
             embedding_vector=[],
+            experiment_conditions={},
         )
 
     @classmethod
@@ -315,6 +318,7 @@ class JiraDocument(JeevesDocument):
                 internal_json["shake_to_report_category"]
             ],
             attachments=internal_json["attachments"],
+            jira_attachments=internal_json.get("jira_attachments", []),
             duolingo_metadata=internal_json["duolingo_metadata"],
             app_version=internal_json["app_version"],
             challenge_id=internal_json.get("challenge_id", ""),
@@ -365,6 +369,7 @@ class JiraDocument(JeevesDocument):
             comments=[cls._deserialize_comment(comment) for comment in internal_json["comments"]],
             labels=internal_json["labels"],
             embedding_vector=internal_json["embedding_vector"],
+            experiment_conditions=internal_json.get("experiment_conditions", {}),
         )
 
     @classmethod

@@ -70,6 +70,8 @@ def _jira_document(
         comments=[],
         labels=labels if labels else [],
         embedding_vector=[],
+        experiment_conditions={},
+        jira_attachments=[],
     )
     issue_number += 1
     return doc

@@ -10,6 +10,7 @@ from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.lib.spike_detector import (
     SPIKE_EXCLUDE_WORDS_REGISTRY_KEY,
     SPIKE_LEMMA_STATS_REGISTRY_KEY,
+    STR_SPIKE_LEMMA_STATS_REGISTRY_KEY,
     detect_spikes,
 )
 from jeeves.util.date_util import date_to_str, get_utc_today, str_to_date, yield_intermediate_dates
@@ -23,6 +24,7 @@ _FORCE_SPIKE_REFRESH_FILE = "force_spike_refresh_flag"
 _SPIKE_CALCULATOR_LOCK_FILE = "spike_calculator_lock"
 _SPIKE_EXCLUDE_WORDS_FILE = "spike_exclude_words"
 _SPIKE_LEMMA_STATS_FILE = "spike_lemma_stats"
+_STR_SPIKE_LEMMA_STATS_FILE = "str_spike_lemma_stats"
 _LOCK_TIMEOUT = 12
 
 
@@ -100,6 +102,19 @@ def run_spike_worker(dry_run: bool) -> None:
         )
     else:
         register(SPIKE_LEMMA_STATS_REGISTRY_KEY, {"words": {}})
+
+    str_spike_lemma_stats_file_list = list(
+        s3_client.yield_filenames(s3_bucket_name, path_prefix=_STR_SPIKE_LEMMA_STATS_FILE)
+    )
+    if str_spike_lemma_stats_file_list:
+        register(
+            STR_SPIKE_LEMMA_STATS_REGISTRY_KEY,
+            json.loads(
+                s3_client.download(s3_bucket_name, _STR_SPIKE_LEMMA_STATS_FILE).decode("utf-8")
+            ),
+        )
+    else:
+        register(STR_SPIKE_LEMMA_STATS_REGISTRY_KEY, {"words": {}})
 
     try:
         # Quick check to see if we have any spikes

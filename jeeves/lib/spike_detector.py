@@ -33,6 +33,7 @@ from jeeves.util.error_util import SpikeDetectorException
 
 SPIKE_EXCLUDE_WORDS_REGISTRY_KEY = "spike_exclude_words"
 SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
+STR_SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
 
 
 def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
@@ -250,18 +251,21 @@ def _find_spiked_words(
     # if the number of tickets per day suddenly increases, treat as a cold start by truncating the
     # data_window_size to the most recent day within 1/ROLLOUT_RESET_THRESHOLD times of the current
     # day count
-    if num_tickets_by_day.get(target_date_str, 0) > ROLLOUT_RESET_THRESHOLD * average_num_tickets:
-        for date_str, count in reversed(list(num_tickets_by_day.items())):
-            if num_tickets_by_day[target_date_str] > ROLLOUT_RESET_THRESHOLD * count:
-                data_window_size = min(data_window_size, (target_dt - str_to_date(date_str)).days)
-                average_num_tickets = np.mean(
-                    [
-                        val
-                        for key, val in num_tickets_by_day.items()
-                        if (target_dt - str_to_date(key)).days < data_window_size
-                    ]
-                )
-                break
+    sorted_date_and_count = sorted(list(num_tickets_by_day.items()), key=lambda x: x[0])
+    cuttoff_index = 0
+    for i, (_, count) in enumerate(sorted_date_and_count):
+        if i == 0:
+            continue
+        average = np.mean([count for _, count in sorted_date_and_count[cuttoff_index:i]])
+        if count > ROLLOUT_RESET_THRESHOLD * average:
+            cuttoff_index = i
+
+    average_num_tickets = np.mean([count for _, count in sorted_date_and_count[cuttoff_index:]])
+    data_start_date = sorted_date_and_count[cuttoff_index][0]
+    data_window_size = min(data_window_size, (target_dt - str_to_date(data_start_date)).days + 1)
+
+    # currently we use a baseline generated from solely str tickets
+    baseline_stats = app_registry(STR_SPIKE_LEMMA_STATS_REGISTRY_KEY)
 
     score_word_pairs = [
         (
@@ -272,6 +276,7 @@ def _find_spiked_words(
                 word,
                 average_num_tickets,
                 lang,
+                baseline_stats,
             ),
             word,
         )
@@ -310,6 +315,7 @@ def _calculate_spike_score(
     word: str,
     average_num_tickets: int,
     lang: str,
+    baseline_stats: Dict,
 ):
     """
     Given a word, returns a score that represents spikiness where spikiness is a z-score
@@ -327,7 +333,6 @@ def _calculate_spike_score(
     target_count = date_to_count.get(date_str, 0)
     if target_count < COUNT_THRESHOLD:
         return -1
-    baseline_stats = app_registry(SPIKE_LEMMA_STATS_REGISTRY_KEY)
     word_stats = baseline_stats["words"]
 
     count_history = [

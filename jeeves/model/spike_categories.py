@@ -24,6 +24,7 @@ class SpikeCategory(Enum):
     INTERNAL_V2_IOS_SPIKES = auto()
     ALL_V2_IOS_SPIKES = auto()
     ALL_SPIKES = auto()
+    POSEIDON_IOS_ROW_BLASTER = auto()
 
     @classmethod
     def _get_deprecated_date_for_spike_category(
@@ -88,6 +89,10 @@ class SpikeCategory(Enum):
             )
             and (deprecated_date is None or doc.date_time.date() <= deprecated_date),
             cls.ALL_SPIKES: lambda doc: True,
+            cls.POSEIDON_IOS_ROW_BLASTER: lambda doc: doc.experiment_conditions.get(
+                "poseidon_ios_mm_row_blaster", ""
+            )
+            in ["price_150", "price_250"],
         }
         return category_to_predicate[group_category]
 
@@ -135,6 +140,10 @@ class SpikeCategory(Enum):
                 "term", duolingo_metadata__user_information__ios_v2_dev=True
             ).filter("range", date_time=timestamp_dict),
             cls.ALL_SPIKES: lambda s: s,
+            cls.POSEIDON_IOS_ROW_BLASTER: lambda s: s.filter(
+                "terms",
+                experiment_conditions__poseidon_ios_mm_row_blaster=["price_150", "price_250"],
+            ),
         }
         return category_to_query[group_category]
 
@@ -161,6 +170,7 @@ class SpikeCategory(Enum):
             Note that returned parameter values are NOT escaped.
         """
 
+        # TODO: I'm pretty sure this can mostly be removed because now the /tickets route uses the spike category to filter so this is unnecessary
         shake_to_report_categories = cls._get_shake_to_report_categories_for_spike_category(
             group_category
         )

@@ -92,6 +92,7 @@ def test_update_parent_data_from_child():
         "links": [],
         "shake_to_report_category": "INTERNAL",
         "attachments": [],
+        "jira_attachments": [],
         "duolingo_metadata": {
             "system_information": {
                 "app_version": "6.117.0.1",

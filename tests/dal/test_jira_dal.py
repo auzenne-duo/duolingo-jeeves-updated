@@ -113,6 +113,8 @@ def test_get_feature_for_jira_document_with_retry():
         comments=[],
         labels=[],
         embedding_vector=[],
+        experiment_conditions={},
+        jira_attachments=[],
     )
 
     start_time = timeit.default_timer()

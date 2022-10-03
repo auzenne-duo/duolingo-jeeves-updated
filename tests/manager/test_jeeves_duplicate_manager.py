@@ -43,6 +43,7 @@ def _appfigures_document(header="I am a header", body="I am body text"):
         deleted=False,
         product_id="prod1",
         store="",
+        experiment_conditions={},
     )
     return doc
 
@@ -89,6 +90,8 @@ def _jira_document(header="I am a header", body="I am body text"):
         comments=[],
         labels=[],
         embedding_vector=[],
+        experiment_conditions={},
+        jira_attachments=[],
     )
     return doc
 
@@ -129,6 +132,7 @@ def _zendesk_document(header="I am a header", body="I am body text"):
         tags=[],
         requester_id="requester1",
         metadata="",
+        experiment_conditions={},
     )
     return doc
 

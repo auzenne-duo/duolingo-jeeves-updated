@@ -43,6 +43,7 @@ const Spike = () => {
           key={i}
           language={lang}
           linkFilter={spikeToStrCategory(filter)}
+          spikeCategory={filter}
           spikes={o.spikes}
         />
       ))}

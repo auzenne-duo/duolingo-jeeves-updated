@@ -20,6 +20,7 @@ class TestSpikeDetector(unittest.TestCase):
             "bug",
             10,
             "en",
+            {"words": {}},
         )
 
         count_history = [0, 2, 0, 6]
@@ -34,6 +35,7 @@ class TestSpikeDetector(unittest.TestCase):
             "bug",
             10,
             "en",
+            {"words": {}},
         )
 
         expected = -1
@@ -47,6 +49,7 @@ class TestSpikeDetector(unittest.TestCase):
             "bug",
             10,
             "en",
+            {"words": {}},
         )
 
         count_history = [0, 0, 6, 6]

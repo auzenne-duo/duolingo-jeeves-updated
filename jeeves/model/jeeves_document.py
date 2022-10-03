@@ -49,6 +49,7 @@ class JeevesDocument(ABC):
     skill_tree_id: str = attr.ib(default="")
     ui_language: str = attr.ib()
     username: str = attr.ib()
+    experiment_conditions: Dict[str, str] = attr.ib()
 
     # It is VERY IMPORTANT, when you add attributes to a subclass of this class,
     # that the attribute names are distinct from each other attribute name across

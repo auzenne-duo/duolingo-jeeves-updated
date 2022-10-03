@@ -42,6 +42,7 @@ def _get_document(category: ShakeToReportCategory, is_new: bool, ios_v2_dev: Opt
         tags=[],
         requester_id="",
         metadata={},
+        experiment_conditions={},
     )
 
 

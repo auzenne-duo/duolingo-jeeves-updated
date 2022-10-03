@@ -13,6 +13,7 @@ interface Props {
   isLoading?: boolean;
   language: JSONAPI.LanguageId;
   linkFilter?: JSONAPI.ShakeToReportCategory;
+  spikeCategory?: JSONAPI.SpikeCategory;
   spikes: JSONAPI.SpikeWord[];
 }
 
@@ -21,6 +22,7 @@ const SpikeTable = ({
   isLoading,
   language,
   linkFilter,
+  spikeCategory,
   spikes,
 }: Props) => (
   <Table className={styles.table}>
@@ -42,6 +44,9 @@ const SpikeTable = ({
         const params = new URLSearchParams();
         if (linkFilter) {
           params.set("filter", linkFilter);
+        }
+        if (spikeCategory) {
+          params.set("spike-category", spikeCategory);
         }
         params.set("q", spike.word);
         return (
