@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 
 import rollbar
 from duolingo_base.config import Config
-from duolingo_base.dal import s3
 
 from jeeves import apply_registry, close_registry, register, registry as app_registry
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
@@ -14,6 +13,7 @@ from jeeves.lib.spike_detector import (
     detect_spikes,
 )
 from jeeves.util.date_util import date_to_str, get_utc_today, str_to_date, yield_intermediate_dates
+from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 _config = Config.load_config()
 _config.apply_logging()
@@ -46,12 +46,7 @@ def run_spike_worker(dry_run: bool) -> None:
     detection incrementally.
     """
 
-    s3_client = None
-    if _config.get_nested(["s3_document_cache", "endpoint_url"]):
-        s3_client = s3.S3Client(_config.get_nested(["s3_document_cache", "endpoint_url"]))
-    else:
-        s3_client = s3.S3Client()
-    s3_bucket_name = _config.get_nested(["s3_document_cache", "bucket_name"])
+    s3_client, s3_bucket_name = get_s3_client_and_bucket()
 
     # Check if the lock file exists. If not, create it in an unlocked state.
     spike_lock_list = list(

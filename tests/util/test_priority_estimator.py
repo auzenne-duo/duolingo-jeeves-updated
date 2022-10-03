@@ -16,6 +16,8 @@ mock_bert.from_pretrained.return_value.return_value.logits.cpu.return_value.nump
 @patch("jeeves.util.priority_estimator.torch", MagicMock())
 class Test(unittest.TestCase):
     def test_estimate_priority(self):
-        result = PriorityEstimator.estimate_priority("Example sentence", "WeChat", "c")
+        result = PriorityEstimator.estimate_priority(
+            "Example sentence", "WeChat", "caleb@duolingo.com"
+        )
         expected = "Low"
         self.assertEqual(result, expected)

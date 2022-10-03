@@ -20,6 +20,7 @@ from jeeves.util.date_util import (
     get_utc_today,
     yield_intermediate_dates,
 )
+from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
 
@@ -204,13 +205,7 @@ def get_s3_client_buckets_and_sqs() -> Tuple[s3.S3Client, str, sqs.SQSClient]:
     """
     Return s3 client, s3 bucket name, and sqs client
     """
-    s3_client = None
-    if _config.get_nested(["s3_document_cache", "endpoint_url"]):
-        s3_client = s3.S3Client(_config.get_nested(["s3_document_cache", "endpoint_url"]))
-    else:
-        s3_client = s3.S3Client()
-    s3_bucket_name = _config.get_nested(["s3_document_cache", "bucket_name"])
-
+    s3_client, s3_bucket_name = get_s3_client_and_bucket()
     sqs_client = sqs.SQSClient(
         _config.get_nested(["sqs_download_verify_pipeline", "queue_url"]),
         region_name=_config.get_nested(["sqs_download_verify_pipeline", "region_name"]),

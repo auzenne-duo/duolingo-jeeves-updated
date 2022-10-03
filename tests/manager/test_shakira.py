@@ -373,7 +373,7 @@ class Test(unittest.TestCase):
             summary="summary",
             description=None,
             generated_description=None,
-            reporter_email="biglou@doulingo.com",
+            reporter_email="biglou@duolingo.com",
             pre_release=False,
             files={},
         )
@@ -385,7 +385,7 @@ class Test(unittest.TestCase):
             summary="summary",
             description=None,
             generated_description=None,
-            reporter_email="biglou@doulingo.com",
+            reporter_email="biglou@duolingo.com",
             pre_release=False,
             will_post_to_slack=False,
             priority="Medium",
@@ -393,5 +393,5 @@ class Test(unittest.TestCase):
         )
         assert not shakira_slack_mock.post_issue.called
         mock_priority_estimator.estimate_priority.assert_called_with(
-            "summary", "Callouts", "biglou"
+            "summary", "Callouts", "biglou@duolingo.com"
         )

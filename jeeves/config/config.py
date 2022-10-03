@@ -19,3 +19,6 @@ MIN_SAMPLES_THRESHOLD = 10
 # If the count of tickets increase by more than x times the average daily count, treat as a
 # cold start for spike detection
 ROLLOUT_RESET_THRESHOLD = 4
+
+# Path name for where to upload the priority estimator model in aws s3
+PRIORITY_ESTIMATOR_S3_PATH = "priority_estimator_model/"

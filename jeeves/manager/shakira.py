@@ -185,8 +185,7 @@ class ShakiraManager:
 
         related_issue_invalid = related_issue_key is not None and not related_issue_exists
 
-        reporter_email_username = reporter_email.split("@")[0] if reporter_email else ""
-        priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email_username)
+        priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email)
 
         should_post_to_slack = (
             channel is not None and not related_issue_invalid

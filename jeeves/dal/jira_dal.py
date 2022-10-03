@@ -21,6 +21,7 @@ _RETRY_LIMIT = 3
 class JiraApiDAL:
     def __init__(self):
         self._host = "https://duolingo.atlassian.net"
+        print("jira auth", _USERNAME, _API_TOKEN)
         self._auth = HTTPBasicAuth(_USERNAME, _API_TOKEN)
 
     def _get_with_retry(self, url, headers=None, params=None, auth=None) -> Response:

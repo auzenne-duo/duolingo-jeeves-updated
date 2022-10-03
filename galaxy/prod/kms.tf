@@ -171,4 +171,16 @@ data "aws_kms_secrets" "secrets" {
       environment = var.environment
     }
   }
+
+  secret {
+    name    = "priority_estimator_updater_jira_api_token"
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwH4rLO/c2YBDYfiG1EtOKZ+AAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMR/onL92RA77UyYJWAgEQgDMzv1mMlPRqk7pTesA5iM5F84TkUB3ivEvBVXe7duSdjKhTBC2AkkcHCzUNAIbu24HgObw="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "priority-estimator-updater"
+      environment = var.environment
+    }
+  }
 }
