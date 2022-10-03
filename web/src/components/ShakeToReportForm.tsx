@@ -175,7 +175,9 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
         {
           description: description.trim(),
           feature,
-          generatedDescription,
+          generatedDescription: `From Jeeves: https://jeeves.duolingo.com/en/discovery?id=${
+            ticket.jeeves_uid
+          }\n${generatedDescription ?? ""}`,
           // This data isn't available in Jeeves yet.
           preRelease: false,
           project,
