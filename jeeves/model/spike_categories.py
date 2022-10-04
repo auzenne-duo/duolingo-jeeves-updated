@@ -25,6 +25,7 @@ class SpikeCategory(Enum):
     ALL_V2_IOS_SPIKES = auto()
     ALL_SPIKES = auto()
     POSEIDON_IOS_ROW_BLASTER = auto()
+    SFEAT_IOS_SIDE_QUESTS = auto()
 
     @classmethod
     def _get_deprecated_date_for_spike_category(
@@ -93,6 +94,10 @@ class SpikeCategory(Enum):
                 "poseidon_ios_mm_row_blaster", ""
             )
             in ["price_150", "price_250"],
+            cls.SFEAT_IOS_SIDE_QUESTS: lambda doc: doc.experiment_conditions.get(
+                "sfeat_ios_side_quests", ""
+            )
+            in ["free_for_premium_users", "paid_for_all_users"],
         }
         return category_to_predicate[group_category]
 
@@ -144,6 +149,13 @@ class SpikeCategory(Enum):
                 "terms",
                 experiment_conditions__poseidon_ios_mm_row_blaster=["price_150", "price_250"],
             ),
+            cls.SFEAT_IOS_SIDE_QUESTS: lambda s: s.filter(
+                "terms",
+                experiment_conditions__sfeat_ios_side_quests=[
+                    "free_for_premium_users",
+                    "paid_for_all_users",
+                ],
+            ),
         }
         return category_to_query[group_category]
 
@@ -190,5 +202,7 @@ class SpikeCategory(Enum):
 
         category_to_query: Dict[SpikeCategory, str] = {
             cls.ALL_SPIKES: {},
+            cls.POSEIDON_IOS_ROW_BLASTER: {},
+            cls.SFEAT_IOS_SIDE_QUESTS: {},
         }
         return category_to_query[group_category]

@@ -28,14 +28,18 @@ _SLACK_REPORT_LANG = "en"
 _SLACK_API = "https://slack.com/api"
 _SLACK_API_TOKEN = os.environ.get("SPIKE_REPORTER_SLACK_API_TOKEN")
 _SPIKE_CATEGORY_TO_SLACK_CHANNELS = {
-    SpikeCategory.EXTERNAL_NON_STR_SPIKES: [SlackChannel.BUG_TRIAGE, SlackChannel.JEEVES]
+    SpikeCategory.EXTERNAL_NON_STR_SPIKES: [SlackChannel.BUG_TRIAGE, SlackChannel.JEEVES],
+    SpikeCategory.POSEIDON_IOS_ROW_BLASTER: [SlackChannel.POST_TEST_RESULTS],
+    SpikeCategory.SFEAT_IOS_SIDE_QUESTS: [SlackChannel.POST_TEST_RESULTS],
 }
 # Messages for every spike category will only be sent to this channel from the dev environment.
 _DEV_SLACK_CHANNEL = SlackChannel.POST_TEST_RESULTS
 
 # The name of the category to be used in the message sent to the Slack channel.
 _SPIKE_CATEGORY_TO_SLACK_FRIENDLY_NAME = {
-    SpikeCategory.EXTERNAL_NON_STR_SPIKES: "customer feedback"
+    SpikeCategory.EXTERNAL_NON_STR_SPIKES: "customer feedback",
+    SpikeCategory.POSEIDON_IOS_ROW_BLASTER: "poseidon row blaster dogfooding feedback",
+    SpikeCategory.SFEAT_IOS_SIDE_QUESTS: "sfeat ios side quests dogfooding feedback",
 }
 
 
