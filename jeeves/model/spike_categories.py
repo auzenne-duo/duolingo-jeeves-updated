@@ -24,6 +24,7 @@ class SpikeCategory(Enum):
     INTERNAL_V2_IOS_SPIKES = auto()
     ALL_V2_IOS_SPIKES = auto()
     ALL_SPIKES = auto()
+    IOS_UNIT_TEST_REFACTOR = auto()
     POSEIDON_IOS_ROW_BLASTER = auto()
     SFEAT_IOS_SIDE_QUESTS = auto()
 
@@ -90,6 +91,10 @@ class SpikeCategory(Enum):
             )
             and (deprecated_date is None or doc.date_time.date() <= deprecated_date),
             cls.ALL_SPIKES: lambda doc: True,
+            cls.IOS_UNIT_TEST_REFACTOR: lambda doc: doc.experiment_conditions.get(
+                "ios_unit_test_refactor", ""
+            )
+            == "experiment",
             cls.POSEIDON_IOS_ROW_BLASTER: lambda doc: doc.experiment_conditions.get(
                 "poseidon_ios_mm_row_blaster", ""
             )
@@ -149,6 +154,10 @@ class SpikeCategory(Enum):
                 "terms",
                 experiment_conditions__poseidon_ios_mm_row_blaster=["price_150", "price_250"],
             ),
+            cls.IOS_UNIT_TEST_REFACTOR: lambda s: s.filter(
+                "term",
+                experiment_conditions__ios_unit_test_refactor="experiment",
+            ),
             cls.SFEAT_IOS_SIDE_QUESTS: lambda s: s.filter(
                 "terms",
                 experiment_conditions__sfeat_ios_side_quests=[
@@ -202,6 +211,7 @@ class SpikeCategory(Enum):
 
         category_to_query: Dict[SpikeCategory, str] = {
             cls.ALL_SPIKES: {},
+            cls.IOS_UNIT_TEST_REFACTOR: {},
             cls.POSEIDON_IOS_ROW_BLASTER: {},
             cls.SFEAT_IOS_SIDE_QUESTS: {},
         }
