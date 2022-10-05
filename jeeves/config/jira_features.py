@@ -35,7 +35,8 @@ JIRA_FEATURES = {
             "Referral": [],
             "Friends": ["friend", "invite", "contact"],
             "Kudos": ["congrats", "high five"],
-            "DuoNews": ["duo news", "feed", "news"],
+            "DuoNews": ["duo news", "news"],
+            "Feed Tab": ["kudos feed", "feature card"],
             "Friends Quest": [
                 "partner",
                 "nudge",
