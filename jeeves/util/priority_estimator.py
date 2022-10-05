@@ -87,7 +87,6 @@ class PriorityEstimator:
                 s3_client.upload(
                     s3_bucket_name, os.path.join(PRIORITY_ESTIMATOR_S3_PATH, filename), f.read()
                 )
-            os.remove(filepath)
 
     @classmethod
     def train_model(cls, train_dataloader: DataLoader, epochs: int = 1) -> None:
@@ -107,18 +106,29 @@ class PriorityEstimator:
                 cls.optimizer.step()
 
     @classmethod
-    def predict(cls, sentence: str, feature: str, reporter: str) -> np.array:
+    def format_data(cls, sentence: str, feature: str, reporter: str) -> str:
         """
-        Predicts priority scores for a given sentence, feature, and reporter
+        Formats sentence, feature, and reporter into a single string
 
         Params
             sentence: string of text
             feature: Jira issue such as "WeChat"
-            reporter: username string of the issue reporter. The username part of an email, such as biglou
+            reporter: string of the issue reporter's email, such as biglou@duolingo.com
+        """
+        return f"{sentence}; {feature}; {cls.parse_reporter_email(reporter)}"
+
+    @classmethod
+    def _predict(cls, data: str) -> np.array:
+        """
+        Predicts priority scores for a given sentence, feature, and reporter
+
+        Params
+            data: string of the form "issue summary; feature; reporter"
+                    Note, reporter should not have the "@duolingo.com" part
 
         Returns an np array of size 3 with a score for classes of Low, Medium, and High
         """
-        encoding = cls.preprocessing(f"{sentence}; {feature}; {reporter}")
+        encoding = cls.preprocessing(data)
         with torch.no_grad():
             output = cls.model(  # pylint: disable=not-callable
                 encoding["input_ids"],
@@ -142,7 +152,8 @@ class PriorityEstimator:
         Returns a string representing estimated priority. Must be one of the vales of JiraPriority enum
         """
         cls._initialize_priority_estimator()
-        prediction = cls.predict(sentence, feature, cls.parse_reporter_email(reporter_email))
+        data = cls.format_data(sentence, feature, reporter_email)
+        prediction = cls._predict(data)
         return PRIORITY_INT_TO_STR[np.argmax(prediction)]
 
     @classmethod
