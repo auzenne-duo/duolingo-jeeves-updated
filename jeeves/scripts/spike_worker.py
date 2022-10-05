@@ -167,7 +167,7 @@ def run_spike_worker(dry_run: bool) -> None:
 if __name__ == "__main__":
     try:
         apply_registry()
-        dry_run = bool(sys.argv[1]) if len(sys.argv) > 1 else True
+        dry_run = sys.argv[1] == "True" if len(sys.argv) > 1 else True
         run_spike_worker(dry_run)
     except:
         rollbar.report_exc_info(sys.exc_info())
