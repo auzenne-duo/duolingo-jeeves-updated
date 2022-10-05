@@ -177,6 +177,3 @@ class JeevesDocument(ABC):
             document de-duplication if needed.
         """
         return document.jeeves_uid
-
-    def __repr__(self) -> str:
-        return self.jeeves_uid
