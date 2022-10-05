@@ -46,6 +46,7 @@ class DuplicateGraphResolver:
         if key_to_doc is None:
             key_to_doc = {}
 
+        print("  called get_duplicate_graph with", issue_keys, key_to_doc)
         existing_links = set()
         visited = {}
         unvisited = set(issue_keys)
@@ -60,7 +61,9 @@ class DuplicateGraphResolver:
                 target_key = unvisited.pop()
             # download issues in bulk as needed
             if not target_key in key_to_doc:
+                print("    fetching docs", docs_to_fetch)
                 docs = self._jira_manager.download_bulk_issues_with_features(list(docs_to_fetch))
+                print("    fetched docs", docs)
                 key_to_doc.update({doc.issue_key: doc for doc in docs})
                 docs_to_fetch = set()
             target_issue = key_to_doc[target_key]
@@ -349,7 +352,9 @@ class DuplicateGraphResolver:
         }
 
         docs = self._jira_manager.download_bulk_issues_with_features(list(docs_to_fetch))
+        print("docs", docs)
         key_to_doc = {doc.issue_key: doc for doc in docs}
+        print("original key_to_doc", key_to_doc)
         for issue in filtered_issues:
             duplicate_graph = self.get_duplicate_graph(
                 [issue.issue_key] + issue.linked_duplicate_keys, key_to_doc=key_to_doc
