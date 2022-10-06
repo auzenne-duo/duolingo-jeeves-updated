@@ -7,6 +7,7 @@ make sense or would cause a circular dependency.
 from collections import Counter
 from typing import Dict, List, Optional, Tuple
 
+import rollbar
 from duolingo_base.util import registry
 
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
@@ -46,10 +47,10 @@ class DuplicateGraphResolver:
         if key_to_doc is None:
             key_to_doc = {}
 
-        print("  called get_duplicate_graph with", issue_keys, key_to_doc.keys())
         existing_links = set()
         visited = {}
         unvisited = set(issue_keys)
+        missing_issues = set()
         docs_to_fetch = {issue_key for issue_key in issue_keys if issue_key not in key_to_doc}
         while unvisited:
             # prioritize visiting loaded issues
@@ -61,14 +62,25 @@ class DuplicateGraphResolver:
                 target_key = unvisited.pop()
             # download issues in bulk as needed
             if not target_key in key_to_doc:
-                print("    fetching docs", docs_to_fetch)
                 docs = self._jira_manager.download_bulk_issues_with_features(list(docs_to_fetch))
-                print("    fetched docs", [doc.issue_key for doc in docs])
                 key_to_doc.update({doc.issue_key: doc for doc in docs})
+                not_fetched = [
+                    issue_key for issue_key in docs_to_fetch if issue_key not in key_to_doc
+                ]
+                for issue_key in not_fetched:
+                    unvisited.discard(issue_key)
+                    missing_issues.add(issue_key)
+                    rollbar.report_message(f"Couldn't fetch Jira issue {issue_key}", "warning")
+
                 docs_to_fetch = set()
+                if target_key in not_fetched:
+                    continue
             target_issue = key_to_doc[target_key]
             for existing_duplicate in target_issue.linked_duplicate_keys:
-                if existing_duplicate not in visited.keys():
+                if (
+                    existing_duplicate not in visited.keys()
+                    and existing_duplicate not in missing_issues
+                ):
                     unvisited.add(existing_duplicate)
                     if existing_duplicate not in key_to_doc:
                         docs_to_fetch.add(existing_duplicate)
@@ -353,7 +365,6 @@ class DuplicateGraphResolver:
 
         docs = self._jira_manager.download_bulk_issues_with_features(list(docs_to_fetch))
         key_to_doc = {doc.issue_key: doc for doc in docs}
-        print("original key_to_doc", key_to_doc.keys())
         for issue in filtered_issues:
             duplicate_graph = self.get_duplicate_graph(
                 [issue.issue_key] + issue.linked_duplicate_keys, key_to_doc=key_to_doc
