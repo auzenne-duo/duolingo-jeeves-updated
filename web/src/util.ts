@@ -69,6 +69,10 @@ export const getFilterLink = (
 ) => {
   const params = new URLSearchParams(location.search);
   params.delete("page");
+  params.delete("use-lemmas");
+  params.delete("offset");
+  params.delete("prev-sort-id");
+  params.delete("sort-id");
   params.set("q", `${field}:"${escapeTerm(value, true)}"`);
   return {
     ...location,

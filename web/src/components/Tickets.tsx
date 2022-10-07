@@ -316,6 +316,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       {hasTrend ? (
         <div className={styles.trend}>
           <TrendGraph
+            filter={filter ?? undefined}
             language={lang}
             onRangeChange={e =>
               handleRangeChangeDebouncer(() => handleRangeChangeRef.current(e))

@@ -128,7 +128,7 @@ export const getTickets = (
 ) => {
   const params = new URLSearchParams();
 
-  beta_filter && params.set("beta_filter", beta_filter);
+  beta_filter && params.set("beta-filter", beta_filter);
   end_time && params.set("end_time", formatDateTime(end_time));
   limit && params.set("limit", `${limit}`);
   offset && params.set("offset", `${offset}`);
@@ -136,7 +136,7 @@ export const getTickets = (
   sort_id && params.set("sort-id", sort_id);
   spike_category && params.set("spike-category", spike_category);
   start_time && params.set("start_time", formatDateTime(start_time));
-  use_lemmas && params.set("use-lemmas", use_lemmas ? "true" : "false");
+  use_lemmas && params.set("use-lemmas", "true");
   word && params.set("word", transformQuery(word, areas));
 
   return get<JSONAPI.Tickets>(`/1/${lang}/tickets?${params.toString()}`);
@@ -146,11 +146,13 @@ export const getTimeSeries = async (
   lang: JSONAPI.LanguageId,
   {
     areas,
+    beta_filter,
     spike_category,
     use_lemmas,
     word,
   }: {
     areas: JSONAPI.Area[];
+    beta_filter?: JSONAPI.ShakeToReportCategory;
     spike_category?: JSONAPI.SpikeCategory;
     use_lemmas?: boolean;
     word: string;
@@ -161,14 +163,14 @@ export const getTimeSeries = async (
     value: number;
   }[]
 > => {
+  const params = new URLSearchParams();
+  beta_filter && params.set("beta-filter", beta_filter);
+  spike_category && params.set("spike-category", spike_category);
+  use_lemmas && params.set("use-lemmas", "true");
+  word && params.set("word", transformQuery(word, areas));
+
   const data = (
-    await get<JSONAPI.TimeSeries>(
-      `/1/${lang}/time_series?word=${encodeURIComponent(
-        transformQuery(word, areas),
-      )}&use-lemmas=${use_lemmas ?? false}&spike-category=${
-        spike_category ?? "ALL_SPIKES"
-      }`,
-    )
+    await get<JSONAPI.TimeSeries>(`/1/${lang}/time_series?${params.toString()}`)
   ).values;
   return Object.entries(data).map(([date, value]) => ({
     date: convertTimeZone(parseISO(`${date}T00:00:00`), "America/New_York"),

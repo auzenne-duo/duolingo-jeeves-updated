@@ -326,6 +326,7 @@ class ElasticsearchDAL:
         word: str,
         start_date: datetime.date = None,
         use_lemmas: bool = True,
+        beta_filter_category: Optional[STRC] = None,
     ) -> List[Dict[str, Union[str, int]]]:
         """
         Calculates per-day counts of how many tickets contain a particular word. For English, we use lemmatized terms
@@ -338,6 +339,9 @@ class ElasticsearchDAL:
                                    Results will not have timestamps before this value.
                                    Optional value.
             use_lemmas (bool): Flag determining if lemmatized terms should be used over searching for word in body_text
+            beta_filter_category (str): How we should filter results to
+                                        have specific values related to release
+                                        candidates, if at all. Optional value.
 
         Returns:
             A list of dicts, where each dict contains a string reprseneting a
@@ -359,6 +363,8 @@ class ElasticsearchDAL:
         if start_date:
             s = s.filter("range", date_time={"gte": start_date})
 
+        if beta_filter_category:
+            s = s.filter("term", shake_to_report_category=beta_filter_category.value)
         s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
 
         # Elasticsearch just so happens to have functionality for making a date

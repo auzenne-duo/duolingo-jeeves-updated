@@ -61,9 +61,9 @@ def manage_tickets(lang):
     use_lemmas = request.args.get("use-lemmas", "false") == "true"
     word = request.args.get("word", "")
 
-    beta_filter = request.args.get("beta_filter", None)
+    beta_filter = request.args.get("beta-filter", None)
     if beta_filter and not any(beta_filter == strc.value for strc in ShakeToReportCategory):
-        abort(make_response("Invalid value provided for beta_filter", 400))
+        abort(make_response("Invalid value provided for beta-filter", 400))
 
     if request.args.get("start_time") == "-1":
         start_time = str_to_datetime(None)
@@ -126,9 +126,14 @@ def get_time_series_data(lang):
     if spike_category not in SpikeCategory.__members__:
         abort(make_response(f"Invalid spike category {spike_category}", 400))
     use_lemmas = request.args.get("use-lemmas", "false") == "true"
+    beta_filter = request.args.get("beta-filter", None)
+    if beta_filter:
+        if beta_filter not in ShakeToReportCategory.__members__:
+            abort(make_response("Invalid value provided for beta-filter", 400))
+        beta_filter = ShakeToReportCategory[beta_filter]
 
     response_buckets = app_registry(ElasticsearchDAL).aggregate_time_series(
-        lang, SpikeCategory[spike_category], word, use_lemmas=use_lemmas
+        lang, SpikeCategory[spike_category], word, None, use_lemmas, beta_filter
     )
 
     if "ERROR" in response_buckets:

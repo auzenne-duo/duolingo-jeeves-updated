@@ -37,6 +37,7 @@ const JUICY_SWAN = "#e5e5e5";
 const Plot = createPlotlyComponent(Plotly);
 
 interface Props {
+  filter?: JSONAPI.ShakeToReportCategory;
   language: JSONAPI.LanguageId;
   onRangeChange?: (e: RangeChangeEvent) => void;
   query: string;
@@ -47,6 +48,7 @@ interface Props {
 }
 
 const TrendGraph = ({
+  filter,
   language: lang,
   onRangeChange,
   query,
@@ -59,10 +61,11 @@ const TrendGraph = ({
     useFeaturesByTeamAndArea();
 
   const { data } = useQuery(
-    ["time-series", { areas, lang, query, spikeCategory, useLemmas }],
+    ["time-series", { areas, filter, lang, query, spikeCategory, useLemmas }],
     () =>
       getTimeSeries(lang, {
         areas,
+        beta_filter: filter,
         spike_category: spikeCategory,
         use_lemmas: useLemmas,
         word: query,
