@@ -11,9 +11,7 @@
           "hardLimit": 65535
       }],
       "command": ["python","./jeeves/scripts/update_priority_estimator.py"],
-      "environment": [
-          {"name": "PYTHONPATH", "value": "/code"}
-      ],
+      "environment": ${environment_vars},
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {

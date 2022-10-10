@@ -174,7 +174,7 @@ data "aws_kms_secrets" "secrets" {
 
   secret {
     name    = "priority_estimator_updater_jira_api_token"
-    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwH4rLO/c2YBDYfiG1EtOKZ+AAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMR/onL92RA77UyYJWAgEQgDMzv1mMlPRqk7pTesA5iM5F84TkUB3ivEvBVXe7duSdjKhTBC2AkkcHCzUNAIbu24HgObw="
+    payload = "AQICAHjxaJXhk2UpReI01jpOgJrJbCY1xx4cyjZgCB9UDPIIZwEDU1SWeulmqTAk8LXrTXjUAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMhQWNh9px+4yg+jQyAgEQgDMv1+7W4j8iwfgmlpkCCz8bj4sIZzzbjYpU4qV+ajKitum7Pv2auNJV8Eko7UsPf7N9uQE="
 
     context = {
       product     = var.product
