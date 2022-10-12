@@ -604,6 +604,16 @@ def update_priority_estimator():
     return f"Done fitting {data} to {priority}"
 
 
+@blueprint_api.route("/api/1/spike_categories")
+def get_spike_categories():
+    """
+    Returns list of spike categories
+    """
+    return json.jsonify(
+        [{"value": member.name, "text": member.display_name} for member in SpikeCategory]
+    )
+
+
 @blueprint_api.route("/", defaults={"path": ""})
 @blueprint_api.route("/<path:path>")
 def catch_all(path):

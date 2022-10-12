@@ -76,8 +76,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
     : 0;
   const prevSortId = search.get("prev-sort-id");
   const sortId = search.get("sort-id");
-  const spikeCategory = (search.get("spike-category") ??
-    "ALL_SPIKES") as JSONAPI.SpikeCategory;
+  const spikeCategory = search.get("spike-category") ?? "ALL_SPIKES";
   const team = search.get("team");
   const useLemmas = search.get("use-lemmas") === "true";
 

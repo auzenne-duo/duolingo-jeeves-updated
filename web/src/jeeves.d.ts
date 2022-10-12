@@ -80,16 +80,10 @@ declare namespace JSONAPI {
     | "NON_STR_EXTERNAL"
     | "NON_STR_INTERNAL";
 
-  // STR is short for shake-to-report. Internal vs. external
-  // refers to internal and external testers.
-  type SpikeCategory =
-    | "ALL_NON_STR_SPIKES"
-    | "ALL_SPIKES"
-    | "ALL_STR_SPIKES"
-    | "EXTERNAL_NON_STR_SPIKES"
-    | "EXTERNAL_STR_SPIKES"
-    | "INTERNAL_NON_STR_SPIKES"
-    | "INTERNAL_STR_SPIKES";
+  interface SpikeCategoryData {
+    text: string;
+    value: string;
+  }
 
   interface SpikeDataResponse {
     date: Date;

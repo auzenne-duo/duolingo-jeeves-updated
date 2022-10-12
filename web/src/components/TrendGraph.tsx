@@ -41,7 +41,7 @@ interface Props {
   language: JSONAPI.LanguageId;
   onRangeChange?: (e: RangeChangeEvent) => void;
   query: string;
-  spikeCategory: JSONAPI.SpikeCategory;
+  spikeCategory: string;
   useLemmas: boolean;
   zoomFrom?: Date;
   zoomTo?: Date;

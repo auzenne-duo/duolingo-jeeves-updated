@@ -27,6 +27,10 @@ export const getInfo = async (
   };
 };
 
+export const getSpikeCategories = async (): Promise<
+  JSONAPI.SpikeCategoryData[]
+> => get<JSONAPI.SpikeCategoryData[]>("/1/spike_categories");
+
 export const getSpikes = async (
   lang: JSONAPI.LanguageId,
   {
@@ -35,7 +39,7 @@ export const getSpikes = async (
     start_date,
   }: {
     end_date?: Date;
-    spike_category?: JSONAPI.SpikeCategory;
+    spike_category?: string;
     start_date?: Date;
   } = {},
 ): Promise<JSONAPI.SpikeDataResponse[]> => {
@@ -67,7 +71,7 @@ export const getSpikeStats = async (
     start_date,
   }: {
     end_date?: Date;
-    spike_category?: JSONAPI.SpikeCategory;
+    spike_category?: string;
     start_date?: Date;
   } = {},
 ): Promise<JSONAPI.SpikeStats> => {
@@ -120,7 +124,7 @@ export const getTickets = (
     offset?: number; // offset is the index of the first displayed ticket
     prev_sort_id?: string;
     sort_id?: string;
-    spike_category?: JSONAPI.SpikeCategory;
+    spike_category?: string;
     start_time?: Date;
     use_lemmas?: boolean;
     word?: string;
@@ -153,7 +157,7 @@ export const getTimeSeries = async (
   }: {
     areas: JSONAPI.Area[];
     beta_filter?: JSONAPI.ShakeToReportCategory;
-    spike_category?: JSONAPI.SpikeCategory;
+    spike_category?: string;
     use_lemmas?: boolean;
     word: string;
   },

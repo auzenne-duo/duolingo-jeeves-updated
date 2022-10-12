@@ -17,8 +17,7 @@ const SpikeStats = () => {
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
   const search = useSearchParams();
 
-  const filter = (search.get("filter") ??
-    "ALL_SPIKES") as JSONAPI.SpikeCategory;
+  const filter = search.get("filter") ?? "ALL_SPIKES";
 
   const { data } = useQuery(["spike-stats", { filter, from, lang, to }], () =>
     getSpikeStats(lang, {

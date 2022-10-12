@@ -2,6 +2,7 @@ import { encodeURLSearchParams } from "util";
 
 import { endOfDay } from "date-fns";
 import * as React from "react";
+import { useQuery } from "react-query";
 import {
   NavLink,
   useHistory,
@@ -11,6 +12,7 @@ import {
 } from "react-router-dom";
 import { Input, LoadingDots, Select, SelectList } from "web-ui";
 
+import { getSpikeCategories } from "api/jeeves";
 import cn from "classnames";
 import type { DateRangeChangeEvent } from "components/DateRangeInput";
 import DateRangeInput from "components/DateRangeInput";
@@ -58,6 +60,10 @@ const Topbar = () => {
 
   const searchInputRef =
     React.useRef<React.ElementRef<typeof SearchInput>>(null);
+
+  const spikeCategories = useQuery("spike-categories", () =>
+    getSpikeCategories(),
+  );
 
   const areasAndTeams = React.useMemo(() => {
     const options = areas.flatMap(a => [
@@ -282,16 +288,7 @@ const Topbar = () => {
           <Select
             className={styles["hide-on-mobile"]}
             onChange={handleFilterChange}
-            options={[
-              { text: "All feedback", value: "ALL_SPIKES" },
-              { text: "All dogfooding", value: "ALL_STR_SPIKES" },
-              { text: "Beta feedback", value: "EXTERNAL_STR_SPIKES" },
-              {
-                text: "CS reports",
-                value: "EXTERNAL_NON_STR_SPIKES",
-              },
-              { text: "Admin reports", value: "INTERNAL_STR_SPIKES" },
-            ]}
+            options={spikeCategories.data ?? []}
             value={filter ?? "ALL_SPIKES"}
           />
         ) : null}

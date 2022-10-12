@@ -13,7 +13,7 @@ interface Props {
   isLoading?: boolean;
   language: JSONAPI.LanguageId;
   linkFilter?: JSONAPI.ShakeToReportCategory;
-  spikeCategory?: JSONAPI.SpikeCategory;
+  spikeCategory?: string;
   spikes: JSONAPI.SpikeWord[];
 }
 

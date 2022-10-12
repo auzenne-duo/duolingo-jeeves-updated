@@ -127,7 +127,7 @@ export const normalizeNewLines = (str: string) =>
  * to a spike category, if there's a 1:1 mapping.
  */
 export const spikeToStrCategory = (
-  category: JSONAPI.SpikeCategory,
+  category: string,
 ): JSONAPI.ShakeToReportCategory | undefined => {
   // https://github.com/duolingo/duolingo-jeeves/blob/8ae6871a7cce0a2a5ac775d2aa6e4ea14310ebb9/jeeves/model/spike_categories.py#L37
   switch (category) {
