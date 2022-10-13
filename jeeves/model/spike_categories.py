@@ -29,7 +29,6 @@ class SpikeCategory(Enum):
     ALL_V2_IOS_SPIKES = auto()
     IOS_UNIT_TEST_REFACTOR = auto()
     POSEIDON_IOS_ROW_BLASTER = auto()
-    SFEAT_IOS_SIDE_QUESTS = auto()
     SFEAT_IOS_REMOVE_MASTERY_QUIZ_SUPER = auto()
     IOS_SAVE_RAW_PDFS = auto()
     RETENTION_IOS_EB_UNLOCK_SE = auto()
@@ -87,10 +86,6 @@ class SpikeCategory(Enum):
             cls.POSEIDON_IOS_ROW_BLASTER: {
                 "experiment": "poseidon_ios_mm_row_blaster",
                 "conditions": ["price_150", "price_250"],
-            },
-            cls.SFEAT_IOS_SIDE_QUESTS: {
-                "experiment": "sfeat_ios_side_quests",
-                "conditions": ["free_for_premium_users", "paid_for_all_users"],
             },
             cls.SFEAT_IOS_REMOVE_MASTERY_QUIZ_SUPER: {
                 "experiment": "sfeat_ios_remove_mastery_quiz_super",
