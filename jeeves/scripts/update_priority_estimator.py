@@ -1,4 +1,5 @@
 import json
+import sys
 from datetime import datetime, timedelta
 from typing import Dict
 
@@ -6,7 +7,7 @@ import rollbar
 
 from jeeves import apply_registry, close_registry
 from jeeves.dal.jira_dal import JiraDAL
-from jeeves.manager.jira_manager import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS
+from jeeves.manager.jira_manager import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS, JiraManager
 from jeeves.model.jira_document import JiraDocument
 from jeeves.util.date_util import date_to_str
 from jeeves.util.priority_estimator import PRIORITY_STR_TO_INT, PriorityEstimator
@@ -76,6 +77,7 @@ def get_updated_jira_priorities(
     }
 
     updated_priorities = {}
+    JiraManager.get_feature_field()
     for i, issue in enumerate(JiraDAL.paginate_search_issues(url_params)):
         issue_key = issue["key"]
         skip = False
@@ -97,6 +99,9 @@ def get_updated_jira_priorities(
                         print(f"issue {issue_key} has priority {item['toString']}")
                         break
                     jira_doc = JiraDocument.deserialize_from_external_json(issue)
+                    if "jira-automation" in jira_doc.reporter_email:
+                        break
+
                     updated_priorities[issue_key] = {
                         "summary": jira_doc.header_text,
                         "feature": jira_doc.feature,
@@ -119,7 +124,7 @@ def update_priority_model():
     Finds overridden priorities, re-fits the priority estimator model, and uploads changes to s3
     """
     current_date = datetime.now()
-    earliest_date = current_date - timedelta(weeks=1)
+    earliest_date = current_date - timedelta(weeks=2)
     overridden_priorities = get_s3_overridden_priorities()
     updated_priorities = get_updated_jira_priorities(
         earliest_date, current_date, overridden_priorities
@@ -148,11 +153,11 @@ def update_priority_model():
 
 
 if __name__ == "__main__":
-    # try:
-    apply_registry()
-    print("running priority updater")
-    update_priority_model()
-    # except:
-    #     rollbar.report_exc_info(sys.exc_info())
-    # finally:
-    close_registry()
+    try:
+        apply_registry()
+        print("running priority updater")
+        update_priority_model()
+    except:
+        rollbar.report_exc_info(sys.exc_info())
+    finally:
+        close_registry()
