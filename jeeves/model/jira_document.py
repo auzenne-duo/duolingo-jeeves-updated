@@ -436,7 +436,9 @@ class JiraDocument(JeevesDocument):
         cls._initialize_duplicate_detector()
 
         target.embedding_vector = (
-            cls._duplicate_detector.calculate_embedding_vector(target.header_text)
+            cls._duplicate_detector.calculate_embedding_vector(
+                f"{target.header_text}. {target.body_text}"
+            )
             if cls._duplicate_detector is not None
             else []
         )
