@@ -65,7 +65,8 @@ JIRA_FEATURES = {
             "Practice reminders / notifications": ["reminder", "notification"],
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
             "Lesson complete session end": ["complete"],
-            "In Lesson Items": [],
+            "In-lesson Items (skip, retry)": ["skip", "retry", "in lesson item"],
+            "Widget": [],
         },
         "Time Spent Learning": {
             "Achievements": ["achievement"],
