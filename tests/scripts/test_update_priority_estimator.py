@@ -1,10 +1,14 @@
+import json
 import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 from jeeves.scripts.update_priority_estimator import (
-    calculate_priority_model_score,
+    OverriddenPriorityIssue,
+    calculate_manual_override_score,
+    get_s3_overridden_priorities,
     get_updated_jira_priorities,
+    run_priority_model_holdout_set,
 )
 
 # invalid because already in overridden_priorities
@@ -100,61 +104,90 @@ mockJiraDAL.paginate_search_issues.return_value = [
     JIRA_EXTERNAL_JSON_5,
 ]
 
+mock_estimate_priority = MagicMock()
+mockS3 = MagicMock()
 
-@patch("jeeves.scripts.update_priority_estimator.JiraDAL", mockJiraDAL)
+
 @patch("jeeves.scripts.update_priority_estimator.JiraDocument", mockJiraDocument)
+@patch("jeeves.scripts.update_priority_estimator.JiraDAL", mockJiraDAL)
+@patch("jeeves.scripts.update_priority_estimator.s3_client", mockS3)
+@patch("jeeves.scripts.update_priority_estimator.s3_bucket_name", "s3_bucket")
 class TestUpdatePriorityEstimator(unittest.TestCase):
     def test_get_updated_jira_priorities(self):
         result = get_updated_jira_priorities(
             datetime(2022, 9, 20),
             datetime(2022, 9, 22),
-            {"DLAI-2001": {"priority": "Medium"}, "DLAI-2002": {"priority": "Medium"}},
+            {
+                "DLAI-2001": OverriddenPriorityIssue("DLAI-2001", "", "", "", "Medium"),
+                "DLAI-2002": OverriddenPriorityIssue("DLAI-2002", "", "", "", "Medium"),
+            },
         )
         expected = {
-            "DLAI-2001": {
-                "summary": "",
-                "feature": "",
-                "reporter_email": "",
-                "priority": "High",
-                "date_stored": "2022-09-22",
-            },
-            "DLAI-2005": {
-                "summary": "",
-                "feature": "",
-                "reporter_email": "",
-                "priority": "High",
-                "date_stored": "2022-09-22",
-            },
+            "DLAI-2001": OverriddenPriorityIssue(
+                "DLAI-2001", "", "", "", "High", "Medium", "2022-09-22"
+            ),
+            "DLAI-2005": OverriddenPriorityIssue(
+                "DLAI-2005", "", "", "", "High", "Medium", "2022-09-22"
+            ),
         }
         self.assertEqual(result, expected)
 
-    def test_calculate_priority_estimator_score(self):
-        result = calculate_priority_model_score()
+    def test_calculate_manual_override_score(self):
+        calculate_manual_override_score(datetime(2022, 9, 22), datetime(2022, 9, 20))
+        mockS3.upload.assert_called_with(
+            "s3_bucket",
+            f"priority_estimator_scores/score_2022-09-20_2022-09-22",
+            json.dumps(
+                {
+                    "score": 1.0,
+                    "total_issues": 4,
+                    "overridden_priorities": {
+                        "DLAI-2001": {
+                            "issue_key": "DLAI-2001",
+                            "summary": "",
+                            "feature": "",
+                            "reporter": "",
+                            "priority": "High",
+                            "old_priority": "Medium",
+                            "date_stored": None,
+                        },
+                        "DLAI-2002": {
+                            "issue_key": "DLAI-2002",
+                            "summary": "",
+                            "feature": "",
+                            "reporter": "",
+                            "priority": "Medium",
+                            "old_priority": "High",
+                            "date_stored": None,
+                        },
+                        "DLAI-2005": {
+                            "issue_key": "DLAI-2005",
+                            "summary": "",
+                            "feature": "",
+                            "reporter": "",
+                            "priority": "High",
+                            "old_priority": "Low",
+                            "date_stored": None,
+                        },
+                    },
+                }
+            ),
+        )
+
+    @patch("jeeves.scripts.update_priority_estimator.PriorityEstimator.estimate_priority")
+    def test_run_priority_model_holdout_set(self, mock_estimate_priority):
+        mock_estimate_priority.side_effect = ["Low", "Low"]
+        mockS3.download.return_value = '{"DLAA-1":{"priority":0, "summary":"", "feature":""}, "DLAA-2":{"priority":2, "summary":"", "feature":"", "reporter":"biglou"}}'
+        result = run_priority_model_holdout_set()
+        expected = 0.5
+        self.assertEqual(result, expected)
+
+    def test_get_s3_overridden_priorities(self):
+        mockS3.download.return_value = '{"DLAA-1":{"issue_key":"DLAA-1", "priority":"Low", "summary":"", "feature":"", "reporter":"duo", "old_priority":"High", "date_stored":"2022-09-01"}, \
+            "DLAA-2":{"issue_key":"DLAA-2", "priority":"High", "summary":"test", "feature":"test feature", "reporter":"biglou"}}'
+        result = get_s3_overridden_priorities()
         expected = {
-            "score": 1.0,
-            "total_issues": 4,
-            "overridden_priorities": {
-                "DLAI-2001": {
-                    "summary": "",
-                    "feature": "",
-                    "reporter_email": "",
-                    "priority": "High",
-                    "old_priority": "Medium",
-                },
-                "DLAI-2002": {
-                    "summary": "",
-                    "feature": "",
-                    "reporter_email": "",
-                    "priority": "Medium",
-                    "old_priority": "High",
-                },
-                "DLAI-2005": {
-                    "summary": "",
-                    "feature": "",
-                    "reporter_email": "",
-                    "priority": "High",
-                    "old_priority": "Low",
-                },
-            },
+            "DLAA-1": OverriddenPriorityIssue("DLAA-1", "", "", "duo", "Low", "High", "2022-09-01"),
+            "DLAA-2": OverriddenPriorityIssue("DLAA-2", "test", "test feature", "biglou", "High"),
         }
         self.assertEqual(result, expected)

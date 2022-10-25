@@ -6,15 +6,10 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, TensorDataset
 from transformers import BertForSequenceClassification, BertTokenizer
 
-from jeeves.config.config import PRIORITY_ESTIMATOR_S3_PATH
-from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
-
-BATCH_SIZE = 16
+_BATCH_SIZE = 16
 _PRIORITY_ESTIMATOR_MODEL_PATH = os.environ.get("PRIORITY_ESTIMATOR_MODEL")
-MAX_LENGTH = 40
-
-PRIORITY_STR_TO_INT = {"Low": 0, "Lowest": 0, "Medium": 1, "High": 2, "Highest": 2}
-PRIORITY_INT_TO_STR = {0: "Low", 1: "Medium", 2: "High"}
+_MAX_LENGTH = 40
+_PRIORITY_INT_TO_STR = {0: "Low", 1: "Medium", 2: "High"}
 
 
 class PriorityEstimator:
@@ -32,7 +27,7 @@ class PriorityEstimator:
             cls.optimizer = torch.optim.AdamW(cls.model.parameters(), lr=5e-5, eps=1e-08)
 
     @classmethod
-    def preprocessing(cls, input_text: str) -> Dict:
+    def _preprocessing(cls, input_text: str) -> Dict:
         """
         Returns <class transformers.tokenization_utils_base.BatchEncoding> with the following fields:
         - input_ids: list of token ids
@@ -42,7 +37,7 @@ class PriorityEstimator:
         return cls.tokenizer.encode_plus(
             input_text,
             add_special_tokens=True,
-            max_length=MAX_LENGTH,
+            max_length=_MAX_LENGTH,
             pad_to_max_length=True,
             return_attention_mask=True,
             return_tensors="pt",
@@ -54,10 +49,19 @@ class PriorityEstimator:
         attention_masks = []
 
         for sample in text:
-            encoding_dict = cls.preprocessing(sample)
+            encoding_dict = cls._preprocessing(sample)
             token_id.append(encoding_dict["input_ids"])
             attention_masks.append(encoding_dict["attention_mask"])
         return torch.cat(token_id, dim=0), torch.cat(attention_masks, dim=0)
+
+    @classmethod
+    def _create_dataloader(cls, data: List[str], labels: List[int]) -> DataLoader:
+        token_id, attention_masks = cls.get_token_ids_and_attention_masks(data)
+        labels = torch.tensor(labels)  # pylint: disable=not-callable
+        dataset = TensorDataset(token_id, attention_masks, labels)
+
+        # Prepare DataLoader
+        return DataLoader(dataset, sampler=RandomSampler(dataset), batch_size=_BATCH_SIZE)
 
     @classmethod
     def fit_to_data(cls, data: List[str], labels: List[int]) -> None:
@@ -69,24 +73,10 @@ class PriorityEstimator:
                     Note, reporter should not have the "@duolingo.com" part
             labels: list of labels where 0 is Low, 1 is Medium, and 2 is High
         """
-        s3_client, s3_bucket_name = get_s3_client_and_bucket()
         cls._initialize_priority_estimator()
-        token_id, attention_masks = cls.get_token_ids_and_attention_masks(data)
-        labels = torch.tensor(labels)  # pylint: disable=not-callable
-        train_set = TensorDataset(token_id, attention_masks, labels)
-
-        # Prepare DataLoader
-        train_dataloader = DataLoader(
-            train_set, sampler=RandomSampler(train_set), batch_size=BATCH_SIZE
-        )
+        train_dataloader = cls._create_dataloader(data, labels)
         cls.train_model(train_dataloader, epochs=1)
         cls.model.save_pretrained(_PRIORITY_ESTIMATOR_MODEL_PATH)
-        for filename in os.listdir(_PRIORITY_ESTIMATOR_MODEL_PATH):
-            filepath = os.path.join(_PRIORITY_ESTIMATOR_MODEL_PATH, filename)
-            with open(filepath, "rb") as f:
-                s3_client.upload(
-                    s3_bucket_name, os.path.join(PRIORITY_ESTIMATOR_S3_PATH, filename), f.read()
-                )
 
     @classmethod
     def train_model(cls, train_dataloader: DataLoader, epochs: int = 1) -> None:
@@ -128,15 +118,15 @@ class PriorityEstimator:
 
         Returns an np array of size 3 with a score for classes of Low, Medium, and High
         """
-        encoding = cls.preprocessing(data)
+        encoding = cls._preprocessing(data)
+        print("Model", cls.model)
         with torch.no_grad():
             output = cls.model(  # pylint: disable=not-callable
                 encoding["input_ids"],
-                token_type_ids=None,
                 attention_mask=encoding["attention_mask"],
             )
 
-        return output.logits.cpu().numpy()
+            return output.logits.cpu().numpy()
 
     @classmethod
     def estimate_priority(cls, sentence: str, feature: str = "", reporter_email: str = "") -> str:
@@ -154,8 +144,37 @@ class PriorityEstimator:
         cls._initialize_priority_estimator()
         data = cls.format_data(sentence, feature, reporter_email)
         prediction = cls._predict(data)
-        return PRIORITY_INT_TO_STR[np.argmax(prediction)]
+        return _PRIORITY_INT_TO_STR[np.argmax(prediction)]
 
     @classmethod
     def parse_reporter_email(cls, reporter_email: str):
         return reporter_email.split("@")[0] if reporter_email else ""
+
+    @classmethod
+    def evaluate(cls, data: List[str], labels: List[int]) -> float:
+        """
+        Runs the model on the data and returns the ratio of correctly predicted labels
+
+        Params:
+            data: list of strings such as "issue summary; feature; reporter"
+                    Note, reporter should not have the "@duolingo.com" part
+            labels: list of labels where 0 is Low, 1 is Medium, and 2 is High
+        """
+        cls._initialize_priority_estimator()
+        eval_dataloader = cls._create_dataloader(data, labels)
+
+        correct = 0
+        total = 0
+        cls.model.eval()
+        with torch.no_grad():
+            for batch in eval_dataloader:
+                b_input_ids, b_input_mask, b_labels = batch
+
+                output = cls.model(  # pylint: disable=not-callable
+                    b_input_ids,
+                    attention_mask=b_input_mask,
+                )
+                predictions = np.argmax(output.logits.cpu().numpy(), axis=1)
+                correct += np.sum(predictions == b_labels.numpy())
+                total += len(b_labels)
+        return correct / len(data)

@@ -14,9 +14,10 @@ from duolingo_base.dal import s3
 from weasyprint import CSS, HTML
 from weasyprint.text.fonts import FontConfiguration
 
+from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.dal.jira_dal import JiraDAL
-from jeeves.manager.jira_manager import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS, JiraManager
+from jeeves.manager.jira_manager import JiraManager
 from jeeves.model.jira_document import JiraDocument
 from jeeves.util.date_util import date_to_str, str_to_date
 from jeeves.util.quality_report_priority import QualityReportPriority, get_quality_report_priority

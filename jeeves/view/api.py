@@ -10,6 +10,7 @@ from duolingo_base.view.auth import requires_auth
 from flask import Blueprint, abort, g, json, make_response, request, send_from_directory
 
 from jeeves import registry as app_registry
+from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
@@ -28,7 +29,7 @@ from jeeves.util.date_util import (
     get_utc_today,
     time_series_str_to_datetime as str_to_datetime,
 )
-from jeeves.util.priority_estimator import PRIORITY_STR_TO_INT, PriorityEstimator
+from jeeves.util.priority_estimator import PriorityEstimator
 
 # This is being referenced by the application.py
 blueprint_api = Blueprint("api", __name__)
@@ -582,7 +583,7 @@ def update_priority_estimator():
     feature = request.form.get("feature", "")
     reporter_email = request.form.get("reporter_email", "")
     priority = request.form.get("priority")
-    if not priority in PRIORITY_STR_TO_INT:
+    if not priority in JIRA_PRIORITY_STR_TO_INT:
         abort(make_response(f"Invalid `priority` parameter: {priority}.", 400))
 
     overridden_priorities = get_s3_overridden_priorities()
@@ -598,7 +599,7 @@ def update_priority_estimator():
         }
     }
     data = [PriorityEstimator.format_data(summary, feature, reporter_email)]
-    PriorityEstimator.fit_to_data(data, [PRIORITY_STR_TO_INT[priority]])
+    PriorityEstimator.fit_to_data(data, [JIRA_PRIORITY_STR_TO_INT[priority]])
     overridden_priorities.update(updated_priority)
     upload_s3_overridden_priorities(overridden_priorities)
     return f"Done fitting {data} to {priority}"

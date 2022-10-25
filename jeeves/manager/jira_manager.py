@@ -10,6 +10,7 @@ from typing import List, Optional
 import rollbar
 from duolingo_base.dal.s3 import S3Client
 
+from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS
 from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON
@@ -17,9 +18,6 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
-
-JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"]
-JIRA_ISSUE_TYPE_BUG = "Bug"
 
 
 class JiraManager(JeevesManager):
