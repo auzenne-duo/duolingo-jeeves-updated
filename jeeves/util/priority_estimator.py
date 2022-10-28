@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from typing import Dict, List
 
 import numpy as np
@@ -16,15 +17,17 @@ class PriorityEstimator:
     model = None
     tokenizer = None
     optimizer = None
+    last_model_load = datetime.min
 
     @classmethod
     def _initialize_priority_estimator(cls) -> None:
-        if cls.model is None:
+        if cls.last_model_load < (datetime.now() - timedelta(days=1)):
             cls.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
             cls.model = BertForSequenceClassification.from_pretrained(
                 _PRIORITY_ESTIMATOR_MODEL_PATH
             )
             cls.optimizer = torch.optim.AdamW(cls.model.parameters(), lr=5e-5, eps=1e-08)
+            cls.last_model_load = datetime.now()
 
     @classmethod
     def _preprocessing(cls, input_text: str) -> Dict:
@@ -119,7 +122,6 @@ class PriorityEstimator:
         Returns an np array of size 3 with a score for classes of Low, Medium, and High
         """
         encoding = cls._preprocessing(data)
-        print("Model", cls.model)
         with torch.no_grad():
             output = cls.model(  # pylint: disable=not-callable
                 encoding["input_ids"],
