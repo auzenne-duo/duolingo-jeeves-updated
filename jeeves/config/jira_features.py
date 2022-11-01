@@ -193,6 +193,8 @@ JIRA_FEATURES = {
         "Gold": {
             "Tutors": [],
             "Gold": [],
+            "Explain my Answer": [],
+            "Role Play": [],
         },
         "Super Features": {
             "Bookmarking": ["bookmark"],
