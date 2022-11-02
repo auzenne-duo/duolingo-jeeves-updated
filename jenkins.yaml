@@ -1,0 +1,42 @@
+version: 1
+language: python
+jobs:
+  - name: duolingo-jeeves
+    description: |
+      Jenkins Job for Continuous Deployment
+    push: true
+    timeout: 60
+    command: "bash -ex jenkins-build.sh prod"
+    slack:
+      notify_success: "true"
+      notify_failure: "true"
+      notify_repeated_failure: "true"
+      commit_info: "AUTHORS_AND_TITLES"
+      room: "ci"
+
+  - name: duolingo-jeeves-health
+    description: |
+      Jenkins Job for checking CI Health
+    node: ec2-jenkins-worker
+    days_to_keep: 15
+    cron: "@weekly"
+    timeout: 60
+    command: "bash -ex jenkins-build.sh"
+    junit: "results.xml"
+    cobertura: "cobertura.xml"
+    record_coverage: true
+
+  - name: duolingo-jeeves-pr
+    description: |
+      Jenkins Job for Continuous Integration
+    node: ec2-jenkins-worker
+    concurrent_builds: true
+    branch: "\\${sha1}"
+    refspec: "+refs/pull/*:refs/remotes/origin/pr/*"
+    trigger_phrase: "trigger ci"
+    timeout: 60
+    command: "bash -ex jenkins-build.sh"
+    junit: "results.xml"
+    cobertura: "cobertura.xml"
+    compare_coverage: true
+    recipients: "\\${ghprbActualCommitAuthorEmail}"
