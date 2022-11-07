@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Type
 
 from duolingo_base.dal.s3 import S3Client
-from requests import Session
+from requests import RequestException, Session
 
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON
@@ -76,6 +76,7 @@ class ZendeskManager(JeevesManager):
                         ticket_id = ticket_json["id"]
                         comments_url = f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
                         comments_response = ZendeskDocument.rate_limited_get(s, comments_url)
+                        comments_response.raise_for_status()
                         comments_structure = json.loads(comments_response.text)
                         attachments = []
                         for com in comments_structure.get("comments", {}):
@@ -96,7 +97,7 @@ class ZendeskManager(JeevesManager):
                     if j["end_of_stream"]:
                         break
 
-                except Exception as e:
+                except RequestException as e:
                     print(
                         f"""
                         Exception happened for URL: {next_url}
