@@ -9,6 +9,7 @@ from collections import Counter
 from datetime import datetime
 from typing import Type
 
+import rollbar
 from duolingo_base.dal.s3 import S3Client
 from requests import RequestException, Session
 
@@ -17,6 +18,7 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.zendesk_document import ZendeskDocument
 from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
+from jeeves.util.error_util import print_request_exception
 
 _USER = os.environ.get("ZENDESK_USER")
 _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
@@ -68,13 +70,13 @@ class ZendeskManager(JeevesManager):
                     break
                 r = ZendeskDocument.rate_limited_get(s, next_url)
                 j = json.loads(r.text)
-                try:
-                    if "error" in j:
-                        raise Exception("Error returned from Zendesk")
+                if "error" in j:
+                    raise Exception("Error returned from Zendesk")
 
-                    for ticket_json in j["tickets"]:
-                        ticket_id = ticket_json["id"]
-                        comments_url = f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
+                for ticket_json in j["tickets"]:
+                    ticket_id = ticket_json["id"]
+                    comments_url = f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
+                    try:
                         comments_response = ZendeskDocument.rate_limited_get(s, comments_url)
                         comments_response.raise_for_status()
                         comments_structure = json.loads(comments_response.text)
@@ -84,35 +86,27 @@ class ZendeskManager(JeevesManager):
                                 attachments.append(attach["content_url"])
                         ticket_json["attachments"] = attachments
                         ZendeskManager._store_document_to_s3(s3_client, bucket_name, ticket_json)
+                    except RequestException as e:
+                        print_request_exception(e)
+                        # If the comment page cannot be found, then skip it
+                        if e.response.status_code == 404:
+                            rollbar.report_message(f"Couldn't find url: {comments_url}", "warning")
+                            continue
 
-                    if j["end_time"]:
-                        print(
-                            f"Downloaded {len(j['tickets'])} tickets until: {datetime_to_str(datetime.fromtimestamp(j['end_time']))}"
-                        )
-                        s3_client.upload(bucket_name, _CHECKPOINT_FILE, str(int(j["end_time"])))
+                        # If something non-recoverable has happened, escalate.
+                        raise (e)
 
-                    if j["next_page"]:
-                        next_url = j["next_page"]
-
-                    if j["end_of_stream"]:
-                        break
-
-                except RequestException as e:
+                if j["end_time"]:
                     print(
-                        f"""
-                        Exception happened for URL: {next_url}
-                        Status code: {r.status_code}
-                        Returned headers: {r.headers}
-                        Returned body: {r.text}
-                        """
+                        f"Downloaded {len(j['tickets'])} tickets until: {datetime_to_str(datetime.fromtimestamp(j['end_time']))}"
                     )
-                    # If we exceeded a rate limit, we should just wait and try again.
-                    if e.response.status_code == 429 and "Retry-After" in e.response.headers:
-                        print("Exception was due to rate-limiting. Sleeping.")
-                        time.sleep(int(e.response.headers["Retry-After"]))
-                        continue
-                    # If something non-recoverable has happened, escalate.
-                    raise (e)
+                    s3_client.upload(bucket_name, _CHECKPOINT_FILE, str(int(j["end_time"])))
+
+                if j["next_page"]:
+                    next_url = j["next_page"]
+
+                if j["end_of_stream"]:
+                    break
 
     @staticmethod
     def _store_document_to_s3(s3_client: S3Client, bucket_name: str, doc: JSON) -> None:

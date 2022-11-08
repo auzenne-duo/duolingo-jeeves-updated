@@ -324,6 +324,14 @@ class ZendeskDocument(JeevesDocument):
 
         r = s.get(request_url)
 
+        if r.status_code == 429:
+            print("429 response due to rate-limiting. Sleeping.")
+            if "Retry-After" in r.headers:
+                time.sleep(int(r.headers["Retry-After"]))
+            else:
+                time.sleep(60)
+            r = s.get(request_url)
+
         if "X-Rate-Limit-Remaining" in r.headers:
             remaining_limit = int(r.headers["X-Rate-Limit-Remaining"])
             # These values are pretty arbitrary
@@ -340,4 +348,5 @@ class ZendeskDocument(JeevesDocument):
                 time.sleep(5)
             elif remaining_limit < 150:
                 time.sleep(1)
+
         return r
