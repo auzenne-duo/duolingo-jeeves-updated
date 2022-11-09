@@ -76,25 +76,24 @@ class ZendeskManager(JeevesManager):
                 for ticket_json in j["tickets"]:
                     ticket_id = ticket_json["id"]
                     comments_url = f"{zendesk_host}/api/v2/tickets/{ticket_id}/comments.json"
+                    attachments = []
                     try:
                         comments_response = ZendeskDocument.rate_limited_get(s, comments_url)
                         comments_response.raise_for_status()
                         comments_structure = json.loads(comments_response.text)
-                        attachments = []
                         for com in comments_structure.get("comments", {}):
                             for attach in com.get("attachments", {}):
                                 attachments.append(attach["content_url"])
-                        ticket_json["attachments"] = attachments
-                        ZendeskManager._store_document_to_s3(s3_client, bucket_name, ticket_json)
                     except RequestException as e:
                         print_request_exception(e)
                         # If the comment page cannot be found, then skip it
                         if e.response.status_code == 404:
                             rollbar.report_message(f"Couldn't find url: {comments_url}", "warning")
-                            continue
-
-                        # If something non-recoverable has happened, escalate.
-                        raise (e)
+                        else:
+                            # If something non-recoverable has happened, escalate.
+                            raise (e)
+                    ticket_json["attachments"] = attachments
+                    ZendeskManager._store_document_to_s3(s3_client, bucket_name, ticket_json)
 
                 if j["end_time"]:
                     print(
