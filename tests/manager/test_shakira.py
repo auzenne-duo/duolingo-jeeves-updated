@@ -43,9 +43,14 @@ class Test(unittest.TestCase):
             [
                 {"name": "Visual polish", "alsoPostsToJira": True},
                 {"name": "Lesson content issue", "alsoPostsToJira": False},
-                {"name": "TTS is missing/mispronounced", "alsoPostsToJira": False},
+                {"name": "TTS is mispronounced", "alsoPostsToJira": False},
+                {"name": "TTS is missing", "alsoPostsToJira": False},
                 {"name": "Localization issue", "alsoPostsToJira": False},
                 {"name": "Feature request", "alsoPostsToJira": False},
+                {
+                    "name": "Visemes/Mouth movements are missing/misaligned",
+                    "alsoPostsToJira": False,
+                },
             ],
             result,
         )
@@ -228,7 +233,7 @@ class Test(unittest.TestCase):
         shakira_manager.report_issue(
             project="DLAA",
             feature=None,
-            slack_report_type="TTS is missing/mispronounced",
+            slack_report_type="TTS is mispronounced",
             client_specified_slack_channel_name=None,
             related_issue_key=None,
             summary="summary",

@@ -18,15 +18,19 @@ _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "Visual polish": SlackChannel.VISUAL_POLISH,
     "Lesson content / accepted translations": SlackChannel.FEEDBACK_LANGUAGE,
     "TTS: mispronunciation": SlackChannel.FEEDBACK_TTS,
+    "TTS: missing": SlackChannel.PROJ_MISSING_TTS,
     "Feature request / feedback": SlackChannel.FEEDBACK_PRODUCT,
+    "Visemes / Mouth movements": SlackChannel.FEEDBACK_VISEMES,
 }
 
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "Lesson content issue": SlackChannel.FEEDBACK_LANGUAGE,
-    "TTS is missing/mispronounced": SlackChannel.FEEDBACK_TTS,
+    "TTS is mispronounced": SlackChannel.FEEDBACK_TTS,
+    "TTS is missing": SlackChannel.PROJ_MISSING_TTS,
     "Visual polish": SlackChannel.VISUAL_POLISH,
     "Localization issue": SlackChannel.FEEDBACK_LOCALIZATION,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
+    "Visemes/Mouth movements are missing/misaligned": SlackChannel.FEEDBACK_VISEMES,
 }
 
 _SLACK_CHANNELS_TO_JIRA_LABELS = {

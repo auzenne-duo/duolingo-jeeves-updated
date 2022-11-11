@@ -55,7 +55,9 @@ def test_get_features_v1():
             "Visual polish",
             "Lesson content / accepted translations",
             "TTS: mispronunciation",
+            "TTS: missing",
             "Feature request / feedback",
+            "Visemes / Mouth movements",
         ],
         actual_result,
     )
@@ -227,7 +229,9 @@ def test_feature_filtering():
             "Visual polish",
             "Lesson content / accepted translations",
             "TTS: mispronunciation",
+            "TTS: missing",
             "Feature request / feedback",
+            "Visemes / Mouth movements",
         ],
         actual_result_features,
     )
