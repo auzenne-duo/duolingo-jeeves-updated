@@ -1,3 +1,5 @@
+[![Overall](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fapp.opslevel.com%2Fapi%2Fservice_level%2F8gLqSEXTmMmzxHanbqmTVPwQFDWOujrYjU1uJdWEElE)](https://app.opslevel.com/services/duolingo-jeeves/maturity-report)
+
 # duolingo-jeeves
 
 Technology-driven user support.
@@ -5,15 +7,6 @@ Technology-driven user support.
 ## Owner
 
 - Yijin Kang, yijin@duolingo.com
-
-## Badges
-
-![Code](https://s3.amazonaws.com/duolingo-data/severin/code-bronze.png "Code")
-![Tests](https://s3.amazonaws.com/duolingo-data/severin/test-bronze.png "Tests")
-![Documentation](https://s3.amazonaws.com/duolingo-data/severin/docs-bronze.png "Documentation")
-![Process](https://s3.amazonaws.com/duolingo-data/severin/proc-gold.png "Process")
-
-Look into the [Microservice Review](docs/microservice-review.md) for details.
 
 ## How to deploy
 
