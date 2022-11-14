@@ -4,7 +4,6 @@ Manager for interacting with the Slack API for shakira.
 
 import json
 import os
-import sys
 from typing import Optional
 
 from requests import post
@@ -63,7 +62,9 @@ class ShakiraSlackApiClient:
             if response_json["ok"]:
                 return response_json["ts"]
             else:
-                print(f"Could not post message to Slack: {response_json['error']}", file=sys.stderr)
+                rollbar.report_message(
+                    f"Could not post message to Slack: {response_json['error']}", "error"
+                )
                 return None
         except RequestException as e:
             print_request_exception(e, rollbar_level="error")
@@ -118,7 +119,9 @@ class ShakiraSlackApiClient:
                 if len(public_shares) > 0:
                     return public_shares[0]["ts"]
             else:
-                print(f"Could not post screenshot to Slack: {response_json['error']}")
+                rollbar.report_message(
+                    f"Could not post screenshot to Slack: {response_json['error']}", "error"
+                )
                 return None
         except RequestException as e:
             print_request_exception(e, rollbar_level="error")
