@@ -30,7 +30,7 @@ _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "Visual polish": SlackChannel.VISUAL_POLISH,
     "Localization issue": SlackChannel.FEEDBACK_LOCALIZATION,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
-    "Visemes/Mouth movements are missing/misaligned": SlackChannel.FEEDBACK_VISEMES,
+    "Visemes/Mouth movements": SlackChannel.FEEDBACK_VISEMES,
 }
 
 _SLACK_CHANNELS_TO_JIRA_LABELS = {

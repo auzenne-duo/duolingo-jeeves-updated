@@ -48,7 +48,7 @@ class Test(unittest.TestCase):
                 {"name": "Localization issue", "alsoPostsToJira": False},
                 {"name": "Feature request", "alsoPostsToJira": False},
                 {
-                    "name": "Visemes/Mouth movements are missing/misaligned",
+                    "name": "Visemes/Mouth movements",
                     "alsoPostsToJira": False,
                 },
             ],
