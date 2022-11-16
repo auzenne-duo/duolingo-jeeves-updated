@@ -87,15 +87,9 @@ JIRA_FEATURES = {
         },
     },
     "Learning R&D": {
-        "Learning Assesment": {
-            "Checkpoint": ["section"],
-            "Learning Assessment": ["learning quiz"],
-            "Test Out": ["level skip"],
-        },
+        "Learning Assesment": {},
         "Generated Sessions": {
             "Skill tree migration": ["course update"],
-            "Crowns": [],
-            "Decayed Skills": ["cracked skill", "guilded skill", "gilded"],
             "Generated sessions": [],
             "Smart tips": ["smart tip"],
         },
@@ -137,7 +131,6 @@ JIRA_FEATURES = {
         "Story Product": {
             "Stories": ["story"],
             "Hoots": [],
-            "Speaking exercises": ["speak challenge", "speak exercise"],
         },
         "Speech Lab": {
             "World character voice": [
@@ -159,9 +152,7 @@ JIRA_FEATURES = {
                 "synchronization",
             ],
         },
-        "None": {
-            "Levels": ["level"],
-        },
+        "None": {},
         "Path": {
             "Path": [],
             "Tips": ["tip"],
@@ -225,7 +216,6 @@ JIRA_FEATURES = {
                 "popout",
                 "popover",
             ],
-            "Web home page": ["Landing page"],
             "Settings": ["toggle", "admin", "menu", "account"],
             "World characters": [
                 "world character",
