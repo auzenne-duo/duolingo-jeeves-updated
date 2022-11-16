@@ -2,11 +2,12 @@ import json
 import os
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Optional
 
 import rollbar
+from duolingo_base.dal import s3
 
 from jeeves import apply_registry, close_registry
 from jeeves.config.config import (
@@ -150,7 +151,7 @@ def get_updated_jira_priorities(
     return new_overridden_priorities
 
 
-def update_priority_model() -> Dict[str, OverriddenPriorityIssue]:
+def update_priority_model(overridden_priorities) -> Dict[str, OverriddenPriorityIssue]:
     """
     Finds overridden priorities, re-fits the priority estimator model, and uploads changes to s3
 
@@ -159,7 +160,6 @@ def update_priority_model() -> Dict[str, OverriddenPriorityIssue]:
     """
     current_date = datetime.now()
     earliest_date = current_date - timedelta(weeks=2)
-    overridden_priorities = get_s3_overridden_priorities()
     new_overridden_priorities = get_updated_jira_priorities(
         earliest_date, current_date, overridden_priorities
     )
@@ -180,9 +180,11 @@ def update_priority_model() -> Dict[str, OverriddenPriorityIssue]:
             for issue in new_overridden_priorities.values()
         ]
     )
+    PriorityEstimator.initialize_priority_estimator(force_init=True)
     PriorityEstimator.fit_to_data(data, labels)
-    overridden_priorities.update(new_overridden_priorities)
-    return overridden_priorities
+    all_overridden_priorities = overridden_priorities.copy()
+    all_overridden_priorities.update(new_overridden_priorities)
+    return all_overridden_priorities
 
 
 def upload_priority_model_and_data(
@@ -194,6 +196,7 @@ def upload_priority_model_and_data(
     Params:
         overridden_priorities: mapping of Jira issue key to OverriddenPriorityIssue object
     """
+    print("uploading priority model")
     upload_s3_overridden_priorities(overridden_priorities)
     for filepath in Path(_PRIORITY_ESTIMATOR_MODEL_PATH).iterdir():
         with filepath.open("rb") as f:
@@ -306,22 +309,42 @@ def run_priority_model_holdout_set() -> float:
     return PriorityEstimator.evaluate(data, labels)
 
 
+def check_if_update_necessary() -> bool:
+    """
+    Returns true if the last priority estimator update was at least a week ago
+    or if the _OVERRIDDEN_PRIORITIES_FILENAME doesn't exist in the s3 bucket
+    """
+    try:
+        overridden_priorities_metadata = s3_client.get_object_summary(
+            s3_bucket_name, _OVERRIDDEN_PRIORITIES_FILENAME
+        )
+        return overridden_priorities_metadata.last_modified + timedelta(weeks=1) < datetime.now(
+            timezone.utc
+        )
+    except s3.S3Exception:
+        return True
+
+
 if __name__ == "__main__":
     try:
         apply_registry()
         print("running priority updater")
-        overridden_priorities = update_priority_model()
-        print("calculating priority model score")
-        calculate_manual_override_score()
-        performance = run_priority_model_holdout_set()
-        print(f"updated model performance on holdout set: {performance}")
-        if performance > _HOLDOUT_SET_THRESHOLD:
-            print("uploading priority model")
-            upload_priority_model_and_data(overridden_priorities)
-        else:
-            rollbar.report_message(
-                f"Model was not updated due to poor performance ({performance})", "warning"
-            )
+        if check_if_update_necessary():
+            prev_overridden_priorities = get_s3_overridden_priorities()
+            overridden_priorities = update_priority_model(prev_overridden_priorities)
+            print("calculating priority model score")
+            calculate_manual_override_score()
+            performance = run_priority_model_holdout_set()
+            print(f"updated model performance on holdout set: {performance}")
+
+            if performance > _HOLDOUT_SET_THRESHOLD:
+                upload_priority_model_and_data(overridden_priorities)
+            else:
+                # upload the old overridden priorities to reset the modified timestamp
+                upload_s3_overridden_priorities(prev_overridden_priorities)
+                rollbar.report_message(
+                    f"Model was not updated due to poor performance ({performance})", "warning"
+                )
     except:
         rollbar.report_exc_info(sys.exc_info())
     finally:

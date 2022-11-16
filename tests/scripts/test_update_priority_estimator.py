@@ -1,11 +1,14 @@
 import json
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
+
+from duolingo_base.dal import s3
 
 from jeeves.scripts.update_priority_estimator import (
     OverriddenPriorityIssue,
     calculate_manual_override_score,
+    check_if_update_necessary,
     get_s3_overridden_priorities,
     get_updated_jira_priorities,
     run_priority_model_holdout_set,
@@ -191,3 +194,15 @@ class TestUpdatePriorityEstimator(unittest.TestCase):
             "DLAA-2": OverriddenPriorityIssue("DLAA-2", "test", "test feature", "biglou", "High"),
         }
         self.assertEqual(result, expected)
+
+    def test_check_if_update_necessary(self):
+        mockS3.get_object_summary.return_value.last_modified = datetime.now(timezone.utc)
+        self.assertFalse(check_if_update_necessary())
+
+        mockS3.get_object_summary.return_value.last_modified = datetime.now(
+            timezone.utc
+        ) - timedelta(weeks=4)
+        self.assertTrue(check_if_update_necessary())
+
+        mockS3.get_object_summary.side_effect = s3.S3DownloadException("No such file")
+        self.assertTrue(check_if_update_necessary())

@@ -20,8 +20,8 @@ class PriorityEstimator:
     last_model_load = datetime.min
 
     @classmethod
-    def _initialize_priority_estimator(cls) -> None:
-        if cls.last_model_load < (datetime.now() - timedelta(days=1)):
+    def initialize_priority_estimator(cls, force_init=False) -> None:
+        if force_init or cls.last_model_load < (datetime.now() - timedelta(days=1)):
             cls.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
             cls.model = BertForSequenceClassification.from_pretrained(
                 _PRIORITY_ESTIMATOR_MODEL_PATH
@@ -76,7 +76,7 @@ class PriorityEstimator:
                     Note, reporter should not have the "@duolingo.com" part
             labels: list of labels where 0 is Low, 1 is Medium, and 2 is High
         """
-        cls._initialize_priority_estimator()
+        cls.initialize_priority_estimator()
         train_dataloader = cls._create_dataloader(data, labels)
         cls.train_model(train_dataloader, epochs=1)
         cls.model.save_pretrained(_PRIORITY_ESTIMATOR_MODEL_PATH)
@@ -143,7 +143,7 @@ class PriorityEstimator:
 
         Returns a string representing estimated priority. Must be one of the vales of JiraPriority enum
         """
-        cls._initialize_priority_estimator()
+        cls.initialize_priority_estimator()
         data = cls.format_data(sentence, feature, reporter_email)
         prediction = cls._predict(data)
         return _PRIORITY_INT_TO_STR[np.argmax(prediction)]
@@ -162,7 +162,7 @@ class PriorityEstimator:
                     Note, reporter should not have the "@duolingo.com" part
             labels: list of labels where 0 is Low, 1 is Medium, and 2 is High
         """
-        cls._initialize_priority_estimator()
+        cls.initialize_priority_estimator()
         eval_dataloader = cls._create_dataloader(data, labels)
 
         correct = 0

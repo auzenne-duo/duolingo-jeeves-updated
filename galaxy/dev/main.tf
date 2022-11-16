@@ -287,7 +287,7 @@ module "duolingo-jeeves-priority-estimator-updater" {
   owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "priority-estimator-updater.json"
-  schedule_expression  = "cron(* * * * ? 1970)"
+  schedule_expression  = "cron(0 6,18 ? * * *)"
   release_version      = var.release_version
   environment_vars = [
     {
