@@ -11,12 +11,7 @@ from typing import Dict, List, Optional, Union
 import numpy as np
 
 from jeeves import registry as app_registry
-from jeeves.config.config import (
-    COUNT_THRESHOLD,
-    HISTORY_WINDOW_SIZE,
-    ROLLOUT_RESET_THRESHOLD,
-    SPIKE_THRESHOLD,
-)
+from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.model.jeeves_document import JeevesDocument
@@ -248,21 +243,6 @@ def _find_spiked_words(
         target_dt, spike_group, lang
     )
     average_num_tickets = np.mean(list(num_tickets_by_day.values()))
-    # if the number of tickets per day suddenly increases, treat as a cold start by truncating the
-    # data_window_size to the most recent day within 1/ROLLOUT_RESET_THRESHOLD times of the current
-    # day count
-    sorted_date_and_count = sorted(list(num_tickets_by_day.items()), key=lambda x: x[0])
-    cuttoff_index = 0
-    for i, (_, count) in enumerate(sorted_date_and_count):
-        if i == 0:
-            continue
-        average = np.mean([count for _, count in sorted_date_and_count[cuttoff_index:i]])
-        if count > ROLLOUT_RESET_THRESHOLD * average:
-            cuttoff_index = i
-
-    average_num_tickets = np.mean([count for _, count in sorted_date_and_count[cuttoff_index:]])
-    data_start_date = sorted_date_and_count[cuttoff_index][0]
-    data_window_size = min(data_window_size, (target_dt - str_to_date(data_start_date)).days + 1)
 
     # currently we use a baseline generated from solely str tickets
     baseline_stats = app_registry(STR_SPIKE_LEMMA_STATS_REGISTRY_KEY)
