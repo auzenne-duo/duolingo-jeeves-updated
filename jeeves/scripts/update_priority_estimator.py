@@ -329,8 +329,11 @@ if __name__ == "__main__":
     try:
         apply_registry()
         print("running priority updater")
-        if check_if_update_necessary():
+        update_necessary = check_if_update_necessary()
+        print("update necessary?", update_necessary)
+        if update_necessary:
             prev_overridden_priorities = get_s3_overridden_priorities()
+            print("got overridden priorities", len(prev_overridden_priorities))
             overridden_priorities = update_priority_model(prev_overridden_priorities)
             print("calculating priority model score")
             calculate_manual_override_score()
