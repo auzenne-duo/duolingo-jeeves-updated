@@ -109,19 +109,9 @@ JIRA_FEATURES = {
                 "*session type*: alphabet_lesson",
             ],
             "Transliteration": [],
-            "Non-latin alphabet": [
-                "Korean",
-                "Japanese",
-                "Kanji",
-                "Chinese",
-                "Bonsai",
-                "Hindi",
-                "Russian",
-                "Arabic",
-            ],
         },
         "Speaking": {
-            "Audio Lessons": ["audio lesson", "listen", "podcast"],
+            "Podcasts": ["audio lesson", "listen", "podcast"],
             "Speech recognizer (in house)": [
                 "speech recognition",
                 "speech recognizer",
@@ -154,8 +144,9 @@ JIRA_FEATURES = {
         },
         "None": {},
         "Path": {
-            "Path": [],
+            "Path": ["course", "home page", "home tab", "tree"],
             "Tips": ["tip"],
+            "Guidebook": [],
         },
     },
     "Learning Scaling": {
@@ -242,7 +233,6 @@ JIRA_FEATURES = {
                 "change password",
                 "change my password",
             ],
-            "Skill Tree": ["course", "home page", "home tab", "tree"],
             "Top Bar Navigation": ["toolbar", "tool bar", "stat bar", "stats bar"],
             "Course Switching": [
                 "course pick",
@@ -267,7 +257,6 @@ JIRA_FEATURES = {
             ],
             "Offline support": ["prefetch", "offlin", "zombie", "airplane"],
             "Web nag": [],
-            "NPS": [],
         },
         "None": {
             "Progress Bar": [],
@@ -313,13 +302,11 @@ JIRA_FEATURES = {
         "None": {
             "Spam": [],
             "Feature request / feedback": [],
-            "Other": [],
         },
     },
     "Many": {
         "Many": {
             "Localization": ["translation", "string"],
-            "Dark mode": [],
             "Drawers / home messages": ["drawer", "home message"],
             "Session end screens": [
                 "session end card",
