@@ -4,10 +4,6 @@
 
 Technology-driven user support.
 
-## Owner
-
-- Yijin Kang, yijin@duolingo.com
-
 ## How to deploy
 
 - Use this Jenkins job [`https://jenkins-ci.duolingo.com/job/duolingo-jeeves-deploy-galaxy-dev/`](https://jenkins-ci.duolingo.com/job/duolingo-jeeves-deploy-galaxy-dev/) to deploy to the dev cluster at [`https://duolingo-jeeves-dev.duolingo.com`](https://duolingo-jeeves-dev.duolingo.com)
