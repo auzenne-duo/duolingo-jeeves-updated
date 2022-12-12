@@ -3,6 +3,12 @@ from typing import Dict
 from jeeves.model.custom_types import JSON
 from jeeves.model.jira_document import JiraDocument
 
+# By default, categories will be sorted by count unless they are included here
+_PARENT_CATEGORIES_TO_SORT_BY_KEY = {
+    "app_version",
+    "os_version",
+}
+
 
 def parse_parent_description(body_text: str) -> Dict[str, Dict[str, int]]:
     """
@@ -99,7 +105,12 @@ def generate_parent_body_text_from_data(data: Dict[str, Dict[str, int]]) -> JSON
     category_mapping = JiraDocument.get_parent_category_mappings()
     for human_name, data_name in category_mapping.items():
         block_contents = f"{human_name}:\n"
-        for data_type, data_count in data[data_name].items():
+        sorted_data_items = (
+            sorted(data[data_name].items(), key=lambda x: x[0])
+            if data_name in _PARENT_CATEGORIES_TO_SORT_BY_KEY
+            else sorted(data[data_name].items(), key=lambda x: x[1], reverse=True)
+        )
+        for data_type, data_count in sorted_data_items:
             block_contents = f"{block_contents}{data_type}: {data_count}\n"
         paragraph_blocks.append(_create_paragraph_block(block_contents))
 

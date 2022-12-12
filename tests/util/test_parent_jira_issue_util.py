@@ -23,11 +23,11 @@ def test_parse_parent_description():
 def test_generate_parent_body_text_from_data():
     # Basically the reverse of parse_parent_description
     data_in = {
-        "app_version": {"NOT PRESENT": 2, "6.117.0.1": 1},
-        "platform": {"NOT PRESENT": 2, "iOS": 1},
-        "course": {"NOT PRESENT": 2, "DUOLINGO_FR_EN": 1},
-        "ui_language": {"NOT PRESENT": 2, "en": 1},
-        "os_version": {"NOT PRESENT": 2, "iOS 14.4.1": 1},
+        "app_version": {"NOT PRESENT": 1, "6.195.0.0": 1, "6.117.0.1": 2},
+        "platform": {"NOT PRESENT": 1, "iOS": 1, "Android": 2},
+        "course": {"NOT PRESENT": 1, "DUOLINGO_FR_EN": 1, "DUOLINGO_EN_FR": 2},
+        "ui_language": {"NOT PRESENT": 1, "en": 1, "fr": 2},
+        "os_version": {"NOT PRESENT": 1, "iOS 14.4.1": 1, "iOS 15.6": 2},
         "components": {},
     }
     desired_output = {
@@ -37,23 +37,16 @@ def test_generate_parent_body_text_from_data():
             {
                 "type": "paragraph",
                 "content": [
-                    {"type": "text", "text": "APP VERSIONS:\nNOT PRESENT: 2\n6.117.0.1: 1\n"}
-                ],
-            },
-            {
-                "type": "paragraph",
-                "content": [{"type": "text", "text": "PLATFORMS:\nNOT PRESENT: 2\niOS: 1\n"}],
-            },
-            {
-                "type": "paragraph",
-                "content": [
-                    {"type": "text", "text": "COURSES:\nNOT PRESENT: 2\nDUOLINGO_FR_EN: 1\n"}
+                    {
+                        "type": "text",
+                        "text": "APP VERSIONS:\n6.117.0.1: 2\n6.195.0.0: 1\nNOT PRESENT: 1\n",
+                    }
                 ],
             },
             {
                 "type": "paragraph",
                 "content": [
-                    {"type": "text", "text": "INTERFACE LANGUAGES:\nNOT PRESENT: 2\nen: 1\n"}
+                    {"type": "text", "text": "PLATFORMS:\nAndroid: 2\nNOT PRESENT: 1\niOS: 1\n"}
                 ],
             },
             {
@@ -61,7 +54,22 @@ def test_generate_parent_body_text_from_data():
                 "content": [
                     {
                         "type": "text",
-                        "text": "OPERATING SYSTEMS:\nNOT PRESENT: 2\niOS 14.4.1: 1\n",
+                        "text": "COURSES:\nDUOLINGO_EN_FR: 2\nNOT PRESENT: 1\nDUOLINGO_FR_EN: 1\n",
+                    }
+                ],
+            },
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "INTERFACE LANGUAGES:\nfr: 2\nNOT PRESENT: 1\nen: 1\n"}
+                ],
+            },
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "OPERATING SYSTEMS:\nNOT PRESENT: 1\niOS 14.4.1: 1\niOS 15.6: 2\n",
                     }
                 ],
             },

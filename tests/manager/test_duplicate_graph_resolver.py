@@ -224,7 +224,7 @@ class TestDuplicateGraphResolver(unittest.TestCase):
                 {
                     "type": "paragraph",
                     "content": [
-                        {"type": "text", "text": "APP VERSIONS:\nNOT PRESENT: 5\n6.117.0.1: 1\n"}
+                        {"type": "text", "text": "APP VERSIONS:\n6.117.0.1: 1\nNOT PRESENT: 5\n"}
                     ],
                 },
                 {
