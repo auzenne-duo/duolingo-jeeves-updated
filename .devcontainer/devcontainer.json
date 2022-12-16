@@ -5,7 +5,7 @@
   "hostRequirements": {
     "memory": "8gb"
   },
-  "image": "ghcr.io/duolingo/codespaces",
+  "image": "ghcr.io/duolingo/codespaces:python3.6",
   "onCreateCommand": "/onCreate",
   "postAttachCommand": "/postAttach",
   "postCreateCommand": "/postCreate",
