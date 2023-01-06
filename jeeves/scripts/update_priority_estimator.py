@@ -300,7 +300,7 @@ def run_priority_model_holdout_set() -> float:
     data, labels = zip(
         *[
             (
-                f"{issue['summary']}; {issue['feature']}; {issue.get('reporter')}",
+                f"{issue['summary']}; {issue['feature']}; {issue.get('reporter', '')}",
                 int(issue["priority"]),
             )
             for issue in holdout_set.values()

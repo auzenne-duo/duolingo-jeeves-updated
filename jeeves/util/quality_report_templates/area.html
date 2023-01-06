@@ -1,0 +1,33 @@
+<h1>
+  <a name="{{report.title}}"></a>{{report.title}} Quality Report
+  <br />{{report.end_date.strftime("%b %d, %Y")}}
+</h1>
+<h3>Summary</h3>
+<ul>
+  <li>
+    <span class="bold">Overall Quality Score</span> = 100*closed score / total
+    score: <span class="highlight-owl">{{report.overall_score}}</span>
+  </li>
+  <li><span class="bold">Closed bug reports:</span> {{report.num_closed}}</li>
+  <li>
+    <span class="bold"
+      ><a href="{{report.open_issues_link}}"
+        >Open bug reports: {{report.num_open}}</a
+      ></span
+    >
+  </li>
+</ul>
+<h4 style="text-align: center">Overall Quality Scores</h4>
+<p><img alt="plot" src="{{report.overall_plot_filename}}" /></p>
+
+<h3>Table of Contents</h3>
+<ul>
+  {% for team in report.sub_teams %}
+  <li><a href="#{{team}}">{{team}}</a></li>
+  {% endfor %}
+</ul>
+<div style="page-break-after: always"></div>
+
+{% for team in report.sub_teams.values() %} {{team.html|safe}}
+<div style="page-break-after: always"></div>
+{% endfor %}

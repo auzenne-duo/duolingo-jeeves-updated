@@ -14,3 +14,11 @@ def get_s3_client_and_bucket():
         s3_client = s3.S3Client()
     s3_bucket_name = _config.get_nested(["s3_document_cache", "bucket_name"])
     return s3_client, s3_bucket_name
+
+
+def upload_to_s3(filename, data):
+    """
+    Uploads data to s3 under filename
+    """
+    s3_client, s3_bucket_name = get_s3_client_and_bucket()
+    s3_client.upload(s3_bucket_name, filename, data)

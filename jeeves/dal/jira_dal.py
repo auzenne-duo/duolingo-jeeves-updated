@@ -153,6 +153,8 @@ class JiraApiDAL:
                 response_json = self.search_issues_json(s, params=url_params)
                 yield from response_json["issues"]
                 url_params["startAt"] += len(response_json["issues"])
+                if len(response_json["issues"]) == 0:
+                    break
                 if total is None:
                     # only update total once, rather than trying to hit a moving target of total
                     # issues downloaded.

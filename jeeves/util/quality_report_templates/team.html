@@ -1,0 +1,133 @@
+<h1>
+  <a name="{{report.title}}"></a>{{report.title}} Quality Report
+  <br />{{report.end_date.strftime("%b %d, %Y")}}
+</h1>
+<h3>Summary</h3>
+<ul>
+  <li>
+    <span class="bold">Overall Quality Score</span> = 100*closed score / total
+    score: <span class="highlight-owl">{{report.overall_score}}</span>
+  </li>
+  <li><span class="bold">Closed bug reports:</span> {{report.num_closed}}</li>
+  <li>
+    <span class="bold"
+      ><a href="{{report.open_issues_link}}"
+        >Open bug reports: {{report.num_open}}</a
+      ></span
+    >
+  </li>
+</ul>
+<h4 style="text-align: center">Overall Quality Scores</h4>
+<p><img alt="plot" src="{{report.overall_plot_filename}}" /></p>
+<div style="page-break-after: always"></div>
+
+{% for section in report.project_sections %}
+<h2>Project: {{section.project}}</h2>
+{% if not section.jira_issues %}
+<h3>No issues</h3>
+{% else %}
+<h4 style="text-align: center">{{section.project}} Quality Scores</h4>
+<p><img alt="plot" src="{{section.plot_filename}}" /></p>
+<h3>Quality score: {{section.overall_score}}</h3>
+<ul>
+  <li>
+    <span class="bold"
+      ><a href="{{section.open_issues_link}}"
+        >Open bug reports: {{section.num_open}}</a
+      ></span
+    >
+  </li>
+</ul>
+<h3>Worst open issues:</h3>
+{% if section.open_jira_issues %}
+<ul>
+  <li>
+    <p><span class="bold">Most reports:</span></p>
+    <ul>
+      {% for issue in section.max_dupes_issues %}
+      <li>
+        <a href="https://duolingo.atlassian.net/browse/{{issue.issue_key}}"
+          >{{issue.issue_key}}</a
+        >: {{issue.header_text}} with {{num_dupes}} duplicate report(s)
+      </li>
+      {% endfor %}
+    </ul>
+  </li>
+  <li>
+    <p><span class="bold">Highest priority:</span></p>
+    <ul>
+      {% for issue in section.max_priority_issues %}
+      <li>
+        <a href="https://duolingo.atlassian.net/browse/{{issue.issue_key}}"
+          >{{issue.issue_key}}</a
+        >: {{issue.header_text}} - {{issue.priority}}
+      </li>
+      {% endfor %}
+    </ul>
+  </li>
+</ul>
+{% else %}
+<p>No open issues</p>
+{% endif %}
+<h3>Screens with the most issues:</h3>
+{% if section.max_issue_screens %}
+<ul>
+  {% for screen, count in section.max_issue_screens %}
+  <li>{{screen}}: {{count}}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No screen data available</p>
+{% endif %} {% endif %}
+<div style="page-break-after: always"></div>
+{% endfor %} {% if report.issues_with_closed_parents %}
+<h2>Open Issues with Closed Parent</h2>
+
+<p>
+  These are issues that have a parent marked as 'Fixed', 'Merged' or 'Done'.
+  They are considered a closed issue for this report, but we encourage you to
+  close out all duplicates if that issue has been resolved.
+</p>
+<ul>
+  {% for issue in report.issues_with_closed_parents%}
+  <li>
+    <a href="https://duolingo.atlassian.net/browse/{{issue.issue_key}}"
+      >{{issue.issue_key}}</a
+    >: {{issue.header_text}}
+  </li>
+  {% endfor %}
+</ul>
+<div style="page-break-after: always"></div>
+{% endif %}
+
+<h2>Appendix</h2>
+<h3>Features</h3>
+<p>This report was compiled using issues with features:</p>
+<p>{{report.features|join(", ")}}</p>
+<h3>Time Period</h3>
+<p>
+  Scores are calculated from issues updated between:
+  {{report.start_date.strftime("%b %d, %Y")}} - {{report.end_date.strftime("%b
+  %d, %Y")}}
+</p>
+{% for section in report.project_sections %}
+<h3>{{section.project}} Score Breakdown</h3>
+<ul>
+  <li><span class="bold">Score: {{section.overall_score}}</span></li>
+  {% for breakdown in section.score_breakdowns %}
+  <li>
+    <span class="bold"
+      >{{breakdown.issueStatus}} issues: {{breakdown.score}} points</span
+    >
+    <ul>
+      {% for priority, count in breakdown.sorted_priority_counts %}
+      <li>
+        {{priority.text}}: {{count}} issues * {{priority.score}} points =&gt;
+        {{count*priority.score}}
+      </li>
+      {% endfor %}
+    </ul>
+  </li>
+  {% endfor %}
+</ul>
+{% endfor %}

@@ -25,5 +25,8 @@ PRIORITY_ESTIMATOR_S3_PATH = "priority_estimator_model/"
 # Mapping of Jira priorities to int classifications used by priority estimator
 JIRA_PRIORITY_STR_TO_INT = {"Low": 0, "Lowest": 0, "Medium": 1, "High": 2, "Highest": 2}
 
+# Directory for storing quality reports
+QUALITY_REPORT_PLOTS_DIRECTORY = "plots"
+
 # For spikes, occurrences should be at least five-sigma away from historical values.
 SPIKE_THRESHOLD = 5

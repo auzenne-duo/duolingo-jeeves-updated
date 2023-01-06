@@ -10,6 +10,10 @@ mock_model.return_value.logits.cpu.return_value.numpy.return_value = np.array([1
 
 
 @patch("jeeves.util.priority_estimator.PriorityEstimator.model", mock_model)
+@patch("jeeves.util.priority_estimator.PriorityEstimator._preprocessing", MagicMock())
+@patch(
+    "jeeves.util.priority_estimator.PriorityEstimator.initialize_priority_estimator", MagicMock()
+)
 class Test(unittest.TestCase):
     def test_estimate_priority(self):
         result = PriorityEstimator.estimate_priority(

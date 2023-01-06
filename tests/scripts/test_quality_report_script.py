@@ -1,20 +1,12 @@
 import unittest
 from datetime import datetime
-from unittest.mock import patch
+from typing import Dict, List
+from unittest.mock import MagicMock, patch
 
 from jeeves.model.jira_document import JiraDocument
+from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
-from jeeves.scripts.quality_report_script import (
-    IssueStatus,
-    calculate_max_priority_issues,
-    calculate_scores,
-    create_appendix_text,
-    create_priority_group_text,
-    create_status_priority_count,
-    create_worst_issues_text,
-    filter_for_unique_project_issues,
-    search_for_area_issues,
-)
+from jeeves.scripts.quality_report_script import resolve_duplicate_graphs, search_for_issues
 from jeeves.util.date_util import parse_external_datetime
 from jeeves.util.quality_report_priority import get_quality_report_priority
 
@@ -22,7 +14,7 @@ JiraDocument.set_feature_field_key("feature_field")
 
 JIRA_EXTERNAL_JSON_1 = {
     "id": "",
-    "key": "DLAI-2000",
+    "key": "DLAI-2001",
     "fields": {
         "description": {
             "type": "text",
@@ -35,7 +27,7 @@ JIRA_EXTERNAL_JSON_1 = {
         "ui_language": "",
         "username": "",
         "key": "",
-        "project": {"key": "DLAI-2000"},
+        "project": {"key": "DLAI"},
         "created": "2022-09-09",
         "updated": "2022-09-09",
         "status": {"statusCategory": {"name": "Done"}},
@@ -52,7 +44,7 @@ JIRA_EXTERNAL_JSON_1 = {
 
 JIRA_EXTERNAL_JSON_2 = {
     "id": "",
-    "key": "DLAI-1998",
+    "key": "DLAA-2002",
     "fields": {
         "id": "",
         "description": "",
@@ -65,7 +57,7 @@ JIRA_EXTERNAL_JSON_2 = {
         "screen_content": "VCActivity",
         "ui_language": "",
         "username": "",
-        "project": {"key": "DLAA"},
+        "project": {"key": "DLAI"},
         "created": "2022-09-09",
         "updated": "2022-09-09",
         "status": {"statusCategory": {"name": "To Do"}},
@@ -81,13 +73,28 @@ JIRA_EXTERNAL_JSON_2 = {
 }
 
 
-def create_jira_doc(issue_key, feature, status, priority, linked_duplicate_keys):
+def create_jira_doc(
+    issue_key,
+    feature,
+    status,
+    priority,
+    linked_duplicate_keys,
+    duolingo_metadata=None,
+    labels=None,
+    body_text="",
+    str_category=ShakeToReportCategory.INTERNAL,
+):
+    if labels is None:
+        labels = []
+    if duolingo_metadata is None:
+        duolingo_metadata = {}
+    datetime = parse_external_datetime("2022-09-09")
     return JiraDocument(
         issue_key=issue_key,
-        project=issue_key,
+        project=issue_key[:4],
         linked_duplicate_keys=linked_duplicate_keys,
-        creation_date=DATETIME,
-        updated_date=DATETIME,
+        creation_date=datetime,
+        updated_date=datetime,
         resolution_date=None,
         status=status,
         feature=feature,
@@ -96,21 +103,17 @@ def create_jira_doc(issue_key, feature, status, priority, linked_duplicate_keys)
         reporter_email="",
         assignee="UNASSIGNED",
         comments=[],
-        labels=[],
+        labels=labels,
         embedding_vector=[],
         data_source="JIRA",
         document_id="",
         jeeves_uid="JIRA_",
-        date_time=DATETIME,
-        body_text="\n",
+        date_time=datetime,
+        body_text=body_text,
         language="en",
-        shake_to_report_category=ShakeToReportCategory.INTERNAL,
+        shake_to_report_category=str_category,
         attachments=[],
-        duolingo_metadata={
-            "view_controller_name": "VCActivity",
-            "system_information": {"platform": "iOS"},
-            "raw": "platform:iOS",
-        },
+        duolingo_metadata=duolingo_metadata,
         app_version="",
         course="",
         fullstory_url="",
@@ -130,136 +133,112 @@ def create_jira_doc(issue_key, feature, status, priority, linked_duplicate_keys)
     )
 
 
-DATETIME = parse_external_datetime("2022-09-09")
-JIRA_DOCUMENT_1 = create_jira_doc("DLAI-2000", "Onboarding", "Done", "Medium", [])
+METADATA_1 = {
+    "view_controller_name": "VCActivity",
+    "system_information": {"platform": "iOS"},
+    "raw": "platform:iOS",
+}
+PARSED_JIRA_DOCUMENT_1 = create_jira_doc(
+    "DLAI-2001", "Onboarding", "Done", "Medium", [], METADATA_1, body_text="\n"
+)
+PARSED_JIRA_DOCUMENT_1.is_done = True
+
+PARSED_JIRA_DOCUMENT_2 = create_jira_doc(
+    "DLAA-2002", "DarkMode", "Done", "Low", [], str_category=ShakeToReportCategory.NON_STR_INTERNAL
+)
+PARSED_JIRA_DOCUMENT_2.is_done = False
+
+JIRA_DOCUMENT_1 = create_jira_doc("DLAI-2001", "Onboarding", "Done", "Medium", ["DLAI-2004"])
 JIRA_DOCUMENT_1.is_done = True
 
-JIRA_DOCUMENT_2 = create_jira_doc(
-    "DLAI-1998", "DarkMode", "To Do", "Low", ["DLAI-2003", "DLAA-2004"]
-)
+JIRA_DOCUMENT_2 = create_jira_doc("DLAI-2002", "DarkMode", "Done", "Low", ["DLAI-2003"])
 JIRA_DOCUMENT_2.is_done = False
 
-JIRA_DOCUMENT_3 = create_jira_doc("DLAI-2003", "DarkMode", "Done", "Medium", ["DLAI-1998"])
+JIRA_DOCUMENT_3 = create_jira_doc(
+    "DLAI-2003", "DarkMode", "Done", "Medium", ["DLAI-2002"], labels=["parent_bug"]
+)
 JIRA_DOCUMENT_3.is_done = True
 
-JIRA_DOCUMENT_4 = create_jira_doc("DLAI-2004", "DarkMode", "Done", "High", [])
+JIRA_DOCUMENT_4 = create_jira_doc(
+    "DLAI-2004", "DarkMode", "Done", "High", ["DLAI-2001", "DLAI-2005"]
+)
 JIRA_DOCUMENT_4.is_done = True
+
+JIRA_DOCUMENT_5 = create_jira_doc(
+    "DLAI-2005", "DarkMode", "To Do", "Medium", ["DLAI-2001", "DLAI-2004"]
+)
+JIRA_DOCUMENT_5.is_done = False
+
+
+def document_copy(jira_document):
+    copy = create_jira_doc(
+        jira_document.issue_key,
+        jira_document.feature,
+        jira_document.status,
+        "Low",
+        jira_document.linked_duplicate_keys,
+        jira_document.labels,
+    )
+    copy.priority = jira_document.priority
+    copy.is_done = jira_document.is_done
+    return copy
+
+
+mock_jira_manager = MagicMock()
+mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
+    JIRA_DOCUMENT_4,
+    JIRA_DOCUMENT_5,
+]
 
 
 class TestQualityReportScript(unittest.TestCase):
     @patch("jeeves.scripts.quality_report_script.JiraDAL")
     @patch("jeeves.scripts.quality_report_script.JiraManager")
-    def test_search_for_area_issuess(self, MockJiraManager, MockJiraDAL):
+    def test_search_for_issues(self, MockJiraManager, MockJiraDAL):
         MockJiraDAL.paginate_search_issues.return_value = (
-            issue for issue in [JIRA_EXTERNAL_JSON_1, JIRA_EXTERNAL_JSON_2]
+            issue for issue in [JIRA_EXTERNAL_JSON_1]
         )
         MockJiraManager.get_feature_field.return_value = "feature_field"
 
-        result = search_for_area_issues("Growth", datetime(2000, 1, 1), datetime(2000, 2, 1))
-        expected = [JIRA_DOCUMENT_1]
+        result = search_for_issues(datetime(2001, 1, 1), datetime(2001, 2, 1))
+        expected = [PARSED_JIRA_DOCUMENT_1]
         self.assertEqual(result, expected)
 
-    def test_filter_for_unique_project_issues(self):
-        JIRA_DOCUMENT_2.is_done = False
-        result = filter_for_unique_project_issues(
-            [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3], {"DLAA-2004": JIRA_DOCUMENT_4}
-        )
-        JIRA_DOCUMENT_2.is_done = True
-        JIRA_DOCUMENT_2.priority = get_quality_report_priority("High")
-        expected = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2], {"DLAI-1998": JIRA_DOCUMENT_2}
-        self.assertEqual(result, expected)
-        JIRA_DOCUMENT_2.is_done = False
-        JIRA_DOCUMENT_2.priority = get_quality_report_priority("Low")
+    @patch(
+        "jeeves.scripts.quality_report_script.IDManagerMap",
+        MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
+    )
+    @patch("jeeves.scripts.quality_report_script.app_registry")
+    def test_resolve_duplicate_graphs(self, mock_app_registry):
+        def mock_get_duplicate_graph(
+            issues: List[JiraDocument], key_to_doc: Dict[str, JiraDocument]
+        ):
+            if issues[0] in ["DLAI-2002", "DLAI-2003"]:
+                return JiraDuplicateGraph(
+                    issue_keys_to_documents={
+                        "DLAI-2002": JIRA_DOCUMENT_2,
+                        "DLAI-2003": JIRA_DOCUMENT_3,
+                    },
+                    existing_issue_links=set(),
+                )
+            else:
+                return JiraDuplicateGraph(
+                    issue_keys_to_documents={
+                        "DLAI-2001": JIRA_DOCUMENT_1,
+                        "DLAI-2004": JIRA_DOCUMENT_4,
+                        "DLAI-2005": JIRA_DOCUMENT_5,
+                    },
+                    existing_issue_links=set(),
+                )
 
-    def test_calculate_max_priority_issues(self):
-        result = calculate_max_priority_issues([JIRA_DOCUMENT_1, JIRA_DOCUMENT_2])
-        expected = [JIRA_DOCUMENT_1]
-        self.assertEqual(result, expected)
-
-    def test_calculate_max_priority_issues_tied(self):
-        JIRA_DOCUMENT_1.priority = get_quality_report_priority("High")
-        JIRA_DOCUMENT_2.priority = get_quality_report_priority("High")
-        result = calculate_max_priority_issues([JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3])
-        expected = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2]
-        self.assertEqual(result, expected)
-        JIRA_DOCUMENT_2.priority = get_quality_report_priority("Low")
-
-    def test_create_status_priority_count(self):
-        JIRA_DOCUMENT_1.priority = get_quality_report_priority("Medium")
-        JIRA_DOCUMENT_2.is_done = False
-        result = create_status_priority_count([JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3])
-        expected = {
-            IssueStatus.OPEN: {get_quality_report_priority("Low"): 1},
-            IssueStatus.CLOSED: {get_quality_report_priority("Medium"): 2},
+        mock_app_registry.return_value.get_duplicate_graph.side_effect = mock_get_duplicate_graph
+        result = resolve_duplicate_graphs([JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3])
+        expected_key_to_issue = {
+            "DLAI-2001": JIRA_DOCUMENT_1,
+            "DLAI-2002": JIRA_DOCUMENT_2,
+            "DLAI-2003": JIRA_DOCUMENT_3,
+            "DLAI-2004": JIRA_DOCUMENT_4,
+            "DLAI-2005": JIRA_DOCUMENT_5,
         }
-        self.assertEqual(result, expected)
-
-    def test_calculate_scores(self):
-        priority_count = {
-            IssueStatus.OPEN: {get_quality_report_priority("High"): 1},
-            IssueStatus.CLOSED: {
-                get_quality_report_priority("Medium"): 5,
-                get_quality_report_priority("High"): 2,
-            },
-        }
-        result = calculate_scores(priority_count)
-        expected = (75, 10, 30)
-        self.assertEqual(result, expected)
-
-    def test_create_priority_group_text(self):
-        group_count = {
-            IssueStatus.OPEN: {get_quality_report_priority("High"): 3},
-            IssueStatus.CLOSED: {
-                get_quality_report_priority("Medium"): 5,
-                get_quality_report_priority("High"): 2,
-            },
-        }
-        result = create_priority_group_text(group_count[IssueStatus.CLOSED])
-        print("result", result)
-        expected = """    - High/Highest: 2 issues * 10 points => 20
-    - Medium: 5 issues * 2 points => 10"""
-        self.assertEqual(result, expected)
-
-    def test_create_worst_issues_text(self):
-        max_priority_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2]
-        max_dupes_issue = JIRA_DOCUMENT_2
-        result = create_worst_issues_text(max_priority_issues, max_dupes_issue)
-        expected = """
-
-* <span class='bold'>Most reports:</span>
-    - [DLAI-1998](https://duolingo.atlassian.net/browse/DLAI-1998):  - Low/Lowest with 2 duplicate reports
-* <span class="bold">Most likely to block learners:</span>
-    - [DLAI-2000](https://duolingo.atlassian.net/browse/DLAI-2000):  - Medium
-    - [DLAI-1998](https://duolingo.atlassian.net/browse/DLAI-1998):  - Low/Lowest
-"""
-        self.assertEqual(result, expected)
-
-    def test_create_worst_issues_text_one_duplicate(self):
-        max_priority_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2]
-        max_dupes_issue = JIRA_DOCUMENT_3
-        result = create_worst_issues_text(max_priority_issues, max_dupes_issue)
-        expected = """
-
-* <span class='bold'>Most reports:</span>
-    - [DLAI-2003](https://duolingo.atlassian.net/browse/DLAI-2003):  - Medium with 1 duplicate report
-* <span class="bold">Most likely to block learners:</span>
-    - [DLAI-2000](https://duolingo.atlassian.net/browse/DLAI-2000):  - Medium
-    - [DLAI-1998](https://duolingo.atlassian.net/browse/DLAI-1998):  - Low/Lowest
-"""
-        self.assertEqual(result, expected)
-
-    def test_create_appendix_text(self):
-        result = create_appendix_text(["feature1", "feature2"])
-        expected = f"""
-
-<div style="page-break-after: always;"></div>
-
-## Appendix
-
-### Features
-
-This report was compiled using issues with features:
-
-feature1, feature2
-"""
-        self.assertEqual(result, expected)
+        self.assertEqual(result[1], expected_key_to_issue)
+        self.assertEqual({issue.issue_key for issue in result[0]}, {"DLAI-2003", "DLAI-2005"})

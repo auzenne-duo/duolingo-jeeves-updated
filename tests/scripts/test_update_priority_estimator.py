@@ -177,13 +177,14 @@ class TestUpdatePriorityEstimator(unittest.TestCase):
             ),
         )
 
-    @patch("jeeves.scripts.update_priority_estimator.PriorityEstimator.estimate_priority")
-    def test_run_priority_model_holdout_set(self, mock_estimate_priority):
-        mock_estimate_priority.side_effect = ["Low", "Low"]
+    @patch("jeeves.scripts.update_priority_estimator.PriorityEstimator.evaluate")
+    def test_run_priority_model_holdout_set(self, mock_evaluate):
+        mock_evaluate.return_value = 0.5
         mockS3.download.return_value = '{"DLAA-1":{"priority":0, "summary":"", "feature":""}, "DLAA-2":{"priority":2, "summary":"", "feature":"", "reporter":"biglou"}}'
         result = run_priority_model_holdout_set()
         expected = 0.5
         self.assertEqual(result, expected)
+        mock_evaluate.assert_called_with(("; ; ", "; ; biglou"), (0, 2))
 
     def test_get_s3_overridden_priorities(self):
         mockS3.download.return_value = '{"DLAA-1":{"issue_key":"DLAA-1", "priority":"Low", "summary":"", "feature":"", "reporter":"duo", "old_priority":"High", "date_stored":"2022-09-01"}, \
