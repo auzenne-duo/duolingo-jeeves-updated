@@ -144,9 +144,20 @@ JIRA_FEATURES = {
         },
         "None": {},
         "Path": {
-            "Path": ["course", "home page", "home tab", "tree"],
+            "Path": [
+                "course",
+                "level up",
+                "home page",
+                "home tab",
+                "tree",
+                "trophy",
+                "trophies",
+                "unit complete",
+                "unit review",
+            ],
             "Tips": ["tip"],
             "Guidebook": [],
+            "Path Sections": ["sections"],
         },
     },
     "Learning Scaling": {
