@@ -5,6 +5,7 @@ from jeeves.manager.shakira import ShakiraManager
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.slack_channel import SlackChannel
+from jeeves.util.shakira import JIRA_RELEASE_BLOCKER_LABEL
 
 _JIRA_ISSUE_URL = "https://jira.com/issues/DLAA-1"
 
@@ -68,6 +69,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -101,6 +103,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -151,6 +154,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -187,6 +191,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -214,6 +219,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -241,6 +247,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -268,6 +275,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -308,6 +316,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -349,6 +358,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email=None,
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -380,6 +390,7 @@ class Test(unittest.TestCase):
             generated_description=None,
             reporter_email="biglou@duolingo.com",
             pre_release=False,
+            release_blocker=False,
             files={},
         )
 
@@ -387,6 +398,41 @@ class Test(unittest.TestCase):
             project="DLAA",
             feature="Callouts",
             labels=[],
+            summary="summary",
+            description=None,
+            generated_description=None,
+            reporter_email="biglou@duolingo.com",
+            pre_release=False,
+            will_post_to_slack=False,
+            priority="Medium",
+            related_issue_exists=False,
+        )
+        assert not shakira_slack_mock.post_issue.called
+        mock_priority_estimator.estimate_priority.assert_called_with(
+            "summary", "Callouts", "biglou@duolingo.com"
+        )
+
+    def test_report_issue_release_blocker(self):
+        shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        shakira_manager.report_issue(
+            project="DLAA",
+            feature="Callouts",
+            slack_report_type=None,
+            client_specified_slack_channel_name=None,
+            related_issue_key=None,
+            summary="summary",
+            description=None,
+            generated_description=None,
+            reporter_email="biglou@duolingo.com",
+            pre_release=False,
+            release_blocker=True,
+            files={},
+        )
+
+        shakira_jira_mock.create_issue.assert_called_once_with(
+            project="DLAA",
+            feature="Callouts",
+            labels=[JIRA_RELEASE_BLOCKER_LABEL],
             summary="summary",
             description=None,
             generated_description=None,

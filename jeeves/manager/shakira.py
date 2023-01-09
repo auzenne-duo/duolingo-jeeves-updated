@@ -10,7 +10,11 @@ from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.slack_channel import SlackChannel
 from jeeves.util.priority_estimator import PriorityEstimator
-from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM, JIRA_VIA_JEEVES_LABEL
+from jeeves.util.shakira import (
+    JIRA_PROJ_TO_PLATFORM,
+    JIRA_RELEASE_BLOCKER_LABEL,
+    JIRA_VIA_JEEVES_LABEL,
+)
 
 _VIA_JEEVES_MARKER = "[via Jeeves]"
 
@@ -111,6 +115,7 @@ class ShakiraManager:
         generated_description: Optional[str],
         reporter_email: Optional[str],
         pre_release: bool,
+        release_blocker: bool,
         files: Dict[str, "FileStorage"],
     ) -> Dict[str, Union[str, Tuple[str, int]]]:
         """
@@ -127,6 +132,7 @@ class ShakiraManager:
             generated_description: Generated information such as app version, fullstory url, session type, etc.
             reporter_email: Email of the duo reporting the issue.
             pre_release: Whether the bug is being reported from pre-release app version.
+            release_blocker: Whether the ticket should have a release blocker label
             files: MultiDict of form name to file. The screenshot file should have the form name "screenshot".
 
         returns: Dict[str, ?] containing one or more of the following fields:
@@ -173,6 +179,7 @@ class ShakiraManager:
 
         jira_label_from_channel = _SLACK_CHANNELS_TO_JIRA_LABELS.get(channel)
         jeeves_label = JIRA_VIA_JEEVES_LABEL if summary.startswith(_VIA_JEEVES_MARKER) else None
+        rc_blocker_label = JIRA_RELEASE_BLOCKER_LABEL if release_blocker else None
 
         screenshot = files.get("screenshot")
 
@@ -202,7 +209,9 @@ class ShakiraManager:
                 project=project,
                 feature=feature,
                 labels=[
-                    label for label in [jira_label_from_channel, jeeves_label] if label is not None
+                    label
+                    for label in [jira_label_from_channel, jeeves_label, rc_blocker_label]
+                    if label is not None
                 ],
                 summary=summary,
                 description=description,

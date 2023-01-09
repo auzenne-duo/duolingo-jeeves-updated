@@ -44,6 +44,7 @@ example:
     "slackChannel" optional: e.g. #visual-polish. If this is set, override the feature and post in this channel. This should not be included by Shakira clients, and is intended for posting Jeeves issues to slack from the Jeeves web interface.
     "relatedJiraTicket" optional: e.g. "DEL-1773". If this is set and the given ticket is valid, the issues will be linked. If linked successfully Jira Automation will not post this bug to slack.
     "preRelease" optional: Boolean; Should be "True" if reporting from TestFlight or Android pre-release build. Default value is "False".
+    "releaseBlocker" optional: Boolean; If set to "True", adds the "rc-blocker" label. Default value is "False"
 }
 ```
 

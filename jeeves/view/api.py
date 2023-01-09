@@ -291,6 +291,7 @@ def report_issue():
             generated_description=issue_data.get("generatedDescription"),
             reporter_email=issue_data.get("reporterEmail"),
             pre_release=issue_data.get("preRelease", False),
+            release_blocker=issue_data.get("releaseBlocker", False),
             files=request.files,
         )
         if "error" in issue_status:
@@ -531,6 +532,7 @@ def report_issue_v2():
             generated_description=issue_data.get("generatedDescription"),
             reporter_email=issue_data.get("reporterEmail"),
             pre_release=issue_data.get("preRelease", False),
+            release_blocker=issue_data.get("releaseBlocker", False),
             files=request.files,
         )
         if "error" in issue_status:
