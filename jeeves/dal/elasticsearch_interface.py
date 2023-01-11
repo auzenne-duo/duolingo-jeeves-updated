@@ -30,6 +30,8 @@ from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 
 _config = Config.load_config()
 
+# Default limit of 1000 must be increased to provide enough space for ~500 experiment conditions
+_MAX_FIELDS_LIMIT = 2000
 # If we ever change the duplicate detection model, make sure this value is
 # updated appropriately
 _SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
@@ -80,6 +82,7 @@ class ElasticsearchDAL:
                 "type": "knn_vector",
                 "dimension": _SENTENCE_TRANSFORMERS_VECTOR_SIZE,
             }
+            mapping_dict["total_fields"]["limit"] = _MAX_FIELDS_LIMIT
 
             settings_dict = {
                 "index": {

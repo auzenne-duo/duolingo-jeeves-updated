@@ -22,6 +22,7 @@ class JeevesDocument(ABC):
     date_time: datetime.datetime = attr.ib()
     header_text: str = attr.ib(default="")
     body_text: str = attr.ib()
+    is_bug: bool = attr.ib(default=True)
     language: str = attr.ib()
     lemmatized_terms: List[str] = attr.ib(default=[])
     links: List[str] = attr.ib(default=[])

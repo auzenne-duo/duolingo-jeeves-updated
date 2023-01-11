@@ -24,6 +24,7 @@ from jeeves.util.cleanup import (
     extract_duolingo_metadata,
 )
 from jeeves.util.date_util import parse_external_datetime
+from jeeves.util.document_classifier import JeevesDocumentClassifier
 from jeeves.util.metadata_standardizer import MetaStdizer
 
 _USER = os.environ.get("ZENDESK_REPORTS_USER")
@@ -120,6 +121,7 @@ class ZendeskDocument(JeevesDocument):
                     for condition in re.findall("[a-zA-Z\d_]+: [a-zA-Z\d_]+", contents):
                         key, value = condition.split(": ")
                         experiment_conditions[key] = value
+        is_bug = is_shake_to_report or JeevesDocumentClassifier.classify_document(body_text)
 
         return cls(
             data_source=cls.get_data_source_identifier(),
@@ -128,6 +130,7 @@ class ZendeskDocument(JeevesDocument):
             date_time=parse_external_datetime(external_json["created_at"]),
             header_text=header,
             body_text=body_text,
+            is_bug=is_bug,
             language=SUPPORTED_LANGUAGES.filter_misc_languages(detect_language(body_text)),
             links=[ticket_link, user_link],
             shake_to_report_category=ShakeToReportCategory.EXTERNAL
@@ -182,6 +185,7 @@ class ZendeskDocument(JeevesDocument):
             else internal_json["date_time"],
             header_text=header,
             body_text=internal_json["body_text"],
+            is_bug=internal_json.get("is_bug", False),
             language=internal_json["language"],
             links=internal_json["links"],
             shake_to_report_category=ShakeToReportCategory[

@@ -9,6 +9,7 @@ from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import detect_language
 from jeeves.util.date_util import parse_external_datetime
+from jeeves.util.document_classifier import JeevesDocumentClassifier
 
 
 @attr.s(kw_only=True)
@@ -35,6 +36,7 @@ class AppfiguresDocument(JeevesDocument):
         Please see parent class for documentation
         """
         # TODO: After web GUI is redesigned, add links as appropriate
+        body_text = external_json["original_review"]
 
         return cls(
             data_source=cls.get_data_source_identifier(),
@@ -42,7 +44,8 @@ class AppfiguresDocument(JeevesDocument):
             jeeves_uid=f"{cls.get_data_source_identifier()}_{external_json['id']}",
             date_time=parse_external_datetime(external_json["date"]),
             header_text=external_json["original_title"],
-            body_text=external_json["original_review"],
+            body_text=body_text,
+            is_bug=JeevesDocumentClassifier.classify_document(body_text),
             language=SUPPORTED_LANGUAGES.filter_misc_languages(
                 detect_language(external_json["original_review"])
             ),
@@ -83,6 +86,7 @@ class AppfiguresDocument(JeevesDocument):
             else internal_json["date_time"],
             header_text=internal_json["header_text"],
             body_text=internal_json["body_text"],
+            is_bug=internal_json.get("is_bug", False),
             language=internal_json["language"],
             links=internal_json["links"],
             shake_to_report_category=ShakeToReportCategory[

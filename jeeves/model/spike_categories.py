@@ -18,6 +18,7 @@ class SpikeCategory(Enum):
         self.display_name = display_name if display_name else self.name
 
     ALL_SPIKES = auto(), "All feedback"
+    ALL_SOURCES_BUG_REPORTS = auto(), "All sources bug reports"
     EXTERNAL_STR_SPIKES = auto(), "Beta feedback"
     INTERNAL_STR_SPIKES = auto(), "Admin reports"
     ALL_STR_SPIKES = auto(), "All dogfooding"
@@ -190,6 +191,7 @@ class SpikeCategory(Enum):
             )
             and (deprecated_date is None or doc.date_time.date() <= deprecated_date),
             cls.ALL_SPIKES: lambda doc: True,
+            cls.ALL_SOURCES_BUG_REPORTS: lambda doc: doc.is_bug,
         }
         return category_to_predicate[group_category]
 
@@ -244,6 +246,7 @@ class SpikeCategory(Enum):
                 "term", duolingo_metadata__user_information__ios_v2_dev=True
             ).filter("range", date_time=timestamp_dict),
             cls.ALL_SPIKES: lambda s: s,
+            cls.ALL_SOURCES_BUG_REPORTS: lambda s: s.filter("term", is_bug=True),
         }
         return category_to_query[group_category]
 
