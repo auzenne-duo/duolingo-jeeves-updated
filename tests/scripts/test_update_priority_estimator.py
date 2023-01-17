@@ -10,6 +10,7 @@ from jeeves.scripts.update_priority_estimator import (
     calculate_manual_override_score,
     check_if_update_necessary,
     get_s3_overridden_priorities,
+    get_training_priorities,
     get_updated_jira_priorities,
     run_priority_model_holdout_set,
 )
@@ -115,6 +116,11 @@ mockS3 = MagicMock()
 @patch("jeeves.scripts.update_priority_estimator.JiraDAL", mockJiraDAL)
 @patch("jeeves.scripts.update_priority_estimator.s3_client", mockS3)
 @patch("jeeves.scripts.update_priority_estimator.s3_bucket_name", "s3_bucket")
+@patch("jeeves.scripts.update_priority_estimator.PriorityEstimator._preprocessing", MagicMock())
+@patch(
+    "jeeves.scripts.update_priority_estimator.PriorityEstimator.initialize_priority_estimator",
+    MagicMock(),
+)
 class TestUpdatePriorityEstimator(unittest.TestCase):
     def test_get_updated_jira_priorities(self):
         result = get_updated_jira_priorities(
@@ -127,10 +133,37 @@ class TestUpdatePriorityEstimator(unittest.TestCase):
         )
         expected = {
             "DLAI-2001": OverriddenPriorityIssue(
-                "DLAI-2001", "", "", "", "High", "Medium", "2022-09-22"
+                "DLAI-2001", "", "", "", "High", "Medium", "2022-09-22", False
             ),
             "DLAI-2005": OverriddenPriorityIssue(
-                "DLAI-2005", "", "", "", "High", "Medium", "2022-09-22"
+                "DLAI-2005", "", "", "", "High", "Medium", "2022-09-22", False
+            ),
+        }
+        self.assertEqual(result, expected)
+
+    @patch("jeeves.scripts.update_priority_estimator.datetime")
+    def test_get_training_priorities(self, mock_datetime):
+        # the DLAI-2002 ticket should be included since it hasn't been used in training before
+        mock_datetime.now.return_value = datetime(2022, 9, 22)
+        result = get_training_priorities(
+            {
+                "DLAI-2001": OverriddenPriorityIssue(
+                    "DLAI-2001", "", "", "", "Medium", used_in_training=True
+                ),
+                "DLAI-2002": OverriddenPriorityIssue(
+                    "DLAI-2002", "", "", "", "Medium", "Low", "2022-09-15", False
+                ),
+            }
+        )
+        expected = {
+            "DLAI-2001": OverriddenPriorityIssue(
+                "DLAI-2001", "", "", "", "High", "Medium", "2022-09-22", False
+            ),
+            "DLAI-2002": OverriddenPriorityIssue(
+                "DLAI-2002", "", "", "", "Medium", "Low", "2022-09-15", False
+            ),
+            "DLAI-2005": OverriddenPriorityIssue(
+                "DLAI-2005", "", "", "", "High", "Medium", "2022-09-22", False
             ),
         }
         self.assertEqual(result, expected)
@@ -153,6 +186,7 @@ class TestUpdatePriorityEstimator(unittest.TestCase):
                             "priority": "High",
                             "old_priority": "Medium",
                             "date_stored": None,
+                            "used_in_training": True,
                         },
                         "DLAI-2002": {
                             "issue_key": "DLAI-2002",
@@ -162,6 +196,7 @@ class TestUpdatePriorityEstimator(unittest.TestCase):
                             "priority": "Medium",
                             "old_priority": "High",
                             "date_stored": None,
+                            "used_in_training": True,
                         },
                         "DLAI-2005": {
                             "issue_key": "DLAI-2005",
@@ -171,6 +206,7 @@ class TestUpdatePriorityEstimator(unittest.TestCase):
                             "priority": "High",
                             "old_priority": "Low",
                             "date_stored": None,
+                            "used_in_training": True,
                         },
                     },
                 }

@@ -50,6 +50,7 @@ class OverriddenPriorityIssue:
     priority: str
     old_priority: Optional[str] = None
     date_stored: Optional[str] = None
+    used_in_training: bool = True
 
     def serialize(self):
         return {""}
@@ -142,6 +143,7 @@ def get_updated_jira_priorities(
                         item["toString"],
                         item["fromString"],
                         date_to_str(current_date),
+                        used_in_training=False,
                     )
                     break
             if skip:
@@ -151,6 +153,27 @@ def get_updated_jira_priorities(
     return new_overridden_priorities
 
 
+def get_training_priorities(
+    overridden_priorities: Dict[str, OverriddenPriorityIssue]
+) -> Dict[str, OverriddenPriorityIssue]:
+    """
+    Finds new overridden priorities and combines them with old data that hasn't been trained on. Newest data is used in the even
+    that a ticket has been updated more recently.
+    """
+    current_date = datetime.now()
+    earliest_date = current_date - timedelta(weeks=2)
+    training_data = {
+        key: priority
+        for key, priority in overridden_priorities.items()
+        if not priority.used_in_training
+    }
+    new_overridden_priorities = get_updated_jira_priorities(
+        earliest_date, current_date, overridden_priorities
+    )
+    training_data.update(new_overridden_priorities)
+    return training_data
+
+
 def update_priority_model(overridden_priorities) -> Dict[str, OverriddenPriorityIssue]:
     """
     Finds overridden priorities, re-fits the priority estimator model, and uploads changes to s3
@@ -158,17 +181,12 @@ def update_priority_model(overridden_priorities) -> Dict[str, OverriddenPriority
     Returns mapping of Jira key to all overridden priorities including those already stored and those newly seen.
     The most recent override of a Jira issue takes precedence.
     """
-    current_date = datetime.now()
-    earliest_date = current_date - timedelta(weeks=2)
-    new_overridden_priorities = get_updated_jira_priorities(
-        earliest_date, current_date, overridden_priorities
-    )
+
     # train model
-    print(
-        f"updating priority estimator with {len(new_overridden_priorities)} overridden priorities"
-    )
-    print(new_overridden_priorities.keys())
-    if len(new_overridden_priorities) == 0:
+    training_priorities = get_training_priorities(overridden_priorities)
+    print(f"updating priority estimator with {len(training_priorities)} overridden priorities")
+    print(training_priorities.keys())
+    if len(training_priorities) == 0:
         rollbar.report_message("No new overridden priorities found", "warning")
         return
     data, labels = zip(
@@ -177,13 +195,13 @@ def update_priority_model(overridden_priorities) -> Dict[str, OverriddenPriority
                 f"{issue.summary}; {issue.feature}; {issue.reporter}",
                 JIRA_PRIORITY_STR_TO_INT[issue.priority],
             )
-            for issue in new_overridden_priorities.values()
+            for issue in training_priorities.values()
         ]
     )
     PriorityEstimator.initialize_priority_estimator(force_init=True)
     PriorityEstimator.fit_to_data(data, labels)
     all_overridden_priorities = overridden_priorities.copy()
-    all_overridden_priorities.update(new_overridden_priorities)
+    all_overridden_priorities.update(training_priorities)
     return all_overridden_priorities
 
 
@@ -197,6 +215,9 @@ def upload_priority_model_and_data(
         overridden_priorities: mapping of Jira issue key to OverriddenPriorityIssue object
     """
     print("uploading priority model")
+    # mark the data as having been used in training
+    for overridden_priority in overridden_priorities.values():
+        overridden_priority.used_in_training = True
     upload_s3_overridden_priorities(overridden_priorities)
     for filepath in Path(_PRIORITY_ESTIMATOR_MODEL_PATH).iterdir():
         with filepath.open("rb") as f:
@@ -318,7 +339,7 @@ def check_if_update_necessary() -> bool:
         overridden_priorities_metadata = s3_client.get_object_summary(
             s3_bucket_name, _OVERRIDDEN_PRIORITIES_FILENAME
         )
-        return overridden_priorities_metadata.last_modified + timedelta(weeks=1) < datetime.now(
+        return overridden_priorities_metadata.last_modified + timedelta(days=1) < datetime.now(
             timezone.utc
         )
     except s3.S3Exception:
@@ -343,8 +364,9 @@ if __name__ == "__main__":
             if performance > _HOLDOUT_SET_THRESHOLD:
                 upload_priority_model_and_data(overridden_priorities)
             else:
-                # upload the old overridden priorities to reset the modified timestamp
-                upload_s3_overridden_priorities(prev_overridden_priorities)
+                # upload the overridden priorities to reset the modified timestamp
+                # those not used in training are flagged for future use
+                upload_s3_overridden_priorities(overridden_priorities)
                 rollbar.report_message(
                     f"Model was not updated due to poor performance ({performance})", "warning"
                 )
