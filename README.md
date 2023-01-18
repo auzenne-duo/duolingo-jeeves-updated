@@ -74,6 +74,18 @@ To force refresh all tickets in jeeves, build this job: [https://jenkins-ci.duol
 
 To force refresh all spikes, set the `force_spike_refresh_flag` to 1 in aws bucket `jeeves-document-cache`.
 
+# Quality Reports
+
+To run the quality report script locally, pango must be installed:
+
+```
+sudo apt-get update
+sudo apt-get install libpangocairo-1.0-0
+sudo apt-get install libpangoft2-1.0-0
+```
+
+You might have to run `make install` from the Frontend section to get css fonts to work. You might need to run `npm init` and `npm install` in the web folder.
+
 ## Links
 
 - [Jeeves Documentation](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/644121212/Jeeves)

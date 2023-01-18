@@ -1,6 +1,6 @@
 import abc
 import json
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
@@ -36,7 +36,7 @@ _MAX_NUMBER_WORST_ISSUES = 4
 _PLOT_RANGE_MONTHS = 4
 _QUOTE_ESCAPE_CHAR = "%22"
 _SCREEN_BUG_NUMBER_THRESHOLD = 0
-_TEMPLATE_DIRECTORY = "jeeves/util/quality_report_templates/"
+_TEMPLATE_DIRECTORY = "templates/quality_report/"
 _UNRESOLVED_STATUSES = [
     "Confirmed",
     "Considering",
@@ -158,7 +158,7 @@ class QualityReportBase:
 
     def create_plot(
         self,
-        project_to_scores: Dict[str, List[Tuple[datetime, int]]],
+        project_to_scores: Dict[str, List[Tuple[str, int]]],
         plot_title: str,
         legend: bool = False,
     ) -> str:
@@ -166,7 +166,7 @@ class QualityReportBase:
         Given a list of date/score tuples, creates a plot, saves it, and returns the filename
 
         params:
-            project_to_scores: mapping from project str (eg "DLAA") to a list of date and score tuples
+            project_to_scores: mapping from project str (eg "DLAA") to a list of date strings and score tuples
             plot_title: str to be used as the plot's title
             legend: flag to indicate whether a legend should be included
 
@@ -243,7 +243,7 @@ class QualityReportBase:
 
         for title, scores in project_to_scores.items():
             y = [score for _, score in scores]
-            days = [date for date, _ in scores]
+            days = [str_to_date(date) for date, _ in scores]
             plt.plot(days, y, linestyle="--", marker="o", label=title)
         if legend:
             plt.legend(
@@ -282,14 +282,15 @@ class QualityReportProjectSection(QualityReportBase):
         super().__init__(end_date, project, features, jira_issues, key_to_issue, title)
         if not self.jira_issues:
             return
-        self.score_history = score_history
+        self.score_history = score_history.copy()
 
         self.max_issue_screens = self.calculate_screen_count()
         self.open_jira_issues = [issue for issue in self.jira_issues if not issue.is_done]
         if self.open_jira_issues:
             self.max_priority_issues = self.calculate_max_priority_issues()
             self.max_dupes_issues = self.calculate_max_dupes_issues()
-        self.score_history.append((self.end_date, self.overall_score))
+        self.score_history.append((date_to_str(self.end_date), self.overall_score))
+
         self.plot_filename = self.create_plot({self.project: self.score_history}, self.project)
         self.score_breakdowns = self.create_score_breakdowns()
 
@@ -320,16 +321,18 @@ class QualityReportProjectSection(QualityReportBase):
         Return the top _MAX_NUMBER_WORST_ISSUES maximum priority issues of the open issues as a list of issues with the highest priority
         (breaking ties by number of duplicates)
         """
-        self.jira_issues.sort(key=lambda issue: -len(issue.linked_duplicate_keys))
-        self.jira_issues.sort(key=lambda issue: issue.priority, reverse=True)
-        return self.jira_issues[:_MAX_NUMBER_WORST_ISSUES]
+        self.open_jira_issues.sort(key=lambda issue: -len(issue.linked_duplicate_keys))
+        self.open_jira_issues.sort(key=lambda issue: issue.priority, reverse=True)
+        return self.open_jira_issues[:_MAX_NUMBER_WORST_ISSUES]
 
     def calculate_max_dupes_issues(self) -> List[JiraDocument]:
         """
         Return the top _MAX_NUMBER_WORST_ISSUES issues of the open issues with the most duplicates as a list of issues
         with the highest priority (breaking ties by priority)
         """
-        jira_issues_filtered = [issue for issue in self.jira_issues if issue.linked_duplicate_keys]
+        jira_issues_filtered = [
+            issue for issue in self.open_jira_issues if issue.linked_duplicate_keys
+        ]
         jira_issues_filtered.sort(key=lambda issue: issue.priority, reverse=True)
         jira_issues_filtered.sort(key=lambda issue: -len(issue.linked_duplicate_keys))
         return jira_issues_filtered[:_MAX_NUMBER_WORST_ISSUES]
@@ -380,12 +383,15 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         if not features is None:
             jira_issues = [issue for issue in jira_issues if issue.feature in features]
         super().__init__(end_date, None, features, jira_issues, key_to_issue, title)
-        self.project_to_scores: Dict[str, List[Tuple[str, float]]]
         self.start_date = start_date
 
         project_to_scores = self.get_past_quality_scores()
-        project_to_scores["Overall"].append((self.end_date, self.overall_score))
-        project_scores = {"Overall": self.overall_score}
+
+        project_to_scores = {
+            key: [(date, score) for date, score in history if date != date_to_str(self.end_date)]
+            for key, history in project_to_scores.items()
+        }
+        project_to_scores["Overall"].append((date_to_str(self.end_date), self.overall_score))
         self.project_sections = []
         for project in JIRA_PROJECTS:
             section = QualityReportProjectSection(
@@ -398,10 +404,9 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
                 self.title,
             )
             self.project_sections.append(section)
-            project_to_scores[project].append((self.end_date, section.overall_score))
-            project_scores[project] = section.overall_score
+            project_to_scores[project].append((date_to_str(self.end_date), section.overall_score))
 
-        self.upload_quality_scores_to_s3(project_scores)
+        self.upload_quality_scores_to_s3(project_to_scores)
         self.overall_plot_filename = self.create_plot(project_to_scores, "Overall", legend=True)
 
         self.issues_with_closed_parents = self.find_issues_with_closed_parents()
@@ -414,40 +419,36 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         Formats a quality report html string and stores in self.html
         """
 
-    def upload_quality_scores_to_s3(self, scores: Dict[str, int]):
+    def upload_quality_scores_to_s3(self, score_history: Dict[str, Tuple[str, int]]):
         """
         Uploads quality report scores to s3
 
         Params:
-            scores: dictionary of the format {"DLAA": 56, ...} include Overall, DLAA, DLAI, DLAW
+            scores: dictionary of the format {"DLAA": [(2000-01-01), 56) ...},  includes Overall, DLAA, DLAI, DLAW
         """
-        end_date_str = date_to_str(self.end_date)
-        score_data = {"area or team": self.title, "end_date": end_date_str, "scores": scores}
+        score_data = {"title": self.title, "score_history": score_history}
         upload_to_s3(
-            f"quality_report_scores/{self.title}/quality_score_{self.title}_{end_date_str}",
+            f"quality_report_scores/{self.title}/quality_score_{self.title}",
             json.dumps(score_data),
         )
 
-    def get_past_quality_scores(self) -> Dict[str, List[Tuple[datetime, int]]]:
+    def get_past_quality_scores(self) -> Dict[str, List[Tuple[str, int]]]:
         """
         gets the past quality scores for each project and Overall
 
         returns:
             dictionary of the following structure (where score is an int and date is a str such as "2022-09-09"):
-                "Overall": [(date, score)...]
+                "Overall": [(date str, score)...]
                 "DLAA": [...]
                 "DLAI": [...]
                 "DLAA": [...]
         """
-        project_to_scores = defaultdict(list)
         s3_client, s3_bucket_name = get_s3_client_and_bucket()
-        for s3_file in s3_client.yield_filenames(
-            s3_bucket_name, path_prefix=f"quality_report_scores/{self.title}"
-        ):
-            data = json.loads(s3_client.download(s3_bucket_name, s3_file))
-            for project, score in data["scores"].items():
-                project_to_scores[project].append((str_to_date(data["end_date"]), score))
-        return project_to_scores
+        return json.loads(
+            s3_client.download(
+                s3_bucket_name, f"quality_report_scores/{self.title}/quality_score_{self.title}"
+            )
+        )["score_history"]
 
     def find_issues_with_closed_parents(self) -> List[JiraDocument]:
         """

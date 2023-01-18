@@ -77,6 +77,19 @@ def search_for_issues(start_date: datetime, end_date: datetime) -> List[JiraDocu
     return issues
 
 
+def format_issue_text(jira_issues: List[JiraDocument]) -> None:
+    """
+    Replaces characters in jira text that aren't properly handled by html, such as <
+    """
+
+    def format_str(text: str) -> str:
+        return text.replace("<", "&lt;").replace(">", "&gt;")
+
+    for issue in jira_issues:
+        issue.body_text = format_str(issue.body_text)
+        issue.header_text = format_str(issue.header_text)
+
+
 def resolve_duplicate_graphs(
     jira_issues: List[JiraDocument],
 ) -> Tuple[List[JiraDocument], Dict[str, JiraDocument]]:
@@ -191,6 +204,7 @@ def generate_all_reports(start_date: datetime = None):
 
     # Scans for issues updates since start_date and filters for parents of each duplicate graph
     jira_issues = search_for_issues(start_date, date_now)
+    format_issue_text(jira_issues)
     parent_issues, key_to_issue = resolve_duplicate_graphs(jira_issues)
 
     for area, TEAM_TO_FEATURES in JIRA_FEATURES.items():

@@ -22,11 +22,14 @@ JIRA_DOCUMENT_2 = create_jira_doc(
 )
 JIRA_DOCUMENT_2.is_done = True
 
+JIRA_DOCUMENT_3 = create_jira_doc("DLAI-2003", "Onboarding", "In Development", "High", [])
+JIRA_DOCUMENT_3.is_done = False
+
 
 class TestQualityReportBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        jira_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2]
+        jira_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3]
         key_to_issue = {issue.issue_key: issue for issue in jira_issues}
         cls.report = QualityReportBase(
             datetime(2022, 1, 1), None, None, jira_issues, key_to_issue, ""
@@ -35,7 +38,10 @@ class TestQualityReportBase(unittest.TestCase):
     def test_create_status_priority_count(self):
         self.report.create_status_priority_count()
         expected = {
-            IssueStatus.OPEN: {get_quality_report_priority("Medium"): 1},
+            IssueStatus.OPEN: {
+                get_quality_report_priority("Medium"): 1,
+                get_quality_report_priority("High"): 1,
+            },
             IssueStatus.CLOSED: {get_quality_report_priority("High"): 1},
         }
         self.assertEqual(self.report.status_priority_count, expected)
@@ -75,9 +81,9 @@ class TestQualityReportProjectSection(unittest.TestCase):
     @classmethod
     @patch("jeeves.model.quality_report.plt.savefig", MagicMock())
     def setUpClass(cls):
-        jira_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2]
+        jira_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3]
         key_to_issue = {issue.issue_key: issue for issue in jira_issues}
-        score_history = [(datetime(2000, 1, 1), 50)]
+        score_history = [("2000-01-01", 50)]
         cls.report = QualityReportProjectSection(
             datetime(2022, 1, 1),
             "DLAI",
@@ -90,14 +96,18 @@ class TestQualityReportProjectSection(unittest.TestCase):
 
     def test_calculate_max_priority_issues(self):
         result = self.report.calculate_max_priority_issues()
-        expected = [JIRA_DOCUMENT_2, JIRA_DOCUMENT_1]
+        expected = [JIRA_DOCUMENT_3, JIRA_DOCUMENT_1]
         self.assertEqual(result, expected)
 
     def test_calculate_max_dupes_issues(self):
         result = self.report.calculate_max_dupes_issues()
-
-        expected = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2]
+        expected = [JIRA_DOCUMENT_1]
         self.assertEqual(result, expected)
+
+
+mock_score_history = (
+    '{"title":"Test", "score_history":{"Overall":[], "DLAA":[], "DLAI":[], "DLAW":[]}}'
+)
 
 
 class TestQualityReport(unittest.TestCase):
@@ -106,7 +116,12 @@ class TestQualityReport(unittest.TestCase):
     @patch("jeeves.model.quality_report.upload_to_s3", MagicMock())
     @patch(
         "jeeves.model.quality_report.get_s3_client_and_bucket",
-        MagicMock(return_value=(MagicMock(), MagicMock())),
+        MagicMock(
+            return_value=(
+                MagicMock(download=MagicMock(return_value=mock_score_history)),
+                MagicMock(),
+            )
+        ),
     )
     def setUpClass(cls):
         jira_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2]

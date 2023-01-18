@@ -48,7 +48,8 @@
       <li>
         <a href="https://duolingo.atlassian.net/browse/{{issue.issue_key}}"
           >{{issue.issue_key}}</a
-        >: {{issue.header_text}} with {{num_dupes}} duplicate report(s)
+        >: {{issue.header_text}} with {{issue.linked_duplicate_keys | length}}
+        duplicate report(s)
       </li>
       {% endfor %}
     </ul>
