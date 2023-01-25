@@ -87,6 +87,9 @@ JIRA_FEATURES = {
         },
     },
     "Learning R&D": {
+        "Experimental AI": {
+            "Snips": [],
+        },
         "Learning Assesment": {},
         "Generated Sessions": {
             "Skill tree migration": ["course update"],
