@@ -24,15 +24,12 @@ team in charge of Jeeves know that their documents have to be refreshed.
 JIRA_FEATURES = {
     "Growth": {
         "China": {
-            "WeChat": [],
-            "China Phone number": [],
             "China Compliances": [],
             "China Android Plus": [],
             "Cantonese": [],
         },
         "Connections": {
             "Profile": [],
-            "Referral": [],
             "Friends": ["friend", "invite", "contact"],
             "Kudos": ["congrats", "high five"],
             "DuoNews": ["duo news", "news"],
@@ -49,18 +46,12 @@ JIRA_FEATURES = {
             "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
         },
         "Priority Markets": {
-            "Welcome message": [],
-            "Welcome back quest": [],
-            "What's app related": ["whatsapp", "whatsapp opt in"],
-            "India phone number related": ["india"],
-            "Social sign-in": ["apple sign in", "google sign in"],
             "Resurrected user experiences": ["surr", "resurrected", "reactivated"],
             "Registration": ["sign up"],
             "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
         },
         "Retention": {
-            "Streak": ["streak challenge"],
-            "Streak Society": ["vip"],
+            "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
             "Practice reminders / notifications": ["reminder", "notification"],
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
@@ -79,12 +70,9 @@ JIRA_FEATURES = {
         },
         "Virality": {
             "In-app sharing": ["sharing", "share", "share card", "rewarded sharing"],
-            "Weekly progress report": ["weekly report", "progress report"],
             "Year in Review": [],
         },
-        "None": {
-            "Next lesson ads": [],
-        },
+        "None": {},
     },
     "Learning R&D": {
         "Experimental AI": {
@@ -113,17 +101,8 @@ JIRA_FEATURES = {
             ],
             "Transliteration": [],
         },
-        "Speaking": {
-            "Podcasts": ["audio lesson", "listen", "podcast"],
-            "Speech recognizer (in house)": [
-                "speech recognition",
-                "speech recognizer",
-                "speech recogni",
-            ],
-        },
         "Story Product": {
             "Stories": ["story"],
-            "Hoots": [],
         },
         "Speech Lab": {
             "World character voice": [
@@ -158,7 +137,6 @@ JIRA_FEATURES = {
                 "unit complete",
                 "unit review",
             ],
-            "Tips": ["tip"],
             "Guidebook": [],
             "Path Sections": ["sections"],
         },
@@ -172,7 +150,6 @@ JIRA_FEATURES = {
         "Super Packaging": {
             "Ads / rewarded ads": ["ads"],
             "Super": [],
-            "Plus reward videos": [],
             "Hearts / Unlimited Hearts": [
                 "heart",
             ],
@@ -187,25 +164,18 @@ JIRA_FEATURES = {
             "Match madness": [],
         },
         "Gold": {
-            "Tutors": [],
-            "Gold": [],
             "Explain my Answer": [],
             "Role Play": [],
         },
         "Super Features": {
-            "Bookmarking": ["bookmark"],
             "Side Quests": ["side quest"],
             "Mistakes inbox": [],
             "Practice Hub": [],
-            "Mastery / Progress quiz": ["mastery quiz", "progress quiz"],
             "Family plan": [],
             "Legendary": ["Legendarize"],
         },
     },
     "New Initiatives": {
-        "Events": {
-            "Events": ["overflow tab", "news feed"],
-        },
         "Schools": {
             "Schools": [],
         },
@@ -257,23 +227,10 @@ JIRA_FEATURES = {
                 "switching languages",
             ],
             "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
-            "Dark mode messaging": [],
             "Shake-to-report": ["shakira", "bug report", "shake to report"],
-            "Beta nag": ["beta message"],
-            "Update nag": [],
-            "E-mail verification": [
-                "username",
-                "password",
-                "google",
-                "facebook",
-                "verif",
-                "confirm",
-            ],
             "Offline support": ["prefetch", "offlin", "zombie", "airplane"],
-            "Web nag": [],
         },
         "None": {
-            "Progress Bar": [],
             "Grading Ribbon": [
                 "grading message",
                 "incorrect drawer",
@@ -314,7 +271,6 @@ JIRA_FEATURES = {
     },
     "None": {
         "None": {
-            "Spam": [],
             "Feature request / feedback": [],
         },
     },

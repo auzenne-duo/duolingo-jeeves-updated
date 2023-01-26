@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from enum import Enum, auto
 from typing import Callable, Dict, List, Optional
 
@@ -8,7 +8,7 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
 from jeeves.util.date_util import str_to_date
 
-ALL_SOURCES_BUG_REPORTS_START_DATE = datetime(2023, 1, 11)
+ALL_SOURCES_BUG_REPORTS_START_DATE = datetime(2023, 1, 11, tzinfo=timezone.utc)
 
 
 class SpikeCategory(Enum):
