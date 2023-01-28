@@ -272,6 +272,7 @@ JIRA_FEATURES = {
     "None": {
         "None": {
             "Feature request / feedback": [],
+            "Other": [],
         },
     },
     "Many": {
