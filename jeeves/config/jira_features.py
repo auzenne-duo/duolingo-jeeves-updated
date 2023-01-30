@@ -231,6 +231,7 @@ JIRA_FEATURES = {
             "Offline support": ["prefetch", "offlin", "zombie", "airplane"],
         },
         "None": {
+            "Progress Bar": [],
             "Grading Ribbon": [
                 "grading message",
                 "incorrect drawer",
