@@ -257,6 +257,7 @@ def _find_spiked_words(
                 average_num_tickets,
                 lang,
                 baseline_stats,
+                spike_group,
             ),
             word,
         )
@@ -296,6 +297,7 @@ def _calculate_spike_score(
     average_num_tickets: int,
     lang: str,
     baseline_stats: Dict,
+    spike_group: SpikeCategory,
 ):
     """
     Given a word, returns a score that represents spikiness where spikiness is a z-score
@@ -327,7 +329,12 @@ def _calculate_spike_score(
     mean = np.mean(count_history)
     std = np.std(count_history)
 
-    if word in word_stats and lang == "en" and day_count < HISTORY_WINDOW_SIZE:
+    if (
+        word in word_stats
+        and lang == "en"
+        and day_count < HISTORY_WINDOW_SIZE
+        and not SpikeCategory.is_use_baselines_disabled(spike_group)
+    ):
         baseline_mean = word_stats[word]["mean"]
         baseline_std = word_stats[word]["std"]
 

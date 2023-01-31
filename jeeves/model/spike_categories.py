@@ -302,3 +302,10 @@ class SpikeCategory(Enum):
 
         category_to_query: Dict[SpikeCategory, str] = {cls.ALL_SPIKES: {}}
         return category_to_query.get(group_category, {})
+
+    @classmethod
+    def is_use_baselines_disabled(cls, group_category: "SpikeCategory") -> bool:
+        """
+        Returns whether of not baselines should be used for the given spike category during spike detection.
+        """
+        return group_category in [SpikeCategory.ALL_SOURCES_BUG_REPORTS]
