@@ -17,6 +17,7 @@ import cn from "classnames";
 import type { DateRangeChangeEvent } from "components/DateRangeInput";
 import DateRangeInput from "components/DateRangeInput";
 import Hamburger from "components/Hamburger";
+import LabelledToggle from "components/LabelledToggle";
 import type { SearchInputChangeEvent } from "components/SearchInput";
 import SearchInput from "components/SearchInput";
 import useDateRangeFilter from "components/useDateRangeFilter";
@@ -47,6 +48,7 @@ const Topbar = () => {
   const filter = search.get("filter");
   const query = search.get("q") ?? "";
   const team = search.get("team");
+  const useLemmas = search.get("use-lemmas") === "true";
 
   const { from, to } = useDateRangeFilter({
     daysAgo: isSpikePage ? 3 : undefined,
@@ -137,6 +139,13 @@ const Topbar = () => {
     } else {
       params.delete("filter");
     }
+    applyFilters(params);
+  };
+
+  const handleUseLemmasChange = () => {
+    const params = new URLSearchParams(location.search);
+    params.delete("page");
+    params.set("use-lemmas", (!useLemmas).toString());
     applyFilters(params);
   };
 
@@ -232,6 +241,14 @@ const Topbar = () => {
               value={input}
             />
           </>
+        ) : null}
+        {isAnalysisPage ? (
+          <LabelledToggle
+            checked={useLemmas}
+            className={styles["hide-on-mobile"]}
+            onChange={handleUseLemmasChange}
+            title="Use lemmas: "
+          />
         ) : null}
         {isAnalysisPage || isSpikePage || isSpikeStatsPage ? (
           <DateRangeInput

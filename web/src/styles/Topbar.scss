@@ -17,7 +17,14 @@
   }
 }
 
-.filters-analysis,
+.filters-analysis {
+  composes: filters;
+
+  @media (min-width: $width-ipad) {
+    grid-template-columns: 1fr min-content min-content min-content;
+  }
+}
+
 .filters-discovery {
   composes: filters;
 

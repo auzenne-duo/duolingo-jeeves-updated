@@ -122,6 +122,10 @@ const Analysis = () => {
           </li>
         ))}
       </ul>
+      <span>
+        The &quot;Use lemmas&quot; toggle will let you search the lemmatized
+        wordbanks of the tickets.
+      </span>
     </div>
   );
 };
