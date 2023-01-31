@@ -175,7 +175,7 @@ module "duolingo-jeeves-sqs-worker-1" {
   environment          = var.environment
   service              = var.service
   subservice           = "sqs-worker-1"
-  cpu                  = 1024 # 1024 equals one core
+  cpu                  = 4096 # 1024 equals one core
   memory               = 4096 # in MB
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
   max_count            = 8    # Maximum number of tasks to run in autoscaling group
