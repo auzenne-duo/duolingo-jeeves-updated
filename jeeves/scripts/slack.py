@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import sys
@@ -29,6 +30,7 @@ _SLACK_API = "https://slack.com/api"
 _SLACK_API_TOKEN = os.environ.get("SPIKE_REPORTER_SLACK_API_TOKEN")
 _SPIKE_CATEGORY_TO_SLACK_CHANNELS = {
     SpikeCategory.EXTERNAL_NON_STR_SPIKES: [SlackChannel.BUG_TRIAGE, SlackChannel.JEEVES],
+    SpikeCategory.EXTERNAL_STR_SPIKES: [SlackChannel.TEAM_QA, SlackChannel.JEEVES],
     SpikeCategory.IOS_UNIT_TEST_REFACTOR: [SlackChannel.POST_TEST_RESULTS],
     SpikeCategory.POSEIDON_IOS_ROW_BLASTER: [SlackChannel.POST_TEST_RESULTS],
 }
@@ -38,8 +40,16 @@ _DEV_SLACK_CHANNEL = SlackChannel.POST_TEST_RESULTS
 # The name of the category to be used in the message sent to the Slack channel.
 _SPIKE_CATEGORY_TO_SLACK_FRIENDLY_NAME = {
     SpikeCategory.EXTERNAL_NON_STR_SPIKES: "customer feedback",
+    SpikeCategory.EXTERNAL_STR_SPIKES: "beta user feedback",
     SpikeCategory.IOS_UNIT_TEST_REFACTOR: "ios unit test refactor dogfooding feedback",
     SpikeCategory.POSEIDON_IOS_ROW_BLASTER: "poseidon row blaster dogfooding feedback",
+}
+
+# Mapping from spike category to days of the week that spikes should be reported on
+# where Monday is 0 and Sunday is 6. If a spike category is not in this mapping,
+# spikes will not be reported on all days.
+_SPIKE_CATEGORY_TO_REPORT_DAYS = {
+    SpikeCategory.EXTERNAL_STR_SPIKES: range(3, 7),
 }
 
 
@@ -126,7 +136,10 @@ if __name__ == "__main__":
             "Authorization": f"Bearer {_SLACK_API_TOKEN}",
             "Content-Type": "application/json; charset=utf-8",
         }
+        weekday = datetime.datetime.now().weekday()
         for spike_category, slack_channels in _SPIKE_CATEGORY_TO_SLACK_CHANNELS.items():
+            if weekday not in _SPIKE_CATEGORY_TO_REPORT_DAYS.get(spike_category, range(7)):
+                continue
             top_spikes = get_top_spikes_yesterday(spike_category)
             if len(top_spikes) == 0:
                 continue
