@@ -46,10 +46,10 @@ _SPIKE_CATEGORY_TO_SLACK_FRIENDLY_NAME = {
 }
 
 # Mapping from spike category to days of the week that spikes should be reported on
-# where Monday is 0 and Sunday is 6. If a spike category is not in this mapping,
+# where Monday is 1 and Sunday is 7. If a spike category is not in this mapping,
 # spikes will not be reported on all days.
 _SPIKE_CATEGORY_TO_REPORT_DAYS = {
-    SpikeCategory.EXTERNAL_STR_SPIKES: range(3, 7),
+    SpikeCategory.EXTERNAL_STR_SPIKES: [1, 5, 6, 7],  # Monday, Friday, Saturday, Sunday
 }
 
 
