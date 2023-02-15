@@ -2,6 +2,7 @@ import re
 import sys
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
+from difflib import SequenceMatcher
 from typing import Dict, Iterator, List, Optional, Set, Union
 
 import numpy as np
@@ -869,6 +870,44 @@ class ElasticsearchDAL:
             s = s.query("bool", filter=[Q(filter_params)])
 
         return s.count()
+
+    def check_if_duplicate_tweet(self, base_document: JeevesDocument) -> bool:
+        """
+        This is intended to be used for duplicate tweet detection.
+
+        Parameters:
+            base_document: A document for which we would like to find similar documents.
+        Returns:
+            True if a duplicate is found, False otherwise.
+        """
+
+        s = Search(using=self._es, index=self._indexname)
+        s = s.filter("term", via__channel="twitter")
+        # Restrict results to have the same twitter_id as the base document.
+        s = s.filter(
+            "term", via__source__from__twitter_id=base_document.via["source"]["from"]["twitter_id"]
+        )
+        # Restrict results to be from within one day of the base document.
+        s = s.filter(
+            "range",
+            date_time={
+                "gte": base_document.date_time - timedelta(minutes=30),
+                "lte": base_document.date_time + timedelta(minutes=30),
+            },
+        )
+        # Exclude the base document from the results.
+        s = s.exclude("term", document_id=base_document.document_id)
+
+        # Check if any of the hits are similar to the base document.
+        hits = s.execute()
+        if len(hits) > 0:
+            match = SequenceMatcher(a=hits[0].body_text, b=base_document.body_text).ratio() > 0.8
+            if match:
+                message = f"Found duplicate tweet: {base_document.body_text} {base_document.document_id}, {hits[0].body_text} {hits[0].document_id}"
+                print(message)
+                rollbar.report_message(message, "warning")
+                return True
+        return False
 
     def run_more_like_this_for_duplicates(
         self,

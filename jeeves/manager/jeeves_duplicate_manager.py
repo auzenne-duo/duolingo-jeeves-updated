@@ -29,10 +29,16 @@ class JeevesDuplicateManager:
         return documents_to_skip_dedup + list(deduped_documents.values())
 
     def recent_duplicate_exists(self, doc: JeevesDocument) -> bool:
-        # We only check for duplicate emails for now.
-        if doc.data_source != "Zendesk" or doc.via["channel"] != "email":
+        # We only check for duplicate emails and tweets for now.
+        if doc.data_source != "Zendesk":
             return False
+        if doc.via["channel"] == "email":
+            return self.recent_duplicate_email_exists(doc)
+        if doc.via["channel"] == "twitter":
+            return self._esd.check_if_duplicate_tweet(doc)
+        return False
 
+    def recent_duplicate_email_exists(self, doc: JeevesDocument) -> bool:
         def _clean_up_query_string(query_string):
             query_string.replace('"', " ")
 

@@ -150,6 +150,19 @@ def _zendesk_email_document(
     return doc
 
 
+def _zendesk_twitter_document(
+    sender=None,
+    header="I am a header",
+    body="I am body text",
+):
+    if sender is None:
+        sender = {"twitter_id": "668563"}
+    doc = _zendesk_document(header=header, body=body)
+    doc.via["channel"] = "twitter"
+    doc.via["source"]["from"] = sender
+    return doc
+
+
 dedup_document_batch_test_cases = [
     ([], []),
     (
@@ -204,6 +217,7 @@ recent_duplicate_exists_test_cases = [
     (_jira_document(), False),
     (_zendesk_document(), False),
     (_zendesk_email_document(), True),
+    (_zendesk_twitter_document(), True),
 ]
 
 
@@ -211,6 +225,7 @@ elasticsearch_mock = ElasticsearchDAL()
 elasticsearch_mock.get_recent_paginated_tickets = MagicMock(
     return_value={"data": [_zendesk_email_document()]}
 )
+elasticsearch_mock.check_if_duplicate_tweet = MagicMock(return_value=True)
 duplicate_manager = JeevesDuplicateManager(elasticsearch_mock)
 
 
