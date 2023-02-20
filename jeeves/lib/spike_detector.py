@@ -185,14 +185,20 @@ def _get_word_to_date_to_count(
         that date.
     """
     # Elasticsearch can take care of tokenization on top of everything else
-    terms = app_registry(ElasticsearchDAL).get_terms_from_docs(new_ticket_ids, lang)
+    terms = app_registry(ElasticsearchDAL).get_terms_from_docs(
+        new_ticket_ids, lang, use_lemmas=False
+    )
 
     start_time = timeit.default_timer()
     word_date_count = {}
     for t in terms:
         word_date_count[t] = {}
         buckets = app_registry(ElasticsearchDAL).aggregate_time_series(
-            lang, spike_category, t, get_n_days_ago(min_target_date, HISTORY_WINDOW_SIZE)
+            lang,
+            spike_category,
+            t,
+            get_n_days_ago(min_target_date, HISTORY_WINDOW_SIZE),
+            use_lemmas=False,
         )
         if "ERROR" in buckets:
             continue
