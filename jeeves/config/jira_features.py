@@ -165,7 +165,8 @@ JIRA_FEATURES = {
         },
         "Gold": {
             "Explain my Answer": [],
-            "Role Play": [],
+            "Role Play": ["roleplay", "role-play"],
+            "Max": [],
         },
         "Super Features": {
             "Side Quests": ["side quest"],
