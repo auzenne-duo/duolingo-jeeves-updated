@@ -1,9 +1,8 @@
-import { spikeToStrCategory } from "util";
-
 import * as React from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 
+import { spikeToStrCategory } from "../../util";
 import { getSpikes } from "api/jeeves";
 import SpikeTable from "components/SpikeTable";
 import useDateRangeFilter from "components/useDateRangeFilter";

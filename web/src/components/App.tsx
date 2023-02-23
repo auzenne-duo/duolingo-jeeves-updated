@@ -54,7 +54,7 @@ const App = () => {
       };
     }
     return undefined;
-  }, [isFetching]);
+  }, [dispatch, isFetching]);
 
   React.useEffect(() => {
     localStorage.setItem("searchHistory", JSON.stringify(state.searchHistory));
@@ -72,7 +72,7 @@ const App = () => {
     };
     document.addEventListener("keydown", handleKeydown);
     return () => document.removeEventListener("keydown", handleKeydown);
-  }, []);
+  }, [dispatch]);
 
   React.useEffect(() => {
     const handleVisibilityChange = () => {

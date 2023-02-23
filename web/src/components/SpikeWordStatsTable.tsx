@@ -1,8 +1,7 @@
-import { encodeURLSearchParams } from "util";
-
 import React from "react";
 import { Link } from "react-router-dom";
 
+import { encodeURLSearchParams } from "../util";
 import SortTable from "components/SortTable";
 import type { Column } from "components/SortTable";
 

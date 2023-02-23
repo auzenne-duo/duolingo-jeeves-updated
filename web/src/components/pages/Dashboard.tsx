@@ -1,10 +1,9 @@
-import { formatReadableDate } from "util";
-
 import { formatDistanceToNow, startOfYesterday } from "date-fns";
 import * as React from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 
+import { formatReadableDate } from "../../util";
 import { getInfo, getSpikes } from "api/jeeves";
 import SpikeTable from "components/SpikeTable";
 import Table from "components/Table";

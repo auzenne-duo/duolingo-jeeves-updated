@@ -1,13 +1,3 @@
-import {
-  encodeURLSearchParams,
-  formatCourseId,
-  formatReadableDate,
-  formatScreen,
-  getFilterLink,
-  getPaginationString,
-  getUntruncatedTitle,
-} from "util";
-
 import { format, formatISO, isThisYear, isToday } from "date-fns";
 import { debounce } from "lodash";
 import * as React from "react";
@@ -16,6 +6,15 @@ import { useQuery, useQueryClient } from "react-query";
 import { Link, useHistory, useLocation, useParams } from "react-router-dom";
 import { alignNearest } from "web-ui/util/scroll";
 
+import {
+  encodeURLSearchParams,
+  formatCourseId,
+  formatReadableDate,
+  formatScreen,
+  getFilterLink,
+  getPaginationString,
+  getUntruncatedTitle,
+} from "../util";
 import { getTicket, getTickets } from "api/jeeves";
 import JiraStatus from "components/JiraStatus";
 import Pagination from "components/Pagination";
@@ -130,25 +129,31 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   nextQuery.set("offset", `${offset + PER_PAGE}`);
   nextQuery.set("sort-id", `${data?.next_sort_id}`);
   nextQuery.delete("prev-sort-id");
-  const nextLink =
-    data?.next_sort_id && !isPreviousData
-      ? {
-          ...location,
-          search: encodeURLSearchParams(nextQuery),
-        }
-      : undefined;
+  const nextLink = React.useMemo(
+    () =>
+      data?.next_sort_id && !isPreviousData
+        ? {
+            ...location,
+            search: encodeURLSearchParams(nextQuery),
+          }
+        : undefined,
+    [data?.next_sort_id, isPreviousData, location, nextQuery],
+  );
 
   const prevQuery = useSearchParams();
   prevQuery.set("offset", `${offset - PER_PAGE}`);
   prevQuery.set("prev-sort-id", `${data?.prev_sort_id}`);
   prevQuery.delete("sort-id");
-  const prevLink =
-    offset > 0
-      ? {
-          ...location,
-          search: encodeURLSearchParams(prevQuery),
-        }
-      : undefined;
+  const prevLink = React.useMemo(
+    () =>
+      offset > 0
+        ? {
+            ...location,
+            search: encodeURLSearchParams(prevQuery),
+          }
+        : undefined,
+    [location, offset, prevQuery],
+  );
 
   const { data: selected } = useQuery(
     ["tickets", id, { lang }],
@@ -202,22 +207,25 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const handleRangeChangeRef = React.useRef(handleRangeChange);
   handleRangeChangeRef.current = handleRangeChange;
 
-  const setId = (newId: string | undefined) => {
-    const params = new URLSearchParams(location.search);
-    if (newId === undefined) {
-      params.delete("id");
-    } else {
-      params.set("id", newId);
-    }
-    history.push({
-      ...location,
-      search: encodeURLSearchParams(params),
-    });
-  };
+  const setId = React.useCallback(
+    (newId: string | undefined) => {
+      const params = new URLSearchParams(location.search);
+      if (newId === undefined) {
+        params.delete("id");
+      } else {
+        params.set("id", newId);
+      }
+      history.push({
+        ...location,
+        search: encodeURLSearchParams(params),
+      });
+    },
+    [history, location],
+  );
 
   React.useEffect(() => {
     dispatch?.({ type: "HIDE_ASIDE" });
-  }, [filter, query]);
+  }, [dispatch, filter, query]);
 
   React.useEffect(() => {
     if (id) {
@@ -227,7 +235,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       };
     }
     return undefined;
-  }, [id]);
+  }, [dispatch, id]);
 
   React.useEffect(() => {
     if (id) {
@@ -241,7 +249,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       return () => document.removeEventListener("keydown", handleKeydown);
     }
     return undefined;
-  }, [id]);
+  }, [dispatch, id]);
 
   React.useEffect(() => {
     if (currentRowRef.current) {
@@ -299,7 +307,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       return () => document.removeEventListener("keydown", handleKeydown);
     }
     return undefined;
-  }, [id, nextLink, prevLink, setId, tickets]);
+  }, [history, id, nextLink, prevLink, setId, tickets]);
 
   // This has a dependency on both `isPreviousData` and `offset` so
   // that the page is scrolled to the top when either cached or

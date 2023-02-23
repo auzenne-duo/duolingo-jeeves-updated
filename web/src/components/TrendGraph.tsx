@@ -19,6 +19,7 @@ export interface RangeChangeEvent {
   to?: Date;
 }
 
+/* eslint-disable @typescript-eslint/naming-convention */
 interface RelayoutEvent {
   /** Set when double clicking the plot to reset the range. */
   "xaxis.autorange"?: boolean;
@@ -29,6 +30,7 @@ interface RelayoutEvent {
   /** Set when selecting an area directly on the plot. */
   "xaxis.range[1]"?: string;
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 const BLACK_TEXT = "#3c3c3c";
 const JUICY_MACAW = "#1cb0f6";
@@ -179,6 +181,7 @@ const TrendGraph = ({
         },
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, zoomFrom?.valueOf(), zoomTo?.valueOf()]);
 
   return (

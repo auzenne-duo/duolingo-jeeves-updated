@@ -1,4 +1,4 @@
-@import "constants";
+@use "constants" as *;
 
 :root {
   --height-topbar: 58px;

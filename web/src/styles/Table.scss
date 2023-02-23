@@ -1,4 +1,4 @@
-@import "constants";
+@use "constants" as *;
 
 .table {
   border: $juicy-border;
@@ -9,7 +9,7 @@
 
   td,
   th {
-    outline: ($juicy-border-width / 2) solid $juicy-swan;
+    outline: ($juicy-border-width * 0.5) solid $juicy-swan;
     padding: 11.5px 16px;
   }
 

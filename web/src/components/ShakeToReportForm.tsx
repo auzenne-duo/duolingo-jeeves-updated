@@ -1,5 +1,3 @@
-import { formatAttachment, getUntruncatedTitle, isImage } from "util";
-
 import * as React from "react";
 import { useQuery } from "react-query";
 import {
@@ -11,6 +9,7 @@ import {
   getButtonClassName,
 } from "web-ui";
 
+import { formatAttachment, getUntruncatedTitle, isImage } from "../util";
 import { getBlob } from "api/client";
 import * as shakiraApi from "api/shakira";
 import { getLoggedIn } from "api/user";

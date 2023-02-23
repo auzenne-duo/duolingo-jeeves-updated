@@ -1,5 +1,3 @@
-import { encodeURLSearchParams } from "util";
-
 import { endOfDay } from "date-fns";
 import * as React from "react";
 import { useQuery } from "react-query";
@@ -12,6 +10,7 @@ import {
 } from "react-router-dom";
 import { Input, LoadingDots, Select, SelectList } from "web-ui";
 
+import { encodeURLSearchParams } from "../util";
 import { getSpikeCategories } from "api/jeeves";
 import cn from "classnames";
 import type { DateRangeChangeEvent } from "components/DateRangeInput";
@@ -91,11 +90,14 @@ const Topbar = () => {
     [area, areasAndTeams, team],
   );
 
-  const applyFilters = (params: URLSearchParams) =>
-    history.push({
-      ...location,
-      search: encodeURLSearchParams(params),
-    });
+  const applyFilters = React.useCallback(
+    (params: URLSearchParams) =>
+      history.push({
+        ...location,
+        search: encodeURLSearchParams(params),
+      }),
+    [history, location],
+  );
 
   const handleAreaOrTeamChange = (e: SelectListChangeEvent) => {
     const val = e.selectedValue
@@ -174,7 +176,7 @@ const Topbar = () => {
   React.useEffect(() => {
     // Keep search history.
     dispatch({ query, type: "SEARCH" });
-  }, [query]);
+  }, [dispatch, query]);
 
   React.useEffect(() => {
     if (shouldSubmit) {
@@ -190,7 +192,7 @@ const Topbar = () => {
       (document.activeElement as HTMLElement | null)?.blur?.();
       setShouldSubmit(false);
     }
-  }, [input, location, shouldSubmit]);
+  }, [applyFilters, input, location, shouldSubmit]);
 
   React.useEffect(() => {
     if (suggestedCaret !== undefined) {

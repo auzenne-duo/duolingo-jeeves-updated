@@ -1,4 +1,4 @@
-@import "constants";
+@use "constants" as *;
 
 .button-inner {
   overflow: hidden;
@@ -7,7 +7,7 @@
 
 .form {
   display: grid;
-  grid-gap: $juicy-margin / 2;
+  grid-gap: $juicy-margin * 0.5;
   height: min-content;
   overflow: hidden;
 }
@@ -15,7 +15,7 @@
 .header {
   align-items: center;
   display: flex;
-  grid-gap: $juicy-margin / 2;
+  grid-gap: $juicy-margin * 0.5;
 }
 
 .icon {

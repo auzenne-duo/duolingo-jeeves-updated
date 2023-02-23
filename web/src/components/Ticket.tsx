@@ -1,3 +1,8 @@
+import * as React from "react";
+import { useQuery } from "react-query";
+import { Link, useLocation } from "react-router-dom";
+import { LoadingDots } from "web-ui";
+
 import {
   escapeHTML,
   formatAttachment,
@@ -8,13 +13,7 @@ import {
   highlightWord,
   isImage,
   normalizeNewLines,
-} from "util";
-
-import * as React from "react";
-import { useQuery } from "react-query";
-import { Link, useLocation } from "react-router-dom";
-import { LoadingDots } from "web-ui";
-
+} from "../util";
 import { detectDuplicates } from "api/shakira";
 import cn from "classnames";
 import IconButton from "components/IconButton";

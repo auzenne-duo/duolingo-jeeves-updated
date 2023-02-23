@@ -1,10 +1,10 @@
-@import "constants";
+@use "constants" as *;
 
 .wrap {
   grid-template-columns: 1fr min-content;
   align-items: center;
   display: inline-grid;
-  grid-gap: $juicy-margin / 2;
+  grid-gap: $juicy-margin * 0.5;
 }
 
 .label {

@@ -1,4 +1,4 @@
-@import "constants";
+@use "constants" as *;
 
 ._popover-positioned {
   position: absolute !important;
@@ -25,7 +25,7 @@
 .wrap {
   align-items: center;
   display: inline-grid;
-  grid-gap: $juicy-margin / 2;
+  grid-gap: $juicy-margin * 0.5;
   grid-template-columns: 130px min-content 130px;
   position: relative;
 }

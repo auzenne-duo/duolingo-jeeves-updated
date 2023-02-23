@@ -1,9 +1,8 @@
-import { spikeToStrCategory } from "util";
-
 import * as React from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 
+import { spikeToStrCategory } from "../../util";
 import { getSpikeStats } from "api/jeeves";
 import ConfirmationStatsTable from "components/ConfirmationStatsTable";
 import SpikeWordStatsTable from "components/SpikeWordStatsTable";

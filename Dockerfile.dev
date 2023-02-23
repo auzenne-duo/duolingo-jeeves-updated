@@ -38,17 +38,17 @@ RUN apt-get update \
       python3-pip \
 #     libpq-dev is a postgres library needed by sqlalchemy
       libpq-dev \
-      curl \
 #     necessary for weasyprint to create pdf files for bug reports
       libpango-1.0-0 \
       libharfbuzz0b \
       libpangoft2-1.0-0 \
-      unzip \
  && rm -rf /var/lib/apt/lists/* \
  && ln -s /usr/bin/python3 /usr/bin/python
 
 RUN pip3 install -U pip pip-tools wheel \
- && pip3 install setuptools==49.6.0
+ && pip3 install \
+      awscli \
+      setuptools==49.6.0
 
 ARG REQUIREMENTS=dev-requirements.txt
 COPY $REQUIREMENTS $REQUIREMENTS
@@ -58,10 +58,6 @@ RUN pip3 install -r "$REQUIREMENTS" --src /usr/local/src
 ENV DUPLICATE_DETECTOR_MODEL=/opt/jeeves/duplicate-detector-model/
 ENV S3_FILE_STORAGE="s3://jeeves-document-cache"
 ENV DUPLICATE_DETECTOR_REMOTE_PATH="$S3_FILE_STORAGE/duplicate-detector-model"
-ENV AWS_CONFIG_FILE="/root/.aws/config"
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-RUN unzip /tmp/awscliv2.zip -d /tmp
-RUN /tmp/aws/install
 ARG aws_access_key
 ARG aws_secret_key
 ENV AWS_ACCESS_KEY_ID $aws_access_key

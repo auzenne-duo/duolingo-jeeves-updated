@@ -1,4 +1,4 @@
-@import "constants";
+@use "constants" as *;
 
 .attachments {
   align-items: start;
@@ -16,8 +16,8 @@
 
 .btn-bug {
   position: absolute;
-  right: $juicy-border-width / 2 + $width-icon-button + 4px;
-  top: $juicy-border-width / 2;
+  right: $juicy-border-width * 0.5 + $width-icon-button + 4px;
+  top: $juicy-border-width * 0.5;
   transform: translateX(50%) translateY(-50%);
 
   img {
@@ -27,8 +27,8 @@
 
 .btn-close {
   position: absolute;
-  right: $juicy-border-width / 2;
-  top: $juicy-border-width / 2;
+  right: $juicy-border-width * 0.5;
+  top: $juicy-border-width * 0.5;
   transform: translateX(50%) translateY(-50%);
 }
 
@@ -73,7 +73,7 @@
   max-width: 100%;
 
   .tags & {
-    margin: $tag-spacing / 2;
+    margin: $tag-spacing * 0.5;
     max-width: 150px;
   }
 }
@@ -81,7 +81,7 @@
 .tags {
   display: flex;
   flex-wrap: wrap;
-  margin: -($tag-spacing / 2);
+  margin: -($tag-spacing * 0.5);
 }
 
 .thumb {

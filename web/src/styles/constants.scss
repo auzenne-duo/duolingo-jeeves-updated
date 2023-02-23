@@ -1,4 +1,5 @@
-@import "../../node_modules/web-ui/dist/esm/src/styles/colors";
+@forward "colors";
+@use "colors" as *;
 
 $duration-button-transition: 0.2s;
 $duration-fade: 0.2s;

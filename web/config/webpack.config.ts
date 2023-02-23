@@ -1,14 +1,19 @@
 import * as path from "path";
 
 import * as HtmlWebpackPlugin from "html-webpack-plugin";
-import * as webpack from "webpack";
+import type { Configuration as WebpackConfiguration } from "webpack";
+import { DefinePlugin } from "webpack";
+import type { Configuration as WebpackDevServerConfiguration } from "webpack-dev-server";
+
+interface Configuration extends WebpackConfiguration {
+  devServer?: WebpackDevServerConfiguration;
+}
 
 const webpackConfig = (
   _env: unknown,
   argv: { mode: "development" | "production" },
-): webpack.Configuration => ({
+): Configuration => ({
   context: path.resolve(__dirname, "../src"),
-  // @ts-ignore
   devServer: {
     historyApiFallback: true,
   },
@@ -57,15 +62,6 @@ const webpackConfig = (
       },
       {
         loader: "sass-loader",
-        options: {
-          sassOptions: {
-            // We have to set the `outputStyle` explicitly to prevent
-            // it defaulting to `compressed` when using webpack in
-            // production mode. This would delete (multiline) comments
-            // whereas we want to process these with cssnano instead.
-            outputStyle: "expanded",
-          },
-        },
         test: /\.scss$/,
       },
       {
@@ -78,7 +74,7 @@ const webpackConfig = (
     publicPath: "/",
   },
   plugins: [
-    new webpack.DefinePlugin({
+    new DefinePlugin({
       "process.env.DUOLINGO_JWT":
         argv.mode === "development"
           ? JSON.stringify(process.env.DUOLINGO_JWT)

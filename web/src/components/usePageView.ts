@@ -6,7 +6,7 @@ const usePageView = () => {
 
   React.useEffect(() => {
     ga("send", "pageview", location.pathname);
-  }, []);
+  }, [location.pathname]);
 };
 
 export default usePageView;

@@ -1,9 +1,8 @@
-import { encodeURLSearchParams } from "util";
-
 import { formatISO } from "date-fns";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
+import { encodeURLSearchParams } from "../util";
 import ConfirmButton from "components/ConfirmButton";
 import Table from "components/Table";
 import styles from "styles/SpikeTable.scss";

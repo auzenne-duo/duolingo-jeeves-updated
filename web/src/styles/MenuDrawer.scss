@@ -1,4 +1,4 @@
-@import "constants";
+@use "constants" as *;
 
 .footer {
   background-color: $juicy-polar;
