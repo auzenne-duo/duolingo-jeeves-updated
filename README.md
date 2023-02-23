@@ -11,8 +11,6 @@ Technology-driven user support.
 
 ## How to contribute
 
-The repo cannot be built using Python 3.11
-
 Make sure to set up Python 3 virtual environment, or pylint would fail when trying to commit.
 
 - Run `virtualenv -p python3 env` (If that doesn't work, try `python3 -m venv env`)

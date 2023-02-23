@@ -14,7 +14,7 @@ RUN rm -rf dist && \
   "$(npm bin)/tsc" -p config && \
   "$(npm bin)/webpack" --config config/webpack.config.js --mode production
 
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 
 ENV INSTALL_PATH /code
 ENV DEV_REQ_TXT dev-requirements.txt
@@ -48,7 +48,7 @@ RUN apt-get update \
 RUN pip3 install -U pip pip-tools wheel \
  && pip3 install \
       awscli \
-      setuptools
+      setuptools==49.6.0
 
 ARG REQUIREMENTS=dev-requirements.txt
 COPY $REQUIREMENTS $REQUIREMENTS
