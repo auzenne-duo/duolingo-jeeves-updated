@@ -714,9 +714,7 @@ class ElasticsearchDAL:
         """
         return {s for s in terms if not any(i.isdigit() for i in s)}
 
-    def _get_terms_from_slice(
-        self, doc_ids_slice: List[str], lang: str, use_lemmas: bool = False
-    ) -> Set[str]:
+    def _get_terms_from_slice(self, doc_ids_slice: List[str], lang: str) -> Set[str]:
         """
         Helper function for get_terms_from_docs, below.
         Given a list of document IDs, determine all terms used in the
@@ -725,12 +723,11 @@ class ElasticsearchDAL:
         Parameters:
             doc_ids_slice (List[str]): A list of document IDs for which we want to collect terms.
             lang (str): Two-letter language code that the given documents are expected to have.
-            use_lemmas (bool): If True, use the lemmatized terms from the documents, if language is English.
 
         Returns:
             Set of strings, representing terms from the requested documents.
         """
-        if lang == "en" and use_lemmas:
+        if lang == "en":
             response = self._es.search(
                 index=self._indexname,
                 body={"query": {"ids": {"values": doc_ids_slice}}, "size": len(doc_ids_slice)},
@@ -761,9 +758,7 @@ class ElasticsearchDAL:
         except:
             return set()
 
-    def get_terms_from_docs(
-        self, doc_ids: List[str], lang: str, use_lemmas: bool = False
-    ) -> Set[str]:
+    def get_terms_from_docs(self, doc_ids: List[str], lang: str) -> Set[str]:
         """
         Given document IDs, determine all terms used in the corresponding documents.
 
@@ -771,7 +766,6 @@ class ElasticsearchDAL:
             doc_ids (List[str]): Document IDs to get terms for.
             lang (str): Specify which Elasticsearch analyzer should be used
                         for term tokenization.
-            use_lemmas (bool): If True, use lemmatized terms from the document
 
         Returns:
             Set of terms from the specified documents. Since this is a Set,
@@ -784,7 +778,7 @@ class ElasticsearchDAL:
         slice_size = 20
         for i in range(0, len(doc_ids), slice_size):
             doc_ids_slice = doc_ids[i : i + slice_size]
-            terms_batch = self._get_terms_from_slice(doc_ids_slice, lang, use_lemmas)
+            terms_batch = self._get_terms_from_slice(doc_ids_slice, lang)
             terms.update(terms_batch)
 
         return terms

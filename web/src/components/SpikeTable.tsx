@@ -55,7 +55,7 @@ const SpikeTable = ({
               <Link
                 to={`/${language}/analysis?${encodeURLSearchParams(
                   params,
-                )}&use-lemmas=false`}
+                )}&use-lemmas=true`}
               >
                 {spike.word}
               </Link>
