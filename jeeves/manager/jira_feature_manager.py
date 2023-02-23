@@ -14,6 +14,16 @@ SUBSTRINGS_TO_IGNORE_BY_TERM = {
     "EDDY": ["FREDDY"],
     "LEVEL": ["API LEVEL: ", "LEVEL NUMBER: "],
     "LIN": ["DUOLINGO", "LINE", "LINK"],
+    "MAX": [
+        "IPHONE 11 PRO MAX",
+        "IPHONE 12 PRO MAX",
+        "IPHONE 13 PRO MAX",
+        "IPHONE 14 PRO MAX",
+        "IPHONE 15 PRO MAX",
+        "IPHONE XS MAX",
+        "MAXIMUM",
+        "MAXTOWER",
+    ],
     "PLUS": ["ONEPLUS"],
     "SKILL TREE": ["SKILL TREE ID: "],
     "SHAKE-TO-REPORT": [
@@ -177,7 +187,7 @@ class JiraFeatureManager:
         # Note: this counts substrings that are parts of words
         for term, feature in self._uppercase_term_to_feature.items():
             search_text_uppercase_clean = search_text_uppercase
-            substrings_to_ignore = SUBSTRINGS_TO_IGNORE_BY_TERM.get(term)
+            substrings_to_ignore = self._substrings_to_ignore_by_term.get(term)
             if substrings_to_ignore is not None and len(substrings_to_ignore) > 0:
                 for substring in substrings_to_ignore:
                     search_text_uppercase_clean = search_text_uppercase_clean.replace(substring, "")
