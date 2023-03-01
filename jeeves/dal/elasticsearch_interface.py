@@ -901,12 +901,7 @@ class ElasticsearchDAL:
         # Check if any of the hits are similar to the base document.
         hits = s.execute()
         if len(hits) > 0:
-            match = SequenceMatcher(a=hits[0].body_text, b=base_document.body_text).ratio() > 0.8
-            if match:
-                message = f"Found duplicate tweet: {base_document.body_text} {base_document.document_id}, {hits[0].body_text} {hits[0].document_id}"
-                print(message)
-                rollbar.report_message(message, "warning")
-                return True
+            return SequenceMatcher(a=hits[0].body_text, b=base_document.body_text).ratio() > 0.8
         return False
 
     def run_more_like_this_for_duplicates(

@@ -9,7 +9,6 @@ from collections import Counter
 from datetime import datetime
 from typing import Type
 
-import rollbar
 from duolingo_base.dal.s3 import S3Client
 from requests import RequestException, Session
 
@@ -88,7 +87,7 @@ class ZendeskManager(JeevesManager):
                         print_request_exception(e)
                         # If the comment page cannot be found, then skip it
                         if e.response.status_code == 404:
-                            rollbar.report_message(f"Couldn't find url: {comments_url}", "warning")
+                            pass
                         else:
                             # If something non-recoverable has happened, escalate.
                             raise (e)
