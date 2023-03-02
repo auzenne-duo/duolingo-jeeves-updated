@@ -149,7 +149,9 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
       case "duplicates":
         if (duplicates && markedDuplicates.length) {
           shakiraApi.fullyConnectDuplicates(
-            markedDuplicates.map((_, i) => duplicates[i].issue_key as string),
+            markedDuplicates
+              .map((_, i) => duplicates[i].issue_key as string)
+              .concat([issue?.issueKey as string]),
           );
         }
         onRequestClose();
