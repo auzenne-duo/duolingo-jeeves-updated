@@ -25,7 +25,7 @@ JIRA_FEATURES = {
     "Growth": {
         "China": {
             "China Compliances": [],
-            "China Android Plus": [],
+            "WeChat": ["wechat registration", "wechat login", "wechat sharing"],
             "Cantonese": [],
         },
         "Connections": {
