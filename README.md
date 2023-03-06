@@ -11,8 +11,6 @@ Technology-driven user support.
 
 ## How to contribute
 
-The repo cannot be built using Python 3.11
-
 Make sure to set up Python 3 virtual environment, or pylint would fail when trying to commit.
 
 - Run `virtualenv -p python3 env` (If that doesn't work, try `python3 -m venv env`)
@@ -37,8 +35,6 @@ The following are required when you update requirements.
 
 - Run `pip-compile --output-file requirements.txt requirements.in`
 - Run `pip-compile --output-file dev-requirements.txt dev-requirements.in`
-
-You may need to `pip install pip-tools`
 
 If you run into `ImportError: cannot import name 'BAR_TYPES' from 'pip._internal.cli.progress_bars'`, run the following to install a compatible version of pip: `pip install pip==22.0.4`
 

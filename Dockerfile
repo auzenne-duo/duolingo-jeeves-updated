@@ -14,7 +14,7 @@ RUN rm -rf dist && \
   "$(npm bin)/tsc" -p config && \
   "$(npm bin)/webpack" --config config/webpack.config.js --mode production
 
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 
 ENV INSTALL_PATH /code
 ENV REQ_TXT requirements.txt
@@ -48,7 +48,7 @@ RUN apt-get update \
  && ln -s /usr/bin/python3 /usr/bin/python
 
 RUN pip3 install -U pip pip-tools wheel \
- && pip3 install setuptools
+ && pip3 install setuptools==49.6.0
 
 ARG REQUIREMENTS=requirements.txt
 COPY $REQUIREMENTS $REQUIREMENTS

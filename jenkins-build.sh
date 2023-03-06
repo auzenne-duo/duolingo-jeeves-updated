@@ -86,11 +86,20 @@ if [[ $TERRAFORM_ENV == "prod" ]]; then
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_PRIORITY_ESTIMATOR_UPDATER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
 
   # --- run Jira Feature creation script ---
-
+  WORKSPACE=${WORKSPACE:-$(pwd)}
+  PYENV_HOME="$WORKSPACE/.pyenv/"
+  python3 -m venv "$PYENV_HOME"
+  . "$PYENV_HOME/bin/activate"
+  export PYTHONPATH="$WORKSPACE"
+  export SHAKIRA_JIRA_USERNAME_WEB="jira-automation@duolingo.com"
   set +x
   export SHAKIRA_JIRA_API_TOKEN_WEB=$(aws secretsmanager get-secret-value --secret-id 'PRODUCT_QUALITY_JIRA_TOKEN' | jq -r '.SecretString')
   set -x
-  docker run -e SHAKIRA_JIRA_USERNAME_WEB="jira-automation@duolingo.com" -e SHAKIRA_JIRA_API_TOKEN_WEB $IMAGE_HASH python jeeves/scripts/create_jira_features.py
+
+  pip install -U pip wheel setuptools
+  pip install -r dev-requirements.txt
+
+  python jeeves/scripts/create_jira_features.py
 else
   echo "No auto-deployment in dev environment."
 fi

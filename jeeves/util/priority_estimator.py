@@ -22,9 +22,7 @@ class PriorityEstimator:
     @classmethod
     def initialize_priority_estimator(cls, force_init=False) -> None:
         if force_init or cls.last_model_load < (datetime.now() - timedelta(days=1)):
-            cls.tokenizer = BertTokenizer.from_pretrained(
-                "bert-base-uncased", do_lower_case=True, encoding="uft-8"
-            )
+            cls.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
             cls.model = BertForSequenceClassification.from_pretrained(
                 _PRIORITY_ESTIMATOR_MODEL_PATH
             )

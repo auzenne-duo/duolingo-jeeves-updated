@@ -5,7 +5,6 @@
 #    pip-compile requirements.in
 #
 --index-url https://pypi.duolingo.com/simple/
---trusted-host pypi.ngc.nvidia.com
 
 attrs==21.4.0
     # via
@@ -36,14 +35,11 @@ cffi==1.15.1
     # via weasyprint
 charset-normalizer==2.0.12
     # via requests
-click==8.0.4
+click==7.1.2
     # via
-    #   -r requirements.in
     #   flask
     #   nltk
     #   sacremoses
-contourpy==1.0.7
-    # via matplotlib
 cssselect2==0.4.1
     # via
     #   -r requirements.in
@@ -76,9 +72,8 @@ elasticsearch==7.12.1
     # via
     #   -r requirements.in
     #   elasticsearch-dsl
-filelock==3.9.0
+filelock==3.0.12
     # via
-    #   -r requirements.in
     #   trankit
     #   transformers
 flask-cors==3.0.10
@@ -91,8 +86,9 @@ flask==1.1.2
 fonttools[woff]==4.27.1
     # via
     #   -r requirements.in
-    #   matplotlib
     #   weasyprint
+futures==3.1.1
+    # via -r requirements.in
 html5lib==1.1
     # via weasyprint
 idna==2.10
@@ -102,8 +98,6 @@ importlib-metadata==4.8.3
     #   -r requirements.in
     #   duolingo-nlp
     #   markdown
-importlib-resources==5.12.0
-    # via matplotlib
 itsdangerous==1.1.0
     # via flask
 jinja2==2.11.3
@@ -112,7 +106,7 @@ jmespath==0.10.0
     # via
     #   boto3
     #   botocore
-joblib==1.2.0
+joblib==1.0.1
     # via
     #   nltk
     #   sacremoses
@@ -129,7 +123,7 @@ markdown==3.3.7
     # via -r requirements.in
 markupsafe==1.1.1
     # via jinja2
-matplotlib==3.7.0
+matplotlib==3.3.4
     # via
     #   -r requirements.in
     #   seaborn
@@ -139,10 +133,9 @@ networkx==2.5.1
     #   duolingo-nlp
 nltk==3.6.2
     # via sentence-transformers
-numpy==1.24.2
+numpy==1.19.5
     # via
     #   -r requirements.in
-    #   contourpy
     #   langid
     #   matplotlib
     #   pandas
@@ -150,12 +143,12 @@ numpy==1.24.2
     #   scipy
     #   seaborn
     #   sentence-transformers
+    #   torch
     #   trankit
     #   transformers
 packaging==20.9
     # via
     #   deprecation
-    #   matplotlib
     #   trankit
     #   transformers
 pandas==1.1.5
@@ -253,13 +246,10 @@ sacremoses==0.0.45
     # via
     #   trankit
     #   transformers
-scikit-learn==1.2.1
+scikit-learn==0.24.2
+    # via sentence-transformers
+scipy==1.5.4
     # via
-    #   -r requirements.in
-    #   sentence-transformers
-scipy==1.10.1
-    # via
-    #   -r requirements.in
     #   scikit-learn
     #   seaborn
     #   sentence-transformers
@@ -267,9 +257,8 @@ seaborn==0.11.2
     # via -r requirements.in
 sentence-transformers==1.1.0
     # via -r requirements.in
-sentencepiece==0.1.97
+sentencepiece==0.1.95
     # via
-    #   -r requirements.in
     #   sentence-transformers
     #   trankit
 simplejson==3.17.2
@@ -296,15 +285,13 @@ tinycss2==1.1.1
     #   weasyprint
 tokenizers==0.10.2
     # via
-    #   -r requirements.in
     #   trankit
     #   transformers
-torch==1.9.0
+torch==1.8.1
     # via
-    #   -r requirements.in
     #   sentence-transformers
     #   trankit
-tqdm==4.64.1
+tqdm==4.60.0
     # via
     #   -r requirements.in
     #   nltk
@@ -315,14 +302,12 @@ tqdm==4.64.1
 trankit==1.1.1
     # via -r requirements.in
 transformers==4.5.1
-    # via
-    #   -r requirements.in
-    #   sentence-transformers
+    # via sentence-transformers
 typing-extensions==3.10.0.0
     # via torch
 typing==3.7.4.3
     # via duolingo-nlp
-ufal.udpipe==1.3.0.1
+ufal.udpipe==1.2.0.3
     # via -r requirements.in
 unidecode==1.3.4
     # via duolingo-nlp
@@ -332,7 +317,7 @@ urllib3==1.26.4
     #   duolingo-nlp
     #   elasticsearch
     #   requests
-uwsgi==2.0.21
+uwsgi==2.0.19.1
     # via -r requirements.in
 weasyprint==54.3
     # via -r requirements.in
@@ -350,7 +335,6 @@ zipp==3.6.0
     #   -r requirements.in
     #   duolingo-nlp
     #   importlib-metadata
-    #   importlib-resources
 zopfli==0.1.9
     # via
     #   -r requirements.in

@@ -5,7 +5,6 @@
 #    pip-compile dev-requirements.in
 #
 --index-url https://pypi.duolingo.com/simple/
---trusted-host pypi.ngc.nvidia.com
 
 apipkg==1.5
     # via execnet
@@ -50,17 +49,13 @@ charset-normalizer==2.0.12
     # via
     #   -r requirements.txt
     #   requests
-click==8.0.4
+click==7.1.2
     # via
     #   -r requirements.txt
     #   flask
     #   nltk
     #   pip-tools
     #   sacremoses
-contourpy==1.0.7
-    # via
-    #   -r requirements.txt
-    #   matplotlib
 coverage==5.5
     # via pytest-cov
 cssselect2==0.4.1
@@ -102,7 +97,7 @@ elasticsearch==7.12.1
     #   elasticsearch-dsl
 execnet==1.8.0
     # via pytest-xdist
-filelock==3.9.0
+filelock==3.0.12
     # via
     #   -r requirements.txt
     #   trankit
@@ -117,8 +112,9 @@ flask==1.1.2
 fonttools[woff]==4.27.1
     # via
     #   -r requirements.txt
-    #   matplotlib
     #   weasyprint
+futures==3.1.1
+    # via -r requirements.txt
 html5lib==1.1
     # via
     #   -r requirements.txt
@@ -132,10 +128,6 @@ importlib-metadata==4.8.3
     #   -r requirements.txt
     #   duolingo-nlp
     #   markdown
-importlib-resources==5.12.0
-    # via
-    #   -r requirements.txt
-    #   matplotlib
 iniconfig==1.1.1
     # via pytest
 isort==5.8.0
@@ -153,7 +145,7 @@ jmespath==0.10.0
     #   -r requirements.txt
     #   boto3
     #   botocore
-joblib==1.2.0
+joblib==1.0.1
     # via
     #   -r requirements.txt
     #   nltk
@@ -175,7 +167,7 @@ markupsafe==1.1.1
     # via
     #   -r requirements.txt
     #   jinja2
-matplotlib==3.7.0
+matplotlib==3.3.4
     # via
     #   -r requirements.txt
     #   seaborn
@@ -189,10 +181,9 @@ nltk==3.6.2
     # via
     #   -r requirements.txt
     #   sentence-transformers
-numpy==1.24.2
+numpy==1.19.5
     # via
     #   -r requirements.txt
-    #   contourpy
     #   langid
     #   matplotlib
     #   pandas
@@ -200,13 +191,13 @@ numpy==1.24.2
     #   scipy
     #   seaborn
     #   sentence-transformers
+    #   torch
     #   trankit
     #   transformers
 packaging==20.9
     # via
     #   -r requirements.txt
     #   deprecation
-    #   matplotlib
     #   pytest
     #   trankit
     #   transformers
@@ -359,11 +350,11 @@ sacremoses==0.0.45
     #   -r requirements.txt
     #   trankit
     #   transformers
-scikit-learn==1.2.1
+scikit-learn==0.24.2
     # via
     #   -r requirements.txt
     #   sentence-transformers
-scipy==1.10.1
+scipy==1.5.4
     # via
     #   -r requirements.txt
     #   scikit-learn
@@ -373,7 +364,7 @@ seaborn==0.11.2
     # via -r requirements.txt
 sentence-transformers==1.1.0
     # via -r requirements.txt
-sentencepiece==0.1.97
+sentencepiece==0.1.95
     # via
     #   -r requirements.txt
     #   sentence-transformers
@@ -414,12 +405,12 @@ toml==0.10.2
     # via
     #   pylint
     #   pytest
-torch==1.9.0
+torch==1.8.1
     # via
     #   -r requirements.txt
     #   sentence-transformers
     #   trankit
-tqdm==4.64.1
+tqdm==4.60.0
     # via
     #   -r requirements.txt
     #   nltk
@@ -441,7 +432,7 @@ typing==3.7.4.3
     # via
     #   -r requirements.txt
     #   duolingo-nlp
-ufal.udpipe==1.3.0.1
+ufal.udpipe==1.2.0.3
     # via -r requirements.txt
 unidecode==1.3.4
     # via
@@ -455,7 +446,7 @@ urllib3==1.26.4
     #   elasticsearch
     #   requests
     #   responses
-uwsgi==2.0.21
+uwsgi==2.0.19.1
     # via -r requirements.txt
 weasyprint==54.3
     # via -r requirements.txt
@@ -480,7 +471,6 @@ zipp==3.6.0
     #   -r requirements.txt
     #   duolingo-nlp
     #   importlib-metadata
-    #   importlib-resources
 zopfli==0.1.9
     # via
     #   -r requirements.txt
