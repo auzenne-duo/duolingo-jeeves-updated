@@ -53,7 +53,17 @@ This will use the local microservice for the backend.
 
 To proxy API requests to https://jeeves.duolingo.com, run `make web-proxy`.
 
-### Slack Reporting
+### Reporting bugs to Slack
+
+Note that Slack Reporting feature in Jeeves (`slack_channel.py`) is used for reports like visual polish or TTS which
+usually do not create Jira issues. In particular, this was code used to support an older version of shake-to-report.
+It still works, but we normally recommend using [Jira Automation](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/2585821214/Create+Jira+Automation+to+post+issues+with+Feature+to+Slack+Channel) instead.
+That's what posts to channels like #bugs or #proj-friends-quest.
+Jira Automation is more reliable since it can also alert for issues whose feature field has been changed, whereas this only alerts for bugs at the time of creation.
+
+### Reporting spikes to Slack
+
+Set up instructions:
 
 - Set the `SPIKE_REPORTER_SLACK_API_TOKEN` environment variable, or comment out the code that makes the request to the Slack API.
 - Run the steps above to set up the Python virtual environment
