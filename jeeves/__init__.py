@@ -5,7 +5,12 @@ from duolingo_base.config import Config
 from duolingo_base.util import registry as base_registry
 from flask import Flask
 
-from jeeves.config.jira_features import JIRA_FEATURES, JIRA_FEATURES_REGISTRY_KEY
+from jeeves.config.jira_features import (
+    JIRA_FEATURES,
+    JIRA_FEATURES_DESCRIPTIONS,
+    JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY,
+    JIRA_FEATURES_REGISTRY_KEY,
+)
 from jeeves.manager.jira_feature_manager import (
     SUBSTRINGS_TO_IGNORE_BY_TERM,
     SUBSTRINGS_TO_IGNORE_REGISTRY_KEY,
@@ -27,6 +32,7 @@ def apply_registry():
     service_registry.start()
 
     service_registry[JIRA_FEATURES_REGISTRY_KEY] = JIRA_FEATURES
+    service_registry[JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY] = JIRA_FEATURES_DESCRIPTIONS
     service_registry[SUBSTRINGS_TO_IGNORE_REGISTRY_KEY] = SUBSTRINGS_TO_IGNORE_BY_TERM
 
 

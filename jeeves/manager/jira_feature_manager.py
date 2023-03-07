@@ -1,9 +1,13 @@
 import operator
+from collections import Counter
 from typing import Dict, List, Optional, Union
 
 from duolingo_base.util import registry
 
-from jeeves.config.jira_features import JIRA_FEATURES_REGISTRY_KEY
+from jeeves.config.jira_features import (
+    JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY,
+    JIRA_FEATURES_REGISTRY_KEY,
+)
 from jeeves.manager.shakira import _SHAKIRA_FEATURES_TO_SLACK_CHANNEL
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.model.custom_types import AreaWithTeamList
@@ -41,6 +45,7 @@ SUBSTRINGS_TO_IGNORE_REGISTRY_KEY = "substrings_to_ignore_by_term"
 @registry.bind(
     jira_client=registry.reference(ShakiraJiraApiClient),
     features_config=registry.reference(JIRA_FEATURES_REGISTRY_KEY),
+    descriptions_config=registry.reference(JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY),
     substrings_to_ignore_by_term=registry.reference(SUBSTRINGS_TO_IGNORE_REGISTRY_KEY),
 )
 class JiraFeatureManager:
@@ -48,6 +53,7 @@ class JiraFeatureManager:
         self,
         jira_client: ShakiraJiraApiClient,
         features_config: Dict[str, Dict[str, Dict[str, List[str]]]],
+        descriptions_config: Dict[str, str],
         substrings_to_ignore_by_term: Dict[str, List[str]],
     ):
         """
@@ -62,11 +68,17 @@ class JiraFeatureManager:
                 },
             },
         }
+
+        descriptions_config should be of the form:
+        {
+            "Feature": "Description",
+        }
         """
         self._jira_client = jira_client
         self.jira_features_and_synonyms = features_config
         self._feature_to_synonyms = self._get_feature_to_synonyms_mapping()
         self._uppercase_term_to_feature = self._get_uppercase_term_to_feature_mapping()
+        self._feature_to_description = descriptions_config
         self._substrings_to_ignore_by_term = substrings_to_ignore_by_term
 
     def _get_feature_to_synonyms_mapping(self) -> Dict[str, List[str]]:
@@ -183,7 +195,7 @@ class JiraFeatureManager:
         if generated_description:
             search_text_uppercase = search_text_uppercase + "\n" + generated_description.upper()
 
-        feature_count = {}
+        feature_count = Counter()
         # Note: this counts substrings that are parts of words
         for term, feature in self._uppercase_term_to_feature.items():
             search_text_uppercase_clean = search_text_uppercase
@@ -192,12 +204,7 @@ class JiraFeatureManager:
                 for substring in substrings_to_ignore:
                     search_text_uppercase_clean = search_text_uppercase_clean.replace(substring, "")
 
-            if feature in feature_count:
-                feature_count[feature] = feature_count[feature] + search_text_uppercase_clean.count(
-                    term
-                )
-            else:
-                feature_count[feature] = search_text_uppercase_clean.count(term)
+            feature_count[feature] += search_text_uppercase_clean.count(term)
 
         sorted_features_to_counts = sorted(
             feature_count.items(), key=operator.itemgetter(1), reverse=True
@@ -216,4 +223,5 @@ class JiraFeatureManager:
         return {
             "suggested_features": suggested_features,
             "other_features": other_features,
+            "feature_to_description": self._feature_to_description,
         }

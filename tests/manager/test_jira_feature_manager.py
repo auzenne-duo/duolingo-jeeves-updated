@@ -34,13 +34,19 @@ mock_jira_features = {
     },
 }
 
+mock_jira_features_descriptions = {
+    "Leaderboard": "Description 1",
+    "Streak": "Description 2",
+    "Home": "Description 3",
+}
+
 mock_substrings_to_ignore_by_term = {
     "SHAKE-TO-REPORT": ["REPORTED WITH SHAKE-TO-REPORT"],
 }
 
 
 def test_get_features_v1():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {})
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {})
     actual_result = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
 
     case = unittest.TestCase()
@@ -64,7 +70,7 @@ def test_get_features_v1():
 
 
 def test_get_features_by_team_and_area():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {})
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {})
     actual_result = feature_manager.get_features_by_team_and_area()
 
     assert actual_result == [
@@ -186,7 +192,10 @@ def test_get_suggested_features(
     summary, description, generated_description, expected_suggestions, expected_others
 ):
     feature_manager = JiraFeatureManager(
-        mock_jira_client, mock_jira_features, mock_substrings_to_ignore_by_term
+        mock_jira_client,
+        mock_jira_features,
+        mock_jira_features_descriptions,
+        mock_substrings_to_ignore_by_term,
     )
     actual_result = feature_manager.get_suggested_features(
         ["DLAA", "DLAI", "DLAW"], summary, description, generated_description
@@ -195,6 +204,7 @@ def test_get_suggested_features(
     case = unittest.TestCase()
     case.assertEqual(expected_suggestions, actual_result["suggested_features"])
     case.assertCountEqual(expected_others, actual_result["other_features"])
+    case.assertEqual(mock_jira_features_descriptions, actual_result["feature_to_description"])
 
 
 def test_feature_filtering():
@@ -216,7 +226,9 @@ def test_feature_filtering():
         },
     }
 
-    feature_manager = JiraFeatureManager(mock_filtered_jira_client, mock_filtered_jira_features, {})
+    feature_manager = JiraFeatureManager(
+        mock_filtered_jira_client, mock_filtered_jira_features, {}, {}
+    )
     case = unittest.TestCase()
 
     actual_result_features = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])

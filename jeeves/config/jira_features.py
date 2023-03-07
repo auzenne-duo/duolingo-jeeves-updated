@@ -316,3 +316,11 @@ JIRA_FEATURES = {
 }
 
 JIRA_FEATURES_REGISTRY_KEY = "jira_features"
+
+JIRA_FEATURES_DESCRIPTIONS = {
+    "Challenge layout issues": "Problems with format of elements in an exercise, such as overlapping tokens, text in incorrect location, missing prompts, etc.",
+    "General performance issues": "App crashes, 4xx/5xx errors, freezes, slowness, etc.",
+    "Progress Bar": "Issues with the progress bar at the top of a lesson.",
+}
+
+JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY = "jira_features_descriptions"
