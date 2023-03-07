@@ -14,12 +14,13 @@ RUN rm -rf dist && \
   "$(npm bin)/tsc" -p config && \
   "$(npm bin)/webpack" --config config/webpack.config.js --mode production
 
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ENV INSTALL_PATH /code
 ENV REQ_TXT requirements.txt
 ENV PYTHONIOENCODING UTF-8
 ENV DUOLINGO_CONFIG=${INSTALL_PATH}/config/prod.yml
+ENV PYTHONPATH /code
 ENV DUPLICATE_DETECTOR_MODEL=${INSTALL_PATH}/duplicate-detector-model/
 ENV PRIORITY_ESTIMATOR_MODEL=${INSTALL_PATH}/priority_estimator_model/
 ENV JEEVES_DOCUMENT_CLASSIFIER=${INSTALL_PATH}/document_classifier/
@@ -48,7 +49,7 @@ RUN apt-get update \
  && ln -s /usr/bin/python3 /usr/bin/python
 
 RUN pip3 install -U pip pip-tools wheel \
- && pip3 install setuptools==49.6.0
+ && pip3 install setuptools
 
 ARG REQUIREMENTS=requirements.txt
 COPY $REQUIREMENTS $REQUIREMENTS
