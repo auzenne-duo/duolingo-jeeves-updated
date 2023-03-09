@@ -19,6 +19,10 @@ import styles from "styles/ShakeToReportForm.scss";
 import track from "track";
 
 const NONE_APPLY = "None apply";
+const DEFAULT_FEATURES_RESULT = {
+  other_features: ["Other"],
+  suggested_features: [],
+};
 
 const getAttachments = async (urls: string[]) => {
   const attachments: [string, File][] = [];
@@ -91,7 +95,7 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
     () => getUntruncatedTitle(ticket) ?? "",
   );
 
-  const { data: featuresResult } = useQuery(
+  const suggestedFeaturesQuery = useQuery(
     [
       "suggested-features",
       {
@@ -111,6 +115,9 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
     },
   );
 
+  const featuresResult = suggestedFeaturesQuery.isError
+    ? DEFAULT_FEATURES_RESULT
+    : suggestedFeaturesQuery.data;
   const features = React.useMemo(
     () =>
       featuresResult ? [...featuresResult.other_features].sort() : undefined,
