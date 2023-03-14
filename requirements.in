@@ -4,7 +4,7 @@ attrs==21.4.0
 blinker
 click
 cssselect2==0.4.1
-duolingo-base==0.13.7
+duolingo-base==1.7.4
 duolingo-notify
 duolingo-nlp
 elasticsearch
@@ -18,7 +18,7 @@ flask-cors
 kiwisolver==1.3.1
 matplotlib==3.7.0
 markdown==3.3.7
-networkx==2.5.1
+networkx==3.0
 numpy
 pandas==1.1.5
 pillow==8.4.0
@@ -41,6 +41,7 @@ transformers==4.5.1
 ufal.udpipe
 uwsgi==2.0.21
 weasyprint
+wrapt==1.12.1
 zipp==3.6.0
 zopfli==0.1.9
 
