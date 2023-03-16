@@ -82,6 +82,7 @@ JIRA_FEATURES = {
             "Leaderboards": ["leaderboard", "tournament", "league", "context"],
             "Daily Quests": ["quests", "daily quest"],
             "Daily Goal": [],
+            "Lesson Races": ["race"],
             "Monthly Goal": ["month"],
             "XP boost": ["double xp", "2x"],
             "Quests Tab": [],
