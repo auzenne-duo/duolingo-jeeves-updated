@@ -1,6 +1,21 @@
 {
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "git.autofetch": true
+      }
+    }
+  },
   "features": {
-    "docker-in-docker": "latest"
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
   },
   "hostRequirements": {
     "memory": "8gb"
@@ -11,8 +26,5 @@
   "postCreateCommand": "/postCreate",
   "postStartCommand": "/postStart",
   "remoteUser": "vscode",
-  "settings": {
-    "git.autofetch": true
-  },
   "updateContentCommand": "/updateContent"
 }
