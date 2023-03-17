@@ -55,6 +55,17 @@ module "duolingo-jeeves" {
   latency_threshold                    = 1000
   latency_threshold_evaluation_periods = 10
 
+  secrets = [
+    {
+      name  = "DUOLINGO_USERNAME"
+      value = "DUOLINGO_USERNAME/000000"
+    },
+    {
+      name  = "DUOLINGO_PASSWORD"
+      value = "DUOLINGO_PASSWORD/000000"
+    }
+  ]
+
   environment_vars = [
     {
       name  = "JIRA_USERNAME"

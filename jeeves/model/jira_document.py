@@ -391,7 +391,6 @@ class JiraDocument(JeevesDocument):
         Returns:
             A dictionary from strings to strings, representing the above mapping
         """
-
         parent_category_mapping = {
             "APP VERSIONS": "app_version",
             "PLATFORMS": "platform",

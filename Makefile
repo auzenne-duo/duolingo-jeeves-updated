@@ -11,6 +11,13 @@ eslint-fix:
 	cd web && "$$(npm bin)/eslint" --ext=.ts,.tsx --fix src
 
 # Installs the requirements to the local environment.
+.PHONY: python-install
+python-install: dev-requirements.txt
+# Create a virtual environment.
+	python3 -m venv .venv
+# Install the requirements.
+	.venv/bin/pip install -r dev-requirements.txt
+
 .PHONY: install
 install:
 	cd web && npm ci
@@ -18,6 +25,10 @@ install:
 .PHONY: test
 test: web-config
 	cd web && "$$(npm bin)/jest" --config config/jest.config.js --silent --watch
+
+.PHONY: python-test
+python-test: python-install
+	.venv/bin/python -m pytest --disable-warnings
 
 # Starts a local microservice.
 .PHONY: web

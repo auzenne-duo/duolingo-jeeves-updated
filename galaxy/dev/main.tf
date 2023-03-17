@@ -50,6 +50,17 @@ module "duolingo-jeeves" {
   release_version                   = var.release_version
   health_check_grace_period_seconds = 120
 
+  secrets = [
+    {
+      name  = "DUOLINGO_USERNAME"
+      value = "DUOLINGO_USERNAME/000001"
+    },
+    {
+      name  = "DUOLINGO_PASSWORD"
+      value = "DUOLINGO_PASSWORD/000000"
+    }
+  ]
+
   environment_vars = [
     {
       name  = "JIRA_USERNAME"
@@ -94,7 +105,7 @@ module "duolingo-jeeves" {
     {
       name  = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
       value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_literacy"]
-    },
+    }
   ]
 }
 

@@ -7,6 +7,7 @@ import pytest
 
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
+from jeeves.dal.tutors_dal import TutorsApiDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
@@ -14,6 +15,7 @@ from jeeves.util.date_util import get_n_days_ago
 
 mock_es_dal = ElasticsearchDAL()
 mock_jira_dal = JiraApiDAL()
+mock_tutors_dal = TutorsApiDAL(MagicMock())
 
 now_datetime = datetime.now()
 yesterday_datetime = get_n_days_ago(now_datetime, 1)
@@ -128,7 +130,7 @@ def test_choose_parent_issue(
     expected_parent: JiraDocument,
     expected_other_parents: List[JiraDocument],
 ):
-    duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, mock_jira_dal)
+    duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, mock_jira_dal, mock_tutors_dal)
 
     (
         actual_parent_issue_key,
@@ -195,7 +197,7 @@ def test_populate_parent_child_issue_fields(
     mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
         jira_documents[key] for key in keys
     ]
-    duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, mock_jira_dal)
+    duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, mock_jira_dal, mock_tutors_dal)
 
     duplicate_graph_resolver.populate_parent_child_issue_fields([jira_doc])
     unittest.TestCase()
@@ -210,17 +212,30 @@ class TestDuplicateGraphResolver(unittest.TestCase):
     )
     def test_connect_duplicates_remote(self):
         magic_mock_jira_dal = MagicMock()
-        magic_mock_jira_dal.get_issue.return_value = MagicMock(
-            body_text="APP VERSIONS:\nNOT PRESENT: 2\n6.117.0.1: 1\n\n\nPLATFORMS:\nNOT PRESENT: 2\niOS: 1\n\n\nCOURSES:\nNOT PRESENT: 2\nDUOLINGO_FR_EN: 1\n\n\nINTERFACE LANGUAGES:\nNOT PRESENT: 2\nen: 1\n\n\nOPERATING SYSTEMS:\nNOT PRESENT: 2\niOS 14.4.1: 1\n\n\nAREAS:\n\n"
+        parent_issue = MagicMock(
+            body_text="Random description someone entered\nAPP VERSIONS:\nNOT PRESENT: 2\n6.117.0.1: 1\n\n\nPLATFORMS:\nNOT PRESENT: 2\niOS: 1\n\n\nCOURSES:\nNOT PRESENT: 2\nDUOLINGO_FR_EN: 1\n\n\nINTERFACE LANGUAGES:\nNOT PRESENT: 2\nen: 1\n\n\nOPERATING SYSTEMS:\nNOT PRESENT: 2\niOS 14.4.1: 1\n\n\nAREAS:\n\n"
         )
+        magic_mock_jira_dal.get_issue.return_value = parent_issue
         magic_mock_jira_dal.create_bug_issue.return_value = "parent_key"
 
-        duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, magic_mock_jira_dal)
+        magic_mock_tutors_dal = MagicMock()
+        magic_mock_tutors_dal.generate_summary.return_value = (
+            "Parent Issue",
+            "AI description",
+        )
+
+        duplicate_graph_resolver = DuplicateGraphResolver(
+            mock_es_dal, magic_mock_jira_dal, magic_mock_tutors_dal
+        )
         duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
         expected_description = {
             "type": "doc",
             "version": 1,
             "content": [
+                {
+                    "type": "paragraph",
+                    "content": [{"type": "text", "text": "AI description\n\n"}],
+                },
                 {
                     "type": "paragraph",
                     "content": [
@@ -257,6 +272,23 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         }
         magic_mock_jira_dal.update_issue.assert_any_call(
             "parent_key",
+            summary="[Parent] Parent Issue",
+            description=expected_description,
+            feature="shake",
+            priority="High",
+        )
+
+        # Test with an existing [Parent] already in the summary
+        parent_issue = MagicMock(
+            body_text="Random description someone entered\nAPP VERSIONS:\nNOT PRESENT: 2\n6.117.0.1: 1\n\n\nPLATFORMS:\nNOT PRESENT: 2\niOS: 1\n\n\nCOURSES:\nNOT PRESENT: 2\nDUOLINGO_FR_EN: 1\n\n\nINTERFACE LANGUAGES:\nNOT PRESENT: 2\nen: 1\n\n\nOPERATING SYSTEMS:\nNOT PRESENT: 2\niOS 14.4.1: 1\n\n\nAREAS:\n\n",
+            summary="[Parent] Parent Issue",
+        )
+        magic_mock_jira_dal.reset_mock()
+        magic_mock_jira_dal.get_issue.return_value = parent_issue
+        duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
+        magic_mock_jira_dal.update_issue.assert_any_call(
+            "parent_key",
+            summary="[Parent] Parent Issue",
             description=expected_description,
             feature="shake",
             priority="High",

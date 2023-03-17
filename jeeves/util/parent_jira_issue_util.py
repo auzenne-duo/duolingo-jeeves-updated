@@ -50,6 +50,10 @@ def parse_parent_description(body_text: str) -> Dict[str, Dict[str, int]]:
     line_rover = 0
     while line_rover < len(body_lines):
         category_header = body_lines[line_rover][:-1]
+        # Skip over lines that aren't known category headers
+        if category_header not in category_mapping:
+            line_rover += 1
+            continue
         category = category_mapping[category_header]
         extracted_stats[category] = {}
         line_rover += 1
@@ -86,7 +90,7 @@ def _create_paragraph_block(block_contents: str) -> JSON:
     return paragraph_json
 
 
-def generate_parent_body_text_from_data(data: Dict[str, Dict[str, int]]) -> JSON:
+def generate_parent_body_text_from_data(description: str, data: Dict[str, Dict[str, int]]) -> JSON:
     """
     Given data aggregated from several duplicate issues, constructs the body
     text for the parent issue of those duplicate issues.
@@ -102,6 +106,12 @@ def generate_parent_body_text_from_data(data: Dict[str, Dict[str, int]]) -> JSON
         API call.
     """
     paragraph_blocks = []
+
+    # Description
+    if len(description.strip()) > 0:
+        paragraph_blocks.append(_create_paragraph_block(description + "\n\n"))
+
+    # Parent categories
     category_mapping = JiraDocument.get_parent_category_mappings()
     for human_name, data_name in category_mapping.items():
         block_contents = f"{human_name}:\n"
@@ -159,3 +169,42 @@ def update_parent_data_from_child(
                 parent_data[category][data_instance] += 1
 
     return parent_data
+
+
+def strip_parent_description(body_text: str) -> str:
+    """
+    Given the body text of a parent "hub" issue for duplicates, strips
+    out the aggregated information in that body text and returns it as a
+    string.
+
+    "This is a description with no parent metadata." -> "This is a description with no parent metadata."
+
+    "With metadata\nINTERFACE LANGUAGES:\nfr: 2\nNOT PRESENT: 1\nen: 1\n" -> "With metadata"
+
+    "INTERFACE LANGUAGES:\nfr: 2\nNOT PRESENT: 1\nen: 1\n\nTrailing metadata" -> "Trailing metadata"
+
+    Parameters:
+        body_text: The body text of a parent issue to parse.
+
+    Returns:
+        A string representing the description of the issue with all of the
+        parent data catgories stripped out.
+    """
+    stripped_description_lines = []
+    category_mapping = JiraDocument.get_parent_category_mappings().keys()
+    body_lines = [line.strip() for line in body_text.splitlines()]
+    line_rover = 0
+    while line_rover < len(body_lines):
+        # If we're at a category header, skip to the end of the category
+        if any(body_lines[line_rover].startswith(f"{category}:") for category in category_mapping):
+            line_rover += 1  # Skip the header itself
+            # Skip over all the content of the category
+            while line_rover < len(body_lines) and body_lines[line_rover] != "":
+                line_rover += 1
+            # Skip over all the blank lines after the category
+            while line_rover < len(body_lines) and body_lines[line_rover] == "":
+                line_rover += 1
+        else:
+            stripped_description_lines.append(body_lines[line_rover])
+            line_rover += 1
+    return "\n".join(stripped_description_lines)

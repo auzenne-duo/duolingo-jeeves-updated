@@ -12,23 +12,31 @@ from duolingo_base.util import registry
 
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
+from jeeves.dal.tutors_dal import TutorsApiDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
+from jeeves.util.cleanup import extract_duolingo_metadata
 from jeeves.util.parent_jira_issue_util import (
     generate_parent_body_text_from_data,
     parse_parent_description,
+    strip_parent_description,
     update_parent_data_from_child,
 )
 
 
-@registry.bind(es_dal=registry.reference(ElasticsearchDAL), jira_dal=registry.reference(JiraApiDAL))
+@registry.bind(
+    es_dal=registry.reference(ElasticsearchDAL),
+    jira_dal=registry.reference(JiraApiDAL),
+    tutors_dal=registry.reference(TutorsApiDAL),
+)
 class DuplicateGraphResolver:
-    def __init__(self, es_dal: ElasticsearchDAL, jira_dal: JiraApiDAL):
+    def __init__(self, es_dal: ElasticsearchDAL, jira_dal: JiraApiDAL, tutors_dal: TutorsApiDAL):
         self._es_dal = es_dal
         self._jira_dal = jira_dal
         self._jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
+        self._tutors_dal = tutors_dal
 
     def get_duplicate_graph(
         self, issue_keys: List[str], key_to_doc: Dict[str, JiraDocument] = None
@@ -204,7 +212,22 @@ class DuplicateGraphResolver:
                 any_failure = True
                 result_list.append(f"F {outward_end} {inward_end}\n")
 
-        self._try_set_remote_parent(parent_key, parent_data, most_common_feature, priority)
+        headers = [doc.header_text for doc in duplicate_graph.issue_keys_to_documents.values()]
+        # Remove shake-to-report metadata and parent issue description from the descriptions
+        # before sending to AI.
+        descriptions = [
+            strip_parent_description(extract_duolingo_metadata(doc.body_text)[0])
+            for doc in duplicate_graph.issue_keys_to_documents.values()
+        ]
+        ai_summary, ai_description = self._tutors_dal.generate_summary(headers, descriptions)
+        # Prepend [Parent] to the summary so that it's clear that this is a parent issue.
+        # and [Parent] not already in the summary
+        if "[Parent]" not in ai_summary:
+            ai_summary = f"[Parent] {ai_summary}"
+
+        self._try_set_remote_parent(
+            parent_key, ai_summary, ai_description, parent_data, most_common_feature, priority
+        )
 
         result_manifest = "".join(result_list)
         # If we had no successes and no failures, then we didn't create any new
@@ -240,7 +263,7 @@ class DuplicateGraphResolver:
 
         category_names = JiraDocument.get_parent_category_mappings().values()
         body_json = generate_parent_body_text_from_data(
-            {category: {} for category in category_names}
+            "", {category: {} for category in category_names}
         )
         return self._jira_dal.create_bug_issue(project, header_text, body_json)
 
@@ -270,6 +293,8 @@ class DuplicateGraphResolver:
     def _try_set_remote_parent(
         self,
         parent_key: str,
+        summary: str,
+        description: str,
         data: Dict[str, Dict[str, int]],
         feature: Optional[str],
         priority: Optional[str],
@@ -280,6 +305,9 @@ class DuplicateGraphResolver:
 
         Parameters:
             parent_key: The issue key of the parent issue we want to edit
+            summary: The summary of the parent issue.
+            description: The text-based description of all the issues captured
+                  by the parent.
             data: The data we will use to generate the new parent body. See
                   parse_parent_description for format.
             feature: The string to be used for the issue's feature field
@@ -292,7 +320,8 @@ class DuplicateGraphResolver:
         try:
             self._jira_dal.update_issue(
                 parent_key,
-                description=generate_parent_body_text_from_data(data),
+                summary=summary,
+                description=generate_parent_body_text_from_data(description, data),
                 feature=feature,
                 priority=priority,
             )
