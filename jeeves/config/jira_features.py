@@ -111,6 +111,9 @@ JIRA_FEATURES = {
                 "Did not receive XP",
             ],
         },
+        "Advanced Monolingual English Experience": {
+            "AMEE": ["monolingual"],
+        },
         "New Writing Systems": {
             "Character Bingo": [
                 "drawing",
