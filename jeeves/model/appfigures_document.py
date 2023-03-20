@@ -70,6 +70,7 @@ class AppfiguresDocument(JeevesDocument):
             product_id=external_json["product_id"],
             store=external_json["store"],
             experiment_conditions={},
+            user_id="",
         )
 
     @classmethod
@@ -111,6 +112,7 @@ class AppfiguresDocument(JeevesDocument):
             product_id=internal_json["product_id"],
             store=internal_json["store"],
             experiment_conditions=internal_json.get("experiment_conditions", {}),
+            user_id=internal_json.get("user_id", ""),
         )
 
     @classmethod

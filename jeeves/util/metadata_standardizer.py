@@ -149,6 +149,7 @@ class MetadataStandardizer:
         skill_tree_id: Id for skill tree
         ui_language: Two character language code, lowercase
         username: Any string that could be a Duolingo username
+        user_id: Id for the user
 
         There is a possible concern that multiple input fields could be picked
         up for mulitple standardized fields, such as a user's course information
@@ -262,6 +263,9 @@ class MetadataStandardizer:
 
         if "username" in flat_metadata:
             std_data["username"] = flat_metadata["username"]
+
+        if "id" in flat_metadata:
+            std_data["user_id"] = flat_metadata["id"]
 
         for field, aliases in self.metatdata_field_aliases.items():
             for alias in aliases:

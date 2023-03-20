@@ -20,6 +20,7 @@ import IconButton from "components/IconButton";
 import JiraIssues from "components/JiraIssues";
 import PlatformIcon from "components/PlatformIcon";
 import ShakeToReportForm from "components/ShakeToReportForm";
+import Tag from "components/Tag";
 import TagFilter from "components/TagFilter";
 import AppStateContext from "contexts/AppStateContext";
 import imageBug from "images/ant.svg";
@@ -426,6 +427,22 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
               field="username"
               value={ticket.username}
             />
+          </div>
+        </section>
+      ) : null}
+      {ticket.user_id ? (
+        <section className={styles.section}>
+          <span className={styles.label}>User Diagnostics</span>
+          <div>
+            <Link
+              className={cn(styles.link, className)}
+              target="_blank"
+              to={{
+                pathname: `https://www.duolingo.com/diagnostics/user/summary/user_id/${ticket.user_id}`,
+              }}
+            >
+              <Tag value={ticket.user_id.toString()} />
+            </Link>
           </div>
         </section>
       ) : null}

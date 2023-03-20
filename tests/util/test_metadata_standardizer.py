@@ -99,9 +99,8 @@ class Test(unittest.TestCase):
             "skill_tree_id": "36bab53b0938a448b9b5c9031c2021e5",
             "ui_language": "en",
             "username": "mancyliao",
+            "user_id": "574989974",
         }
-        print(expected_real_1)
-        print(MetaStdizer.get_standardized_metadata(real_metadata_1))
         self.assertEqual(expected_real_1, MetaStdizer.get_standardized_metadata(real_metadata_1))
 
         real_metadata_2 = {
@@ -167,6 +166,7 @@ class Test(unittest.TestCase):
             "session_type": "lesson",
             "skill_id": "b2c93919b31cde56b1972f5f18ca9a72",
             "skill_tree_id": "7eb9f55873194e20f1a3bba34c35d734",
+            "user_id": "107934822",
         }
         self.assertEqual(expected_real_2, MetaStdizer.get_standardized_metadata(real_metadata_2))
 

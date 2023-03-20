@@ -166,6 +166,7 @@ declare namespace JSONAPI {
     status?: string;
     store?: string;
     tags?: string[];
+    user_id?: number;
     /** Only applies to Zendesk tickets. */
     via?:
       | {

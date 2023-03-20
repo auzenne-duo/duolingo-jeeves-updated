@@ -11,6 +11,8 @@ from typing import List
 import attr
 from requests import Response, Session
 
+from jeeves import registry as app_registry
+from jeeves.dal.monolith_dal import MonolithDAL
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
@@ -109,6 +111,13 @@ class ZendeskDocument(JeevesDocument):
                 email = j["user"]["email"]
         elif external_json["via"]["channel"] == "email":
             email = external_json["via"]["source"]["from"].get("address")
+        user_id = None
+        if email:
+            user_id = app_registry(MonolithDAL).get_user_by_email_or_username(email)
+        elif std_metadata["username"]:
+            user_id = app_registry(MonolithDAL).get_user_by_email_or_username(
+                username=std_metadata["username"]
+            )
 
         experiment_conditions_pattern = re.compile("^.*experiment_conditions\.txt$")
         experiment_conditions = {}
@@ -167,6 +176,7 @@ class ZendeskDocument(JeevesDocument):
             requester_id=str(external_json["requester_id"]),
             metadata=metadata,
             experiment_conditions=experiment_conditions,
+            user_id=user_id,
         )
 
     @classmethod
@@ -224,6 +234,7 @@ class ZendeskDocument(JeevesDocument):
             requester_id=internal_json["requester_id"],
             metadata=internal_json["metadata"],
             experiment_conditions=internal_json.get("experiment_conditions", {}),
+            user_id=internal_json.get("user_id", ""),
         )
 
     @classmethod

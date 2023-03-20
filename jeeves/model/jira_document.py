@@ -295,6 +295,7 @@ class JiraDocument(JeevesDocument):
             labels=external_fields["labels"],
             embedding_vector=[],
             experiment_conditions={},
+            user_id=std_metadata["user_id"],
         )
 
     @classmethod
@@ -372,6 +373,7 @@ class JiraDocument(JeevesDocument):
             labels=internal_json["labels"],
             embedding_vector=internal_json["embedding_vector"],
             experiment_conditions=internal_json.get("experiment_conditions", {}),
+            user_id=internal_json.get("user_id", ""),
         )
 
     @classmethod
