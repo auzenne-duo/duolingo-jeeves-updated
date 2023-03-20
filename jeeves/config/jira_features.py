@@ -97,9 +97,7 @@ JIRA_FEATURES = {
         "Experimental AI": {
             "Snips": [],
         },
-        "Learning Assesment": {},
         "Generated Sessions": {
-            "Skill tree migration": ["course update"],
             "Generated sessions": [],
             "Smart tips": ["smart tip"],
         },
@@ -161,6 +159,7 @@ JIRA_FEATURES = {
             ],
             "Guidebook": [],
             "Path Sections": ["sections"],
+            "Skill tree migration": ["course update"],
         },
     },
     "Learning Scaling": {
