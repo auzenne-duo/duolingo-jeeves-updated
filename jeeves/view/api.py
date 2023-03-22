@@ -180,6 +180,8 @@ def get_spike_data(lang):
                 "confirmed": spike.confirmed,
                 "spike_id": spike.get_spike_id(),
                 "user_id": spike.user_id,
+                "summary": spike.summary,
+                "is_bug": spike.is_bug,
             }
         )
     for day in stored_spikes:

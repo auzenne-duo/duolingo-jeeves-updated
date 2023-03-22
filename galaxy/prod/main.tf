@@ -292,6 +292,17 @@ module "duolingo-jeeves-spike-worker" {
 
   warning_alarm_actions   = [aws_sns_topic.warning.arn]
   emergency_alarm_actions = [aws_sns_topic.warning.arn]
+
+  secrets = [
+    {
+      name  = "DUOLINGO_USERNAME"
+      value = "DUOLINGO_USERNAME/000000"
+    },
+    {
+      name  = "DUOLINGO_PASSWORD"
+      value = "DUOLINGO_PASSWORD/000000"
+    }
+  ]
 }
 
 module "duolingo-jeeves-email-sender" {

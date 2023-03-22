@@ -12,6 +12,7 @@ interface Props {
   isLoading?: boolean;
   language: JSONAPI.LanguageId;
   linkFilter?: JSONAPI.ShakeToReportCategory;
+  onlyBugs?: boolean;
   spikeCategory?: string;
   spikes: JSONAPI.SpikeWord[];
 }
@@ -21,6 +22,7 @@ const SpikeTable = ({
   isLoading,
   language,
   linkFilter,
+  onlyBugs,
   spikeCategory,
   spikes,
 }: Props) => (
@@ -39,36 +41,41 @@ const SpikeTable = ({
       </tr>
     </thead>
     <tbody>
-      {spikes.map(spike => {
-        const params = new URLSearchParams();
-        if (linkFilter) {
-          params.set("filter", linkFilter);
-        }
-        if (spikeCategory) {
-          params.set("spike-category", spikeCategory);
-        }
-        params.set("q", spike.word);
-        return (
-          <tr key={spike.word}>
-            <td>{spike.score.toFixed(1)}</td>
-            <td>
-              <Link
-                to={`/${language}/analysis?${encodeURLSearchParams(
-                  params,
-                )}&use-lemmas=true`}
-              >
-                {spike.word}
-              </Link>
-            </td>
-            <td>
-              <ConfirmButton spike={spike} />
-            </td>
-          </tr>
-        );
-      })}
+      {spikes
+        .filter(spike => !onlyBugs || spike.is_bug)
+        .map(spike => {
+          const params = new URLSearchParams();
+          if (linkFilter) {
+            params.set("filter", linkFilter);
+          }
+          if (spikeCategory) {
+            params.set("spike-category", spikeCategory);
+          }
+          params.set("q", spike.word);
+          return (
+            <tr key={spike.word}>
+              <td>{spike.score.toFixed(1)}</td>
+              <td>
+                <Link
+                  to={`/${language}/analysis?${encodeURLSearchParams(
+                    params,
+                  )}&use-lemmas=true`}
+                >
+                  {spike.word}
+                </Link>
+                {spike.summary && (
+                  <div className={styles.summary}>{spike.summary}</div>
+                )}
+              </td>
+              <td>
+                <ConfirmButton spike={spike} />
+              </td>
+            </tr>
+          );
+        })}
       {!spikes.length && !isLoading ? (
         <tr>
-          <td colSpan={2}>No data is available for this date.</td>
+          <td colSpan={3}>No data is available for this date.</td>
         </tr>
       ) : null}
     </tbody>

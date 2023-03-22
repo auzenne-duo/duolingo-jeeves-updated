@@ -7,7 +7,6 @@ import pytest
 
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
-from jeeves.dal.tutors_dal import TutorsApiDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
@@ -15,7 +14,7 @@ from jeeves.util.date_util import get_n_days_ago
 
 mock_es_dal = ElasticsearchDAL()
 mock_jira_dal = JiraApiDAL()
-mock_tutors_dal = TutorsApiDAL(MagicMock())
+mock_parent_summary_generator = MagicMock()
 
 now_datetime = datetime.now()
 yesterday_datetime = get_n_days_ago(now_datetime, 1)
@@ -130,7 +129,9 @@ def test_choose_parent_issue(
     expected_parent: JiraDocument,
     expected_other_parents: List[JiraDocument],
 ):
-    duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, mock_jira_dal, mock_tutors_dal)
+    duplicate_graph_resolver = DuplicateGraphResolver(
+        mock_es_dal, mock_jira_dal, mock_parent_summary_generator
+    )
 
     (
         actual_parent_issue_key,
@@ -197,12 +198,18 @@ def test_populate_parent_child_issue_fields(
     mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
         jira_documents[key] for key in keys
     ]
-    duplicate_graph_resolver = DuplicateGraphResolver(mock_es_dal, mock_jira_dal, mock_tutors_dal)
+    duplicate_graph_resolver = DuplicateGraphResolver(
+        mock_es_dal, mock_jira_dal, mock_parent_summary_generator
+    )
 
     duplicate_graph_resolver.populate_parent_child_issue_fields([jira_doc])
     unittest.TestCase()
     assert jira_doc.parent_issue == expected_parent_issue
     assert jira_doc.child_issues == expected_child_issues
+
+
+MOCK_SUMMARY = "Summary"
+MOCK_DESCRIPTION = "Description"
 
 
 class TestDuplicateGraphResolver(unittest.TestCase):
@@ -218,23 +225,23 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         magic_mock_jira_dal.get_issue.return_value = parent_issue
         magic_mock_jira_dal.create_bug_issue.return_value = "parent_key"
 
-        magic_mock_tutors_dal = MagicMock()
-        magic_mock_tutors_dal.generate_summary.return_value = (
-            "Parent Issue",
-            "AI description",
+        mock_parent_summary_generator.generate_summary_and_description.return_value = (
+            MOCK_SUMMARY,
+            MOCK_DESCRIPTION,
         )
 
         duplicate_graph_resolver = DuplicateGraphResolver(
-            mock_es_dal, magic_mock_jira_dal, magic_mock_tutors_dal
+            mock_es_dal, magic_mock_jira_dal, mock_parent_summary_generator
         )
         duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
+        expected_summary = f"[Parent] {MOCK_SUMMARY}"
         expected_description = {
             "type": "doc",
             "version": 1,
             "content": [
                 {
                     "type": "paragraph",
-                    "content": [{"type": "text", "text": "AI description\n\n"}],
+                    "content": [{"type": "text", "text": f"{MOCK_DESCRIPTION}\n\n"}],
                 },
                 {
                     "type": "paragraph",
@@ -272,7 +279,7 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         }
         magic_mock_jira_dal.update_issue.assert_any_call(
             "parent_key",
-            summary="[Parent] Parent Issue",
+            summary=expected_summary,
             description=expected_description,
             feature="shake",
             priority="High",
@@ -288,7 +295,7 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
         magic_mock_jira_dal.update_issue.assert_any_call(
             "parent_key",
-            summary="[Parent] Parent Issue",
+            summary=expected_summary,
             description=expected_description,
             feature="shake",
             priority="High",

@@ -47,6 +47,7 @@ const Topbar = () => {
   const filter = search.get("filter");
   const query = search.get("q") ?? "";
   const team = search.get("team");
+  const onlyBugs = (search.get("only-bugs") ?? "true") === "true";
   const useLemmas = search.get("use-lemmas") === "true";
 
   const { from, to } = useDateRangeFilter({
@@ -151,6 +152,13 @@ const Topbar = () => {
     applyFilters(params);
   };
 
+  const handleOnlyBugsChange = () => {
+    const params = new URLSearchParams(location.search);
+    params.set("only-bugs", (!onlyBugs).toString());
+    params.delete("page");
+    applyFilters(params);
+  };
+
   const handleHamburgerClick = () => dispatch?.({ type: "TOGGLE_MENU" });
 
   const handleSearchInputChange = (e: SearchInputChangeEvent) => {
@@ -250,6 +258,14 @@ const Topbar = () => {
             className={styles["hide-on-mobile"]}
             onChange={handleUseLemmasChange}
             title="Use lemmas: "
+          />
+        ) : null}
+        {isSpikePage ? (
+          <LabelledToggle
+            checked={onlyBugs}
+            className={styles["hide-on-mobile"]}
+            onChange={handleOnlyBugsChange}
+            title="Only bugs: "
           />
         ) : null}
         {isAnalysisPage || isSpikePage || isSpikeStatsPage ? (

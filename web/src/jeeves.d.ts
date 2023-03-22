@@ -105,10 +105,12 @@ declare namespace JSONAPI {
 
   interface SpikeWord {
     confirmed: boolean;
+    is_bug: boolean;
     score: number;
-    word: string;
     spike_id: string;
+    summary: string;
     user_id?: number;
+    word: string;
   }
 
   interface SpikeWordStats {

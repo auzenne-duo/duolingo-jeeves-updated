@@ -15,6 +15,8 @@ class TestSpikeWord(unittest.TestCase):
             spike_group=SpikeCategory.ALL_SPIKES,
             confirmed=False,
             user_id=10,
+            summary="summary",
+            is_bug=True,
         )
 
     def test_from_dict(self):
@@ -26,6 +28,8 @@ class TestSpikeWord(unittest.TestCase):
             "spike_group": "ALL_SPIKES",
             "confirmed": True,
             "user_id": 10,
+            "summary": "summary",
+            "is_bug": True,
         }
 
         result = SpikeWord.from_dict(testDict)
@@ -37,6 +41,8 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
         self.assertEqual(result.confirmed, True)
         self.assertEqual(result.user_id, 10)
+        self.assertEqual(result.summary, "summary")
+        self.assertEqual(result.is_bug, True)
 
     def test_from_dict_no_confirmed(self):
         testDict = {
@@ -56,6 +62,8 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
         self.assertEqual(result.confirmed, False)
         self.assertEqual(result.user_id, None)
+        self.assertEqual(result.summary, None)
+        self.assertEqual(result.is_bug, None)
 
     def test_to_dict(self):
         result = self.testObj.to_dict()
@@ -70,6 +78,8 @@ class TestSpikeWord(unittest.TestCase):
                 "spike_group": "ALL_SPIKES",
                 "confirmed": False,
                 "user_id": 10,
+                "summary": "summary",
+                "is_bug": True,
             },
         )
 

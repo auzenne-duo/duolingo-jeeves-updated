@@ -16,6 +16,7 @@ const Spike = () => {
   const search = useSearchParams();
 
   const filter = search.get("filter") ?? "ALL_SPIKES";
+  const onlyBugs = (search.get("only-bugs") ?? "true") === "true";
 
   const { data } = useQuery(
     ["spikes", { filter, from, lang, to }],
@@ -41,6 +42,7 @@ const Spike = () => {
           key={i}
           language={lang}
           linkFilter={spikeToStrCategory(filter)}
+          onlyBugs={onlyBugs}
           spikeCategory={filter}
           spikes={o.spikes}
         />

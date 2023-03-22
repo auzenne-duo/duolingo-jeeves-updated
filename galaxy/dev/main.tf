@@ -266,6 +266,17 @@ module "duolingo-jeeves-spike-worker" {
   container_definition = "spike-worker.json"
   schedule_expression  = "rate(15 minutes)"
   release_version      = var.release_version
+
+  secrets = [
+    {
+      name  = "DUOLINGO_USERNAME"
+      value = "DUOLINGO_USERNAME/000001"
+    },
+    {
+      name  = "DUOLINGO_PASSWORD"
+      value = "DUOLINGO_PASSWORD/000000"
+    }
+  ]
 }
 
 module "duolingo-jeeves-email-sender" {

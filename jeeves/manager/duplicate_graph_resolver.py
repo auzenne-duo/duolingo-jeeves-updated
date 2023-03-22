@@ -12,8 +12,8 @@ from duolingo_base.util import registry
 
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
-from jeeves.dal.tutors_dal import TutorsApiDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
+from jeeves.manager.parent_summary_manager import ParentSummaryManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
@@ -29,14 +29,19 @@ from jeeves.util.parent_jira_issue_util import (
 @registry.bind(
     es_dal=registry.reference(ElasticsearchDAL),
     jira_dal=registry.reference(JiraApiDAL),
-    tutors_dal=registry.reference(TutorsApiDAL),
+    parent_summary_manager=registry.reference(ParentSummaryManager),
 )
 class DuplicateGraphResolver:
-    def __init__(self, es_dal: ElasticsearchDAL, jira_dal: JiraApiDAL, tutors_dal: TutorsApiDAL):
+    def __init__(
+        self,
+        es_dal: ElasticsearchDAL,
+        jira_dal: JiraApiDAL,
+        parent_summary_manager: ParentSummaryManager,
+    ):
         self._es_dal = es_dal
         self._jira_dal = jira_dal
         self._jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
-        self._tutors_dal = tutors_dal
+        self._parent_summary_manager = parent_summary_manager
 
     def get_duplicate_graph(
         self, issue_keys: List[str], key_to_doc: Dict[str, JiraDocument] = None
@@ -212,14 +217,22 @@ class DuplicateGraphResolver:
                 any_failure = True
                 result_list.append(f"F {outward_end} {inward_end}\n")
 
-        headers = [doc.header_text for doc in duplicate_graph.issue_keys_to_documents.values()]
+        children_docs = [
+            doc
+            for doc in duplicate_graph.issue_keys_to_documents.values()
+            if not JiraDocument.is_group_parent(doc)
+        ]
+        headers = [doc.header_text for doc in children_docs]
         # Remove shake-to-report metadata and parent issue description from the descriptions
         # before sending to AI.
         descriptions = [
             strip_parent_description(extract_duolingo_metadata(doc.body_text)[0])
-            for doc in duplicate_graph.issue_keys_to_documents.values()
+            for doc in children_docs
         ]
-        ai_summary, ai_description = self._tutors_dal.generate_summary(headers, descriptions)
+        (
+            ai_summary,
+            ai_description,
+        ) = self._parent_summary_manager.generate_summary_and_description(headers, descriptions)
         # Prepend [Parent] to the summary so that it's clear that this is a parent issue.
         # and [Parent] not already in the summary
         if "[Parent]" not in ai_summary:

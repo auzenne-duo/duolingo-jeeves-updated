@@ -1,6 +1,29 @@
+@use "constants" as *;
+
+.summary {
+  display: none;
+
+  @media (min-width: $width-ipad) {
+    display: block;
+  }
+}
+
 .table {
   table-layout: fixed;
   width: 100%;
+
+  @media (min-width: $width-ipad) {
+    table-layout: auto;
+
+    td:first-child {
+      width: 100px;
+    }
+
+    td:last-child {
+      min-width: 220px;
+      width: 20%;
+    }
+  }
 
   td {
     word-break: break-all;

@@ -6,6 +6,7 @@ import time
 import timeit
 from collections import defaultdict
 from datetime import date, datetime, time
+from random import shuffle
 from typing import Dict, List, Optional, Union
 
 import numpy as np
@@ -14,6 +15,7 @@ from jeeves import registry as app_registry
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
+from jeeves.dal.tutors_dal import TutorsDAL
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
@@ -29,6 +31,18 @@ from jeeves.util.error_util import SpikeDetectorException
 SPIKE_EXCLUDE_WORDS_REGISTRY_KEY = "spike_exclude_words"
 SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
 STR_SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
+SPIKE_SUMMARIZER_SYSTEM_PROMPT = f"""
+Duolingo users can report bugs and feature requests as issues.
+Each issue has a title which summarizes the issue and a description with more detail.
+When given a list of issues, you will summarize the most common topic
+and predict whether the issues are about a bug in the app.
+An issue is a bug when it's about the app not working as expected, such as
+"Issues with quest tracking and badge progress" or "I can't log in".
+An issue is not a bug when it's about a feature request or something outside of the app, such as
+"I want to be able to change my username" or "I love duolingo".
+The response shold be of the form:
+    SUMMARY: summary of the most common topic in ten words or less
+    IS_BUG: True or False depending on whether the issues are about a bug""".strip()
 
 
 def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
@@ -272,6 +286,30 @@ def _find_spiked_words(
     result = []
     for score, word in score_word_pairs:
         if not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD:
+            target_datetime = datetime(target_dt.year, target_dt.month, target_dt.day)
+            search_result = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
+                lang,
+                word,
+                target_datetime,
+                target_datetime,
+                spike_category=spike_group,
+                use_lemmas=True,
+            )
+            docs = search_result["data"]
+            # we will then pass the text of up to 20 random documents to chatgpt to get a summary of the issue
+            shuffle(docs)
+            prompt = "\n".join(
+                [f"Title: {doc.header_text}\nDescription: {doc.body_text}\n" for doc in docs[:20]]
+            )
+
+            response = app_registry(TutorsDAL).ask(SPIKE_SUMMARIZER_SYSTEM_PROMPT, prompt)
+            if response:
+                summary = response.split("\n")[0].split("SUMMARY:")[1].strip()
+                is_bug = (response.split("IS_BUG:")[1].strip()) == "True"
+            else:
+                summary = ""
+                is_bug = True
+
             spike_word = SpikeWord(
                 word=word,
                 score=score,
@@ -279,6 +317,8 @@ def _find_spiked_words(
                 lang=lang,
                 spike_group=spike_group,
                 confirmed=False,
+                summary=summary,
+                is_bug=is_bug,
             )
             # check if spike word has been confirmed
             prev_spike = app_registry(SpikeIndexDAL).get_spike_by_id(spike_word.get_spike_id())

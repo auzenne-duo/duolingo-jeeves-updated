@@ -14,6 +14,7 @@
     "environment": [
         {"name": "PYTHONPATH", "value": "/code"}
     ],
+    "secrets": ${secrets},
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {

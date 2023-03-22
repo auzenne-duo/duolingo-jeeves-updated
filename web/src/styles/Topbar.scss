@@ -37,7 +37,7 @@
   composes: filters;
 
   @media (min-width: $width-ipad) {
-    grid-template-columns: min-content min-content;
+    grid-template-columns: min-content min-content min-content;
     margin-left: auto;
   }
 }
