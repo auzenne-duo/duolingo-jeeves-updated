@@ -69,11 +69,6 @@ ENV PRIORITY_ESTIMATOR_MODEL=/opt/jeeves/priority_estimator_model/
 ENV PRIORITY_ESTIMATOR_REMOTE_PATH="$S3_FILE_STORAGE/priority_estimator_model"
 RUN aws s3 sync "$PRIORITY_ESTIMATOR_REMOTE_PATH" $PRIORITY_ESTIMATOR_MODEL
 
-# Import jeeves document classifier
-ENV JEEVES_DOCUMENT_CLASSIFIER=/opt/jeeves/document_classifier/
-ENV JEEVES_DOCUMENT_CLASSIFIER_REMOTE_PATH="$S3_FILE_STORAGE/jeeves_document_classifier"
-RUN aws s3 sync "$JEEVES_DOCUMENT_CLASSIFIER_REMOTE_PATH" $JEEVES_DOCUMENT_CLASSIFIER
-
 COPY . .
 COPY --from=web-builder /code/dist ./web/dist
 

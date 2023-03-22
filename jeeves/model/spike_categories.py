@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date
 from enum import Enum, auto
 from typing import Callable, Dict, List, Optional
 
@@ -7,8 +7,6 @@ from elasticsearch_dsl import Search
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
 from jeeves.util.date_util import str_to_date
-
-ALL_SOURCES_BUG_REPORTS_START_DATE = datetime(2023, 1, 11, tzinfo=timezone.utc)
 
 
 class SpikeCategory(Enum):
@@ -20,7 +18,6 @@ class SpikeCategory(Enum):
         self.display_name = display_name if display_name else self.name
 
     ALL_SPIKES = auto(), "All feedback"
-    ALL_SOURCES_BUG_REPORTS = auto(), "All sources bug reports"
     EXTERNAL_STR_SPIKES = auto(), "Beta feedback"
     INTERNAL_STR_SPIKES = auto(), "Admin reports"
     ALL_STR_SPIKES = auto(), "All dogfooding"
@@ -193,8 +190,6 @@ class SpikeCategory(Enum):
             )
             and (deprecated_date is None or doc.date_time.date() <= deprecated_date),
             cls.ALL_SPIKES: lambda doc: True,
-            cls.ALL_SOURCES_BUG_REPORTS: lambda doc: doc.is_bug
-            and doc.date_time >= ALL_SOURCES_BUG_REPORTS_START_DATE,
         }
         return category_to_predicate[group_category]
 
@@ -249,13 +244,6 @@ class SpikeCategory(Enum):
                 "term", duolingo_metadata__user_information__ios_v2_dev=True
             ).filter("range", date_time=timestamp_dict),
             cls.ALL_SPIKES: lambda s: s,
-            cls.ALL_SOURCES_BUG_REPORTS: lambda s: s.filter("term", is_bug=True).filter(
-                "range",
-                date_time={
-                    "gte": ALL_SOURCES_BUG_REPORTS_START_DATE,
-                    "time_zone": "America/New_York",
-                },
-            ),
         }
         return category_to_query[group_category]
 
@@ -302,10 +290,3 @@ class SpikeCategory(Enum):
 
         category_to_query: Dict[SpikeCategory, str] = {cls.ALL_SPIKES: {}}
         return category_to_query.get(group_category, {})
-
-    @classmethod
-    def is_use_baselines_disabled(cls, group_category: "SpikeCategory") -> bool:
-        """
-        Returns whether of not baselines should be used for the given spike category during spike detection.
-        """
-        return group_category in [SpikeCategory.ALL_SOURCES_BUG_REPORTS]

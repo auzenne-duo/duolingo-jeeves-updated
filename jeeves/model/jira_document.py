@@ -221,7 +221,6 @@ class JiraDocument(JeevesDocument):
             date_time=parse_external_datetime(external_fields["created"]),
             header_text=external_fields["summary"],
             body_text=body_text,
-            is_bug=True,
             language=SUPPORTED_LANGUAGES.filter_misc_languages(
                 detect_language(body_text if body_text else external_fields["summary"])
             ),
@@ -314,7 +313,6 @@ class JiraDocument(JeevesDocument):
             else internal_json["date_time"],
             header_text=internal_json["header_text"],
             body_text=internal_json["body_text"],
-            is_bug=internal_json.get("is_bug", True),
             language=internal_json["language"],
             links=internal_json["links"],
             shake_to_report_category=ShakeToReportCategory[
