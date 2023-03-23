@@ -197,7 +197,7 @@ class JiraFeatureManager:
 
         suggested_features = []
         for session_end_screen_label in ["Session end screen name: ", "Session End Screen Name: "]:
-            if session_end_screen_label in generated_description:
+            if generated_description and session_end_screen_label in generated_description:
                 screen_name = (
                     generated_description.split(session_end_screen_label)[1]
                     .split("\n")[0]

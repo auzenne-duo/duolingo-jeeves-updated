@@ -194,6 +194,14 @@ test_cases = [
         ["Lesson complete session end"],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
+    # no generated description.
+    (
+        "",
+        "",
+        None,
+        [],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
 ]
 
 
