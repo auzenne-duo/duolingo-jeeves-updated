@@ -327,3 +327,34 @@ JIRA_FEATURES_DESCRIPTIONS = {
 }
 
 JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY = "jira_features_descriptions"
+
+SESSION_END_SCREEN_TO_FEATURE = {
+    "sessionComplete": "Lesson complete session end",
+    "completion_screen": "Lesson complete session end",
+    "streak_extended": "Streak",
+    "daily_quest_reward": "Daily Quests",
+    "variable_chest_reward": "Daily Quests",
+    "monthly_challenge_progress": "Monthly Goal",
+    "streakExtended": "Streak",
+    "doubleChestGemReward": "Daily Quests",
+    "dailyQuestComplete": "Daily Quests",
+    "league_rank_increase": "Leaderboards",
+    "leaderboardRankIncreaseSmall": "Leaderboards",
+    "new_streak_challenge_offer": "Streak",
+    "interstitial_ad": "Ads / rewarded ads",
+    "leaderboardMoveUpPrompt": "Leaderboards",
+    "dailyQuestFirst": "Daily Quests",
+    "juicy_native_ad": "Ads / rewarded ads",
+    "monthly_goal_progress": "Monthly Goal",
+    "monthlyGoal": "Monthly Goal",
+    "daily_quest_passed_fifty_percent": "Daily Quests",
+    "storyComplete": "Path",
+    "early_bird_reward": "Early Bird / Night Owl Chests",
+    "heart_refilled_vc": "Hearts / Unlimited Hearts",
+    "ramp_up_end": "Ramp-up challenge",
+    "monthlyChallengeComplete": "Monthly Goal",
+    "achievementUnlocked": "Achievements",
+    "rampUpSessionEndPromo": "Ramp-up challenge",
+}
+
+SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY = "session_end_screen_to_feature"

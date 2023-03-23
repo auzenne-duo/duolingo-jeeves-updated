@@ -44,9 +44,13 @@ mock_substrings_to_ignore_by_term = {
     "SHAKE-TO-REPORT": ["REPORTED WITH SHAKE-TO-REPORT"],
 }
 
+mock_session_end_screen_to_feature = {
+    "sessionComplete": "Lesson complete session end",
+}
+
 
 def test_get_features_v1():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {})
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {}, {})
     actual_result = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
 
     case = unittest.TestCase()
@@ -70,7 +74,7 @@ def test_get_features_v1():
 
 
 def test_get_features_by_team_and_area():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {})
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {}, {})
     actual_result = feature_manager.get_features_by_team_and_area()
 
     assert actual_result == [
@@ -182,6 +186,14 @@ test_cases = [
         [],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
+    # session end screen is detected.
+    (
+        "",
+        "",
+        "some lines of text\nSession End Screen Name: sessionComplete\n\nother stuff: things",
+        ["Lesson complete session end"],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
 ]
 
 
@@ -195,6 +207,7 @@ def test_get_suggested_features(
         mock_jira_client,
         mock_jira_features,
         mock_jira_features_descriptions,
+        mock_session_end_screen_to_feature,
         mock_substrings_to_ignore_by_term,
     )
     actual_result = feature_manager.get_suggested_features(
@@ -227,7 +240,7 @@ def test_feature_filtering():
     }
 
     feature_manager = JiraFeatureManager(
-        mock_filtered_jira_client, mock_filtered_jira_features, {}, {}
+        mock_filtered_jira_client, mock_filtered_jira_features, {}, {}, {}
     )
     case = unittest.TestCase()
 

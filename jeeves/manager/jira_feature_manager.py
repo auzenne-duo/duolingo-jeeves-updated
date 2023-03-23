@@ -7,6 +7,7 @@ from duolingo_base.util import registry
 from jeeves.config.jira_features import (
     JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY,
     JIRA_FEATURES_REGISTRY_KEY,
+    SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY,
 )
 from jeeves.manager.shakira import _SHAKIRA_FEATURES_TO_SLACK_CHANNEL
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
@@ -46,6 +47,7 @@ SUBSTRINGS_TO_IGNORE_REGISTRY_KEY = "substrings_to_ignore_by_term"
     jira_client=registry.reference(ShakiraJiraApiClient),
     features_config=registry.reference(JIRA_FEATURES_REGISTRY_KEY),
     descriptions_config=registry.reference(JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY),
+    session_end_screen_to_feature=registry.reference(SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY),
     substrings_to_ignore_by_term=registry.reference(SUBSTRINGS_TO_IGNORE_REGISTRY_KEY),
 )
 class JiraFeatureManager:
@@ -54,6 +56,7 @@ class JiraFeatureManager:
         jira_client: ShakiraJiraApiClient,
         features_config: Dict[str, Dict[str, Dict[str, List[str]]]],
         descriptions_config: Dict[str, str],
+        session_end_screen_to_feature: Dict[str, str],
         substrings_to_ignore_by_term: Dict[str, List[str]],
     ):
         """
@@ -79,6 +82,7 @@ class JiraFeatureManager:
         self._feature_to_synonyms = self._get_feature_to_synonyms_mapping()
         self._uppercase_term_to_feature = self._get_uppercase_term_to_feature_mapping()
         self._feature_to_description = descriptions_config
+        self._session_end_screen_to_feature = session_end_screen_to_feature
         self._substrings_to_ignore_by_term = substrings_to_ignore_by_term
 
     def _get_feature_to_synonyms_mapping(self) -> Dict[str, List[str]]:
@@ -189,33 +193,49 @@ class JiraFeatureManager:
         """
         # Implement fingerprint if we need better performance
 
-        search_text_uppercase = summary.upper()
-        if description:
-            search_text_uppercase = search_text_uppercase + "\n" + description.upper()
-        if generated_description:
-            search_text_uppercase = search_text_uppercase + "\n" + generated_description.upper()
-
-        feature_count = Counter()
-        # Note: this counts substrings that are parts of words
-        for term, feature in self._uppercase_term_to_feature.items():
-            search_text_uppercase_clean = search_text_uppercase
-            substrings_to_ignore = self._substrings_to_ignore_by_term.get(term)
-            if substrings_to_ignore is not None and len(substrings_to_ignore) > 0:
-                for substring in substrings_to_ignore:
-                    search_text_uppercase_clean = search_text_uppercase_clean.replace(substring, "")
-
-            feature_count[feature] += search_text_uppercase_clean.count(term)
-
-        sorted_features_to_counts = sorted(
-            feature_count.items(), key=operator.itemgetter(1), reverse=True
-        )
         valid_features = self._get_valid_features(projects)
-        sorted_and_filtered_features = [
-            feature
-            for (feature, count) in sorted_features_to_counts
-            if count > 0 and feature in valid_features
-        ]
-        suggested_features = sorted_and_filtered_features[:3]
+
+        suggested_features = []
+        for session_end_screen_label in ["Session end screen name: ", "Session End Screen Name: "]:
+            if session_end_screen_label in generated_description:
+                screen_name = (
+                    generated_description.split(session_end_screen_label)[1]
+                    .split("\n")[0]
+                    .split(" ")[0]
+                )
+                if screen_name in self._session_end_screen_to_feature:
+                    suggested_features.append(self._session_end_screen_to_feature[screen_name])
+
+        if not suggested_features:
+            search_text_uppercase = summary.upper()
+            if description:
+                search_text_uppercase = search_text_uppercase + "\n" + description.upper()
+            if generated_description:
+                search_text_uppercase = search_text_uppercase + "\n" + generated_description.upper()
+
+            feature_count = Counter()
+            # Note: this counts substrings that are parts of words
+            for term, feature in self._uppercase_term_to_feature.items():
+                search_text_uppercase_clean = search_text_uppercase
+                substrings_to_ignore = self._substrings_to_ignore_by_term.get(term)
+                if substrings_to_ignore is not None and len(substrings_to_ignore) > 0:
+                    for substring in substrings_to_ignore:
+                        search_text_uppercase_clean = search_text_uppercase_clean.replace(
+                            substring, ""
+                        )
+
+                feature_count[feature] += search_text_uppercase_clean.count(term)
+
+            sorted_features_to_counts = sorted(
+                feature_count.items(), key=operator.itemgetter(1), reverse=True
+            )
+
+            sorted_and_filtered_features = [
+                feature
+                for (feature, count) in sorted_features_to_counts
+                if count > 0 and feature in valid_features
+            ]
+            suggested_features = sorted_and_filtered_features[:3]
         other_features = [
             feature for feature in valid_features if feature not in suggested_features
         ]
