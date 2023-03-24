@@ -251,6 +251,7 @@ JIRA_FEATURES = {
             "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
             "Shake-to-report": ["shakira", "bug report", "shake to report"],
             "Offline support": ["prefetch", "offlin", "zombie", "airplane"],
+            "DuoShorts": ["duo shorts"],
         },
         "None": {
             "Progress Bar": [],
