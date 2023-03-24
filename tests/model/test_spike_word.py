@@ -63,7 +63,7 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.confirmed, False)
         self.assertEqual(result.user_id, None)
         self.assertEqual(result.summary, None)
-        self.assertEqual(result.is_bug, None)
+        self.assertEqual(result.is_bug, True)
 
     def test_to_dict(self):
         result = self.testObj.to_dict()

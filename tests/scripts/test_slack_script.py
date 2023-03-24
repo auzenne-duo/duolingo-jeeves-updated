@@ -69,7 +69,7 @@ class TestSlackScript(unittest.TestCase):
                         {"type": "mrkdwn", "text": "*Spikiness*"},
                         {
                             "type": "mrkdwn",
-                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duo>",
+                            "text": "*<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duo>*",
                         },
                         {"type": "plain_text", "text": "10.0"},
                     ],
@@ -111,14 +111,50 @@ class TestSlackScript(unittest.TestCase):
                         {"type": "mrkdwn", "text": "*Spikiness*"},
                         {
                             "type": "mrkdwn",
-                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duo>",
+                            "text": "*<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duo>*",
                         },
                         {"type": "plain_text", "text": "10.0"},
                         {
                             "type": "mrkdwn",
-                            "text": "<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duolingo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duolingo>",
+                            "text": "*<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duolingo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duolingo>*",
                         },
                         {"type": "plain_text", "text": "9.1"},
+                    ],
+                },
+            ],
+        )
+
+    def test_generate_slack_message_for_spike_words_with_summary(self):
+        testObj1 = SpikeWord(
+            word="duo",
+            score=10,
+            date="2022-01-01",
+            lang="en",
+            spike_group=SpikeCategory.EXTERNAL_NON_STR_SPIKES,
+            summary="test summary",
+        )
+
+        result = generate_slack_message(SpikeCategory.EXTERNAL_NON_STR_SPIKES, [testObj1])
+        self.assertEqual(
+            result,
+            [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*Here is the top 1 trending word we saw in customer feedback for {get_yesterdays_date()}:*",
+                    },
+                },
+                {
+                    "type": "section",
+                    "fields": [
+                        {"type": "mrkdwn", "text": "*Word*"},
+                        {"type": "mrkdwn", "text": "*Spikiness*"},
+                        {
+                            "type": "mrkdwn",
+                            "text": "*<https://jeeves.duolingo.com/en/analysis?filter=NON_STR_EXTERNAL&q=duo&use-lemmas=true&spike-category=EXTERNAL_NON_STR_SPIKES|duo>*\ntest summary",
+                        },
+                        {"type": "plain_text", "text": "10.0"},
                     ],
                 },
             ],

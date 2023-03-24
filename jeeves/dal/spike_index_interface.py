@@ -243,7 +243,12 @@ class SpikeIndexDAL:
         }
 
     def yield_spikes_on_date(
-        self, lang: str, date_str: str, num_spikes: int, spike_group: SpikeCategory
+        self,
+        lang: str,
+        date_str: str,
+        num_spikes: int,
+        spike_group: SpikeCategory,
+        only_bugs: bool = False,
     ) -> Iterator[SpikeWord]:
         """
         Yields all spikes for a given language, from a particular date.
@@ -268,6 +273,7 @@ class SpikeIndexDAL:
             end_date=date_str,
             spike_group=spike_group.name,
             num_spikes=num_spikes,
+            only_bugs=only_bugs,
         )
 
     def yield_spikes_in_date_range(
@@ -277,6 +283,7 @@ class SpikeIndexDAL:
         end_date: str,
         spike_group: Optional[str] = "ALL_SPIKES",
         num_spikes: Optional[int] = None,
+        only_bugs: bool = False,
     ) -> Iterator[SpikeWord]:
         """
         Yields all spikes for a given language, between two dates
@@ -308,6 +315,9 @@ class SpikeIndexDAL:
             timestamp_dict["lte"] = end_date
         if timestamp_dict:
             s = s.filter("range", date=timestamp_dict)
+
+        if only_bugs:
+            s = s.filter("term", is_bug=True)
 
         if num_spikes is not None:
             s = s[0:num_spikes]

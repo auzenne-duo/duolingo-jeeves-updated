@@ -28,7 +28,7 @@ class SpikeWord:
             confirmed=spike_dict["confirmed"] if "confirmed" in spike_dict else False,
             user_id=spike_dict["user_id"] if "user_id" in spike_dict else None,
             summary=spike_dict["summary"] if "summary" in spike_dict else None,
-            is_bug=spike_dict["is_bug"] if "is_bug" in spike_dict else None,
+            is_bug=spike_dict["is_bug"] if "is_bug" in spike_dict else True,
         )
 
     def to_dict(self) -> Dict[str, Union[float, str]]:

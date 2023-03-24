@@ -31,8 +31,7 @@ _SLACK_API_TOKEN = os.environ.get("SPIKE_REPORTER_SLACK_API_TOKEN")
 _SPIKE_CATEGORY_TO_SLACK_CHANNELS = {
     SpikeCategory.EXTERNAL_NON_STR_SPIKES: [SlackChannel.BUG_TRIAGE, SlackChannel.JEEVES],
     SpikeCategory.EXTERNAL_STR_SPIKES: [SlackChannel.TEAM_QA, SlackChannel.JEEVES],
-    SpikeCategory.IOS_UNIT_TEST_REFACTOR: [SlackChannel.POST_TEST_RESULTS],
-    SpikeCategory.POSEIDON_IOS_ROW_BLASTER: [SlackChannel.POST_TEST_RESULTS],
+    SpikeCategory.ALL_SPIKES: [SlackChannel.POST_TEST_RESULTS],
 }
 # Messages for every spike category will only be sent to this channel from the dev environment.
 _DEV_SLACK_CHANNEL = SlackChannel.POST_TEST_RESULTS
@@ -41,8 +40,6 @@ _DEV_SLACK_CHANNEL = SlackChannel.POST_TEST_RESULTS
 _SPIKE_CATEGORY_TO_SLACK_FRIENDLY_NAME = {
     SpikeCategory.EXTERNAL_NON_STR_SPIKES: "customer feedback",
     SpikeCategory.EXTERNAL_STR_SPIKES: "beta user feedback",
-    SpikeCategory.IOS_UNIT_TEST_REFACTOR: "ios unit test refactor dogfooding feedback",
-    SpikeCategory.POSEIDON_IOS_ROW_BLASTER: "poseidon row blaster dogfooding feedback",
 }
 
 # Mapping from spike category to days of the week that spikes should be reported on
@@ -70,6 +67,7 @@ def get_top_spikes_yesterday(spike_category: SpikeCategory) -> List[SpikeWord]:
             get_yesterdays_date(),
             num_spikes_to_list,
             spike_category,
+            only_bugs=False,
         )
     )
     return spikes_yesterday
@@ -98,9 +96,10 @@ def get_jeeves_analysis_url_for_spike_word(spike_word: SpikeWord):
 def spike_to_fields_array(spike: SpikeWord):
     jeeves_analysis_url = get_jeeves_analysis_url_for_spike_word(spike)
 
-    spike_word_link = f"<{jeeves_analysis_url}|{spike.word}>"
+    spike_word_link = f"*<{jeeves_analysis_url}|{spike.word}>*"
+    summary_line = "\n" + spike.summary if spike.summary else ""
     return [
-        {"type": "mrkdwn", "text": spike_word_link},
+        {"type": "mrkdwn", "text": f"{spike_word_link}{summary_line}"},
         {"type": "plain_text", "text": f"{spike.score:.1f}"},
     ]
 
