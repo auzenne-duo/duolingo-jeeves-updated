@@ -41,7 +41,7 @@ An issue is a bug when it's about the app not working as expected, such as
 An issue is not a bug when it's about a feature request or something outside of the app, such as
 "I want to be able to change my username" or "I love duolingo".
 The response shold be of the form:
-    SUMMARY: summary of the most common topic in ten words or less
+    SUMMARY: summary of the most common topic in three sentences or less
     IS_BUG: True or False depending on whether the issues are about a bug""".strip()
 
 
