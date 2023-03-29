@@ -202,6 +202,11 @@ JIRA_FEATURES = {
             "Schools": [],
         },
     },
+    "New Apps": {
+        "Mega": {
+            "Mega": ["math", "music", "app promo", "accelerator"],
+        },
+    },
     "Product Quality": {
         "Delight": {
             "Callouts": [
