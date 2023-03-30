@@ -24,7 +24,9 @@ _config = Config.load_config()
 _config.apply_logging()
 _config.apply_rollbar()
 
-_UNSUBSCRIBED = []
+_UNSUBSCRIBED = [
+    "jake@duolingo.com",
+]
 
 _TEMPLATE_DIR = "templates/bug_digest/email/"
 
