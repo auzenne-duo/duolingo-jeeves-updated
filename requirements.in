@@ -20,9 +20,34 @@ matplotlib==3.7.0
 markdown==3.3.7
 networkx==3.0
 numpy
+opentelemetry-api==1.13.0
+opentelemetry-distro==0.34b0
+opentelemetry-exporter-otlp==1.13.0
+opentelemetry-exporter-otlp-proto-grpc==1.13.0
+opentelemetry-exporter-otlp-proto-http==1.13.0
+opentelemetry-exporter-jaeger==1.13.0
+opentelemetry-instrumentation-aws-lambda==0.34b0
+opentelemetry-instrumentation-dbapi==0.34b0
+opentelemetry-instrumentation-logging==0.34b0
+opentelemetry-instrumentation-sqlite3==0.34b0
+opentelemetry-instrumentation-urllib==0.34b0
+opentelemetry-instrumentation-wsgi==0.34b0
+opentelemetry-instrumentation-boto3sqs==0.34b0
+opentelemetry-instrumentation-botocore==0.34b0
+opentelemetry-instrumentation-elasticsearch==0.34b0
+opentelemetry-instrumentation-flask==0.34b0
+opentelemetry-instrumentation-jinja2==0.34b0
+opentelemetry-instrumentation-pymemcache==0.34b0
+opentelemetry-instrumentation-redis==0.34b0
+opentelemetry-instrumentation-requests==0.34b0
+opentelemetry-instrumentation-sklearn==0.34b0
+opentelemetry-instrumentation-urllib3==0.34b0
+opentelemetry-propagator-jaeger==1.13.0
+opentelemetry-sdk==1.13.0
+opentelemetry-util-http==0.34b0
 pandas==1.1.5
 pillow==8.4.0
-protobuf==3.18.1 # otherwise duolingo-notify > duolingo-proto bumps it to 3.20.1 which is too high
+protobuf==3.19.5 # otherwise duolingo-notify > duolingo-proto bumps it to 3.20.1 which is too high
 pydyf==0.1.2
 pyphen==0.11.0
 pystache

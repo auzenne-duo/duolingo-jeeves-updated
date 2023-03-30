@@ -16,6 +16,20 @@ RUN rm -rf dist && \
 
 FROM ubuntu:20.04
 
+# Opentelemetry Configuration
+ENV OTEL_LOGS_EXPORTER none
+ENV OTEL_METRICS_EXPORTER none
+ENV OTEL_TRACES_EXPORTER otlp,console
+ENV OTEL_EXPORTER_OTLP_ENDPOINT 172.17.0.1:4317
+ENV OTEL_EXPORTER_OTLP_INSECURE true
+ENV OTEL_EXPORTER_OTLP_PROTOCOL grpc
+ENV OTEL_EXPORTER_OTLP_TIMEOUT 1
+ENV OTEL_SERVICE_NAME jeeves
+ENV OTEL_TRACES_SAMPLER parentbased_traceidratio
+ENV OTEL_TRACES_SAMPLER_ARG 1
+ENV OTEL_PROPAGATORS tracecontext,baggage,jaeger
+
+
 ENV INSTALL_PATH /code
 ENV DEV_REQ_TXT dev-requirements.txt
 ENV PYTHONIOENCODING UTF-8
@@ -74,4 +88,4 @@ COPY --from=web-builder /code/dist ./web/dist
 
 EXPOSE 5000
 
-CMD ["uwsgi", "uwsgi_dev.ini"]
+CMD ["opentelemetry-instrument",  "uwsgi", "uwsgi_dev.ini"]
