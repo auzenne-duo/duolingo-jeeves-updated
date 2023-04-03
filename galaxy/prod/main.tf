@@ -267,7 +267,7 @@ module "duolingo-jeeves-sqs-worker-2" {
   ]
 
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-verify-index.id
-  scale_out_sqs       = 2500
+  scale_out_sqs       = 2000
   scale_out_count_sqs = 16
 
   warning_alarm_actions   = [aws_sns_topic.warning.arn]
