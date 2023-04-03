@@ -171,8 +171,7 @@ def get_spike_data(lang):
     for spike in app_registry(SpikeIndexDAL).yield_spikes_in_date_range(
         lang, start_date, end_date, spike_category
     ):
-        if spike.date not in stored_spikes:
-            stored_spikes[spike.date] = {"spike": []}
+        stored_spikes.setdefault(spike.date, {"spike": []})
         stored_spikes[spike.date]["spike"].append(
             {
                 "score": spike.score,
@@ -182,6 +181,9 @@ def get_spike_data(lang):
                 "user_id": spike.user_id,
                 "summary": spike.summary,
                 "is_bug": spike.is_bug,
+                "experiment_spikes": [
+                    {"experiment": k, "score": v} for k, v in spike.experiment_spikes.items()
+                ],
             }
         )
     for day in stored_spikes:

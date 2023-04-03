@@ -7,9 +7,9 @@ mock_requests = MagicMock()
 
 
 @patch("jeeves.dal.monolith_dal.requests", mock_requests)
-class TestElasticSearchInterface(unittest.TestCase):
+class TestMonolithDAL(unittest.TestCase):
     def __init__(self, *args, **kwargs):
-        super(TestElasticSearchInterface, self).__init__(*args, **kwargs)
+        super(TestMonolithDAL, self).__init__(*args, **kwargs)
         self.dal = MonolithDAL()
 
     def test_get_user_by_email_or_username(self):

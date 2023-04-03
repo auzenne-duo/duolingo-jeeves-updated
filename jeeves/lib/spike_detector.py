@@ -14,6 +14,7 @@ import numpy as np
 from jeeves import registry as app_registry
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.metrics_dal import MetricsDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.dal.tutors_dal import TutorsDAL
 from jeeves.model.jeeves_document import JeevesDocument
@@ -310,6 +311,12 @@ def _find_spiked_words(
                 summary = ""
                 is_bug = True
 
+            experiment_spikes = {}
+            if lang == "en":
+                experiment_spikes = app_registry(MetricsDAL).get_shared_conditions(
+                    [doc.user_id for doc in docs]
+                )
+
             spike_word = SpikeWord(
                 word=word,
                 score=score,
@@ -319,6 +326,7 @@ def _find_spiked_words(
                 confirmed=False,
                 summary=summary,
                 is_bug=is_bug,
+                experiment_spikes=experiment_spikes,
             )
             # check if spike word has been confirmed
             prev_spike = app_registry(SpikeIndexDAL).get_spike_by_id(spike_word.get_spike_id())

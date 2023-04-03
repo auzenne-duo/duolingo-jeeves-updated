@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { encodeURLSearchParams } from "../util";
 import ConfirmButton from "components/ConfirmButton";
+import ExperimentsList from "components/ExperimentsList";
 import Table from "components/Table";
 import styles from "styles/SpikeTable.scss";
 
@@ -65,6 +66,14 @@ const SpikeTable = ({
                 </Link>
                 {spike.summary && (
                   <div className={styles.summary}>{spike.summary}</div>
+                )}
+                {spike.experiment_spikes?.length > 0 && (
+                  <>
+                    <div>Common experiment conditions:</div>=
+                    <ExperimentsList
+                      experimentSpikes={spike.experiment_spikes}
+                    />
+                  </>
                 )}
               </td>
               <td>

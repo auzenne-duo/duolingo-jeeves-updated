@@ -21,6 +21,11 @@ declare namespace JSONAPI {
     username?: string;
   }
 
+  interface ExperimentSpike {
+    experiment: string;
+    score: number;
+  }
+
   interface Info {
     /** The time that the current Jeeves instance was created. */
     deployed_timestamp: string;
@@ -105,6 +110,7 @@ declare namespace JSONAPI {
 
   interface SpikeWord {
     confirmed: boolean;
+    experiment_spikes: ExperimentSpike[];
     is_bug: boolean;
     score: number;
     spike_id: string;

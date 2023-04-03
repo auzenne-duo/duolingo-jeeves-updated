@@ -63,11 +63,6 @@ get_predicate_for_category_test_cases = [
     (SpikeCategory.EXTERNAL_STR_SPIKES, non_str_external_doc, False),
     (SpikeCategory.ALL_NON_STR_SPIKES, internal_doc, False),
     (SpikeCategory.ALL_NON_STR_SPIKES, non_str_internal_doc, True),
-    (SpikeCategory.EXTERNAL_V2_IOS_SPIKES, external_doc, False),
-    (SpikeCategory.INTERNAL_V2_IOS_SPIKES, internal_v2_doc, True),
-    (SpikeCategory.INTERNAL_V2_IOS_SPIKES, new_internal_v2_doc, False),
-    (SpikeCategory.ALL_V2_IOS_SPIKES, external_v2_doc, True),
-    (SpikeCategory.ALL_V2_IOS_SPIKES, internal_not_v2_doc, False),
     (SpikeCategory.ALL_SPIKES, external_doc, True),
 ]
 
@@ -116,13 +111,3 @@ def test_get_jeeves_query_params_for_every_active_category():
         SpikeCategory.ALL_SPIKES,
     ]:
         SpikeCategory.get_jeeves_query_params_for_category(spike_category)
-
-
-def test_get_jeeves_query_params_for_every_deprecated_category():
-    for spike_category in [
-        SpikeCategory.EXTERNAL_V2_IOS_SPIKES,
-        SpikeCategory.INTERNAL_V2_IOS_SPIKES,
-        SpikeCategory.ALL_V2_IOS_SPIKES,
-    ]:
-        with pytest.raises(Exception):
-            SpikeCategory.get_jeeves_query_params_for_category(spike_category)

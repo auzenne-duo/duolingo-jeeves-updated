@@ -17,6 +17,7 @@ class TestSpikeWord(unittest.TestCase):
             user_id=10,
             summary="summary",
             is_bug=True,
+            experiment_spikes={},
         )
 
     def test_from_dict(self):
@@ -64,6 +65,29 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.user_id, None)
         self.assertEqual(result.summary, None)
         self.assertEqual(result.is_bug, True)
+        self.assertEqual(result.experiment_spikes, {})
+
+    def test_from_dict_deprecated_category(self):
+        testDict = {
+            "word": "duo",
+            "score": 10,
+            "date": "2022-01-01",
+            "lang": "en",
+            "spike_group": "INVALID_CATEGORY",
+        }
+
+        result = SpikeWord.from_dict(testDict)
+
+        self.assertEqual(result.word, "duo")
+        self.assertEqual(result.score, 10)
+        self.assertEqual(result.date, "2022-01-01")
+        self.assertEqual(result.lang, "en")
+        self.assertEqual(result.spike_group, None)
+        self.assertEqual(result.confirmed, False)
+        self.assertEqual(result.user_id, None)
+        self.assertEqual(result.summary, None)
+        self.assertEqual(result.is_bug, True)
+        self.assertEqual(result.experiment_spikes, {})
 
     def test_to_dict(self):
         result = self.testObj.to_dict()
@@ -80,6 +104,7 @@ class TestSpikeWord(unittest.TestCase):
                 "user_id": 10,
                 "summary": "summary",
                 "is_bug": True,
+                "experiment_spikes": {},
             },
         )
 
