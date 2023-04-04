@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from duolingo_base.util import registry
 
+from jeeves.lib.profiling import traced_function
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.slack_channel import SlackChannel
@@ -103,6 +104,7 @@ class ShakiraManager:
             for channel_name, channel in _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL.items()
         ]
 
+    @traced_function()
     def report_issue(
         self,
         project: str,

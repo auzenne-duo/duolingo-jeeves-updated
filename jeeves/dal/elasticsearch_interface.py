@@ -1076,6 +1076,8 @@ class ElasticsearchDAL:
             print(f"Requested issue with key {issue_key} could not be found.")
             return []
 
+        datetime_bound = parse_external_datetime(target_doc.date_time) - timedelta(days=60)
+
         query_body = {
             "size": max_search_depth,
             "query": {
@@ -1083,7 +1085,8 @@ class ElasticsearchDAL:
                     "embedding_vector": {
                         "k": max_search_depth,
                         "vector": target_doc.embedding_vector,
-                    }
+                    },
+                    "filter": {"range": {"date_time": {"gte": datetime_bound}}},
                 }
             },
         }
@@ -1096,9 +1099,6 @@ class ElasticsearchDAL:
             for hit in response["hits"]["hits"]
             if hit["_score"] >= 0.8
         ]
-        result_docs = list(
-            filter(lambda doc: (target_doc.date_time - doc.date_time).days < 60, result_docs)
-        )
         if should_filter_project:
             result_docs = [doc for doc in result_docs if doc.project == target_doc.project]
         # Filter out issue from its own duplicate list

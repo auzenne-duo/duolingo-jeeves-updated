@@ -7,6 +7,8 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, TensorDataset
 from transformers import BertForSequenceClassification, BertTokenizer
 
+from jeeves.lib.profiling import traced_function
+
 _BATCH_SIZE = 16
 _PRIORITY_ESTIMATOR_MODEL_PATH = os.environ.get("PRIORITY_ESTIMATOR_MODEL")
 _MAX_LENGTH = 40
@@ -133,6 +135,7 @@ class PriorityEstimator:
             return output.logits.cpu().numpy()
 
     @classmethod
+    @traced_function()
     def estimate_priority(cls, sentence: str, feature: str = "", reporter_email: str = "") -> str:
         """
         Estimates the priority for a given sentence, Jira issue feature, and a reporter using pretrained Bert model

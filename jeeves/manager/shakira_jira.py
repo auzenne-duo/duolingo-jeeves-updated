@@ -11,6 +11,7 @@ from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 from werkzeug.datastructures import FileStorage
 
+from jeeves.lib.profiling import traced_function
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.model.jira_priorities import JiraPriority
 from jeeves.util.error_util import print_request_exception
@@ -205,6 +206,7 @@ class ShakiraJiraApiClient:
             return _DESCRIPTION_FOR_LITERACY_ISSUES_SENT_TO_SLACK
         return _DESCRIPTION_FOR_ISSUES_SENT_TO_SLACK
 
+    @traced_function()
     def create_issue(
         self,
         project: str,
@@ -365,6 +367,7 @@ class ShakiraJiraApiClient:
         except RequestException as e:
             print_request_exception(e, rollbar_level="error")
 
+    @traced_function()
     def upload_attachments(self, project: str, issue_key: str, files: Dict[str, "FileStorage"]):
         """
         Upload attachment to JIRA issue with key issue_key
