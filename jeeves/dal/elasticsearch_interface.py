@@ -1076,7 +1076,7 @@ class ElasticsearchDAL:
             print(f"Requested issue with key {issue_key} could not be found.")
             return []
 
-        datetime_bound = parse_external_datetime(target_doc.date_time) - timedelta(days=60)
+        datetime_bound = target_doc.date_time - timedelta(days=60)
 
         query_body = {
             "size": max_search_depth,
