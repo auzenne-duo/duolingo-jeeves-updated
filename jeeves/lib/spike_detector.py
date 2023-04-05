@@ -18,6 +18,7 @@ from jeeves.dal.metrics_dal import MetricsDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.dal.tutors_dal import TutorsDAL
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.model.reporter_identity import ReporterIdentity
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
@@ -44,6 +45,8 @@ An issue is not a bug when it's about a feature request or something outside of 
 The response shold be of the form:
     SUMMARY: summary of the most common topic in three sentences or less
     IS_BUG: True or False depending on whether the issues are about a bug""".strip()
+# if the number of unique users in a spike is less than this, we don't consider it a spike
+UNIQUE_USER_THRESHOLD = 3
 
 
 def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
@@ -297,6 +300,11 @@ def _find_spiked_words(
                 use_lemmas=True,
             )
             docs = search_result["data"]
+
+            # if we don't have enough unique reporters, skip this spike
+            if _get_num_unique_users(docs) < UNIQUE_USER_THRESHOLD:
+                continue
+
             # we will then pass the text of up to 20 random documents to chatgpt to get a summary of the issue
             shuffle(docs)
             prompt = "\n".join(
@@ -335,6 +343,13 @@ def _find_spiked_words(
                 spike_word.user_id = prev_spike.user_id
             result.append(spike_word)
     return result
+
+
+def _get_num_unique_users(docs: List[JeevesDocument]) -> int:
+    """
+    Returns the number of unique users in a list of documents.
+    """
+    return len({ReporterIdentity.from_doc(doc) for doc in docs})
 
 
 def _calculate_spike_score(
