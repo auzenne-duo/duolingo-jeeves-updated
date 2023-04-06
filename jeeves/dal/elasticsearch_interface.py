@@ -1076,17 +1076,25 @@ class ElasticsearchDAL:
             print(f"Requested issue with key {issue_key} could not be found.")
             return []
 
-        datetime_bound = target_doc.date_time - timedelta(days=60)
+        datetime_bound = target_doc.date_time - timedelta(days=30)
 
         query_body = {
             "size": max_search_depth,
             "query": {
-                "knn": {
-                    "embedding_vector": {
-                        "k": max_search_depth,
-                        "vector": target_doc.embedding_vector,
+                "bool": {
+                    "filter": {
+                        "bool": {"must": [{"range": {"date_time": {"gte": datetime_bound}}}]}
                     },
-                    "filter": {"range": {"date_time": {"gte": datetime_bound}}},
+                    "must": [
+                        {
+                            "knn": {
+                                "embedding_vector": {
+                                    "k": max_search_depth,
+                                    "vector": target_doc.embedding_vector,
+                                }
+                            }
+                        }
+                    ],
                 }
             },
         }
