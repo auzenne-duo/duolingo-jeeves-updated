@@ -63,7 +63,7 @@ JIRA_FEATURES = {
             "Placement Test": [],
             "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
         },
-        "Priority Markets": {
+        "Resurrection": {
             "Resurrected user experiences": ["surr", "resurrected", "reactivated"],
             "Registration": ["sign up"],
             "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
