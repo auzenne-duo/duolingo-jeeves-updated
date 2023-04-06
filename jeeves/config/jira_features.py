@@ -68,14 +68,16 @@ JIRA_FEATURES = {
             "Registration": ["sign up"],
             "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
         },
+        "Reengagement": {
+            "Practice reminders / notifications": ["reminder", "notification"],
+            "Lesson complete session end": ["complete"],
+            "Widget": [],
+        },
         "Retention": {
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
-            "Practice reminders / notifications": ["reminder", "notification"],
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
-            "Lesson complete session end": ["complete"],
             "In-lesson Items (skip, retry)": ["skip", "retry", "in lesson item"],
-            "Widget": [],
         },
         "Time Spent Learning": {
             "Achievements": ["achievement"],
