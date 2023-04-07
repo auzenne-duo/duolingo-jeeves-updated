@@ -112,6 +112,7 @@ declare namespace JSONAPI {
     confirmed: boolean;
     experiment_spikes: ExperimentSpike[];
     is_bug: boolean;
+    lang: string;
     score: number;
     spike_id: string;
     summary: string;

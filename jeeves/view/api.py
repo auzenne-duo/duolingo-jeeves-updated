@@ -184,6 +184,7 @@ def get_spike_data(lang):
                 "experiment_spikes": [
                     {"experiment": k, "score": v} for k, v in spike.experiment_spikes.items()
                 ],
+                "lang": spike.lang,
             }
         )
     for day in stored_spikes:

@@ -36,8 +36,8 @@ const SpikeTable = ({
         </th>
       </tr>
       <tr>
-        <th>Spikiness</th>
         <th>Word</th>
+        <th>Summary</th>
         <th>Confirmed</th>
       </tr>
     </thead>
@@ -55,7 +55,6 @@ const SpikeTable = ({
           params.set("q", spike.word);
           return (
             <tr key={spike.word}>
-              <td>{spike.score.toFixed(1)}</td>
               <td>
                 <Link
                   to={`/${language}/analysis?${encodeURLSearchParams(
@@ -64,6 +63,9 @@ const SpikeTable = ({
                 >
                   {spike.word}
                 </Link>
+                <div>({spike.lang})</div>
+              </td>
+              <td>
                 {spike.summary && (
                   <div className={styles.summary}>{spike.summary}</div>
                 )}

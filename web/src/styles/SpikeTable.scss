@@ -1,12 +1,7 @@
 @use "constants" as *;
 
 .summary {
-  display: none;
   word-break: keep-all;
-
-  @media (min-width: $width-ipad) {
-    display: block;
-  }
 }
 
 .table {
