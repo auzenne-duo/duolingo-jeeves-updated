@@ -8,15 +8,17 @@ interface Props {
 
 const ExperimentsList = ({ experimentSpikes }: Props) => (
   <ul className={styles.ul}>
-    {experimentSpikes.map(experimentSpike => (
-      <li key={experimentSpike.experiment}>
-        <a
-          href={`https://metrics.duolingo.com/experiments/${experimentSpike.experiment}`}
-        >
-          {experimentSpike.experiment}
-        </a>
-      </li>
-    ))}
+    {experimentSpikes
+      .sort((a, b) => b.score - a.score)
+      .map(experimentSpike => (
+        <li key={experimentSpike.experiment}>
+          <a
+            href={`https://metrics.duolingo.com/experiments/${experimentSpike.experiment}`}
+          >
+            {experimentSpike.experiment}: {experimentSpike.score.toFixed(1)}
+          </a>
+        </li>
+      ))}
   </ul>
 );
 

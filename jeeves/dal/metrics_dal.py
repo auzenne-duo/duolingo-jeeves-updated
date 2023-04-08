@@ -55,6 +55,10 @@ class MetricsDAL:
         Returns:
             Dict[Tuple(str, str), float]: Dictionary of experiment and condition to the percentage of users that share that condition
         """
+        # if we couldn't get the experiments, return an empty dict
+        if not self.experiments_metadata:
+            return {}
+
         user_ids = {id for id in user_ids if not id in [None, ""]}
         if len(user_ids) < MIN_SHARED_USERS:
             return {}
@@ -75,6 +79,8 @@ class MetricsDAL:
             if experiment["condition"] == "control":
                 continue
             if experiment["num_shared"] < MIN_SHARED_USERS:
+                continue
+            if not experiment["experiment"] in self.experiments_metadata:
                 continue
 
             # Calculate the standard deviation of the binomial distribution

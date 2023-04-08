@@ -71,7 +71,7 @@ const SpikeTable = ({
                 )}
                 {spike.experiment_spikes?.length > 0 && (
                   <>
-                    <div>Common experiment conditions:</div>=
+                    <div>Common experiment conditions:</div>
                     <ExperimentsList
                       experimentSpikes={spike.experiment_spikes}
                     />
