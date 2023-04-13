@@ -31,7 +31,7 @@ export const getSpikeCategories = async (): Promise<
 > => get<JSONAPI.SpikeCategoryData[]>("/1/spike_categories");
 
 export const getSpikes = async (
-  lang: JSONAPI.LanguageId,
+  lang?: JSONAPI.LanguageId,
   {
     end_date,
     spike_category,
@@ -50,7 +50,7 @@ export const getSpikes = async (
   start_date && params.set("start_date", formatLocalDate(start_date));
 
   const data = await get<JSONAPI.Spikes>(
-    `/1/${lang}/spikes?${params.toString()}`,
+    `/1/${lang ?? "ALL"}/spikes?${params.toString()}`,
   );
 
   return Object.entries(data).map(([date, value]) => ({

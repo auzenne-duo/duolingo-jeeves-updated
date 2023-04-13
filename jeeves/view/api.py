@@ -153,7 +153,9 @@ def get_time_series_data(lang):
 
 @blueprint_api.route("/api/1/<lang>/spikes")
 def get_spike_data(lang):
-    if not _is_language_supported(lang):
+    if lang == "ALL":
+        lang = None
+    elif not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
 
     # I could only get around this call with an ugly conditional statement.

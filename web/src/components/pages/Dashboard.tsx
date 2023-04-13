@@ -22,14 +22,35 @@ const Dashboard = () => {
     },
   );
 
-  const { data: spikes, isLoading } = useQuery(
-    ["spikes", { lang, spikesStartDate }],
+  const { data: spikesByDate, isLoading } = useQuery(
+    ["spikes", { spikesStartDate }],
     () =>
-      getSpikes(lang, {
+      getSpikes(undefined, {
         start_date: spikesStartDate,
       }),
     {
-      select: d => d.slice().reverse(),
+      select: d => {
+        d.slice().reverse();
+        const spikes = [];
+        for (const dateResponse of d ?? []) {
+          const langToSpikes = new Map<
+            JSONAPI.LanguageId,
+            JSONAPI.SpikeDataResponse
+          >();
+          for (const spike of dateResponse?.spikes.slice(0, 5) ?? []) {
+            const language = spike.lang as JSONAPI.LanguageId;
+            if (!langToSpikes.has(language)) {
+              langToSpikes.set(language, {
+                date: dateResponse.date,
+                spikes: [],
+              });
+            }
+            langToSpikes.get(language)?.spikes.push(spike);
+          }
+          spikes.push(langToSpikes);
+        }
+        return spikes;
+      },
     },
   );
 
@@ -37,12 +58,26 @@ const Dashboard = () => {
 
   return (
     <>
-      <SpikeTable
-        date={spikes?.[0]?.date}
-        isLoading={isLoading}
-        language={lang}
-        spikes={isLoading ? [] : spikes?.[0]?.spikes.slice(0, 5) ?? []}
-      />
+      {spikesByDate?.length ? (
+        spikesByDate.map(langToSpikes =>
+          [...langToSpikes.keys()].map(language => (
+            <SpikeTable
+              date={langToSpikes.get(language)?.date}
+              isLoading={isLoading}
+              key={`${language}-${langToSpikes.get(language)?.date}`}
+              language={language}
+              spikes={isLoading ? [] : langToSpikes.get(language)?.spikes ?? []}
+            />
+          )),
+        )
+      ) : (
+        <SpikeTable
+          date={spikesStartDate}
+          isLoading={isLoading}
+          language={lang}
+          spikes={[]}
+        />
+      )}
       <Table>
         <tbody>
           <tr>

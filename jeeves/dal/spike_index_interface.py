@@ -278,7 +278,7 @@ class SpikeIndexDAL:
 
     def yield_spikes_in_date_range(
         self,
-        lang: str,
+        lang: Optional[str],
         start_date: str,
         end_date: str,
         spike_group: Optional[str] = "ALL_SPIKES",
@@ -289,7 +289,7 @@ class SpikeIndexDAL:
         Yields all spikes for a given language, between two dates
 
         Parameters:
-            lang (str): Language to yield spikes for.
+            lang (str): Language to yield spikes for. If None, yields all spikes.
             start_date (str): Date to start search on, as a string.
             end_date (str): Date to end search on, as a string.
             num_spikes (str): How many spikes we should yield.
@@ -303,10 +303,12 @@ class SpikeIndexDAL:
         """
         s = (
             Search(using=self._es, index=self._spikename)
-            .filter("term", lang=lang)
             .filter("term", spike_group=spike_group)
             .sort("-score")
         )
+
+        if lang:
+            s = s.filter("term", lang=lang)
 
         timestamp_dict = {}
         if start_date:
