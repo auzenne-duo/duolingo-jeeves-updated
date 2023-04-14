@@ -37,7 +37,7 @@ const Dashboard = () => {
             JSONAPI.LanguageId,
             JSONAPI.SpikeDataResponse
           >();
-          for (const spike of dateResponse?.spikes.slice(0, 5) ?? []) {
+          for (const spike of dateResponse?.spikes ?? []) {
             const language = spike.lang as JSONAPI.LanguageId;
             if (!langToSpikes.has(language)) {
               langToSpikes.set(language, {
@@ -66,7 +66,11 @@ const Dashboard = () => {
               isLoading={isLoading}
               key={`${language}-${langToSpikes.get(language)?.date}`}
               language={language}
-              spikes={isLoading ? [] : langToSpikes.get(language)?.spikes ?? []}
+              spikes={
+                isLoading
+                  ? []
+                  : langToSpikes.get(language)?.spikes.slice(0, 5) ?? []
+              }
             />
           )),
         )

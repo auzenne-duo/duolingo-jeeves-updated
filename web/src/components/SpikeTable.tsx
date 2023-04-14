@@ -1,4 +1,4 @@
-import { formatISO } from "date-fns";
+import { addDays, formatISO } from "date-fns";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
@@ -26,71 +26,84 @@ const SpikeTable = ({
   onlyBugs,
   spikeCategory,
   spikes,
-}: Props) => (
-  <Table className={styles.table}>
-    <thead>
-      <tr>
-        <th colSpan={3}>
-          Trending words on{" "}
-          {date ? formatISO(date, { representation: "date" }) : null}
-        </th>
-      </tr>
-      <tr>
-        <th>Word</th>
-        <th>Summary</th>
-        <th>Confirmed</th>
-      </tr>
-    </thead>
-    <tbody>
-      {spikes
-        .filter(spike => !onlyBugs || spike.is_bug)
-        .map(spike => {
-          const params = new URLSearchParams();
-          if (linkFilter) {
-            params.set("filter", linkFilter);
-          }
-          if (spikeCategory) {
-            params.set("spike-category", spikeCategory);
-          }
-          params.set("q", spike.word);
-          return (
-            <tr key={spike.word}>
-              <td>
-                <Link
-                  to={`/${language}/analysis?${encodeURLSearchParams(
-                    params,
-                  )}&use-lemmas=true`}
-                >
-                  {spike.word}
-                </Link>
-                <div>({spike.lang})</div>
-              </td>
-              <td>
-                {spike.summary && (
-                  <div className={styles.summary}>{spike.summary}</div>
-                )}
-                {spike.experiment_spikes?.length > 0 && (
-                  <>
-                    <div>Common experiment conditions:</div>
-                    <ExperimentsList
-                      experimentSpikes={spike.experiment_spikes}
-                    />
-                  </>
-                )}
-              </td>
-              <td>
-                <ConfirmButton spike={spike} />
-              </td>
-            </tr>
-          );
-        })}
-      {!spikes.length && !isLoading ? (
+}: Props) => {
+  const spikeDetectorParams = new URLSearchParams();
+  if (date) {
+    spikeDetectorParams.set("to", addDays(date, 1).toJSON());
+    spikeDetectorParams.set("from", date.toJSON());
+  }
+  return (
+    <Table className={styles.table}>
+      <thead>
         <tr>
-          <td colSpan={3}>No data is available for this date.</td>
+          <th colSpan={3}>
+            <Link
+              to={`/${language}/spike?${encodeURLSearchParams(
+                spikeDetectorParams,
+              )}`}
+            >
+              Trending words on{" "}
+              {date ? formatISO(date, { representation: "date" }) : null} (
+              {language})
+            </Link>
+          </th>
         </tr>
-      ) : null}
-    </tbody>
-  </Table>
-);
+        <tr>
+          <th>Word</th>
+          <th>Summary</th>
+          <th>Confirmed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {spikes
+          .filter(spike => !onlyBugs || spike.is_bug)
+          .map(spike => {
+            const params = new URLSearchParams();
+            if (linkFilter) {
+              params.set("filter", linkFilter);
+            }
+            if (spikeCategory) {
+              params.set("spike-category", spikeCategory);
+            }
+            params.set("q", spike.word);
+            return (
+              <tr key={spike.word}>
+                <td>
+                  <Link
+                    to={`/${language}/analysis?${encodeURLSearchParams(
+                      params,
+                    )}&use-lemmas=true`}
+                  >
+                    {spike.word}
+                  </Link>
+                </td>
+                <td>
+                  {spike.summary && (
+                    <div className={styles.summary}>{spike.summary}</div>
+                  )}
+                  {spike.experiment_spikes?.length > 0 && (
+                    <>
+                      <div>Common experiment conditions:</div>
+                      <ExperimentsList
+                        experimentSpikes={spike.experiment_spikes}
+                      />
+                    </>
+                  )}
+                </td>
+                <td>
+                  <ConfirmButton spike={spike} />
+                </td>
+              </tr>
+            );
+          })}
+        {!spikes.length && !isLoading ? (
+          <tr>
+            <td colSpan={3}>No data is available for this date.</td>
+          </tr>
+        ) : null}
+      </tbody>
+    </Table>
+  );
+};
 
 export default SpikeTable;
