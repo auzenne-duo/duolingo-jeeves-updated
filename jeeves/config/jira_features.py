@@ -196,6 +196,7 @@ JIRA_FEATURES = {
             "Mistakes inbox": [],
             "Practice Hub": [],
             "Family plan": [],
+            "Words List": ["Word list"],
             "Legendary": ["Legendarize"],
         },
     },
