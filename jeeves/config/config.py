@@ -27,6 +27,7 @@ JIRA_PRIORITY_STR_TO_INT = {"Low": 0, "Lowest": 0, "Medium": 1, "High": 2, "High
 
 # Directory for storing quality reports
 QUALITY_REPORT_PLOTS_DIRECTORY = "plots"
+QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY = "delight/quality-report/"
 
 # For spikes, occurrences should be at least five-sigma away from historical values.
 SPIKE_THRESHOLD = 5

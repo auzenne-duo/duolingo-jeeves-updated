@@ -6,9 +6,13 @@ from unittest.mock import MagicMock, patch
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
-from jeeves.scripts.quality_report_script import resolve_duplicate_graphs, search_for_issues
-from jeeves.util.date_util import parse_external_datetime
-from jeeves.util.quality_report_priority import get_quality_report_priority
+from jeeves.scripts.quality_report_script import (
+    filter_dev_issues,
+    generate_and_save_pdf,
+    resolve_duplicate_graphs,
+    search_for_issues,
+)
+from tests.testutil.test_util_quality_report import create_jira_doc
 
 JiraDocument.set_feature_field_key("feature_field")
 
@@ -37,7 +41,7 @@ JIRA_EXTERNAL_JSON_1 = {
         "reporter": {"displayName": ""},
         "labels": [],
         "resolutiondate": "",
-        "resolution": "",
+        "resolution": {"name": "Done"},
         "assignee": "",
     },
 }
@@ -67,70 +71,10 @@ JIRA_EXTERNAL_JSON_2 = {
         "reporter": {"displayName": ""},
         "labels": [],
         "resolutiondate": "",
-        "resolution": "",
+        "resolution": {"name": "Unresolved"},
         "assignee": "",
     },
 }
-
-
-def create_jira_doc(
-    issue_key,
-    feature,
-    status,
-    priority,
-    linked_duplicate_keys,
-    duolingo_metadata=None,
-    labels=None,
-    body_text="",
-    str_category=ShakeToReportCategory.INTERNAL,
-):
-    if labels is None:
-        labels = []
-    if duolingo_metadata is None:
-        duolingo_metadata = {}
-    datetime = parse_external_datetime("2022-09-09")
-    return JiraDocument(
-        issue_key=issue_key,
-        project=issue_key[:4],
-        linked_duplicate_keys=linked_duplicate_keys,
-        creation_date=datetime,
-        updated_date=datetime,
-        resolution_date=None,
-        status=status,
-        feature=feature,
-        priority=get_quality_report_priority(priority),
-        reporter="",
-        reporter_email="",
-        assignee="UNASSIGNED",
-        comments=[],
-        labels=labels,
-        embedding_vector=[],
-        data_source="JIRA",
-        document_id="",
-        jeeves_uid="JIRA_",
-        date_time=datetime,
-        body_text=body_text,
-        language="en",
-        shake_to_report_category=str_category,
-        attachments=[],
-        duolingo_metadata=duolingo_metadata,
-        app_version="",
-        course="",
-        fullstory_url="",
-        os_version="",
-        platform="iOS",
-        screen_size="",
-        screen_content="VCActivity",
-        ui_language="",
-        username="",
-        issue_links=[],
-        issue_type="",
-        resolution="",
-        components=[],
-        feature_url="Onboarding",
-        experiment_conditions={},
-        jira_attachments=[],
-    )
 
 
 METADATA_1 = {
@@ -139,35 +83,62 @@ METADATA_1 = {
     "raw": "platform:iOS",
 }
 PARSED_JIRA_DOCUMENT_1 = create_jira_doc(
-    "DLAI-2001", "Onboarding", "Done", "Medium", [], METADATA_1, body_text="\n"
+    "DLAI-2001",
+    "Onboarding",
+    "Done",
+    "Medium",
+    [],
+    METADATA_1,
+    body_text="\n",
+    status="Done",
 )
-PARSED_JIRA_DOCUMENT_1.is_done = True
+PARSED_JIRA_DOCUMENT_1.priority = "Medium"
 
 PARSED_JIRA_DOCUMENT_2 = create_jira_doc(
-    "DLAA-2002", "DarkMode", "Done", "Low", [], str_category=ShakeToReportCategory.NON_STR_INTERNAL
+    "DLAA-2002",
+    "DarkMode",
+    "Done",
+    "Low",
+    [],
+    str_category=ShakeToReportCategory.NON_STR_INTERNAL,
+    status="To Do",
 )
-PARSED_JIRA_DOCUMENT_2.is_done = False
+PARSED_JIRA_DOCUMENT_2.priority = "Low"
 
 JIRA_DOCUMENT_1 = create_jira_doc("DLAI-2001", "Onboarding", "Done", "Medium", ["DLAI-2004"])
-JIRA_DOCUMENT_1.is_done = True
 
-JIRA_DOCUMENT_2 = create_jira_doc("DLAI-2002", "DarkMode", "Done", "Low", ["DLAI-2003"])
-JIRA_DOCUMENT_2.is_done = False
+JIRA_DOCUMENT_2 = create_jira_doc(
+    "DLAI-2002",
+    "DarkMode",
+    "Done",
+    "Low",
+    ["DLAI-2003"],
+    issue_links=[{"type": {"name": ["Relates"]}, "outwardIssue": {"key": "DLAI-2003"}}],
+)
 
 JIRA_DOCUMENT_3 = create_jira_doc(
-    "DLAI-2003", "DarkMode", "Done", "Medium", ["DLAI-2002"], labels=["parent_bug"]
+    "DLAI-2003",
+    "DarkMode",
+    "Done",
+    "Medium",
+    ["DLAI-2002"],
+    labels=["parent_bug"],
+    issue_links=[{"type": {"name": ["Relates"]}, "inwardIssue": {"key": "DLAI-2005"}}],
+    issue_type="Bug",
 )
-JIRA_DOCUMENT_3.is_done = True
 
 JIRA_DOCUMENT_4 = create_jira_doc(
     "DLAI-2004", "DarkMode", "Done", "High", ["DLAI-2001", "DLAI-2005"]
 )
-JIRA_DOCUMENT_4.is_done = True
 
 JIRA_DOCUMENT_5 = create_jira_doc(
-    "DLAI-2005", "DarkMode", "To Do", "Medium", ["DLAI-2001", "DLAI-2004"]
+    "DLAI-2005",
+    "DarkMode",
+    "Unresolved",
+    "Medium",
+    ["DLAI-2001", "DLAI-2004"],
+    issue_type="Not a bug",
 )
-JIRA_DOCUMENT_5.is_done = False
 
 
 def document_copy(jira_document):
@@ -200,7 +171,7 @@ class TestQualityReportScript(unittest.TestCase):
         )
         MockJiraManager.get_feature_field.return_value = "feature_field"
 
-        result = search_for_issues(datetime(2001, 1, 1), datetime(2001, 2, 1))
+        result = search_for_issues(datetime(2001, 1, 1))
         expected = [PARSED_JIRA_DOCUMENT_1]
         self.assertEqual(result, expected)
 
@@ -240,5 +211,45 @@ class TestQualityReportScript(unittest.TestCase):
             "DLAI-2004": JIRA_DOCUMENT_4,
             "DLAI-2005": JIRA_DOCUMENT_5,
         }
+
+        self.assertEqual(result[0], {"DLAI-2003", "DLAI-2005"})
         self.assertEqual(result[1], expected_key_to_issue)
-        self.assertEqual({issue.issue_key for issue in result[0]}, {"DLAI-2003", "DLAI-2005"})
+
+    @patch(
+        "jeeves.scripts.quality_report_script.IDManagerMap",
+        MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
+    )
+    def test_filter_dev_issues(self):
+        result = filter_dev_issues(
+            ["DLAI-2001", "DLAI-2002", "DLAI-2003"],
+            {
+                "DLAI-2001": JIRA_DOCUMENT_1,
+                "DLAI-2002": JIRA_DOCUMENT_2,
+                "DLAI-2003": JIRA_DOCUMENT_3,
+            },
+        )
+        expected = sorted([JIRA_DOCUMENT_1, JIRA_DOCUMENT_2])
+        self.assertEqual(sorted(result), expected)
+
+    @patch("jeeves.scripts.quality_report_script.makepdf", MagicMock(return_value="pdf"))
+    @patch("jeeves.scripts.quality_report_script.send_email")
+    @patch("jeeves.scripts.quality_report_script.upload_to_internal_static")
+    @patch("jeeves.scripts.quality_report_script.upload_to_jeeves_s3")
+    def test_generate_and_save_pdf(self, mock_upload_s3, mock_upload_static, mock_send_email):
+        report = MagicMock(title="title", end_data=datetime(2001, 1, 1))
+        generate_and_save_pdf(report)
+        assert not mock_upload_s3.called
+        assert not mock_upload_static.called
+        assert not mock_send_email.called
+
+        generate_and_save_pdf(report, send_emails=True)
+        assert not mock_upload_s3.called
+        assert not mock_upload_static.called
+        mock_send_email.assert_called_once_with(report)
+
+        generate_and_save_pdf(report, dry_run=False, send_emails=True)
+        s3_expected_path = f"quality_reports/{report.title}/quality_report_{report.title.lower()}_{report.end_date.strftime('%Y_%m_%d')}.pdf"
+        internal_expected_path = f"delight/{s3_expected_path}"
+        mock_upload_s3.assert_called_once_with(s3_expected_path, "pdf")
+        mock_upload_static.assert_called_once_with(internal_expected_path, "pdf")
+        mock_send_email.assert_called_with(report)

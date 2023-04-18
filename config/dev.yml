@@ -28,6 +28,12 @@ s3_document_cache:
   #endpoint_url: http://host.docker.internal:4566
   bucket_name: jeeves-document-cache-dev
 
+s3_public_static:
+  bucket_name: public-static.duolingo.com
+
+s3_internal_static:
+  bucket_name: internal-static.duolingo.com
+
 rollbar:
   enabled: True
   environment: development

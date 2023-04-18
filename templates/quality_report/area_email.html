@@ -1,0 +1,233 @@
+{% extends "email_base.html" %} {% block sub_team_scores %}
+<!-- team breakdowns -->
+<table width="100%" style="width: 100%; max-width: 600px; padding-top: 40px">
+  {% for team_report in report.sub_teams.values() %} {% if loop.index % 3 == 1
+  %}
+  <tr>
+    {% endif %}
+    <td>
+      <table
+        cellpadding="0"
+        cellspacing="0"
+        border="0"
+        width="60%"
+        style="height: 100%; margin: auto"
+      >
+        <tr>
+          <td
+            align="center"
+            style="
+              padding-left: 11px;
+              padding-right: 11px;
+              padding-bottom: 20px;
+            "
+            class="mobile-pb30"
+          >
+            <a href="{{team_report.internal_static_link}}" target="_blank">
+              <table
+                class="board chameleon-line hover-background"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                width="100%"
+                height="100%"
+                style="border: 2px solid #e5e5e5; border-radius: 16px"
+              >
+                <tbody class="board__body">
+                  <tr class="board__row">
+                    <td
+                      class="board__cell"
+                      width="174"
+                      valign="top"
+                      style="min-width: 174px; text-align: center"
+                    >
+                      <table
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        width="100%"
+                        height="100%"
+                      >
+                        <tr>
+                          <td
+                            valign="top"
+                            align="center"
+                            style="padding: 12px 9px 9px; height: 76px"
+                          >
+                            <table
+                              cellpadding="0"
+                              cellspacing="0"
+                              border="0"
+                              style="margin: 0 auto"
+                            >
+                              <tr>
+                                <td style="text-align: center">
+                                  <b
+                                    style="
+                                      font-family: Arial, Helvetica, sans-serif;
+                                      font-size: 28px;
+                                      line-height: 32px;
+                                      font-weight: 700;
+                                    "
+                                    class="stat-value"
+                                  >
+                                    {{team_report.overall_score}}
+                                  </b>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td
+                                  valign="top"
+                                  colspan="2"
+                                  style="
+                                    padding-bottom: 8px;
+                                    text-align: center;
+                                  "
+                                  class="stat-head"
+                                >
+                                  <b
+                                    style="
+                                      font-family: Arial, Helvetica, sans-serif;
+                                      text-transform: uppercase;
+                                      font-size: 13px;
+                                      line-height: 22px;
+                                      font-weight: 700;
+                                      color: #7d7d7d;
+                                    "
+                                    class="stat-heading"
+                                  >
+                                    {{team_report.title}}
+                                  </b>
+                                </td>
+                              </tr>
+                              {% if team_report.previous_aggregate_overall_score
+                              %}
+                              <tr>
+                                <td
+                                  valign="top"
+                                  colspan="2"
+                                  style="
+                                    padding-bottom: 8px;
+                                    text-align: center;
+                                  "
+                                  class="stat-head"
+                                >
+                                  <b
+                                    style="
+                                      font-family: Arial, Helvetica, sans-serif;
+                                      font-size: 12px;
+                                      line-height: 20px;
+                                      font-weight: 400;
+                                      color: #929292;
+                                    "
+                                    class="stat-heading"
+                                  >
+                                    {% if team_report.aggregate_overall_score >
+                                    team_report.previous_aggregate_overall_score
+                                    %}Up from {% elif
+                                    team_report.aggregate_overall_score <
+                                    team_report.previous_aggregate_overall_score
+                                    %}Down from {% else %}Same as {%endif %}
+                                    {{team_report.previous_aggregate_overall_score}}
+                                  </b>
+                                </td>
+                              </tr>
+                              {% endif %}
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+    {% if loop.index % 3 == 0 %}
+  </tr>
+  {% endif %} {% endfor %}
+</table>
+<!-- / team breakdowns -->
+{% endblock %} {% block max_priority_table %} {% for issue in
+report.max_priority_issues %} {% if loop.index == 1 %}
+<li class="issue-li hover-background">{% else %}</li>
+
+<li class="issue-li hover-background" style="border-top: 2px solid #f7f7f7">
+  {% endif %}
+  <a href="https://duolingo.atlassian.net/browse/{{issue.issue_key}}">
+    <table style="width: 100%">
+      <tr>
+        <td style="width: 52px">{{issue.client}}</td>
+        <td style="text-overflow: ellipsis; width: 100px">
+          {% if issue.team|length > 15 %} {{issue.team[:12]}}.. {% else %}
+          {{issue.team}} {% endif %}
+        </td>
+
+        <td style="text-overflow: ellipsis; width: 370px">
+          {% if issue.header_text|length > 60 %} {{issue.header_text[:57]}}...
+          {% else %} {{issue.header_text}} {% endif %}
+        </td>
+        <td style="width: 45px">{{issue.score_params.priority}}</td>
+      </tr>
+    </table>
+  </a>
+</li>
+
+{% endfor %} {% endblock %} {% block max_dupes_table %} {% for issue in
+report.max_dupes_issues %} {% if loop.index == 1 %}
+<li class="issue-li hover-background">{% else %}</li>
+
+<li class="issue-li hover-background" style="border-top: 2px solid #f7f7f7">
+  {% endif %}
+  <a href="https://duolingo.atlassian.net/browse/{{issue.issue_key}}">
+    <table style="width: 100%">
+      <tr>
+        <td style="min-width: 52px">{{issue.client}}</td>
+        <td style="text-overflow: ellipsis; width: 100px">
+          {% if issue.team|length > 15 %} {{issue.team[:12]}}.. {% else %}
+          {{issue.team}} {% endif %}
+        </td>
+
+        <td style="width: 442px">
+          {% if issue.header_text|length > 60 %} {{issue.header_text[:57]}}...
+          {% else %} {{issue.header_text}} {% endif %}
+        </td>
+        <td style="min-width: 57px">
+          {{issue.linked_duplicate_keys | length}} reports
+        </td>
+      </tr>
+    </table>
+  </a>
+</li>
+{% endfor %} {% endblock %} {% block max_design_dupes_table %} {% for issue in
+report.max_dupes_visual_polish_issues %} {% if loop.index == 1 %}
+<li class="issue-li hover-background">{% else %}</li>
+
+<li class="issue-li hover-background" style="border-top: 2px solid #f7f7f7">
+  {% endif %}
+  <a href="https://duolingo.atlassian.net/browse/{{issue.issue_key}}">
+    <table style="width: 100%">
+      <tr>
+        <td style="min-width: 52px">{{issue.client}}</td>
+        <td style="text-overflow: ellipsis; width: 100px">
+          {% if issue.team|length > 15 %} {{issue.team[:12]}}.. {% else %}
+          {{issue.team}} {% endif %}
+        </td>
+
+        <td style="width: 442px">
+          {% if issue.header_text|length > 60 %} {{issue.header_text[:57]}}...
+          {% else %} {{issue.header_text}} {% endif %}
+        </td>
+        <td style="min-width: 57px">
+          {% if issue.linked_duplicate_keys | length == 1 %} 1
+          {{issue.score_params.priority}} report {% else %}
+          {{issue.linked_duplicate_keys | length}} reports {% endif %}
+        </td>
+      </tr>
+    </table>
+  </a>
+</li>
+{% endfor %} {% endblock %}

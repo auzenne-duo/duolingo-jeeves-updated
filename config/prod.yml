@@ -21,6 +21,12 @@ sqs_verify_index_pipeline:
 s3_document_cache:
   bucket_name: jeeves-document-cache
 
+s3_public_static:
+  bucket_name: public-static.duolingo.com
+
+s3_internal_static:
+  bucket_name: internal-static.duolingo.com
+
 rollbar:
   enabled: True
   environment: production

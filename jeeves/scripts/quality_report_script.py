@@ -1,7 +1,7 @@
 import os
 import shutil
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple
+from typing import Dict, List, Set, Tuple
 
 from pydyf import PDF
 from weasyprint import CSS, HTML
@@ -12,35 +12,30 @@ from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS, QUALITY_REP
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.dal.jira_dal import JiraDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
+from jeeves.lib.send_quality_report_emails import send_email
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.quality_report import QualityReport, QualityReportArea, QualityReportTeam
+from jeeves.model.quality_report_issue import QualityReportIssue
 from jeeves.util.date_util import date_to_str
-from jeeves.util.quality_report_priority import QualityReportPriority, get_quality_report_priority
-from jeeves.util.quality_report_util import check_jira_issue_resolved
-from jeeves.util.s3_client_and_bucket import upload_to_s3
+from jeeves.util.quality_report_util import is_jira_issue_resolved
+from jeeves.util.s3_client_and_bucket import upload_to_internal_static, upload_to_jeeves_s3
 
 _CSS_FILENAME = "templates/quality_report/quality_report.css"
 _DEFAULT_REPORT_WINDOW_DAYS = 90
 
-
-def populate_priority_and_is_done(jira_doc: JiraDocument) -> None:
-    """
-    Populates the priority and is_done fields
-    """
-    if not isinstance(jira_doc.priority, QualityReportPriority):
-        jira_doc.priority = get_quality_report_priority(jira_doc.priority, jira_doc.labels)
-    jira_doc.is_done = check_jira_issue_resolved(jira_doc)
+_INTERNAL_STATIC_PREFIX = "https://internal-static.duolingo.com"
+_MIN_BUGS_THRESHOLD = 20
+_TEAMS_TO_EXCLUDE = ["Grading", "Speaking", "Speech Lab"]
 
 
-def search_for_issues(start_date: datetime, end_date: datetime) -> List[JiraDocument]:
+def search_for_issues(start_date: datetime) -> List[JiraDocument]:
     """
-    Yields issues for the specific area within start_date to end_date inclusively
+    Yields bugs that have been updated since the start date
 
     Params:
         start_date (datetime): only consider issues with updated after this datetime
-        end_date (datetime): only consider issues with updated before this datetime
 
     Returns:
         List of JiraDocuments
@@ -50,11 +45,9 @@ def search_for_issues(start_date: datetime, end_date: datetime) -> List[JiraDocu
 
     max_results_per_page = 100
     start_timestamp = date_to_str(start_date)
-    end_timestamp = date_to_str(end_date)
     projects_fetch_string = (
         f"project IN ({','.join(JIRA_PROJECTS)}) "
         + f"AND updated >= {start_timestamp} "
-        + f"AND updated <= {end_timestamp} "
         + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
         + f"ORDER BY updated asc"
     )
@@ -68,38 +61,23 @@ def search_for_issues(start_date: datetime, end_date: datetime) -> List[JiraDocu
 
     issues = []
     for i, issue in enumerate(JiraDAL.paginate_search_issues(url_params)):
-        jira_doc = JiraDocument.deserialize_from_external_json(issue)
-        # convert priority to a QualityReportPriority object for ease of score calculation
-        populate_priority_and_is_done(jira_doc)
-        issues.append(jira_doc)
+        issues.append(JiraDocument.deserialize_from_external_json(issue))
         if i % 500 == 0:
             print(f"Paginating jira issues; at {i}")
     return issues
 
 
-def format_issue_text(jira_issues: List[JiraDocument]) -> None:
-    """
-    Replaces characters in jira text that aren't properly handled by html, such as <
-    """
-
-    def format_str(text: str) -> str:
-        return text.replace("<", "&lt;").replace(">", "&gt;")
-
-    for issue in jira_issues:
-        issue.body_text = format_str(issue.body_text)
-        issue.header_text = format_str(issue.header_text)
-
-
 def resolve_duplicate_graphs(
     jira_issues: List[JiraDocument],
-) -> Tuple[List[JiraDocument], Dict[str, JiraDocument]]:
+) -> Tuple[Set[str], Dict[str, JiraDocument]]:
     """
     Params:
         jira_issues: list of JiraDocuments
 
     Returns:
-        a list of jira issues with only one representative issue from each duplicate graph.
-        a mapping from issue key to Jira document
+        A tuple of
+            a set of jira issue keys with only one representative issue from each duplicate graph.
+            a mapping from issue key to Jira document
 
     For each jira issue we resolve the duplicate graph and determine a representative of each dupe graph
     The rep will be the parent of the graph if it exists. If there is only one issue, then that issue is
@@ -131,8 +109,6 @@ def resolve_duplicate_graphs(
             [issue.issue_key], key_to_doc=key_to_issue
         )
         duplicate_graph_issues = list(duplicate_graph.issue_keys_to_documents.values())
-        for issue in duplicate_graph_issues:
-            populate_priority_and_is_done(issue)
         visited_issues.update(duplicate_graph.issue_keys_to_documents.keys())
         parent_issues = [
             issue for issue in duplicate_graph_issues if JiraDocument.is_group_parent(issue)
@@ -141,14 +117,20 @@ def resolve_duplicate_graphs(
         if len(parent_issues) == 1:
             parent_issue_key = parent_issues[0].issue_key
         elif len(parent_issues) > 1:
-            # if multiple parents, resolve
-            parent_issue_key, _ = app_registry(
-                DuplicateGraphResolver
-            ).resolve_multiple_parent_issues(parent_issues)
+            # Originally we would call resolve_multiple_parent_issues(parent_issues), but that would close
+            # issues that people were actively working on.
+            for parent_issue in parent_issues:
+                if not is_jira_issue_resolved(issue):
+                    parent_issue_key = parent_issue.issue_key
+                    break
+            else:
+                parent_issue_key = parent_issues[0].issue_key
         elif len(duplicate_graph_issues) == 1:
             parent_issue_key = issue.issue_key
         else:
-            open_issues = [issue for issue in duplicate_graph_issues if not issue.is_done]
+            open_issues = [
+                issue for issue in duplicate_graph_issues if not is_jira_issue_resolved(issue)
+            ]
             if len(open_issues) > 0:
                 parent_issue_key = open_issues[0].issue_key
             else:
@@ -163,7 +145,57 @@ def resolve_duplicate_graphs(
 
         parent_representatives.add(parent_issue_key)
 
-    return [key_to_issue[key] for key in parent_representatives], key_to_issue
+    return parent_representatives, key_to_issue
+
+
+def filter_dev_issues(
+    issue_keys: List[str], key_to_issue: Dict[str, JiraDocument]
+) -> List[JiraDocument]:
+    """
+    Filters out issues that are related to a development ticket, where a dev ticket
+    is a non-bug ticket.
+
+    Params:
+        issue_keys: list of issue keys
+        key_to_issue: mapping from issue key to JiraDocument
+
+    Returns:
+        list of JiraDocuments that are NOT related to a development ticket
+    """
+    issues_to_fetch = set()
+    for issue_key in issue_keys:
+        jira_doc = key_to_issue[issue_key]
+        for link in jira_doc.issue_links:
+            if "Relates" in link["type"]["name"]:
+                if "inwardIssue" in link:
+                    issues_to_fetch.add(link["inwardIssue"]["key"])
+                if "outwardIssue" in link:
+                    issues_to_fetch.add(link["outwardIssue"]["key"])
+
+    downloaded_issues = IDManagerMap.get_manager_for_identifier(
+        "JIRA"
+    ).download_bulk_issues_with_features(list(issues_to_fetch))
+    key_to_issue.update({issue.issue_key: issue for issue in downloaded_issues})
+
+    filtered_jira_docs = []
+    for issue_key in issue_keys:
+        jira_doc = key_to_issue[issue_key]
+        is_dev_issue = False
+        for link in jira_doc.issue_links:
+            if "Relates" in link["type"]["name"]:
+                if "inwardIssue" in link:
+                    issue = key_to_issue.get(link["inwardIssue"]["key"], None)
+                if "outwardIssue" in link:
+                    issue = key_to_issue.get(link["outwardIssue"]["key"], None)
+                if issue is None:
+                    print("missing linked issue", link)
+                    continue
+                if issue.issue_type != "Bug":
+                    is_dev_issue = True
+                    break
+        if not is_dev_issue:
+            filtered_jira_docs.append(jira_doc)
+    return filtered_jira_docs
 
 
 def makepdf(html: str) -> PDF:
@@ -177,6 +209,8 @@ def makepdf(html: str) -> PDF:
 
 def generate_and_save_pdf(
     report: QualityReport,
+    dry_run: bool = True,
+    send_emails: bool = False,
 ) -> None:
     """
     Generates a pdf using html of quality report and saves as a pdf in s3
@@ -185,12 +219,28 @@ def generate_and_save_pdf(
         f"quality_report_{report.title.lower()}_{report.end_date.strftime('%Y_%m_%d')}.pdf"
     )
     pdf = makepdf(report.html)
+
     s3_path = f"quality_reports/{report.title}/{filename_pdf}"
-    upload_to_s3(s3_path, pdf)
+    internal_static_s3_path = f"delight/{s3_path}"
+    report.internal_static_link = f"{_INTERNAL_STATIC_PREFIX}/{internal_static_s3_path}"
+
+    if send_emails:
+        send_email(report)
+    if dry_run:
+        print(report.title, report.overall_score)
+        return report
+    upload_to_internal_static(internal_static_s3_path, pdf)
+    upload_to_jeeves_s3(s3_path, pdf)
+
     return report
 
 
-def generate_all_reports(start_date: datetime = None):
+def generate_all_reports(
+    start_date: datetime = None,
+    dry_run: bool = True,
+    send_emails: bool = False,
+    send_area_emails: bool = False,
+):
     """
     Generates quality reports for all areas and teams with bugs updated since start_date
     """
@@ -203,26 +253,47 @@ def generate_all_reports(start_date: datetime = None):
         os.mkdir(QUALITY_REPORT_PLOTS_DIRECTORY)
 
     # Scans for issues updates since start_date and filters for parents of each duplicate graph
-    jira_issues = search_for_issues(start_date, date_now)
-    format_issue_text(jira_issues)
-    parent_issues, key_to_issue = resolve_duplicate_graphs(jira_issues)
+    jira_issues = search_for_issues(start_date)
+    parent_keys, key_to_issue = resolve_duplicate_graphs(jira_issues)
+    parent_representatives = filter_dev_issues(parent_keys, key_to_issue)
+    # convert issues to quality report issues for ease of serialization and calculation of priority score
+    key_to_issue = {issue.issue_key: QualityReportIssue(issue) for issue in key_to_issue.values()}
+    parent_issues = [key_to_issue[jira_doc.issue_key] for jira_doc in parent_representatives]
 
     for area, TEAM_TO_FEATURES in JIRA_FEATURES.items():
-        if area in ["None"]:
+        if area in ["Many", "None"]:
             continue
-
         team_reports = {}
         for team, features in TEAM_TO_FEATURES.items():
-            if team in ["Many", "None"]:
+            if team in ["Many", "None"] + _TEAMS_TO_EXCLUDE:
                 continue
             if len(features) == 0:
                 continue
-            report = QualityReportTeam(date_now, parent_issues, key_to_issue, start_date, team)
-            generate_and_save_pdf(report)
+            report = QualityReportTeam(
+                date_now, parent_issues, key_to_issue, start_date, team, dry_run=dry_run
+            )
+            # Don't create reports for teams with too few bugs
+            if len(report.issues) < _MIN_BUGS_THRESHOLD:
+                continue
+            generate_and_save_pdf(report, dry_run=dry_run, send_emails=send_emails)
             team_reports[team] = report
 
         area_report = QualityReportArea(
-            date_now, parent_issues, key_to_issue, start_date, area, team_reports
+            date_now, parent_issues, key_to_issue, start_date, area, team_reports, dry_run=dry_run
         )
-        generate_and_save_pdf(area_report)
+        generate_and_save_pdf(area_report, dry_run=dry_run, send_emails=send_area_emails)
+
+    # Create overall report with all issues
+    overall_report = QualityReport(
+        date_now,
+        None,
+        parent_issues,
+        key_to_issue,
+        start_date,
+        "All Issues",
+        monthly=False,
+        dry_run=dry_run,
+    )
+    generate_and_save_pdf(overall_report, dry_run=dry_run, send_emails=send_emails)
+    # clean up plots directory
     shutil.rmtree(QUALITY_REPORT_PLOTS_DIRECTORY)

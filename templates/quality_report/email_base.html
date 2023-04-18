@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<!-- Heavily based on https://github.com/duolingo/duolingo-comeback/blob/6c00f1e2a0bf30f02418ae961e054a81e8fc7bb4/templates/progress_reminder/email/redesign-xp-first/body.tmpl -->
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <title>Duolingo</title>
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="x-ua-compatible" content="IE=edge" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+
+    <style type="text/css">
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+      }
+      body {
+        font-family: Helvetica, Arial, sans-serif;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+      img {
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+      a,
+      a[x-apple-data-detectors] {
+        color: inherit !important;
+        text-decoration: none !important;
+        font-size: inherit !important;
+        font-family: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+      }
+      .webkit-hide {
+        display: none !important;
+      }
+      .webkit-show {
+        height: auto !important;
+        width: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        overflow: auto !important;
+        visibility: visible !important;
+        display: block !important;
+      }
+      #font-weight-normal {
+        font-weight: normal !important;
+      }
+      .link-hover:hover {
+        text-decoration: underline !important;
+      }
+
+      .stat-head {
+        padding-top: 1px !important;
+        padding-bottom: 4px !important;
+        text-align: center !important;
+      }
+
+      .stat-heading {
+        line-height: 18px !important;
+      }
+
+      .stat-value {
+        color: #1cb0f6; /* macaw */
+      }
+
+      @media only screen and (max-width: 600px) {
+        body[yahoo] .deviceWidth {
+          width: 100% !important;
+          padding: 0;
+          min-width: 100% !important;
+        }
+        .deviceWidth {
+          width: 100% !important;
+          padding: 0 !important;
+          min-width: 100% !important;
+        }
+        .mobile-hide {
+          display: none !important;
+        }
+        .img-max {
+          max-width: 100% !important;
+          height: auto !important;
+        }
+        .img-max2 {
+          width: 100% !important;
+          max-width: 100% !important;
+          height: auto !important;
+        }
+        .responsive-table {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        .pt8 {
+          padding-top: 8px !important;
+        }
+        .mobilespace24 {
+          height: 24px !important;
+          min-height: 24px !important;
+          max-height: 24px !important;
+          line-height: 24px !important;
+        }
+        .mobilespace20 {
+          height: 20px !important;
+          min-height: 20px !important;
+          max-height: 20px !important;
+          line-height: 20px !important;
+        }
+        .mobilespace28 {
+          height: 28px !important;
+          min-height: 28px !important;
+          max-height: 28px !important;
+          line-height: 28px !important;
+        }
+        .mobilespace32 {
+          height: 32px !important;
+          min-height: 32px !important;
+          max-height: 32px !important;
+          line-height: 32px !important;
+        }
+        .mobilespace34 {
+          height: 34px !important;
+          min-height: 34px !important;
+          max-height: 34px !important;
+          line-height: 34px !important;
+        }
+        .mobilespace45 {
+          height: 45px !important;
+          min-height: 45px !important;
+          max-height: 45px !important;
+          line-height: 45px !important;
+        }
+        .mobile20 {
+          padding-top: 20px !important;
+        }
+        .mobile-pt2 {
+          padding-top: 2px !important;
+        }
+        .mobile-pt16 {
+          padding-top: 16px !important;
+        }
+        .mobile-pt13 {
+          padding-top: 13px !important;
+        }
+        .mobile-pb20 {
+          padding-bottom: 20px !important;
+        }
+        .mobile-pt30 {
+          padding-top: 30px !important;
+        }
+        .mobile-pb30 {
+          padding-bottom: 30px !important;
+        }
+        .mobile-ph-33 {
+          padding-left: 33px !important;
+          padding-right: 33px !important;
+        }
+        .f28 {
+          font-size: 25px !important;
+          line-height: 32px !important;
+        }
+
+        .mw22 {
+          width: 22px !important;
+          min-width: 22px !important;
+        }
+        .mw33 {
+          width: 33px !important;
+          min-width: 33px !important;
+        }
+        .mw103 {
+          width: 103px !important;
+          min-width: 103px !important;
+        }
+        .mw186 {
+          width: 186px !important;
+          min-width: 186px !important;
+        }
+        .mspace8 {
+          height: 8px !important;
+          line-height: 8px !important;
+          max-height: 8px !important;
+        }
+        .mp0x5 {
+          padding: 0 5px !important;
+        }
+
+        .mw100pct {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 100% !important;
+        }
+
+        div[class="mobile_show"] {
+          display: block !important;
+          visibility: visible !important;
+          overflow: hidden !important;
+        }
+        tr[class="mobile_show"] {
+          display: block !important;
+          visibility: visible !important;
+        }
+        td[class="mobile_show"] {
+          display: block !important;
+          visibility: visible !important;
+        }
+        img[class="mobile_show"] {
+          display: block !important;
+          visibility: visible !important;
+        }
+        table[class="mobile_show"] {
+          display: table !important;
+          visibility: visible !important;
+        }
+
+        .mobile_show {
+          display: block !important;
+          visibility: visible !important;
+          overflow: hidden !important;
+        }
+
+        td[class="mobile_hide"] {
+          display: none;
+          width: 0;
+          height: 0;
+          visibility: hidden;
+          opacity: 0;
+        }
+        img[class="mobile_hide"] {
+          display: none !important;
+          font-size: 0 !important;
+          max-height: 0 !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          line-height: 0 !important;
+          overflow: hidden !important;
+          padding: 0 !important;
+          mso-hide: all !important;
+          width: 0 !important;
+          max-width: 0 !important;
+          min-width: 0 !important;
+        }
+
+        .mobile_hide {
+          display: none !important;
+          font-size: 0 !important;
+          max-height: 0 !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          line-height: 0 !important;
+          overflow: hidden !important;
+          padding: 0 !important;
+          mso-hide: all !important;
+          width: 0 !important;
+          max-width: 0 !important;
+          min-width: 0 !important;
+        }
+
+        .card-inner {
+          padding: 14px 0 11px !important;
+        }
+
+        .card-head {
+          padding-bottom: 0 !important;
+        }
+
+        .card-heading {
+          display: block;
+          max-width: 80px; /* make line break simultaneously */
+          line-height: 18px !important;
+        }
+
+        .card-value {
+          font-size: 25px !important;
+        }
+
+        .board,
+        .board__body,
+        .board__row,
+        .board__cell {
+          display: block !important;
+          width: 100% !important;
+        }
+
+        /* iOS only
+        For some reason iPhone XR in the dark mode
+        doesn't apply "display: block" to .board__row
+        But it works with "display: flex" or "display: grid".
+        Flex damages layout in GMail on Google Pixel so Grid is preferable.
+        Anyway we are trying to isolate this code for iOS devices only
+        using "@supports (-webkit-touch-callout: none)":
+    */
+        @supports (-webkit-touch-callout: none) {
+          .board,
+          .board__body,
+          .board__row,
+          .board__cell {
+            display: grid !important;
+          }
+        }
+      }
+
+      @media screen yahoo and (min-width: 480px) {
+        .w214 {
+          width: 214px !important;
+          min-width: 214px !important;
+          max-width: 214px !important;
+        }
+        .w316 {
+          width: 316px !important;
+          min-width: 316px !important;
+          max-width: 316px !important;
+        }
+        .w228 {
+          width: 228px !important;
+          min-width: 228px !important;
+          max-width: 228px !important;
+        }
+        .w174 {
+          width: 174px !important;
+          min-width: 174px !important;
+          max-width: 174px !important;
+        }
+        .w372 {
+          width: 372px !important;
+          min-width: 372px !important;
+          max-width: 372px !important;
+        }
+        .w340 {
+          width: 340px !important;
+          min-width: 340px !important;
+          max-width: 340px !important;
+        }
+        .w225 {
+          width: 225px !important;
+          min-width: 225px !important;
+          max-width: 225px !important;
+        }
+        .w310 {
+          width: 310px !important;
+          min-width: 310px !important;
+          max-width: 310px !important;
+        }
+        .w141 {
+          width: 141px !important;
+          min-width: 141px !important;
+          max-width: 141px !important;
+        }
+        .w290 {
+          width: 290px !important;
+          min-width: 290px !important;
+          max-width: 290px !important;
+        }
+      }
+      @media only screen and (max-width: 480px) {
+        .emailbody {
+          width: 100vw !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+        u + .emailbody {
+          width: 100% !important;
+        }
+      }
+      [owa] .w214 {
+        width: 214px !important;
+        min-width: 214px !important;
+        max-width: 214px !important;
+      }
+      [owa] .w316 {
+        width: 316px !important;
+        min-width: 316px !important;
+        max-width: 316px !important;
+      }
+      [owa] .w228 {
+        width: 228px !important;
+        min-width: 228px !important;
+        max-width: 228px !important;
+      }
+      [owa] .w174 {
+        width: 174px !important;
+        min-width: 174px !important;
+        max-width: 174px !important;
+      }
+      [owa] .w372 {
+        width: 372px !important;
+        min-width: 372px !important;
+        max-width: 372px !important;
+      }
+      [owa] .w340 {
+        width: 340px !important;
+        min-width: 340px !important;
+        max-width: 340px !important;
+      }
+      [owa] .w225 {
+        width: 225px !important;
+        min-width: 225px !important;
+        max-width: 225px !important;
+      }
+      [owa] .w310 {
+        width: 310px !important;
+        min-width: 310px !important;
+        max-width: 310px !important;
+      }
+      [owa] .w141 {
+        width: 141px !important;
+        min-width: 141px !important;
+        max-width: 141px !important;
+      }
+      [owa] .w290 {
+        width: 290px !important;
+        min-width: 290px !important;
+        max-width: 290px !important;
+      }
+      :root {
+        color-scheme: light dark;
+        supported-color-schemes: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #1c1c1e;
+        }
+        .chameleon-heading {
+          color: #ffffff !important;
+        }
+        .chameleon-text {
+          color: #ffffff !important;
+        }
+        .chameleon-line {
+          border-color: #777777 !important;
+        }
+        .chameleon-store {
+          background-color: transparent !important;
+          border-color: #777777 !important;
+          box-shadow: 0 2px 0 0 #777777 !important;
+        }
+        .chameleon-store-label {
+          color: #e5e5e5 !important;
+        }
+      }
+      /* Hide gmail hack in applications that support media queries */
+      @media only screen and (max-width: 375px) {
+        .gmail-hack {
+          display: none !important;
+        }
+      }
+
+      .hover-background:hover {
+        background: rgb(235, 236, 240);
+      }
+
+      .jira-item {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+          "Oxygen", "Ubuntu", "Fira Sans", "Droid Sans", "Helvetica Neue",
+          sans-serif;
+        border-top: 1px solid #ebecf0;
+      }
+
+      .first-row {
+        border-top: none;
+      }
+
+      .jira-cell {
+        padding: 20px 10px 19px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+      }
+
+      .jira-key {
+        color: #8993a4;
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .jira-summary {
+        color: #091e42;
+        font-weight: 500;
+        font-size: 16px;
+      }
+
+      .jira-resolution {
+        color: #46516c;
+        font-weight: 300;
+        font-size: 14px;
+      }
+
+      ul {
+        padding: 0;
+        margin: 0;
+      }
+
+      .im {
+        color: #4c4c4c;
+      }
+
+      .issue-ul {
+        list-style-type: none;
+        padding: 0;
+        border: 2px solid #e5e5e5;
+        border-radius: 16px;
+        color: #4c4c4c;
+        overflow: hidden;
+      }
+
+      .issue-li {
+        padding: 0 5px;
+        margin-left: 0;
+      }
+
+      .issue-li td {
+        padding: 0 5px;
+      }
+
+      .hover-background:hover {
+        background: rgb(235, 236, 240);
+      }
+
+      a,
+      a:visited,
+      a:hover,
+      a:active {
+        color: inherit;
+      }
+
+      .button {
+        margin: auto;
+        font-weight: 700;
+        color: #1cb0f6;
+        font-size: 13px;
+        line-height: 22px;
+        border: 2px solid #e5e5e5;
+        border-radius: 16px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        text-transform: uppercase;
+        padding: 5px 10px;
+        width: fit-content;
+      }
+
+      .issue-row {
+        color: #4c4c4c !important;
+      }
+
+      .blue-link {
+        color: #1361af !important;
+        text-decoration: underline;
+      }
+
+      .blue-link:hover {
+        color: #1cb0f6 !important;
+        text-decoration: underline;
+      }
+
+      .subtext {
+        margin: 0;
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 16px;
+        line-height: 26px;
+        font-weight: 200;
+        letter-spacing: 0;
+        color: #777777;
+        text-align: center;
+      }
+
+      .subtext-bold {
+        font-weight: 400;
+        font-weight: bold;
+      }
+
+      .subsubtext {
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0" class="emailbody">
+    <table
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      width="100%"
+      style="width: 100%; min-width: 100%"
+      align="center"
+      class="deviceWidth"
+    >
+      <!-- begin gmail hack -->
+      <tr>
+        <td
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          height="1"
+          style="line-height: 1px; min-width: 375px; width: 100%"
+        >
+          &nbsp;
+        </td>
+      </tr>
+      <!-- end gmail hack -->
+      <tr>
+        <td align="center">
+          <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="600"
+            class="deviceWidth"
+            style="width: 100%; max-width: 600px"
+          >
+            <tr>
+              <td
+                height="32"
+                style="
+                  height: 32px;
+                  min-height: 32px;
+                  line-height: 32px;
+                  font-size: 1px;
+                "
+              >
+                &nbsp;
+              </td>
+            </tr>
+            <tr>
+              <td align="center">
+                <a
+                  class="brand-logo-link"
+                  href="https://www.duolingo.com"
+                  target="_blank"
+                >
+                  <img
+                    class="brand-logo-img mw103"
+                    src="https://dzvpwvcpo1876.cloudfront.net/duolingo-logo.png"
+                    width="103"
+                    height="24"
+                    style="
+                      display: block;
+                      border: 0px;
+                      text-decoration: none;
+                      border-style: none;
+                      color: #ffffff;
+                      border-width: 0;
+                    "
+                  />
+                </a>
+              </td>
+            </tr>
+          </table>
+          <!-- / header -->
+
+          <!-- jumbotron -->
+          <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="600"
+            class="deviceWidth"
+            style="
+              width: 100%;
+              max-width: 600px;
+              border-bottom: 2px solid #f2f2f2;
+            "
+          >
+            <tr>
+              <td align="center" style="padding-top: 9px">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td align="center" style="padding: 0 30px">
+                      <table
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        width="100%"
+                      >
+                        <tr>
+                          <td align="center">
+                            <h1
+                              style="
+                                margin: 0;
+                                margin: 0;
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 28px;
+                                line-height: 38px;
+                                font-weight: 700;
+                                letter-spacing: 0;
+                                color: #4c4c4c;
+                                text-align: center;
+                              "
+                              class="f28 chameleon-heading"
+                            >
+                              {{report.title}} Quality Report
+                            </h1>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            class="mobilespace32"
+                            height="27"
+                            style="height: 27px; line-height: 27px"
+                          >
+                            &nbsp;
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      align="center"
+                      style="padding-left: 0px; padding-right: 0px"
+                    >
+                      <a href="#">
+                        <img
+                          src="{{report.external_overall_plot_path}}"
+                          style="display: block; border: 0px; width: 100%"
+                        />
+                      </a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      height="21"
+                      style="height: 21px; min-height: 21px; line-height: 21px"
+                      class="mobilespace24"
+                    >
+                      &nbsp;
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding: 0 30px">
+                      <table
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        width="100%"
+                      >
+                        <tr>
+                          <td
+                            align="center"
+                            style="padding-top: 11px"
+                            class="mobile-pt13"
+                          >
+                            <p class="subtext subtext-bold chameleon-text">
+                              Overall Score: {{report.aggregate_overall_score}}
+                            </p>
+                            {% if report.previous_aggregate_overall_score %}
+                            <p class="subtext subtext-bold chameleon-text">
+                              {% if report.aggregate_overall_score >
+                              report.previous_aggregate_overall_score %} Your
+                              score is
+                              <span style="color: #71aa30">up</span> from last
+                              week: {{report.previous_aggregate_overall_score}}
+                              {% elif report.aggregate_overall_score <
+                              report.previous_aggregate_overall_score %} Your
+                              score is
+                              <span style="color: #c65353">down</span> from last
+                              week: {{report.previous_aggregate_overall_score}}
+                              {% else %} Your score is the same as last week:
+                              {{report.previous_aggregate_overall_score}} {%
+                              endif %}
+                            </p>
+                            {% endif %}
+                            <a href="{{report.open_issues_link}}">
+                              <p
+                                class="subtext subsubtext chameleon-text link-hover blue-link"
+                              >
+                                See open bugs in
+                                <span class="">Jira</span>
+                              </p>
+                            </a>
+                            <a
+                              href="https://duolingo.atlassian.net/wiki/spaces/DUO/pages/2492432385/Quality+Reports#Score-Formula"
+                            >
+                              <p
+                                class="subtext subsubtext chameleon-text link-hover blue-link"
+                              >
+                                Quality score formula
+                              </p>
+                            </a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            class="mobilespace32"
+                            height="27"
+                            style="height: 27px; line-height: 27px"
+                          >
+                            &nbsp;
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <!-- /jumbotron -->
+
+          {% block sub_team_scores %}{% endblock %}
+
+          <!-- Worst open bugs -->
+          <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="600"
+            style="width: 100%; max-width: 600px"
+            class="chameleon-line deviceWidth"
+          >
+            {% if report.recent_changes.previous_report_date %}
+            <tr>
+              <td
+                align="center"
+                style="padding: 0"
+                class="mobile-pb20 mobile-pt30"
+              >
+                <table
+                  cellpadding="0"
+                  cellspacing="0"
+                  border="0"
+                  width="100%"
+                  style="margin-bottom: 20px"
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      style="padding-top: 11px"
+                      class="mobile-pt13"
+                    >
+                      <b
+                        style="
+                          font-family: Arial, Helvetica, sans-serif;
+                          text-transform: uppercase;
+                          font-size: 16px;
+                          line-height: 22px;
+                          font-weight: 700;
+                          color: #a0a0a0;
+                        "
+                        class="stat-heading"
+                      >
+                        Changes since
+                        {{report.recent_changes.previous_report_date}}
+                      </b>
+                      <div
+                        style="
+                          border: 2px solid #e5e5e5;
+                          padding: 10px;
+                          text-align: left;
+                          color: #4c4c4c;
+                          font-family: Arial, Helvetica, sans-serif;
+                          border-radius: 16px;
+                        "
+                        class="qa-summary"
+                      >
+                        <ul style="list-style-type: none; text-align: center">
+                          {% if report.recent_changes.newly_resolved_issues %}
+                          <li>
+                            <a
+                              class="blue-link"
+                              href="https://duolingo.atlassian.net/issues/?jql=Key in ({{report.recent_changes.newly_resolved_issues | join(', ')}})"
+                            >
+                              {{report.recent_changes.newly_resolved_issues |
+                              length}} resolved issue(s)
+                              <span style="color: #58a700"
+                                >+{{'%0.2f' %
+                                report.recent_changes.change_due_to_resolved_issues|float}}</span
+                              >
+                            </a>
+                          </li>
+                          {% endif %} {% if
+                          report.recent_changes.newly_included_issues %}
+                          <li>
+                            <a
+                              class="blue-link"
+                              href="https://duolingo.atlassian.net/issues/?jql=Key in ({{report.recent_changes.newly_included_issues | join(', ')}})"
+                            >
+                              {{report.recent_changes.newly_included_issues |
+                              length}} added issue(s)
+                              <span style="color: #a71900"
+                                >{{'%0.2f' %
+                                report.recent_changes.change_due_to_included_issues}}</span
+                              >
+                            </a>
+                          </li>
+                          {% endif %}
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td align="center" style="padding: 0">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td
+                      align="center"
+                      style="padding-top: 11px"
+                      class="mobile-pt13"
+                    >
+                      {% if report.max_dupes_issues_no_overlap | length > 0 %}
+                      <b
+                        style="
+                          font-family: Arial, Helvetica, sans-serif;
+                          text-transform: uppercase;
+                          font-size: 16px;
+                          line-height: 22px;
+                          font-weight: 700;
+                          color: #a0a0a0;
+                        "
+                        class="stat-heading"
+                      >
+                        Most Reported Issues
+                      </b>
+                      <ul class="issue-ul" style="margin-bottom: 30px">
+                        {% block max_dupes_table %}{% endblock %}
+                      </ul>
+                      {% endif %}
+                      <b
+                        style="
+                          font-family: Arial, Helvetica, sans-serif;
+                          text-transform: uppercase;
+                          font-size: 16px;
+                          line-height: 22px;
+                          font-weight: 700;
+                          color: #a0a0a0;
+                        "
+                        class="stat-heading"
+                      >
+                        Highest Priority Bugs
+                      </b>
+                      <ul class="issue-ul" style="margin-bottom: 30px">
+                        {% block max_priority_table %}{% endblock %}
+                      </ul>
+                      {% if report.max_dupes_visual_polish_issues | length > 0
+                      %}
+                      <b
+                        style="
+                          font-family: Arial, Helvetica, sans-serif;
+                          text-transform: uppercase;
+                          font-size: 16px;
+                          line-height: 22px;
+                          font-weight: 700;
+                          color: #a0a0a0;
+                        "
+                        class="stat-heading"
+                      >
+                        Top Design Issues
+                      </b>
+                      <ul class="issue-ul" style="margin-bottom: 30px">
+                        {% block max_design_dupes_table %}{% endblock %}
+                      </ul>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      class="mobilespace32"
+                      height="27"
+                      style="height: 27px; line-height: 27px"
+                    >
+                      &nbsp;
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- / Worst open bugs -->
+
+          <!-- Full Report Link -->
+          <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="600"
+            class="deviceWidth"
+            style="width: 100%; max-width: 600px"
+          >
+            <tr>
+              <td align="center" style="padding-top: 9px">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td align="center" style="padding: 0 30px">
+                      <table
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        width="100%"
+                      >
+                        <tr>
+                          <td align="center">
+                            <a href="{{report.internal_static_link}}"
+                              ><div class="button hover-background">
+                                See Full Report
+                              </div></a
+                            >
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <!-- / Full Report Link -->
+
+          <!-- Footer -->
+          <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="100%"
+            class="deviceWidth"
+            style="max-width: 600px"
+          >
+            <tr>
+              <td
+                height="60"
+                style="
+                  height: 60px;
+                  min-height: 60px;
+                  line-height: 60px;
+                  font-size: 1px;
+                  border-bottom: 2px solid #f2f2f2;
+                "
+                class="mobilespace45 chameleon-line"
+              >
+                &nbsp;
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding-top: 10px" class="mobile-pt16">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td
+                      width="32"
+                      style="width: 32px; min-width: 32px; max-width: 32px"
+                      class="mw22"
+                    >
+                      &nbsp;
+                    </td>
+                    <td valign="top">
+                      <table
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        align="left"
+                        width="290"
+                        class="responsive-table w290"
+                        style="min-width: 100%; width: 100%; max-width: 100%"
+                        dir="ltr"
+                      >
+                        <tr>
+                          <td
+                            align="center"
+                            style="padding-top: 10px; padding-bottom: 4px"
+                            class="mobile-pt16"
+                          >
+                            <table
+                              cellpadding="0"
+                              cellspacing="0"
+                              border="0"
+                              align="left"
+                              width="100%"
+                            >
+                              <tr>
+                                <td align="left">
+                                  <p
+                                    style="
+                                      margin: 0;
+                                      margin: 0;
+                                      font-family: Arial, Helvetica, sans-serif;
+                                      font-size: 13px;
+                                      line-height: 17px;
+                                      font-weight: 400;
+                                      color: #a7a7a7;
+                                    "
+                                  >
+                                    <a
+                                      href="https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/send_quality_report_emails.py"
+                                      target="_blank"
+                                      style="
+                                        color: #a7a7a7;
+                                        text-decoration: underline;
+                                      "
+                                      ><span style="color: #a7a7a7"
+                                        >Unsubscribe</span
+                                      ></a
+                                    >
+                                  </p>
+                                </td>
+                              </tr>
+                            </table>
+                            <!--[if (gte mso 9)|(IE)]>
+                            </td>
+                            </tr>
+                            </table>
+                            <![endif]-->
+                          </td>
+                        </tr>
+                      </table>
+                      <!--[if (gte mso 9)|(IE)]>
+                        </td>
+                        </tr>
+                        </table>
+                        <![endif]-->
+                    </td>
+                    <td
+                      width="32"
+                      style="width: 32px; min-width: 32px; max-width: 32px"
+                      class="mw22"
+                    >
+                      &nbsp;
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td
+                height="60"
+                style="
+                  height: 60px;
+                  min-height: 60px;
+                  line-height: 60px;
+                  font-size: 1px;
+                "
+              >
+                &nbsp;
+              </td>
+            </tr>
+          </table>
+          <!-- / Footer -->
+        </td>
+      </tr>
+    </table>
+
+    <!-- FIX FOR GMAIL iOS -->
+    <div
+      style="
+        display: none;
+        white-space: nowrap;
+        font: 15px courier;
+        color: #ffffff;
+      "
+    >
+      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    </div>
+    <!-- FIX FOR GMAIL iOS -->
+  </body>
+</html>

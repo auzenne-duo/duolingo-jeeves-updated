@@ -123,9 +123,6 @@ JIRA_FEATURES = {
             ],
             "Transliteration": [],
         },
-        "Story Product": {
-            "Stories": ["story"],
-        },
         "Speech Lab": {
             "World character voice": [
                 "voice",
@@ -159,6 +156,7 @@ JIRA_FEATURES = {
                 "unit complete",
                 "unit review",
             ],
+            "Stories": ["story"],
             "Guidebook": [],
             "Path Sections": ["sections"],
             "Skill tree migration": ["course update"],

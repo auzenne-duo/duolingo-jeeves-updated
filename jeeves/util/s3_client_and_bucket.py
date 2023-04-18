@@ -16,9 +16,25 @@ def get_s3_client_and_bucket():
     return s3_client, s3_bucket_name
 
 
-def upload_to_s3(filename, data):
+def _upload_to_s3(filename, data, bucket):
     """
     Uploads data to s3 under filename
     """
-    s3_client, s3_bucket_name = get_s3_client_and_bucket()
-    s3_client.upload(s3_bucket_name, filename, data)
+    s3_client = s3.S3Client()
+    s3_client.upload(bucket, filename, data)
+
+
+def upload_to_public_static(filename, data):
+    _upload_to_s3(filename, data, _config.get_nested(["s3_public_static", "bucket_name"]))
+
+
+def upload_to_internal_static(filename, data):
+    _upload_to_s3(filename, data, _config.get_nested(["s3_internal_static", "bucket_name"]))
+
+
+def upload_to_jeeves_s3(filename, data):
+    """
+    Uploads data to jeeves document cache in s3 under filename
+    """
+    _, s3_bucket_name = get_s3_client_and_bucket()
+    _upload_to_s3(filename, data, s3_bucket_name)

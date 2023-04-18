@@ -2,133 +2,45 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from jeeves.model.quality_report import (
-    _QUOTE_ESCAPE_CHAR,
-    IssueStatus,
-    QualityReportBase,
-    QualityReportProjectSection,
-    QualityReportTeam,
-)
-from jeeves.util.quality_report_priority import get_quality_report_priority
-from tests.scripts.test_quality_report_script import create_jira_doc
-
-JIRA_DOCUMENT_1 = create_jira_doc(
-    "DLAI-2001", "Onboarding", "To Do", "Medium", ["DLAI-2002", "DLAI-2003"]
-)
-JIRA_DOCUMENT_1.is_done = False
-
-JIRA_DOCUMENT_2 = create_jira_doc(
-    "DLAI-2002", "Onboarding", "Done", "High", ["DLAI-2001"], labels=["parent_bug"]
-)
-JIRA_DOCUMENT_2.is_done = True
-
-JIRA_DOCUMENT_3 = create_jira_doc("DLAI-2003", "Onboarding", "In Development", "High", [])
-JIRA_DOCUMENT_3.is_done = False
-
-
-class TestQualityReportBase(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        jira_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3]
-        key_to_issue = {issue.issue_key: issue for issue in jira_issues}
-        cls.report = QualityReportBase(
-            datetime(2022, 1, 1), None, None, jira_issues, key_to_issue, ""
-        )
-
-    def test_create_status_priority_count(self):
-        self.report.create_status_priority_count()
-        expected = {
-            IssueStatus.OPEN: {
-                get_quality_report_priority("Medium"): 1,
-                get_quality_report_priority("High"): 1,
-            },
-            IssueStatus.CLOSED: {get_quality_report_priority("High"): 1},
-        }
-        self.assertEqual(self.report.status_priority_count, expected)
-
-    def test_calculate_scores(self):
-        self.report.status_priority_count = {
-            IssueStatus.OPEN: {get_quality_report_priority("High"): 1},
-            IssueStatus.CLOSED: {
-                get_quality_report_priority("Medium"): 5,
-                get_quality_report_priority("High"): 2,
-            },
-        }
-        self.report.calculate_scores()
-        self.assertEqual(self.report.overall_score, 75)
-        self.assertEqual(self.report.closed_score, 30)
-        self.assertEqual(self.report.open_score, 10)
-
-    def test_create_open_issues_link(self):
-        self.report.features = None
-        self.report.project = None
-        self.report.create_open_issues_link()
-        expected = "https://duolingo.atlassian.net/issues/?jql=status in (%22Confirmed%22, %22Considering%22, %22In Design%22, %22In Development%22, %22In Progress%22, %22In Code Review%22, %22In Review%22, %22In Testing%22, %22Ready for Design%22, %22To Do%22, %22Unconfirmed%22) ORDER BY updated DESC"
-        self.assertEqual(self.report.open_issues_link, expected)
-
-        self.report.project = "DLAA"
-        self.report.create_open_issues_link()
-        expected = "https://duolingo.atlassian.net/issues/?jql=status in (%22Confirmed%22, %22Considering%22, %22In Design%22, %22In Development%22, %22In Progress%22, %22In Code Review%22, %22In Review%22, %22In Testing%22, %22Ready for Design%22, %22To Do%22, %22Unconfirmed%22) AND project=DLAA ORDER BY updated DESC"
-        self.assertEqual(self.report.open_issues_link, expected)
-
-        self.report.features = {"WeChat"}
-        self.report.create_open_issues_link()
-        expected = f"https://duolingo.atlassian.net/issues/?jql=status in (%22Confirmed%22, %22Considering%22, %22In Design%22, %22In Development%22, %22In Progress%22, %22In Code Review%22, %22In Review%22, %22In Testing%22, %22Ready for Design%22, %22To Do%22, %22Unconfirmed%22) AND project=DLAA AND Feature[Dropdown] in ({_QUOTE_ESCAPE_CHAR}WeChat{_QUOTE_ESCAPE_CHAR}) ORDER BY updated DESC"
-        self.assertEqual(self.report.open_issues_link, expected)
-
-
-class TestQualityReportProjectSection(unittest.TestCase):
-    @classmethod
-    @patch("jeeves.model.quality_report.plt.savefig", MagicMock())
-    def setUpClass(cls):
-        jira_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3]
-        key_to_issue = {issue.issue_key: issue for issue in jira_issues}
-        score_history = [("2000-01-01", 50)]
-        cls.report = QualityReportProjectSection(
-            datetime(2022, 1, 1),
-            "DLAI",
-            ["Onboarding"],
-            jira_issues,
-            key_to_issue,
-            score_history,
-            "China",
-        )
-
-    def test_calculate_max_priority_issues(self):
-        result = self.report.calculate_max_priority_issues()
-        expected = [JIRA_DOCUMENT_3, JIRA_DOCUMENT_1]
-        self.assertEqual(result, expected)
-
-    def test_calculate_max_dupes_issues(self):
-        result = self.report.calculate_max_dupes_issues()
-        expected = [JIRA_DOCUMENT_1]
-        self.assertEqual(result, expected)
-
+from jeeves.model.quality_report import QualityReportTeam, RecentChanges
+from tests.testutil.test_util_quality_report import REPORT_ISSUE_1, REPORT_ISSUE_2
 
 mock_score_history = (
     '{"title":"Test", "score_history":{"Overall":[], "DLAA":[], "DLAI":[], "DLAW":[]}}'
 )
 
 
+def mock_s3(filepath):
+    if "issue_data" in filepath:
+        return '[{"title":"Test", "issue_data":[], "date":"2022-01-01"}]'
+    return mock_score_history
+
+
 class TestQualityReport(unittest.TestCase):
     @classmethod
-    @patch("jeeves.model.quality_report.plt.savefig", MagicMock())
-    @patch("jeeves.model.quality_report.upload_to_s3", MagicMock())
+    @patch("jeeves.model.quality_report.upload_to_jeeves_s3", MagicMock())
     @patch(
         "jeeves.model.quality_report.get_s3_client_and_bucket",
         MagicMock(
             return_value=(
-                MagicMock(download=MagicMock(return_value=mock_score_history)),
+                MagicMock(download=MagicMock(side_effect=mock_s3)),
                 MagicMock(),
             )
         ),
     )
+    @patch("jeeves.model.quality_report.create_plot", MagicMock(return_value=("file", "external")))
+    @patch(
+        "jeeves.model.quality_report_project_section.create_plot",
+        MagicMock(return_value=("file", "external")),
+    )
+    @patch("jeeves.model.quality_report.open", MagicMock())
+    @patch("jeeves.model.quality_report.upload_to_public_static", MagicMock())
     def setUpClass(cls):
-        jira_issues = [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2]
-        key_to_issue = {issue.issue_key: issue for issue in jira_issues}
+        issues = [REPORT_ISSUE_1, REPORT_ISSUE_2]
+        key_to_issue = {issue.issue_key: issue for issue in issues}
         cls.report = QualityReportTeam(
             datetime(2022, 1, 1),
-            jira_issues,
+            issues,
             key_to_issue,
             datetime(2022, 1, 1),
             "Onboarding",
@@ -136,5 +48,114 @@ class TestQualityReport(unittest.TestCase):
 
     def test_find_issues_with_closed_parents(self):
         result = self.report.find_issues_with_closed_parents()
-        expected = [JIRA_DOCUMENT_1]
+        expected = [REPORT_ISSUE_1]
+        self.assertEqual(result, expected)
+
+    def test_find_recent_changes(self):
+        """
+        old: 1 High open, 1 Low open
+        old score: (0/105) = 0
+
+        Resolved: 1 High open to 1 High closed
+        score with newly resolved issue: (10/(15)) = 0.6666666666666666
+        change in score due to newly resolved issues: 0.6666666666666666 - 0 = 0.6666666666666666
+
+        Added: 1 Medium open
+        score with newly included issue: (10/25) = 0.4
+        change in score due to newly included issues: 0.4 - 0.666666 = -0.2666666666666667
+
+        Removed: 1 Low open
+        score with newly removed issue: (10/20) = 0.5
+        change in score due to newly removed issues: 0.5 - 0.4 = 0.1
+        """
+        issue_data = [
+            {
+                "date": "2021-01-01",
+                "issues": {
+                    "DLAI-2003": {
+                        "is_done": False,
+                        "creation_date": "2021-01-01",
+                        "is_fixed": False,
+                        "score_params": {
+                            "is_done": False,
+                            "priority": "High",
+                            "score": 5,
+                            "group": "LOW_LOWEST",
+                            "resolution": "OPEN",
+                            "time_to_fix": "NOT_WITHIN_ONE_WEEK",
+                        },
+                        "fixed_within_one_week": False,
+                    },
+                    "DLAI-2002": {
+                        "is_done": False,
+                        "creation_date": "2021-01-01",
+                        "is_fixed": False,
+                        "score_params": {
+                            "is_done": False,
+                            "priority": "High",
+                            "score": 100,
+                            "group": "HIGH_HIGHEST",
+                            "resolution": "OPEN",
+                            "time_to_fix": "NOT_WITHIN_ONE_WEEK",
+                        },
+                        "fixed_within_one_week": False,
+                    },
+                },
+            },
+            {"date": "2022-01-06", "issues": {}},
+        ]
+        result = self.report.find_recent_changes(issue_data)
+        expected = RecentChanges(
+            change_due_to_included_issues=-26.66666666666667,
+            change_due_to_removed_issues=10.0,
+            change_due_to_resolved_issues=66.66666666666667,
+            newly_included_issues={"DLAI-2001"},
+            newly_removed_issues={"DLAI-2003"},
+            newly_resolved_issues={"DLAI-2002"},
+            previous_report_date="2021-01-01",
+        )
+        self.assertEqual(result, expected)
+
+    def test_find_recent_changes_new_included_issue(self):
+        """
+        old: 1 High closed
+        old score: (10/10) = 1
+
+        Added: 1 Medium open
+        score with newly included issue: (10/20) = 0.5
+        change in score due to newly included issues: 0.5 - 1 = -0.5
+        """
+        issue_data = [
+            {
+                "date": "2021-01-01",
+                "issues": {
+                    "DLAI-2002": {
+                        "is_done": True,
+                        "creation_date": "2021-01-01",
+                        "is_fixed": False,
+                        "score_params": {
+                            "is_done": True,
+                            "priority": "High",
+                            "score": 10,
+                            "group": "HIGH_HIGHEST",
+                            "resolution": "CLOSED_UNFIXED",
+                            "time_to_fix": "NOT_WITHIN_ONE_WEEK",
+                        },
+                        "fixed_within_one_week": False,
+                        "resolution_date": "2021-01-02",
+                    }
+                },
+            },
+            {"date": "2022-01-06", "issues": {}},
+        ]
+        result = self.report.find_recent_changes(issue_data)
+        expected = RecentChanges(
+            change_due_to_included_issues=-50.0,
+            change_due_to_removed_issues=0.0,
+            change_due_to_resolved_issues=0.0,
+            newly_included_issues={"DLAI-2001"},
+            newly_removed_issues=set(),
+            newly_resolved_issues=set(),
+            previous_report_date="2021-01-01",
+        )
         self.assertEqual(result, expected)
