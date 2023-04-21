@@ -44,7 +44,7 @@ class TutorsDAL:
             response = self.client.post(
                 _COMPLETION_REQUEST_ROUTE,
                 json={
-                    "allow_caching": False,
+                    "allow_caching": True,
                     "max_tokens": 1024,
                     "prompt": TutorsDAL.get_prompt(system_prompt, text),
                     "stop": ["<|im_end|>", "<|diff_marker|>"],
