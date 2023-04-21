@@ -30,7 +30,7 @@ const Dashboard = () => {
       }),
     {
       select: d => {
-        d.slice().reverse();
+        d.reverse();
         const spikes = [];
         for (const dateResponse of d ?? []) {
           const langToSpikes = new Map<

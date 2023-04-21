@@ -42,8 +42,8 @@ An issue is a bug when it's about the app not working as expected, such as
 "Issues with quest tracking and badge progress" or "I can't log in".
 An issue is not a bug when it's about a feature request or something outside of the app, such as
 "I want to be able to change my username" or "I love duolingo".
-The response shold be of the form:
-    SUMMARY: summary of the most common topic in three sentences or less
+The response should be of the form:
+    SUMMARY: summary in English of the most common topic in three sentences or less
     IS_BUG: True or False depending on whether the issues are about a bug""".strip()
 # if the number of unique users in a spike is less than this, we don't consider it a spike
 UNIQUE_USER_THRESHOLD = 3
