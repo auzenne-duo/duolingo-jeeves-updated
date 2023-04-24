@@ -1,3 +1,4 @@
+import { formatISO } from "date-fns";
 import * as React from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
@@ -36,17 +37,28 @@ const Spike = () => {
 
   return (
     <>
-      {data?.map((o, i) => (
-        <SpikeTable
-          date={o.date}
-          key={i}
-          language={lang}
-          linkFilter={spikeToStrCategory(filter)}
-          onlyBugs={onlyBugs}
-          spikeCategory={filter}
-          spikes={o.spikes}
-        />
-      ))}
+      {data?.length ? (
+        data?.map((o, i) => (
+          <SpikeTable
+            date={o.date}
+            key={i}
+            language={lang}
+            linkFilter={spikeToStrCategory(filter)}
+            onlyBugs={onlyBugs}
+            spikeCategory={filter}
+            spikes={o.spikes}
+          />
+        ))
+      ) : (
+        <>
+          {`No spikes in this date range:
+          ${
+            from ? formatISO(from, { representation: "date" }) : "any date"
+          } - ${
+            to ? formatISO(to, { representation: "date" }) : "any date"
+          } for language: ${lang} and spike category: ${filter}`}
+        </>
+      )}
     </>
   );
 };
