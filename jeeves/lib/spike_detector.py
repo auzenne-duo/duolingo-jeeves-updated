@@ -7,9 +7,10 @@ import timeit
 from collections import defaultdict
 from datetime import date, datetime, time
 from random import shuffle
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+import rollbar
 
 from jeeves import registry as app_registry
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
@@ -47,6 +48,9 @@ The response should be of the form:
     IS_BUG: True or False depending on whether the issues are about a bug""".strip()
 # if the number of unique users in a spike is less than this, we don't consider it a spike
 UNIQUE_USER_THRESHOLD = 3
+
+# We will get automated summaries for the top 5 spikes of each lang/category
+MAX_SPIKE_SUMMARIES = 5
 
 
 def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
@@ -153,6 +157,7 @@ def run_spike_detector_for_batch(
     ]
 
     batch_spike_list: List[SpikeWord] = []
+    batch_prompt_list: List[str] = []
 
     word_to_date_to_count = _get_word_to_date_to_count(
         lang, spike_group, new_ticket_ids, min(new_ticket_dates)
@@ -163,9 +168,22 @@ def run_spike_detector_for_batch(
         if word not in app_registry(SPIKE_EXCLUDE_WORDS_REGISTRY_KEY)
     }
     for target_dt in new_ticket_dates:
-        batch_spike_list += _find_spiked_words(
+        spikes, prompts = _find_spiked_words(
             lang, filtered_word_to_date_to_count, target_dt, spike_group
         )
+        batch_spike_list += spikes
+        batch_prompt_list += prompts
+
+    # Bulk generate spike summaries
+    try:
+        responses = app_registry(TutorsDAL).request_openai_completion_batch(
+            SPIKE_SUMMARIZER_SYSTEM_PROMPT, batch_prompt_list[:MAX_SPIKE_SUMMARIES]
+        )
+        for i, response in enumerate(responses):
+            batch_spike_list[i].summary = response.split("\n")[0].split("SUMMARY:")[1].strip()
+            batch_spike_list[i].is_bug = (response.split("IS_BUG:")[1].strip()) == "True"
+    except TimeoutError:
+        rollbar.report_message(f"Batch summary request timed out", "warning")
 
     if batch_spike_list:
         if not dry_run:
@@ -229,7 +247,7 @@ def _find_spiked_words(
     word_to_date_to_count: Dict[str, Dict[str, int]],
     target_dt: datetime.date,
     spike_group: SpikeCategory,
-) -> List[SpikeWord]:
+) -> Tuple[List[SpikeWord], List[str]]:
     """
     Calculates spike words on a particular date.
 
@@ -245,6 +263,8 @@ def _find_spiked_words(
         - score (float): Generally, how big the spike is
         - date (str): The date the spike occured on
         - lang (str): Language of tickets used in spike calculation
+
+        A list of prompt strings which are concatenated body text of tickets
     """
     target_date_str = date_to_str(target_dt)
 
@@ -288,6 +308,7 @@ def _find_spiked_words(
     score_word_pairs = sorted(score_word_pairs, key=lambda x: x[0], reverse=True)
 
     result = []
+    prompts = []
     for score, word in score_word_pairs:
         if not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD:
             target_datetime = datetime(target_dt.year, target_dt.month, target_dt.day)
@@ -310,14 +331,7 @@ def _find_spiked_words(
             prompt = "\n".join(
                 [f"Title: {doc.header_text}\nDescription: {doc.body_text}\n" for doc in docs[:20]]
             )
-
-            response = app_registry(TutorsDAL).ask(SPIKE_SUMMARIZER_SYSTEM_PROMPT, prompt)
-            if response:
-                summary = response.split("\n")[0].split("SUMMARY:")[1].strip()
-                is_bug = (response.split("IS_BUG:")[1].strip()) == "True"
-            else:
-                summary = ""
-                is_bug = True
+            prompts.append(prompt)
 
             experiment_spikes = {}
             if lang == "en":
@@ -332,17 +346,18 @@ def _find_spiked_words(
                 lang=lang,
                 spike_group=spike_group,
                 confirmed=False,
-                summary=summary,
-                is_bug=is_bug,
                 experiment_spikes=experiment_spikes,
             )
             # check if spike word has been confirmed
+            # use the previous spike summary if it exists in case gpt times out
             prev_spike = app_registry(SpikeIndexDAL).get_spike_by_id(spike_word.get_spike_id())
             if prev_spike:
                 spike_word.confirmed = prev_spike.confirmed
+                spike_word.is_bug = prev_spike.is_bug
+                spike_word.summary = prev_spike.summary
                 spike_word.user_id = prev_spike.user_id
             result.append(spike_word)
-    return result
+    return result, prompts
 
 
 def _get_num_unique_users(docs: List[JeevesDocument]) -> int:

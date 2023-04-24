@@ -6,14 +6,12 @@ import responses
 
 from jeeves.dal.tutors_dal import TutorsDAL
 
-mock_duolingo_api_client = MagicMock()
-
 
 class TestTutorsDAL(unittest.TestCase):
     @responses.activate
     def test_ask(self):
         body_text = "Body text here"
-
+        mock_duolingo_api_client = MagicMock()
         responses.add(
             responses.POST,
             "https://duolingo-tutors-prod.duolingo.com/2017-06-30/tutors/ai/completion_request",
@@ -52,6 +50,53 @@ class TestTutorsDAL(unittest.TestCase):
         expected_prompt = f"<|im_start|>system<|im_sep|>{system_prompt}<|im_end|><|im_start|>user<|im_sep|>{text}<|im_start|>assistant<|im_sep|>"
         actual_prompt = TutorsDAL.get_prompt(system_prompt, text)
         assert actual_prompt == expected_prompt
+
+    def test_request_openai_completion_batch(self):
+        """
+        Tests that the _start_request_openai_completion_batch function
+        generates the correct request to the Tutors service.
+        """
+        system_prompt = "system prompt"
+        prompts = ["prompt 1", "prompt 2", "prompt 3"]
+        mock_duolingo_api_client = MagicMock()
+        mock_duolingo_api_client.post.return_value.json.return_value = {
+            "responses": [
+                {"requestHash": "request hash 1"},
+                {"requestHash": "request hash 2"},
+                {"requestHash": "request hash 3"},
+            ]
+        }
+        mock_duolingo_api_client.get.return_value.json.return_value = {"completion": "some text"}
+        tutors_dal = TutorsDAL(mock_duolingo_api_client)
+        result = tutors_dal.request_openai_completion_batch(system_prompt, prompts)
+        expected = ["some text", "some text", "some text"]
+        self.assertEqual(result, expected)
+
+    def test_request_openai_completion_batch_timeout(self):
+        """
+        Tests that the _start_request_openai_completion_batch function
+        generates the correct request to the Tutors service.
+        """
+        system_prompt = "system prompt"
+        prompts = ["prompt 1", "prompt 2", "prompt 3"]
+        mock_duolingo_api_client = MagicMock()
+        mock_duolingo_api_client.post.return_value.json.return_value = {
+            "responses": [
+                {"requestHash": "request hash 1"},
+                {"requestHash": "request hash 2"},
+                {"requestHash": "request hash 3"},
+            ]
+        }
+        mock_duolingo_api_client.get.return_value.json.return_value = {"completion": None}
+
+        tutors_dal = TutorsDAL(mock_duolingo_api_client)
+        self.assertRaises(
+            TimeoutError,
+            tutors_dal.request_openai_completion_batch,
+            system_prompt,
+            prompts,
+            timeout_seconds=0.1,
+        )
 
 
 if __name__ == "__main__":
