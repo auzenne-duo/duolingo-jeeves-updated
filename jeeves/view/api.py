@@ -13,7 +13,6 @@ from jeeves import registry as app_registry
 from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
-from jeeves.dal.tutors_dal import TutorsDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.shakira import ShakiraManager
@@ -654,42 +653,3 @@ def _get_status(lang):
 
 def _is_language_supported(lang):
     return lang in [lang_name for lang_name, _ in SUPPORTED_LANGUAGES.__members__.items()]
-
-
-system_prompt = "You are a poet and you write a cute haiku based on the given prompt."
-prompts = [
-    "I am a student.",
-    "I am a teacher.",
-    "I am a student and I am learning English.",
-    "I am a teacher and I teach English.",
-    "a new job",
-    "a new house",
-    "a new car",
-    "a new friend",
-    "a big boat",
-    "a big house",
-    "a big car",
-    "a big dog",
-    "a big cat",
-    "a big fish",
-    "a big bird",
-    "a big tree",
-    "a big mountain",
-    "a big lake",
-    "a big river",
-    "a big ocean",
-    "a big planet",
-    "a big star",
-    "a big galaxy",
-    "a big universe",
-    "a big country",
-    "a big city",
-    "a big town",
-    "a big village",
-    "a big school",
-    "my new house",
-]
-prompts = [prompt + " a" for prompt in prompts]
-print(len(prompts))
-response = app_registry(TutorsDAL).request_openai_completion_batch(system_prompt, prompts)
-print(response)
