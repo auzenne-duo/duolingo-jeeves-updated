@@ -74,13 +74,12 @@ JIRA_FEATURES = {
             "Widget": [],
         },
         "Retention": {
+            "Achievements": ["achievement"],
+            "Early Bird / Night Owl Chests": ["early bird", "night owl"],
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
-            "Early Bird / Night Owl Chests": ["early bird", "night owl"],
-            "In-lesson Items (skip, retry)": ["skip", "retry", "in lesson item"],
         },
         "Time Spent Learning": {
-            "Achievements": ["achievement"],
             "Leaderboards": ["leaderboard", "tournament", "league", "context"],
             "Daily Quests": ["quests", "daily quest"],
             "Daily Goal": [],
