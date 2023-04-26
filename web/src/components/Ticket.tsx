@@ -339,8 +339,8 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
                     className={styles.tag}
                     field="author"
                     value={ticket.author}
-                  />{" "}
-                  via{" "}
+                  />
+                  {" via "}
                 </>
               ) : null}
               AppFigures
@@ -365,6 +365,20 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
                 },
               ]}
             />
+          ) : ticket.data_source === "Reddit" ? (
+            <>
+              {ticket.author ? (
+                <>
+                  <TagFilter
+                    className={styles.tag}
+                    field="author"
+                    value={ticket.author}
+                  />
+                  {" via "}
+                </>
+              ) : null}
+              <a href={ticket.links?.[0]}>Reddit</a>
+            </>
           ) : ticket.data_source === "Zendesk" ? (
             <>
               {ticket.email ? (

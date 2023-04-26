@@ -8,6 +8,7 @@ from typing import List, Optional, Type
 from jeeves.manager.appfigures_manager import AppfiguresManager
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.manager.jira_manager import JiraManager
+from jeeves.manager.reddit_manager import RedditManager
 from jeeves.manager.zendesk_manager import ZendeskManager
 
 
@@ -17,6 +18,7 @@ class IdentifierManagerMapping:
             JiraManager.get_managed_document_type().get_data_source_identifier(): JiraManager,
             ZendeskManager.get_managed_document_type().get_data_source_identifier(): ZendeskManager,
             AppfiguresManager.get_managed_document_type().get_data_source_identifier(): AppfiguresManager,
+            RedditManager.get_managed_document_type().get_data_source_identifier(): RedditManager,
         }
 
     def get_manager_for_identifier(self, identifier: str) -> Optional[Type[JeevesManager]]:

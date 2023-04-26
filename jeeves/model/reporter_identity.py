@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from jeeves.model.appfigures_document import AppfiguresDocument
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
+from jeeves.model.reddit_document import RedditDocument
 from jeeves.model.zendesk_document import ZendeskDocument
 
 
@@ -22,7 +23,10 @@ class ReporterIdentity:
             return cls(reporter=doc.reporter, username=doc.username, user_id=doc.user_id)
         elif doc.get_data_source_identifier() == ZendeskDocument.get_data_source_identifier():
             return cls(requester_id=doc.requester_id, username=doc.username, user_id=doc.user_id)
-        elif doc.get_data_source_identifier() == AppfiguresDocument.get_data_source_identifier():
+        elif doc.get_data_source_identifier() in [
+            AppfiguresDocument.get_data_source_identifier(),
+            RedditDocument.get_data_source_identifier(),
+        ]:
             return cls(author=doc.author, username=doc.username, user_id=doc.user_id)
         else:
             return cls(username=doc.username, user_id=doc.user_id)
