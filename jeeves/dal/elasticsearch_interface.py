@@ -8,9 +8,9 @@ from typing import Dict, Iterator, List, Optional, Set, Union
 import numpy as np
 import rollbar
 from duolingo_base.config import Config
-from duolingo_nlp.nlp.meta import Language
-from duolingo_nlp.nlp.pipeline import Pipeline, PredefinedPipelineType
-from duolingo_nlp.nlp.word import WordProperty, WordRelation
+from duolingo_nlp.annotations import Language, Text
+from duolingo_nlp.annotators.text.nlp_client import TextNLPBackendClient
+from duolingo_nlp.models.annotations.text.word import WordProperty
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
 from elasticsearch.helpers import bulk
@@ -46,8 +46,9 @@ class ElasticsearchDAL:
         self._es = Elasticsearch([host], port=port)
 
         self._indexname = f"jeeves_tickets_v_{DATA_VERSION_IDENTIFIER}"
-        self.annotator = Pipeline.make_predefined(
-            Language.ENGLISH, pipeline_type=PredefinedPipelineType.TRANKIT, remote=True
+        self.language = Language.ENGLISH
+        self.annotator = TextNLPBackendClient.load(
+            language=self.language,
         )
 
     def initialize_index(self) -> None:
@@ -437,25 +438,33 @@ class ElasticsearchDAL:
         # remove extra white spaces
         return re.sub(" +", " ", clean_text).strip()
 
-    def lemmatize_text(self, text: str) -> List[str]:
+    def lemmatize_texts(self, raw_texts: List[str]) -> List[List[str]]:
         """
-        Tokenizes and annotates text and returns a list of unique lemmas
+        Tokenizes and annotates texts and returns a list of list of unique lemmas per text
 
         Parameters:
-            text: str body of text
-        """
+            List of texts to lemmatize
 
-        annotation = self.annotator.annotate(self.filter_text(text))
-        return list(
-            self._filter_terms(
-                {
-                    next(
-                        annotation.words_in_relation_from(token.word_type, WordRelation.LEMMA)
-                    ).get_property(WordProperty.SURFACE)
-                    for token in annotation.tokenization
-                }
-            )
+        Returns:
+            List of list of unique lemmas per text
+        """
+        texts = Text.make_batch(
+            languages=self.language,
+            raw_texts=[self.filter_text(raw_text) for raw_text in raw_texts],
         )
+        anno_texts = texts.annotate_with(self.annotator)
+
+        lemmatized_texts = []
+        for anno_text in anno_texts:
+            lemmatized_texts.append(
+                self._filter_terms(
+                    {
+                        lemma.lower()
+                        for lemma in anno_text.syntactic_tokens_property(WordProperty.LEMMA)
+                    }
+                )
+            )
+        return lemmatized_texts
 
     def lemmatize_tickets(self, tickets: List[JeevesDocument]) -> None:
         """
@@ -464,11 +473,13 @@ class ElasticsearchDAL:
         Parameters:
             tickets: Object representation of tickets.
         """
+        tickets_to_lemmatize = [ticket for ticket in tickets if ticket.language == "en"]
+        lemmatized_terms = self.lemmatize_texts(
+            [ticket.body_text for ticket in tickets_to_lemmatize]
+        )
 
-        for ticket in tickets:
-            if ticket.language != "en":
-                continue
-            ticket.lemmatized_terms = self.lemmatize_text(ticket.body_text)
+        for ticket, lemmas in zip(tickets_to_lemmatize, lemmatized_terms):
+            ticket.lemmatized_terms = lemmas
 
     def populate_jira_embedding_vectors(self, tickets: List[JeevesDocument]) -> None:
         """

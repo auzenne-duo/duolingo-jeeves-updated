@@ -5,7 +5,7 @@ COUNT_THRESHOLD = 3
 CRAWL_WINDOW_SIZE = 90
 
 # Version number, useful for controlling data storage
-DATA_VERSION_IDENTIFIER = "5.1.3"
+DATA_VERSION_IDENTIFIER = "5.1.4"
 
 # We compare word occurrences in the past these days.
 HISTORY_WINDOW_SIZE = 60

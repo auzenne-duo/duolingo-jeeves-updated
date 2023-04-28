@@ -5,7 +5,6 @@
 #    pip-compile dev-requirements.in
 #
 --index-url https://pypi.duolingo.com/simple/
---trusted-host pypi.ngc.nvidia.com
 
 apipkg==1.5
     # via execnet
@@ -63,6 +62,10 @@ click==8.0.4
     #   nltk
     #   pip-tools
     #   sacremoses
+conllu==4.5.2
+    # via
+    #   -r requirements.txt
+    #   duolingo-nlp
 contourpy==1.0.7
     # via
     #   -r requirements.txt
@@ -93,11 +96,11 @@ deprecation==2.1.0
     #   duolingo-nlp
 duolingo-base==1.7.4
     # via -r requirements.txt
-duolingo-nlp==2.16.18
+duolingo-nlp==4.7.0
     # via -r requirements.txt
 duolingo-notify==2.5.3
     # via -r requirements.txt
-duolingo-proto==2023.3.10.1
+duolingo-proto==2023.4.5.5
     # via
     #   -r requirements.txt
     #   duolingo-base
@@ -482,10 +485,6 @@ python-levenshtein==0.12.2
     # via
     #   -r requirements.txt
     #   duolingo-nlp
-python-version==0.0.2
-    # via
-    #   -r requirements.txt
-    #   duolingo-nlp
 pytz==2021.1
     # via
     #   -r requirements.txt
@@ -505,9 +504,10 @@ redis==2.10.6
     #   -r requirements.txt
     #   duolingo-base
     #   redis-py-cluster
-regex==2021.4.4
+regex==2023.3.23
     # via
     #   -r requirements.txt
+    #   duolingo-nlp
     #   nltk
     #   sacremoses
     #   trankit
@@ -582,6 +582,10 @@ six==1.16.0
     #   rollbar
     #   sacremoses
     #   thrift
+sly==0.5
+    # via
+    #   -r requirements.txt
+    #   duolingo-nlp
 tenacity==8.2.2
     # via
     #   -r requirements.txt
