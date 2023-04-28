@@ -6,3 +6,24 @@ groups:
       - hideki@duolingo.com
       - peter@duolingo.com
       - yijin@duolingo.com
+  feature-watchers:
+    conditions:
+      files:
+        - jeeves/config/jira_features.py
+    required: 0
+    users:
+      - hideki@duolingo.com
+    comment: >
+      ## Important reminders when modifying the feature list\n
+      \n
+      If you're removing a feature from the list, you need to:\n
+       - Move all tickets with that feature in Jira to a new feature or close them\n
+       - File a ticket with a Jira admin to remove the feature from the Jira dropdown too. Removing it from here will only remove it from shake-to-report.\n
+      \n
+      Also, please check if any Jira Automations, filters, or whatever JQLs relying on Jira Feature needs to be update.\n
+      \n
+      Example resources:\n
+       - [Jira Automation to post issues with Feature to Slack Channel](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/2585821214/Create+Jira+Automation+to+post+issues+with+Feature+to+Slack+Channel)\n
+       - (Growth Area only) [Jira Automation for team assignment](https://docs.google.com/document/d/1U7oqS7rr-V4eWAYbXrzGXmQVPfHRnar1QuP3qUqOyTY/edit?usp=sharing)\n
+      \n
+      Please leave a 👍 reaction to confirm that you've read this.
