@@ -8,7 +8,7 @@ from typing import Dict, Iterator, List, Optional, Set, Union
 import numpy as np
 import rollbar
 from duolingo_base.config import Config
-from duolingo_nlp.annotations import Language, Text
+from duolingo_nlp.annotations import AnnotationKind, Language, Text
 from duolingo_nlp.annotators.text.nlp_client import TextNLPBackendClient
 from duolingo_nlp.models.annotations.text.word import WordProperty
 from elasticsearch import Elasticsearch
@@ -49,6 +49,7 @@ class ElasticsearchDAL:
         self.language = Language.ENGLISH
         self.annotator = TextNLPBackendClient.load(
             language=self.language,
+            annotation_kinds=(AnnotationKind.SYNTACTIC_TOKEN_LEMMAS,),
         )
 
     def initialize_index(self) -> None:
