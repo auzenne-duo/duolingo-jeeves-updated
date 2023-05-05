@@ -172,6 +172,7 @@ class ZendeskDocument(JeevesDocument):
             tags=external_json["tags"],
             requester_id=str(external_json["requester_id"]),
             metadata=metadata,
+            embeddings={},
             experiment_conditions=experiment_conditions,
             user_id=user_id,
         )
@@ -229,6 +230,7 @@ class ZendeskDocument(JeevesDocument):
             tags=internal_json["tags"],
             requester_id=internal_json["requester_id"],
             metadata=internal_json["metadata"],
+            embeddings=internal_json.get("embeddings", {}),
             experiment_conditions=internal_json.get("experiment_conditions", {}),
             user_id=internal_json.get("user_id", ""),
         )

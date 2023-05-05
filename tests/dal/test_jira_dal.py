@@ -113,7 +113,7 @@ class TestJiraApiDAL(unittest.TestCase):
             assignee="",
             comments=[],
             labels=[],
-            embedding_vector=[],
+            embeddings={},
             experiment_conditions={},
             jira_attachments=[],
         )

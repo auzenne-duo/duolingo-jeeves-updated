@@ -12,6 +12,7 @@
     }],
     "command": ["python","./jeeves/scripts/sqs_index_worker.py"],
     "environment": ${environment_vars},
+    "secrets": ${secrets},
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {

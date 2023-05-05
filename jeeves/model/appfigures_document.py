@@ -67,6 +67,7 @@ class AppfiguresDocument(JeevesDocument):
             deleted=bool(external_json["deleted"]),
             product_id=external_json["product_id"],
             store=external_json["store"],
+            embeddings={},
             experiment_conditions={},
             user_id="",
         )
@@ -108,6 +109,7 @@ class AppfiguresDocument(JeevesDocument):
             deleted=bool(internal_json["deleted"]),
             product_id=internal_json["product_id"],
             store=internal_json["store"],
+            embeddings=internal_json.get("embeddings", {}),
             experiment_conditions=internal_json.get("experiment_conditions", {}),
             user_id=internal_json.get("user_id", ""),
         )

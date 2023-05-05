@@ -50,7 +50,6 @@ class JiraDocument(JeevesDocument):
     # author: str, body: str, created: datetime, id: str, updated: datetime
     comments: List[Dict[str, Union[str, datetime.datetime]]] = attr.ib()
     labels: List[str] = attr.ib()
-    embedding_vector: List[float] = attr.ib()
     jira_attachments: List[Dict[str, str]] = attr.ib()
 
     # non-indexed fields
@@ -292,7 +291,7 @@ class JiraDocument(JeevesDocument):
             if "comment" in external_fields
             else [],
             labels=external_fields["labels"],
-            embedding_vector=[],
+            embeddings={},
             experiment_conditions={},
             user_id=std_metadata["user_id"],
         )
@@ -369,7 +368,7 @@ class JiraDocument(JeevesDocument):
             assignee=internal_json["assignee"],
             comments=[cls._deserialize_comment(comment) for comment in internal_json["comments"]],
             labels=internal_json["labels"],
-            embedding_vector=internal_json["embedding_vector"],
+            embeddings=internal_json.get("embeddings", {}),
             experiment_conditions=internal_json.get("experiment_conditions", {}),
             user_id=internal_json.get("user_id", ""),
         )
@@ -423,20 +422,19 @@ class JiraDocument(JeevesDocument):
         return "parent_bug" in target.labels
 
     @classmethod
-    def calculate_embedding_vector(cls, target: "JiraDocument") -> bool:
+    def calculate_embedding(cls, target: "JiraDocument") -> List[float]:
         """
-        Given a JeevesDocument object, populate the embedding vector field
+        Given a JeevesDocument object, calculates the SentenceTransformer embedding vector
 
         Parameters:
-            target: The JeevesDocument object we want to have an embedding vector
+            target: The JeevesDocument object we want to have an embedding vector for
         """
         assert target.data_source == cls.get_data_source_identifier()
-        if target.embedding_vector:
+        if target.embeddings:
             return
 
         cls._initialize_duplicate_detector()
-
-        target.embedding_vector = (
+        return (
             cls._duplicate_detector.calculate_embedding_vector(
                 f"{target.header_text}. {target.body_text}"
             )

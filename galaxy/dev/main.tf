@@ -249,6 +249,17 @@ module "duolingo-jeeves-sqs-worker-2" {
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-verify-index-dev.id
   scale_out_sqs       = 2500
   scale_out_count_sqs = 16
+
+  secrets = [
+    {
+      name  = "DUOLINGO_USERNAME"
+      value = "DUOLINGO_USERNAME/000001"
+    },
+    {
+      name  = "DUOLINGO_PASSWORD"
+      value = "DUOLINGO_PASSWORD/000000"
+    }
+  ]
 }
 
 module "duolingo-jeeves-spike-worker" {

@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.manager.jeeves_duplicate_manager import JeevesDuplicateManager
 from jeeves.model.appfigures_document import AppfiguresDocument
 from jeeves.model.jira_document import JiraDocument
@@ -89,7 +88,7 @@ def _jira_document(header="I am a header", body="I am body text"):
         assignee="",
         comments=[],
         labels=[],
-        embedding_vector=[],
+        embeddings={},
         experiment_conditions={},
         jira_attachments=[],
     )
@@ -221,7 +220,7 @@ recent_duplicate_exists_test_cases = [
 ]
 
 
-elasticsearch_mock = ElasticsearchDAL()
+elasticsearch_mock = MagicMock()
 elasticsearch_mock.get_recent_paginated_tickets = MagicMock(
     return_value={"data": [_zendesk_email_document()]}
 )

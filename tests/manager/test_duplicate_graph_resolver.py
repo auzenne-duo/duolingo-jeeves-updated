@@ -70,7 +70,7 @@ def _jira_document(
         assignee="",
         comments=[],
         labels=labels if labels else [],
-        embedding_vector=[],
+        embeddings={},
         experiment_conditions={},
         jira_attachments=[],
     )

@@ -50,7 +50,7 @@ def create_jira_doc(
         assignee="UNASSIGNED",
         comments=[],
         labels=labels,
-        embedding_vector=[],
+        embeddings={},
         data_source="JIRA",
         document_id="",
         jeeves_uid="JIRA_",

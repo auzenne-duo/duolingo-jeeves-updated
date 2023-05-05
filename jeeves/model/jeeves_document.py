@@ -50,6 +50,7 @@ class JeevesDocument(ABC):
     skill_tree_id: str = attr.ib(default="")
     ui_language: str = attr.ib()
     username: str = attr.ib()
+    embeddings: Dict[str, List[float]] = attr.ib(default={})
     experiment_conditions: Dict[str, str] = attr.ib()
     user_id: str = attr.ib(default="")
 

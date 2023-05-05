@@ -326,7 +326,7 @@ class TestParentJiraIssueUtil(unittest.TestCase):
             "assignee": "UNASSIGNED",
             "comments": [],
             "labels": [],
-            "embedding_vector": [],
+            "embeddings": {},
         }
         child_document = JiraDocument.deserialize_from_internal_json(child_issue_json)
         desired_output = {

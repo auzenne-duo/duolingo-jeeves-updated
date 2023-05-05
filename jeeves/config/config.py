@@ -5,7 +5,7 @@ COUNT_THRESHOLD = 3
 CRAWL_WINDOW_SIZE = 90
 
 # Version number, useful for controlling data storage
-DATA_VERSION_IDENTIFIER = "5.1.4"
+DATA_VERSION_IDENTIFIER = "5.1.5"
 
 # We compare word occurrences in the past these days.
 HISTORY_WINDOW_SIZE = 60
@@ -31,3 +31,8 @@ QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY = "delight/quality-report/"
 
 # For spikes, occurrences should be at least five-sigma away from historical values.
 SPIKE_THRESHOLD = 5
+
+
+SENTENCE_TRANSFORMER_MODEL = "SentenceTransformers"
+
+GPT_EMBEDDING_MODEL = "GPT_text-embedding-ada-002"

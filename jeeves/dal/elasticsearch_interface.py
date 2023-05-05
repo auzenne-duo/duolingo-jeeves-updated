@@ -1,5 +1,6 @@
 import re
 import sys
+import time
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
@@ -18,7 +19,15 @@ from elasticsearch_dsl import A, Mapping, Q, Search
 from elasticsearch_dsl.query import MoreLikeThis
 from elasticsearch_dsl.response import Response  # pylint: disable=unused-import
 
-from jeeves.config.config import DATA_VERSION_IDENTIFIER, HISTORY_WINDOW_SIZE, MIN_SAMPLES_THRESHOLD
+from jeeves import registry as app_registry
+from jeeves.config.config import (
+    DATA_VERSION_IDENTIFIER,
+    GPT_EMBEDDING_MODEL,
+    HISTORY_WINDOW_SIZE,
+    MIN_SAMPLES_THRESHOLD,
+    SENTENCE_TRANSFORMER_MODEL,
+)
+from jeeves.dal.ai_completions_dal import AICompletionsDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
@@ -36,6 +45,7 @@ _MAX_FIELDS_LIMIT = 3000
 # If we ever change the duplicate detection model, make sure this value is
 # updated appropriately
 _SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
+_GPT_EMBEDDING_VECTOR_SIZE = 1536
 
 
 class ElasticsearchDAL:
@@ -81,16 +91,20 @@ class ElasticsearchDAL:
             # is more annoying to work with so it is only being used here
             # because I couldn't get it to work in the above format.
             mapping_dict = m.to_dict()
-            mapping_dict["properties"]["embedding_vector"] = {
+            mapping_dict["properties"][f"embeddings.{SENTENCE_TRANSFORMER_MODEL}"] = {
                 "type": "knn_vector",
                 "dimension": _SENTENCE_TRANSFORMERS_VECTOR_SIZE,
             }
-            mapping_dict["total_fields"]["limit"] = _MAX_FIELDS_LIMIT
+            mapping_dict["properties"][f"embeddings.{GPT_EMBEDDING_MODEL}"] = {
+                "type": "knn_vector",
+                "dimension": _GPT_EMBEDDING_VECTOR_SIZE,
+            }
 
             settings_dict = {
                 "index": {
                     "knn": True,
                     "knn.space_type": "cosinesimil",
+                    "mapping.total_fields.limit": _MAX_FIELDS_LIMIT,
                 }
             }
 
@@ -482,16 +496,31 @@ class ElasticsearchDAL:
         for ticket, lemmas in zip(tickets_to_lemmatize, lemmatized_terms):
             ticket.lemmatized_terms = lemmas
 
-    def populate_jira_embedding_vectors(self, tickets: List[JeevesDocument]) -> None:
+    def populate_embedding_vectors(self, tickets: List[JeevesDocument]) -> None:
         """
-        Populates each jira tickets' embedding vector
+        Populates each ticket's embedding vector
 
         Parameters:
             tickets: Object representation of tickets.
         """
         for ticket in tickets:
+            # Delay for a bit to avoid rate limiting
+            time.sleep(0.1)
+            embeddings = {}
+
+            ai_embedding = app_registry(AICompletionsDAL).request_embedding(
+                f"Title: {ticket.header_text}\n Description: {ticket.body_text}"
+            )
+
+            # TODO (caleb): If the returned embedding is None, we should put the ticket back in the sqs queue
+            # and try again later.
+            if ai_embedding is not None:
+                embeddings[GPT_EMBEDDING_MODEL] = ai_embedding
+
             if ticket.data_source == JiraDocument.get_data_source_identifier():
-                JiraDocument.calculate_embedding_vector(ticket)
+                embeddings[SENTENCE_TRANSFORMER_MODEL] = JiraDocument.calculate_embedding(ticket)
+
+            ticket.embeddings = embeddings
 
     def bulk_index_tickets(self, tickets: List[JeevesDocument]) -> None:
         """
@@ -501,7 +530,7 @@ class ElasticsearchDAL:
             tickets: Object representation of tickets to store.
         """
         self.lemmatize_tickets(tickets)
-        self.populate_jira_embedding_vectors(tickets)
+        self.populate_embedding_vectors(tickets)
 
         bulk_actions = [
             {
@@ -1100,9 +1129,9 @@ class ElasticsearchDAL:
                     "must": [
                         {
                             "knn": {
-                                "embedding_vector": {
+                                f"embeddings.{SENTENCE_TRANSFORMER_MODEL}": {
                                     "k": max_search_depth,
-                                    "vector": target_doc.embedding_vector,
+                                    "vector": target_doc.embeddings[SENTENCE_TRANSFORMER_MODEL],
                                 }
                             }
                         }

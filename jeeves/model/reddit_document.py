@@ -50,6 +50,7 @@ class RedditDocument(JeevesDocument):
             ui_language="",
             username="",
             author=external_json["author"],
+            embeddings={},
             experiment_conditions={},
             user_id="",
         )
@@ -85,6 +86,7 @@ class RedditDocument(JeevesDocument):
             ui_language=internal_json["ui_language"],
             username=internal_json["username"],
             author=internal_json["author"],
+            embeddings=internal_json.get("embeddings", {}),
             experiment_conditions=internal_json.get("experiment_conditions", {}),
             user_id=internal_json.get("user_id", ""),
         )
