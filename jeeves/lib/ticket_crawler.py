@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 from datetime import datetime
 from typing import Any, DefaultDict, List, Tuple
@@ -18,11 +19,13 @@ from jeeves.util.date_util import (
     datetime_to_str,
     get_n_days_ago,
     get_utc_today,
+    parse_external_datetime,
     yield_intermediate_dates,
 )
 from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
+_REFRESH_DAYS = os.environ.get("REFRESH_DAYS")
 
 # Size, in bytes, above which we exclude tickets from indexing.
 # This originally was a method of ensuring reasonable network packet sizes
@@ -229,14 +232,28 @@ def force_refresh_tickets() -> None:
     Refreshes tickets by getting all the tickets from s3 and adding them to sqs
     """
     s3_client, s3_bucket_name, sqs_client = get_s3_client_buckets_and_sqs()
-    print("Forcefully refreshing all documents from S3", flush=True)
+    date_threshold = _THRESHOLD_DATE
+    if _REFRESH_DAYS:
+        date_threshold = get_n_days_ago(get_utc_today(), int(_REFRESH_DAYS))
+    print(f"Forcefully refreshing all documents from S3 back to {date_threshold}", flush=True)
     for manager in IDManagerMap.get_all_managers():
         s3_path_stem = manager.get_managed_document_type().get_data_source_identifier()
-        document_count = 0
+        document_count, document_scan_count = 0, 0
         for s3_file in s3_client.yield_filenames(s3_bucket_name, path_prefix=s3_path_stem):
+            document_scan_count += 1
+            if document_scan_count % 1000 == 0:
+                print(f"{document_scan_count} {s3_path_stem} documents scanned through", flush=True)
+            try:
+                date = parse_external_datetime(s3_file.split("/")[1])
+            except:
+                print("couldn't parse", date)
+                continue
+            if date < date_threshold:
+                continue
             if document_count % 1000 == 0:
                 print(f"{document_count} {s3_path_stem} documents refreshed", flush=True)
             if s3_file != manager.get_checkpoint_file_name():
                 _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
                 document_count += 1
+
         print(f"Finished refreshing documents from {s3_path_stem}", flush=True)

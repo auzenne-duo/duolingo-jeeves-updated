@@ -1,0 +1,43 @@
+FROM ubuntu:20.04
+
+ARG ENVIRONMENT
+ARG REFRESH_DAYS
+
+ENV INSTALL_PATH /code
+ENV DEV_REQ_TXT dev-requirements.txt
+ENV PYTHONIOENCODING UTF-8
+ENV DUOLINGO_CONFIG=${INSTALL_PATH}/config/${ENVIRONMENT}.yml
+ENV PYTHONPATH /code
+ENV REFRESH_DAYS=${REFRESH_DAYS}
+
+WORKDIR $INSTALL_PATH
+
+# Modified techniques from:
+# https://blog.codeship.com/alpine-based-docker-images-make-difference-real-world-apps/
+
+COPY $DEV_REQ_TXT $DEV_REQ_TXT
+
+RUN mkdir -p data/zendesk
+
+RUN apt-get update \
+ && apt-get -y --no-install-recommends install \
+      build-essential \
+      python3-dev \
+      python3-pip \
+#     libpq-dev is a postgres library needed by sqlalchemy
+      libpq-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && ln -s /usr/bin/python3 /usr/bin/python
+
+RUN pip3 install -U pip pip-tools wheel \
+ && pip3 install \
+      awscli \
+      setuptools
+
+ARG REQUIREMENTS=dev-requirements.txt
+COPY $REQUIREMENTS $REQUIREMENTS
+RUN pip3 install -r "$REQUIREMENTS" --src /usr/local/src
+
+COPY . .
+
+CMD ["python", "uwsgi_dev.ini"]
