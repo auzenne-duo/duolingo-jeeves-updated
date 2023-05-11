@@ -306,7 +306,6 @@ JIRA_FEATURES = {
     },
     "Many": {
         "Many": {
-            "Localization": ["translation", "string"],
             "Drawers / home messages": ["drawer", "home message"],
             "Session end screens": [
                 "session end card",
