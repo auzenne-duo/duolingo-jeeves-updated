@@ -209,15 +209,6 @@ JIRA_FEATURES = {
     },
     "Product Quality": {
         "Delight": {
-            "Callouts": [
-                "callout",
-                "call-out",
-                "spotlight",
-                "tool tip",
-                "hint",
-                "popout",
-                "popover",
-            ],
             "Settings": ["toggle", "admin", "menu", "account"],
             "World characters": [
                 "world character",
@@ -237,7 +228,6 @@ JIRA_FEATURES = {
                 "arm",
                 "leg",
             ],
-            "Animations": ["animat", "motion", "moving", "rive"],
             "Password Reset": [
                 "reset password",
                 "reset my password",
