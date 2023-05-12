@@ -1,4 +1,4 @@
-from jeeves.config.jira_features import JIRA_FEATURES
+from jeeves.config.jira_features import JIRA_FEATURES, JIRA_FEATURES_DESCRIPTIONS
 
 
 def test_terms_are_disjoint():
@@ -13,3 +13,14 @@ def test_terms_are_disjoint():
                 for synonym in synonyms:
                     assert synonym.upper() not in terms
                     terms.add(synonym.upper())
+
+
+def test_descriptions_is_subset():
+    features = {
+        feature.upper()
+        for area_features in JIRA_FEATURES.values()
+        for team_features in area_features.values()
+        for feature in team_features
+    }
+    for description_feature in JIRA_FEATURES_DESCRIPTIONS:
+        assert description_feature.upper() in features
