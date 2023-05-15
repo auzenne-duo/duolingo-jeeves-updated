@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import requests
+
 from jeeves.dal.monolith_dal import MonolithDAL
 
 mock_requests = MagicMock()
@@ -26,6 +28,12 @@ class TestMonolithDAL(unittest.TestCase):
 
     def test_get_user_by_email_or_username_no_results(self):
         mock_requests.get.return_value.json.return_value = {"users": []}
+        result = self.dal.get_user_by_email_or_username("fake_email@fake.com")
+        expected = None
+        self.assertEqual(result, expected)
+
+    def test_get_user_by_email_or_username_error(self):
+        mock_requests.get.side_effect = requests.exceptions.RequestException
         result = self.dal.get_user_by_email_or_username("fake_email@fake.com")
         expected = None
         self.assertEqual(result, expected)

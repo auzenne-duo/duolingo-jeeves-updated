@@ -4,6 +4,8 @@ from urllib.parse import urljoin
 
 import requests
 
+from jeeves.util.error_util import print_request_exception
+
 DUOLINGO_JWT = os.getenv("DUOLINGO_JWT")
 DEFAULT_BASE_URL = "https://api.duolingo.com/2017-06-30/"
 
@@ -39,8 +41,12 @@ class MonolithDAL:
 
         # Search for user
         full_url = urljoin(DEFAULT_BASE_URL, "users")
-        response = requests.get(full_url, params=params, headers=self._headers)
-        response.raise_for_status()
+        try:
+            response = requests.get(full_url, params=params, headers=self._headers)
+            response.raise_for_status()
+        except Exception as e:
+            print_request_exception(e, rollbar_level="warning")
+            return None
 
         # Parse user ID from response
         users = response.json()["users"]
