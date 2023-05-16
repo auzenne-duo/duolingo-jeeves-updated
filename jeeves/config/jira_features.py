@@ -155,10 +155,13 @@ JIRA_FEATURES = {
                 "unit complete",
                 "unit review",
             ],
-            "Stories": ["story"],
             "Guidebook": [],
             "Path Sections": ["sections"],
             "Skill tree migration": ["course update"],
+        },
+        "Media Learning": {
+            "DuoShorts": ["duo shorts"],
+            "Stories": ["story"],
         },
     },
     "Learning Scaling": {
@@ -246,7 +249,6 @@ JIRA_FEATURES = {
             "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
             "Shake-to-report": ["shakira", "bug report", "shake to report"],
             "Offline support": ["prefetch", "offlin", "zombie", "airplane"],
-            "DuoShorts": ["duo shorts"],
         },
         "None": {
             "Progress Bar": [],
