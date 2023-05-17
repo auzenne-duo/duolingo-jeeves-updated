@@ -1124,14 +1124,19 @@ class ElasticsearchDAL:
             "query": {
                 "bool": {
                     "filter": {
-                        "bool": {"must": [{"range": {"date_time": {"gte": datetime_bound}}}]}
+                        "bool": {
+                            "must": [
+                                {"range": {"date_time": {"gte": datetime_bound}}},
+                                {"term": {"data_source": target_doc.data_source}},
+                            ]
+                        }
                     },
                     "must": [
                         {
                             "knn": {
-                                f"embeddings.{SENTENCE_TRANSFORMER_MODEL}": {
+                                f"embeddings.{GPT_EMBEDDING_MODEL}": {
                                     "k": max_search_depth,
-                                    "vector": target_doc.embeddings[SENTENCE_TRANSFORMER_MODEL],
+                                    "vector": target_doc.embeddings[GPT_EMBEDDING_MODEL],
                                 }
                             }
                         }
