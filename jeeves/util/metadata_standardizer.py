@@ -191,10 +191,13 @@ class MetadataStandardizer:
         # any instances of this in the data I had available.
         flat_metadata = self.flatten_input_metadata(duolingo_metadata)
 
-        possible_app_version_fields = [f for f in flat_metadata if "app_version" in f]
-        if len(possible_app_version_fields) == 1:
-            app_version_field = possible_app_version_fields[0]
-            std_data["app_version"] = flat_metadata[app_version_field]
+        if "app_version" in flat_metadata:
+            std_data["app_version"] = flat_metadata["app_version"]
+        else:
+            possible_app_version_fields = [f for f in flat_metadata if "app_version" in f]
+            if len(possible_app_version_fields) == 1:
+                app_version_field = possible_app_version_fields[0]
+                std_data["app_version"] = flat_metadata[app_version_field]
 
         possible_course_fields = [f for f in flat_metadata if "course" in f]
         course_match = self._try_ordered_regular_expressions(

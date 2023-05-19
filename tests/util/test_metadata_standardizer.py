@@ -106,6 +106,7 @@ class Test(unittest.TestCase):
         real_metadata_2 = {
             "system_information": {
                 "app_version": "6.94.0.4",
+                "app_version_hash": "fxn3j",
                 "ios_version": "14.2",
                 "device_model": "iPhone",
                 "platform": "iPhone 8 Plus (Model A1864)",
