@@ -23,6 +23,8 @@ Make sure to set up Python 3 virtual environment, or pylint would fail when tryi
 
 TODO localstack for sqs queues on local dev
 
+You can run unit tests with `pytest`. These are also run as part of the pre-commit checks. In order to run tests, you will need to download pango as outlined [here](#pango-steps).
+
 ### Backend
 
 To run the microservice locally:
@@ -91,6 +93,8 @@ To force refresh all spikes, set the `force_spike_refresh_flag` to 1 in aws buck
 # Quality Reports
 
 To run the quality report script locally, pango must be installed:
+
+<a name="pango-steps"></a>
 
 ```
 sudo apt-get update
