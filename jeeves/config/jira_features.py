@@ -162,6 +162,7 @@ JIRA_FEATURES = {
         "Media Learning": {
             "DuoShorts": ["duo shorts"],
             "Stories": ["story"],
+            "Pronunciation Bingo": [],
         },
     },
     "Learning Scaling": {
