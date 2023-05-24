@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -50,7 +50,7 @@ mock_session_end_screen_to_feature = {
 
 
 def test_get_features_v1():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {}, {})
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {})
     actual_result = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
 
     case = unittest.TestCase()
@@ -74,7 +74,7 @@ def test_get_features_v1():
 
 
 def test_get_features_by_team_and_area():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {}, {})
+    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {})
     actual_result = feature_manager.get_features_by_team_and_area()
 
     assert actual_result == [
@@ -202,11 +202,27 @@ test_cases = [
         [],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
+    # mega feature is detected.
+    (
+        "",
+        "Test",
+        "some lines of text\nMEGA Information:\n- Mega course: math\n\nother stuff: things",
+        ["Mega", "Music", "Math"],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
 ]
 
 
 @pytest.mark.parametrize(
     "summary,description,generated_description,expected_suggestions,expected_others", test_cases
+)
+@patch(
+    "jeeves.manager.jira_feature_manager._SUBSTRINGS_TO_IGNORE_BY_TERM",
+    mock_substrings_to_ignore_by_term,
+)
+@patch(
+    "jeeves.manager.jira_feature_manager._MEGA_FEATURES",
+    ["Mega", "Music", "Math"],
 )
 def test_get_suggested_features(
     summary, description, generated_description, expected_suggestions, expected_others
@@ -216,7 +232,6 @@ def test_get_suggested_features(
         mock_jira_features,
         mock_jira_features_descriptions,
         mock_session_end_screen_to_feature,
-        mock_substrings_to_ignore_by_term,
     )
     actual_result = feature_manager.get_suggested_features(
         ["DLAA", "DLAI", "DLAW"], summary, description, generated_description
@@ -248,7 +263,7 @@ def test_feature_filtering():
     }
 
     feature_manager = JiraFeatureManager(
-        mock_filtered_jira_client, mock_filtered_jira_features, {}, {}, {}
+        mock_filtered_jira_client, mock_filtered_jira_features, {}, {}
     )
     case = unittest.TestCase()
 

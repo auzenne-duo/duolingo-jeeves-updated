@@ -156,6 +156,7 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
         "User Information:",
         "App Information:",
         "App information:",
+        "MEGA Information:",
         "Session information:",
         "FullStory:",
     ]

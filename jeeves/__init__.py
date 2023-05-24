@@ -13,10 +13,6 @@ from jeeves.config.jira_features import (
     SESSION_END_SCREEN_TO_FEATURE,
     SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY,
 )
-from jeeves.manager.jira_feature_manager import (
-    SUBSTRINGS_TO_IGNORE_BY_TERM,
-    SUBSTRINGS_TO_IGNORE_REGISTRY_KEY,
-)
 
 service_registry = base_registry.initialize()
 
@@ -35,7 +31,6 @@ def apply_registry():
 
     service_registry[JIRA_FEATURES_REGISTRY_KEY] = JIRA_FEATURES
     service_registry[JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY] = JIRA_FEATURES_DESCRIPTIONS
-    service_registry[SUBSTRINGS_TO_IGNORE_REGISTRY_KEY] = SUBSTRINGS_TO_IGNORE_BY_TERM
     service_registry[SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY] = SESSION_END_SCREEN_TO_FEATURE
 
 
