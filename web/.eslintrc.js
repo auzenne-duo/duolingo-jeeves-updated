@@ -2,6 +2,7 @@ module.exports = {
   extends: ["duolingo"],
   parserOptions: {
     project: "tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
   },
   rules: {
     // This seems to give false positives.

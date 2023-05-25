@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Runs the given command in Docker
+
+set -e
+
+if [[ -f /.dockerenv ]]; then
+  # We're already inside Docker, so just run the command
+  "$@"
+else
+  # Check whether Docker is installed
+  if ! command -v docker > /dev/null; then
+    echo 'Docker not found! Please complete laptop setup: https://duolingo.atlassian.net/wiki/spaces/DUO/pages/679510111/Laptop+setup'
+    exit 1
+  fi
+
+  # `docker run` options used on both Jenkins and developer laptops
+  host_agnostic_docker_options=(
+    -e AWS_ACCESS_KEY_ID
+    -e AWS_SECRET_ACCESS_KEY
+    -v "${HOME}/.aws:/root/.aws"
+  )
+
+  # `docker run` options that depend on whether the host is Jenkins
+  if [[ -z ${JENKINS_URL} ]]; then
+    host_specific_docker_options=(
+    )
+
+  else
+    host_specific_docker_options=(
+      # All build parameters (i.e. custom environment variables) used on Jenkins
+      # should be passed into the container
+      -e BUILD_BRANCH
+      -e BUILD_NUMBER # used by: acceptance_tests/fixtures/tracking.py, upload_collected_screenshots.py
+      -e BUILD_ID
+      -e BUILD_TAG # used by: upload_collected_screenshots.py
+      -e BUILD_TYPE
+      -e BUILD_URL # used by: upload_collected_screenshots.py
+      -e GIT_BRANCH
+      -e GITHUB_USERNAME
+      -e JENKINS_URL
+      -e JOB_NAME
+      -e ghprbActualCommit
+      -e ghprbActualCommitAuthor
+      -e ghprbActualCommitAuthorEmail
+      -e ghprbPullDescription
+      -e ghprbPullId
+      -e ghprbPullLink
+      -e ghprbPullTitle
+      -e ghprbSourceBranch
+      -e ghprbTargetBranch
+      -e ghprbCommentBody
+    )
+  fi
+
+  # Build Docker image
+  image_id="$(docker build -f Dockerfile.local \
+    -t duolingo/duolingo-jeeves -q . | head -n 1)"
+
+  # Run provided command in container
+  docker run \
+    "${host_agnostic_docker_options[@]}" "${host_specific_docker_options[@]}" \
+    "${image_id}" "$@"
+fi

@@ -4,9 +4,6 @@ COUNT_THRESHOLD = 3
 # Should be greater than HISTORY_WINDOW_SIZE + SPIKE_THRESHOLD
 CRAWL_WINDOW_SIZE = 90
 
-# Version number, useful for controlling data storage
-DATA_VERSION_IDENTIFIER = "5.1.5"
-
 # We compare word occurrences in the past these days.
 HISTORY_WINDOW_SIZE = 60
 

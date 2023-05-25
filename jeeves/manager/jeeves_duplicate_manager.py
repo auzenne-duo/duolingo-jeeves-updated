@@ -19,7 +19,7 @@ class JeevesDuplicateManager:
             if doc.data_source != "Zendesk" or doc.via["channel"] != "email":
                 documents_to_skip_dedup.append(doc)
                 continue
-            # This will mark two documents as duplicates as long as this concatanation is the same,
+            # This will mark two documents as duplicates as long as this concatenation is the same,
             # even if the individual fields are different. But, in that case,
             # we're still getting all of the relevant information in one way or another.
             doc_key = f'{doc.via["source"]["from"]["address"]} {doc.header_text} {doc.body_text}'

@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from typing import Callable, Dict, List, Optional
 
-from elasticsearch_dsl import Search
+from opensearch_dsl import Search
 
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC

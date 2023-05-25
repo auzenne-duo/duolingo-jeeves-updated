@@ -4,8 +4,8 @@ from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np
+from duolingo_base.config import Config
 
-from jeeves.config.config import DATA_VERSION_IDENTIFIER
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.model.spike_categories import SpikeCategory
 
@@ -14,11 +14,15 @@ failed_response = {"_shards": {"total": 2, "successful": 1}}
 
 mock_es = MagicMock()
 mock_search = MagicMock()
-spikename = f"jeeves_spikes_v_{DATA_VERSION_IDENTIFIER}"
+
+_config = Config.load_config()
+
+data_version_identifier = _config.get_nested(["elasticsearch", "data_version_identifier"])
+spikename = f"jeeves_spikes_v_{data_version_identifier}"
 
 
 class TestElasticSearchInterface(unittest.TestCase):
-    @patch("jeeves.dal.elasticsearch_interface.Elasticsearch", Mock(return_value=mock_es))
+    @patch("jeeves.dal.elasticsearch_interface.OpenSearch", Mock(return_value=mock_es))
     def __init__(self, *args, **kwargs):
         super(TestElasticSearchInterface, self).__init__(*args, **kwargs)
         self.es = mock_es
@@ -46,7 +50,7 @@ class TestElasticSearchInterface(unittest.TestCase):
             "_id": 4,
             "_source": {"date_time": "2022-01-4", "lemmatized_terms": ["hello", "rare"]},
         }
-        self.expected_index = f"jeeves_tickets_v_{DATA_VERSION_IDENTIFIER}"
+        self.expected_index = f"jeeves_tickets_v_{data_version_identifier}"
 
     @patch("jeeves.dal.elasticsearch_interface.Search", Mock(return_value=mock_search))
     @patch(

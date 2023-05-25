@@ -5,3 +5,6 @@ rollbar:
 blueprints:
   - jeeves.view.api.blueprint_api
   - jeeves.view.health.blueprint_health
+
+elasticsearch:
+  data_version_identifier: 5.1.6

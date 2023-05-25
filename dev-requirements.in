@@ -1,5 +1,6 @@
 -r requirements.txt
 
+cffi==1.15.1
 pip-tools==5.5.0 # compatible with pip==22.0.4
 pylint
 pytest

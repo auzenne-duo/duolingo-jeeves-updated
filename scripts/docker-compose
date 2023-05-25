@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Runs the given command in Docker
+
+set -eu -o pipefail
+
+service="$1"
+shift
+
+export DATA_VERSION_IDENTIFIER=$(shell yq -er ".elasticsearch.data_version_identifier" config/base.yml 2> /dev/null)
+
+build_start_time=$(date +%s)
+# Capture build output in a Bash variable to prevent it showing up in stdout, which could
+# cause problems with scripts/Jenkins pipeline steps that depend on parsing the script output.
+build_output=$(COMPOSE_FILE=docker-compose-local.yml DOCKER_SCAN_SUGGEST=false docker compose build "$service")
+build_end_time=$(date +%s)
+
+elapsed_seconds=$((build_end_time - build_start_time))
+if [[ ${elapsed_seconds} -gt 2 ]]; then
+  echo "Rebuilt Docker image in ${elapsed_seconds} seconds" >> /dev/stderr
+fi
+
+COMPOSE_FILE=docker-compose-local.yml docker compose run --rm --service-ports "$service" "$@"

@@ -1,0 +1,35 @@
+environment: local
+
+memcached:
+  host: duolingo-jeeves-dev.idjnxn.cfg.use1.cache.amazonaws.com
+  port: 11211
+
+elasticsearch:
+  host: http://opensearch
+  port: 9200
+
+sqs_download_verify_pipeline:
+  queue_url: http://localstack:4566/queue/us-east-1/000000000000/jeeves-pipeline-break-download-verify-local
+  region_name: us-east-1
+  endpoint_url: http://localstack:4566
+
+sqs_verify_index_pipeline:
+  queue_url: http://localstack:4566/queue/us-east-1/000000000000/jeeves-pipeline-break-verify-index-local
+  region_name: us-east-1
+  endpoint_url: http://localstack:4566
+
+s3_document_cache:
+  bucket_name: jeeves-document-cache-local
+  endpoint_url: http://localstack:4566
+
+s3_public_static:
+  bucket_name: public-static-local
+  endpoint_url: http://localstack:4566
+
+s3_internal_static:
+  bucket_name: internal-static-local
+  endpoint_url: http://localstack:4566
+
+rollbar:
+  access_token: null
+  enabled: False

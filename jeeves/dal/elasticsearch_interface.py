@@ -12,16 +12,15 @@ from duolingo_base.config import Config
 from duolingo_nlp.annotations import AnnotationKind, Language, Text
 from duolingo_nlp.annotators.text.nlp_client import TextNLPBackendClient
 from duolingo_nlp.models.annotations.text.word import WordProperty
-from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import RequestError
-from elasticsearch.helpers import bulk
-from elasticsearch_dsl import A, Mapping, Q, Search
-from elasticsearch_dsl.query import MoreLikeThis
-from elasticsearch_dsl.response import Response  # pylint: disable=unused-import
+from opensearch_dsl import A, Mapping, Q, Search
+from opensearch_dsl.query import MoreLikeThis
+from opensearch_dsl.response import Response
+from opensearchpy import OpenSearch
+from opensearchpy.exceptions import RequestError
+from opensearchpy.helpers import bulk
 
 from jeeves import registry as app_registry
 from jeeves.config.config import (
-    DATA_VERSION_IDENTIFIER,
     GPT_EMBEDDING_MODEL,
     HISTORY_WINDOW_SIZE,
     MIN_SAMPLES_THRESHOLD,
@@ -53,9 +52,11 @@ class ElasticsearchDAL:
         host = _config.get_nested(["elasticsearch", "host"])
         port = int(_config.get_nested(["elasticsearch", "port"]))
 
-        self._es = Elasticsearch([host], port=port)
+        self._es = OpenSearch([host], port=port)
 
-        self._indexname = f"jeeves_tickets_v_{DATA_VERSION_IDENTIFIER}"
+        self._indexname = (
+            f"jeeves_tickets_v_{_config.get_nested(['elasticsearch', 'data_version_identifier'])}"
+        )
         self.language = Language.ENGLISH
         self.annotator = TextNLPBackendClient.load(
             language=self.language,
@@ -68,6 +69,8 @@ class ElasticsearchDAL:
         Should only be called once, during server startup
         """
         if not self._es.indices.exists(index=self._indexname):
+
+            print(f"Creating index {self._indexname}...", flush=True)
 
             # We need to explicitly set these types because Elasticsearch will
             # otherwise misinterpret them. In the future we may want to set more
@@ -114,7 +117,9 @@ class ElasticsearchDAL:
             }
 
             self._es.indices.create(index=self._indexname, body=index_creation_structure)
-            rollbar.report_message("Created index {self._indexname} with new mappings", "info")
+            message = f"Created index {self._indexname} with new mappings"
+            print(message, flush=True)
+            rollbar.report_message(message, "info")
 
     def _execute_search_for_documents(self, s: Search) -> List[JeevesDocument]:
         """
@@ -364,7 +369,7 @@ class ElasticsearchDAL:
                                         candidates, if at all. Optional value.
 
         Returns:
-            A list of dicts, where each dict contains a string reprseneting a
+            A list of dicts, where each dict contains a string representing a
             date and an int representing a count of how many times the input
             term appeared on that date.
         """
@@ -540,7 +545,14 @@ class ElasticsearchDAL:
             }
             for ticket in tickets
         ]
-        bulk(self._es, bulk_actions)
+        (_, errors) = bulk(self._es, bulk_actions, raise_on_error=False, raise_on_exception=False)
+        if errors:
+            error_message = (
+                f"Encountered {len(errors)} error{'' if len(errors) == 1 else 's'} "
+                + f"when bulk indexing tickets: {errors}"
+            )
+            rollbar.report_exc_info(sys.exc_info())
+            raise Exception(error_message)
 
     def get_most_recent_timestamp(
         self, lang: Optional[str] = None, data_source: Optional[str] = None

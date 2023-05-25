@@ -1,15 +1,15 @@
+import sys
 from collections import defaultdict
 from datetime import date
 from typing import Dict, Iterator, List, Optional
 
 import rollbar
 from duolingo_base.config import Config
-from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk
-from elasticsearch_dsl import Mapping, Search
 from nltk.stem.snowball import SnowballStemmer
+from opensearch_dsl import Mapping, Search
+from opensearchpy import OpenSearch
+from opensearchpy.helpers import bulk
 
-from jeeves.config.config import DATA_VERSION_IDENTIFIER
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
 from jeeves.util.date_util import date_to_str, str_to_date
@@ -23,9 +23,11 @@ class SpikeIndexDAL:
         host = _config.get_nested(["elasticsearch", "host"])
         port = int(_config.get_nested(["elasticsearch", "port"]))
 
-        self._es = Elasticsearch([host], port=port)
+        self._es = OpenSearch([host], port=port)
 
-        self._spikename = f"jeeves_spikes_v_{DATA_VERSION_IDENTIFIER}"
+        self._spikename = (
+            f"jeeves_spikes_v_{_config.get_nested(['elasticsearch', 'data_version_identifier'])}"
+        )
 
     def initialize_index(self) -> None:
         """
@@ -33,13 +35,14 @@ class SpikeIndexDAL:
         Should only be called once, during server startup
         """
         if not self._es.indices.exists(index=self._spikename):
+            print(f"Creating index {self._spikename}...", flush=True)
             self._es.indices.create(index=self._spikename)
 
             m = Mapping()
             m.field("lang", "keyword")
             m.field("spike_group", "keyword")
             m.save(self._spikename, using=self._es)
-            rollbar.report_message("Created index {self._spikename} with new mappings", "info")
+            rollbar.report_message(f"Created index {self._spikename} with new mappings", "info")
 
     def bulk_index_spikes(self, spikes: List[SpikeWord]) -> None:
         """
@@ -64,7 +67,14 @@ class SpikeIndexDAL:
             }
             for spike in spikes
         ]
-        bulk(self._es, bulk_actions)
+        (_, errors) = bulk(self._es, bulk_actions, raise_on_error=False, raise_on_exception=False)
+        if errors:
+            error_message = (
+                f"Encountered {len(errors)} error{'' if len(errors) == 1 else 's'} "
+                + f"when bulk indexing spikes: {errors}"
+            )
+            rollbar.report_exc_info(sys.exc_info())
+            raise Exception(error_message)
 
     def set_spike_confirm_setting(self, spike_id: str, desired_state: bool, user_id: int) -> None:
         """

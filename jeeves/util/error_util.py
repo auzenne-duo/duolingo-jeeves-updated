@@ -2,7 +2,7 @@ import sys
 from typing import Optional
 
 import rollbar
-from elasticsearch_dsl.response import Response
+from opensearch_dsl.response import Response
 from requests.exceptions import RequestException
 
 

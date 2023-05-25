@@ -179,7 +179,6 @@ class TutorsDAL:
                     Note that the service may still finish some requests in the background.
                     """
                 )
-            print("here checking", len(incomplete_request_hashes))
             newly_completed = set()
             for request_hash in incomplete_request_hashes:
                 request_hash_url = _BATCH_COMPLETION_END_ROUTE.format(

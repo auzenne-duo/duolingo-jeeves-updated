@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List, Optional
 
 import rollbar
-from duolingo_base.dal.s3 import S3Client
+from duolingo_base.dal.s3 import S3Client, S3Exception
 
 from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS
 from jeeves.dal.jira_dal import JiraDAL
@@ -82,7 +82,15 @@ class JiraManager(JeevesManager):
         max_results_per_page = 100
 
         _CHECKPOINT_FILE = JiraManager.get_checkpoint_file_name()
-        if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
+        checkpoint_files = None
+        try:
+            checkpoint_files = list(
+                s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)
+            )
+        except S3Exception as e:
+            print(f"No checkpoint file found for bucket {bucket_name}, creating one now", e)
+
+        if not checkpoint_files:
             new_checkpoint_string = str(int(default_start_timestamp * 1000))
             s3_client.upload(bucket_name, _CHECKPOINT_FILE, new_checkpoint_string)
 

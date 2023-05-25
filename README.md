@@ -11,17 +11,16 @@ Technology-driven user support.
 
 ## How to contribute
 
-The repo cannot be built using Python 3.11
-
-Make sure to set up Python 3 virtual environment, or pylint would fail when trying to commit.
-
-- Run `virtualenv -p python3 env` (If that doesn't work, try `python3 -m venv env`)
-- Run `export PYTHONPATH=$(pwd)`
-- Run `source env/bin/activate`
-- Run `pip3 install -r requirements.txt`
-- Run `pip3 install -r dev-requirements.txt`
-
-TODO localstack for sqs queues on local dev
+1. Install [pyenv and virtualenv](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/1205141569) if you haven't already:
+   - `brew update`
+   - `brew install pyenv`
+   - `brew install pyenv-virtualenv`
+2. Set up Python 3.8.10 in this directory (this repository cannot yet be built using Python 3.11):
+   - `pyenv virtualenv 3.8.10 jeeves-3.8.10`
+   - `pyenv activate jeeves-3.8.10`
+   - `pyenv local jeeves-3.8.10`
+3. Install requirements:
+   - `pip3 install -r dev-requirements.txt` (this command includes everything from `requirements.txt`)
 
 You can run unit tests with `pytest`. These are also run as part of the pre-commit checks. In order to run tests, you will need to download pango as outlined [here](#pango-steps).
 
@@ -30,17 +29,16 @@ You can run unit tests with `pytest`. These are also run as part of the pre-comm
 To run the microservice locally:
 
 - [Install Docker](https://docs.docker.com/docker-for-mac/install/) and increase the memory limit to 8GB if you haven't already.
-- Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables.
-- Run `make web` to start a microservice locally on Docker.
+- Run `./run_local.sh` to run most of the Jeeves stack locally with `docker compose`. (If you're not running this from Pittsburgh HQ, be sure to have the VPN on.)
 - If you hit an error due to another process listening on port 5000, [turn off AirPlay Receiver under Sharing in System Preferences](https://developer.apple.com/forums/thread/682332?answerId=678289022#678289022)
 - Open [`http://localhost:5000/`](http://localhost:5000/).
 
-The following are required when you update requirements.
+The following are required when you update any requirements files.
 
 - Run `pip-compile --output-file requirements.txt requirements.in`
 - Run `pip-compile --output-file dev-requirements.txt dev-requirements.in`
 
-You may need to `pip install pip-tools`
+(You may first need to `pip install pip-tools`)
 
 If you run into `ImportError: cannot import name 'BAR_TYPES' from 'pip._internal.cli.progress_bars'`, run the following to install a compatible version of pip: `pip install pip==22.0.4`
 

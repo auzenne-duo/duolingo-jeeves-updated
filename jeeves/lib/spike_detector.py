@@ -407,12 +407,7 @@ def _calculate_spike_score(
     mean = np.mean(count_history)
     std = np.std(count_history)
 
-    if (
-        word in word_stats
-        and lang == "en"
-        and day_count < HISTORY_WINDOW_SIZE
-        and not SpikeCategory.is_use_baselines_disabled(spike_group)
-    ):
+    if word in word_stats and lang == "en" and day_count < HISTORY_WINDOW_SIZE:
         baseline_mean = word_stats[word]["mean"]
         baseline_std = word_stats[word]["std"]
 

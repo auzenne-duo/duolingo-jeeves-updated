@@ -33,8 +33,8 @@ python-test: python-install
 # Starts a local microservice.
 .PHONY: web
 web:
-	docker-compose build
-	docker-compose up
+	docker compose build
+	docker compose up
 
 spike-worker:
 	docker compose build spike-worker

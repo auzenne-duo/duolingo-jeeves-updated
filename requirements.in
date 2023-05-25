@@ -1,25 +1,27 @@
 --index-url https://pypi.duolingo.com/simple/
 
 attrs==21.4.0
+boto3==1.26.97
 blinker
 click
 cssselect2==0.4.1
 duolingo-base==1.7.4
 duolingo-notify
 duolingo-nlp==4.7.0
-elasticsearch
-elasticsearch-dsl
 filelock==3.9.0
 fonttools==4.27.1
 importlib-metadata==4.8.3 # otherwise it wouldn't be compatible with python 3.6
 langid
+llama-index==0.6.0
 Flask
 flask-cors
 kiwisolver==1.3.1
 matplotlib==3.7.0
 markdown==3.3.7
 networkx==3.0
-numpy
+numpy==1.24.3
+opensearch-py==1.1.0
+opensearch-dsl==1.0.0
 opentelemetry-api==1.13.0
 opentelemetry-distro==0.34b0
 opentelemetry-exporter-otlp==1.13.0
@@ -45,27 +47,23 @@ opentelemetry-instrumentation-urllib3==0.34b0
 opentelemetry-propagator-jaeger==1.13.0
 opentelemetry-sdk==1.13.0
 opentelemetry-util-http==0.34b0
-pandas==1.1.5
-pillow==8.4.0
+pandas==2.0.1
+pillow==9.5.0
 protobuf==3.19.5 # otherwise duolingo-notify > duolingo-proto bumps it to 3.20.1 which is too high
-pydyf==0.1.2
+pydyf==0.6.0
 pyphen==0.11.0
 pystache
 pytz
 scipy==1.10.1
 scikit-learn==1.2.1
 seaborn
-sentence-transformers==1.1.0
+sentence-transformers==2.2.2
 sentencepiece==0.1.97
 simplejson
-tokenizers==0.10.2
-torch==1.9.0
 tqdm==4.64.1
-trankit
-transformers==4.5.1
 ufal.udpipe
 uwsgi==2.0.21
-weasyprint
+weasyprint==59.0
 wrapt==1.12.1
 zipp==3.6.0
 zopfli==0.1.9
