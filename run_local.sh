@@ -14,20 +14,20 @@ get_config_value() {
 }
 
 # Check for JIRA_USERNAME and JIRA_API_TOKEN environment variables
-if [ -z "${JIRA_USERNAME}" ] || [ -z "${JIRA_API_TOKEN}" ]; then
+if [ -z "${JIRA_USERNAME:-}" ] || [ -z "${JIRA_API_TOKEN:-}" ]; then
   echo "Warning: JIRA_USERNAME and/or JIRA_API_TOKEN are empty. These are recommended in order to pull JIRA tickets into your local Elasticsearch instance."
   echo "Create an API key and export these variables inside your '~/.zshrc' file (or in your current shell): https://id.atlassian.com/manage-profile/security/api-tokens"
   echo "For more information, please read: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/"
 fi
 
 # Check for DUOLINGO_JWT
-if [ -z "${DUOLINGO_JWT}" ]; then
+if [ -z "${DUOLINGO_JWT:-}" ]; then
   echo "Warning: DUOLINGO_JWT is empty. This is needed in order to create embeddings for your local Elasticsearch documents."
   echo "Run 'duo login' or follow these instructions: https://duolingo.atlassian.net/wiki/spaces/DUO/pages/674890786"
 fi
 
 # Check for AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-if [ -z "${AWS_ACCESS_KEY_ID}" ] || [ -z "${AWS_SECRET_ACCESS_KEY}" ]; then
+if [ -z "${AWS_ACCESS_KEY_ID:-}" ] || [ -z "${AWS_SECRET_ACCESS_KEY:-}" ]; then
   echo "Warning: AWS_ACCESS_KEY_ID and/or AWS_SECRET_ACCESS_KEY are empty. These are needed to download the necessary files for running the Spike Detector."
   echo "Run 'duo login-aws' and export those returned values as AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
 fi
