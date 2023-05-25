@@ -210,6 +210,14 @@ test_cases = [
         ["Mega", "Music", "Math"],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
+    # mega feature is detected with iOS generated description.
+    (
+        "",
+        "Test",
+        "*System Information*:\n*app version*: 6.213.0.4\n*MEGA Information*:\n- *Mega course*: math\n\nother stuff: things",
+        ["Mega", "Music", "Math"],
+        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+    ),
 ]
 
 

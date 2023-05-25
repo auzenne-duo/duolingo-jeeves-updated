@@ -195,7 +195,8 @@ class JiraFeatureManager:
 
         suggested_features = []
         if generated_description:
-            _, duolingo_metadata = extract_duolingo_metadata(generated_description)
+            # Remove asterisks from generated description. iOS STR includes them, but they interfere with extracting metadata
+            _, duolingo_metadata = extract_duolingo_metadata(generated_description.replace("*", ""))
             if duolingo_metadata.get("mega_information", {}).get("mega_course", None) in [
                 "math",
                 "music",
