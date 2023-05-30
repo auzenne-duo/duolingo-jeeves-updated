@@ -1,12 +1,16 @@
+import asyncio
 import json
 import os
 import time
-from typing import Dict, Iterator, List, Optional, Union
+from concurrent.futures import ThreadPoolExecutor
+from timeit import default_timer
+from typing import Dict, Iterator, List, Optional, Tuple, Union
 
 import rollbar
 from requests import RequestException, Response, Session, get, post, put
 from requests.auth import HTTPBasicAuth
 
+from jeeves.lib.profiling import traced_function
 from jeeves.model.custom_types import JSON
 from jeeves.model.jira_document import PARENT_BUG_LABEL, JiraDocument
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
@@ -160,6 +164,7 @@ class JiraApiDAL:
                     # issues downloaded.
                     total = response_json["total"]
 
+    @traced_function()
     def get_bulk_issues(self, issue_keys: List[str]) -> List[JiraDocument]:
         """
         Downloads issues as JiraDocuments.
@@ -309,6 +314,7 @@ class JiraApiDAL:
             print_request_exception(e, rollbar_level="error")
             raise
 
+    @traced_function()
     def mark_duplicate(self, outward_key: str, inward_key: str):
         """
         Given two issue keys, one outward and one inward, marks them as
@@ -335,7 +341,27 @@ class JiraApiDAL:
             r.raise_for_status()
         except RequestException as e:
             print_request_exception(e, rollbar_level="error")
-            raise
+            return (outward_key, inward_key, False)
+        return (outward_key, inward_key, True)
+
+    async def mark_duplicates_async(
+        self, links: List[Tuple[str, str]]
+    ) -> List[Tuple[str, str, bool]]:
+        results = []
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            loop = asyncio.get_event_loop()
+            default_timer()
+            tasks = [
+                loop.run_in_executor(
+                    executor,
+                    self.mark_duplicate,
+                    *(outward_key, inward_key),
+                )
+                for outward_key, inward_key in links
+            ]
+            for response in await asyncio.gather(*tasks):
+                results.append(response)
+        return results
 
 
 JiraDAL = JiraApiDAL()

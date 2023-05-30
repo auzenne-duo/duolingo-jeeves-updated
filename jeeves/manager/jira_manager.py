@@ -23,6 +23,8 @@ from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 class JiraManager(JeevesManager):
     @staticmethod
     def _try_set_jira_document_feature_field_key() -> bool:
+        if JiraDocument.get_feature_field_key() is not None:
+            return True
         try:
             issuetypes = JiraDAL.get_issuetype_metadata(JIRA_PROJECTS, JIRA_ISSUE_TYPE_BUG)
             feature_field_keys = {issuetype.feature_field_key() for issuetype in issuetypes}

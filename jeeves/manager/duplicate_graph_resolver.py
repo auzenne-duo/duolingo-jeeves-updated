@@ -4,6 +4,7 @@ of one. This code is in its own file because putting it anywhere else wouldn't
 make sense or would cause a circular dependency.
 """
 
+import asyncio
 from collections import Counter
 from typing import Dict, List, Optional, Tuple
 
@@ -13,6 +14,7 @@ from duolingo_base.util import registry
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
+from jeeves.lib.profiling import traced_function
 from jeeves.manager.parent_summary_manager import ParentSummaryManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
@@ -43,6 +45,7 @@ class DuplicateGraphResolver:
         self._jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
         self._parent_summary_manager = parent_summary_manager
 
+    @traced_function()
     def get_duplicate_graph(
         self, issue_keys: List[str], key_to_doc: Dict[str, JiraDocument] = None
     ) -> JiraDuplicateGraph:
@@ -200,10 +203,14 @@ class DuplicateGraphResolver:
         any_success = False
         any_failure = False
         result_list = []
-        for (outward_end, inward_end) in remaining_links:
+
+        loop = asyncio.get_event_loop()
+        future = asyncio.ensure_future(self._jira_dal.mark_duplicates_async(remaining_links))
+        results = loop.run_until_complete(future)
+
+        for (outward_end, inward_end, link_created) in results:
             # We don't need to edit our documents here because the changes will
             # get pulled in from Jira later anyway.
-            link_created = self.try_mark_duplicate_remote(outward_end, inward_end)
             if link_created:
                 any_success = True
                 result_list.append(f"S {outward_end} {inward_end}\n")

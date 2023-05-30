@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 from duolingo_base.util import registry
 
-from jeeves.dal.tutors_dal import TutorsDAL
+from jeeves.dal.ai_completions_dal import AICompletionsDAL
 
 SYSTEM_PROMPT = """
 Duolingo's users can report bugs, feedback, and feature requests into Jira. Each Jira issue has a title that summarizes the issue and a description with more detail. When given a list of issues that were reported as duplicates, this bot can generate a single title in less than 255 characters and a longer description that summarizes all the duplicate reports.
@@ -10,11 +10,11 @@ Duolingo's users can report bugs, feedback, and feature requests into Jira. Each
 
 
 @registry.bind(
-    tutors_dal=registry.reference(TutorsDAL),
+    ai_completions_dal=registry.reference(AICompletionsDAL),
 )
 class ParentSummaryManager:
-    def __init__(self, tutors_dal: TutorsDAL):
-        self.tutors_dal = tutors_dal
+    def __init__(self, ai_completions_dal: AICompletionsDAL):
+        self.ai_completions_dal = ai_completions_dal
 
     def _generate_summary_user_prompt(self, headers: List[str], descriptions: List[str]) -> str:
         """
@@ -62,7 +62,7 @@ Description: {description}
         # Generate a summary using GPT-3.
 
         user_prompt: str = self._generate_summary_user_prompt(headers, descriptions)
-        response_text = self.tutors_dal.ask(SYSTEM_PROMPT, user_prompt)
+        response_text = self.ai_completions_dal.ask(SYSTEM_PROMPT, user_prompt)
         print("response_text", response_text)
         if response_text is None:
             return headers[0], descriptions[0]

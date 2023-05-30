@@ -1,11 +1,13 @@
 import langid
 
+from jeeves.lib.profiling import traced_function
 from jeeves.model.products import Products
 
 _TINYCARDS_TAGS = frozenset(("tinycards_feedback", "tinycardsat"))
 _DET_TAGS = frozenset(("examity", "mettl", "testcenter", "test_center", "det"))
 
 
+@traced_function(name="detect_language")
 def detect_language(text):
     return langid.classify(text)[0]
 
