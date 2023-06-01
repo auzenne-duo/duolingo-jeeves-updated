@@ -1,0 +1,53 @@
+@use "constants" as *;
+
+.form {
+  display: grid;
+  grid-gap: $juicy-margin * 0.5;
+  height: min-content;
+  overflow: hidden;
+  margin-top: $juicy-margin;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  grid-gap: $juicy-margin * 0.5;
+}
+
+.text-block {
+  margin-top: 15px;
+}
+
+.btn-close {
+  position: absolute;
+  right: $juicy-margin;
+  top: $juicy-margin;
+  transform: translateX(50%) translateY(-50%);
+}
+
+.modal {
+  overflow: auto;
+}
+
+.modal-content {
+  position: absolute;
+  border: $juicy-border;
+  background: $juicy-snow;
+  border-radius: $juicy-radius;
+  outline: none;
+  padding: 20px;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  width: 100%;
+
+  @media (min-width: $width-ipad) {
+    width: 70%;
+  }
+}
+
+.remaining-characters {
+  margin-left: auto;
+}

@@ -53,6 +53,16 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
       aws_sqs_queue.jeeves-pipeline-break-verify-index-deadletter-dev.arn,
     ]
   }
+
+  statement {
+    actions = [
+      "sns:Publish",
+    ]
+
+    resources = [
+      aws_sns_topic.jeeves-beta-feedback.arn,
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "s3-rw-duolingo-jeeves" {

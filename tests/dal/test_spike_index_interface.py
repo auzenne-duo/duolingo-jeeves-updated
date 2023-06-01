@@ -36,7 +36,10 @@ class TestSpikeIndexInterface(unittest.TestCase):
         self.es.update = MagicMock(return_value=successful_response)
         self.dal.set_spike_confirm_setting("13", True, 10)
         self.es.update.assert_called_with(
-            index=spikename, id="13", body={"doc": {"confirmed": True, "user_id": 10}}, refresh=True
+            index=spikename,
+            id="13",
+            body={"doc": {"confirmed": True, "confirmed_user_id": 10}},
+            refresh=True,
         )
 
     def test_set_spike_confirm_to_false(self):
@@ -45,7 +48,7 @@ class TestSpikeIndexInterface(unittest.TestCase):
         self.es.update.assert_called_with(
             index=spikename,
             id="13-id",
-            body={"doc": {"confirmed": False, "user_id": 10}},
+            body={"doc": {"confirmed": False, "confirmed_user_id": 10}},
             refresh=True,
         )
 
@@ -53,7 +56,60 @@ class TestSpikeIndexInterface(unittest.TestCase):
         self.es.update = MagicMock(return_value=failed_response)
         self.assertRaises(Exception, self.dal.set_spike_confirm_setting, "13", True, 10)
         self.es.update.assert_called_with(
-            index=spikename, id="13", body={"doc": {"confirmed": True, "user_id": 10}}, refresh=True
+            index=spikename,
+            id="13",
+            body={"doc": {"confirmed": True, "confirmed_user_id": 10}},
+            refresh=True,
+        )
+
+    def test_set_spike_fixed_to_true(self):
+        self.es.update = MagicMock(return_value=successful_response)
+        self.dal.set_spike_fixed_setting("13", True, 10)
+        self.es.update.assert_called_with(
+            index=spikename,
+            id="13",
+            body={"doc": {"fixed": True, "fixed_user_id": 10}},
+            refresh=True,
+        )
+
+    def test_set_spike_fixed_to_false(self):
+        self.es.update = MagicMock(return_value=successful_response)
+        self.dal.set_spike_fixed_setting("13", False, 10)
+        self.es.update.assert_called_with(
+            index=spikename,
+            id="13",
+            body={"doc": {"fixed": False, "fixed_user_id": 10}},
+            refresh=True,
+        )
+
+    def test_set_spike_fixed_failed(self):
+        self.es.update = MagicMock(return_value=failed_response)
+        self.assertRaises(Exception, self.dal.set_spike_fixed_setting, "13", True, 10)
+        self.es.update.assert_called_with(
+            index=spikename,
+            id="13",
+            body={"doc": {"fixed": True, "fixed_user_id": 10}},
+            refresh=True,
+        )
+
+    def test_set_spike_email_sent(self):
+        self.es.update = MagicMock(return_value=successful_response)
+        self.dal.set_spike_email_sent("13", 123, "2000-01-01")
+        self.es.update.assert_called_with(
+            index=spikename,
+            id="13",
+            body={"doc": {"email_user_id": 123, "email_sent_date": "2000-01-01"}},
+            refresh=True,
+        )
+
+    def test_set_spike_email_sent_failed(self):
+        self.es.update = MagicMock(return_value=failed_response)
+        self.assertRaises(Exception, self.dal.set_spike_email_sent, "13", 123, "2000-01-01")
+        self.es.update.assert_called_with(
+            index=spikename,
+            id="13",
+            body={"doc": {"email_user_id": 123, "email_sent_date": "2000-01-01"}},
+            refresh=True,
         )
 
     @patch("jeeves.dal.spike_index_interface.Search", Mock(return_value=mock_search))

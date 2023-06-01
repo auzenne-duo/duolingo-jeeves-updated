@@ -63,14 +63,9 @@ const Dashboard = () => {
           [...langToSpikes.keys()].map(language => (
             <SpikeTable
               date={langToSpikes.get(language)?.date}
-              isLoading={isLoading}
               key={`${language}-${langToSpikes.get(language)?.date}`}
               language={language}
-              spikes={
-                isLoading
-                  ? []
-                  : langToSpikes.get(language)?.spikes.slice(0, 5) ?? []
-              }
+              spikes={langToSpikes.get(language)?.spikes.slice(0, 5) ?? []}
             />
           )),
         )

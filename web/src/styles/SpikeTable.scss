@@ -12,12 +12,15 @@
     table-layout: auto;
 
     td:first-child {
-      width: 100px;
+      width: 150px;
+      max-width: 150px;
+      overflow-wrap: anywhere;
     }
 
-    td:last-child {
-      min-width: 220px;
-      width: 20%;
+    td:last-child,
+    td:nth-last-child(2),
+    td:nth-last-child(3) {
+      min-width: 150px;
     }
   }
 }

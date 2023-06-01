@@ -14,7 +14,7 @@ class TestSpikeWord(unittest.TestCase):
             lang="en",
             spike_group=SpikeCategory.ALL_SPIKES,
             confirmed=False,
-            user_id=10,
+            confirmed_user_id=10,
             summary="summary",
             is_bug=True,
             experiment_spikes={},
@@ -28,7 +28,11 @@ class TestSpikeWord(unittest.TestCase):
             "lang": "en",
             "spike_group": "ALL_SPIKES",
             "confirmed": True,
-            "user_id": 10,
+            "confirmed_user_id": 10,
+            "fixed": True,
+            "email_sent_date": "2022-01-02",
+            "email_user_id": 11,
+            "fixed_user_id": 19,
             "summary": "summary",
             "is_bug": True,
         }
@@ -41,7 +45,11 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.lang, "en")
         self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
         self.assertEqual(result.confirmed, True)
-        self.assertEqual(result.user_id, 10)
+        self.assertEqual(result.confirmed_user_id, 10)
+        self.assertEqual(result.email_sent_date, "2022-01-02")
+        self.assertEqual(result.email_user_id, 11)
+        self.assertEqual(result.fixed, True)
+        self.assertEqual(result.fixed_user_id, 19)
         self.assertEqual(result.summary, "summary")
         self.assertEqual(result.is_bug, True)
 
@@ -62,7 +70,7 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.lang, "en")
         self.assertEqual(result.spike_group, SpikeCategory.ALL_SPIKES)
         self.assertEqual(result.confirmed, False)
-        self.assertEqual(result.user_id, None)
+        self.assertEqual(result.confirmed_user_id, None)
         self.assertEqual(result.summary, None)
         self.assertEqual(result.is_bug, True)
         self.assertEqual(result.experiment_spikes, {})
@@ -84,7 +92,7 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.lang, "en")
         self.assertEqual(result.spike_group, None)
         self.assertEqual(result.confirmed, False)
-        self.assertEqual(result.user_id, None)
+        self.assertEqual(result.confirmed_user_id, None)
         self.assertEqual(result.summary, None)
         self.assertEqual(result.is_bug, True)
         self.assertEqual(result.experiment_spikes, {})
@@ -101,7 +109,11 @@ class TestSpikeWord(unittest.TestCase):
                 "lang": "en",
                 "spike_group": "ALL_SPIKES",
                 "confirmed": False,
-                "user_id": 10,
+                "confirmed_user_id": 10,
+                "email_user_id": None,
+                "email_sent_date": None,
+                "fixed": False,
+                "fixed_user_id": None,
                 "summary": "summary",
                 "is_bug": True,
                 "experiment_spikes": {},

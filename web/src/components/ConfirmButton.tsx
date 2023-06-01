@@ -14,21 +14,21 @@ const ConfirmButton = ({ spike }: Props) => {
   const queryClient = useQueryClient();
 
   const { data: username } = useQuery(
-    ["users", spike.user_id],
+    ["users", spike.confirmed_user_id],
     () => {
-      if (spike.user_id === undefined) {
+      if (spike.confirmed_user_id === undefined) {
         throw Error("Query shouldn't be enabled.");
       }
-      return getUser(spike.user_id);
+      return getUser(spike.confirmed_user_id);
     },
     {
-      enabled: !!spike.user_id,
+      enabled: !!spike.confirmed_user_id,
       select: data => data.username,
     },
   );
 
   const mutation = useMutation(
-    () => setSpikeConfirmed(spike.spike_id, !spike.confirmed),
+    () => setSpikeConfirmed(!spike.confirmed, spike.spike_id),
     {
       onSuccess: () => {
         queryClient.invalidateQueries("spikes");
@@ -43,9 +43,7 @@ const ConfirmButton = ({ spike }: Props) => {
         className={styles.toggle}
         onChange={() => mutation.mutate()}
       />
-      {spike.confirmed && username && (
-        <span className={styles["confirm-username"]}>(by {username})</span>
-      )}
+      {spike.confirmed && username && <div>({username})</div>}
     </>
   );
 };

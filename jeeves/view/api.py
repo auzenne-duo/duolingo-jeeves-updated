@@ -12,6 +12,7 @@ from flask import Blueprint, abort, g, json, make_response, request, send_from_d
 from jeeves import registry as app_registry
 from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
 from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.sns import PublishManager
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
@@ -180,7 +181,11 @@ def get_spike_data(lang):
                 "word": spike.word,
                 "confirmed": spike.confirmed,
                 "spike_id": spike.get_spike_id(),
-                "user_id": spike.user_id,
+                "confirmed_user_id": spike.confirmed_user_id,
+                "email_sent_date": spike.email_sent_date,
+                "email_user_id": spike.email_user_id,
+                "fixed": spike.fixed,
+                "fixed_user_id": spike.fixed_user_id,
                 "summary": spike.summary,
                 "is_bug": spike.is_bug,
                 "experiment_spikes": [
@@ -199,9 +204,46 @@ def get_spike_data(lang):
 def set_spike_confirm():
     spike_id = request.json.get("spike_id")
     desired_state = request.json.get("desired_state")
+    confirm_user_id = g.user_id
+    app_registry(SpikeIndexDAL).set_spike_confirm_setting(spike_id, desired_state, confirm_user_id)
+    return json.jsonify({"confirmed": desired_state, "confirm_user_id": confirm_user_id})
+
+
+@blueprint_api.route("/api/1/set_spike_fixed", methods=["PATCH"])
+@requires_auth(permission="access-jeeves")
+def set_spike_fixed():
+    try:
+        spike_id = request.json["spike_id"]
+        desired_state = request.json["desired_state"]
+    except KeyError:
+        abort(make_response("Missing required form data", 400))
+    fixed_user_id = g.user_id
+    app_registry(SpikeIndexDAL).set_spike_fixed_setting(spike_id, desired_state, fixed_user_id)
+    return json.jsonify({"fixed": desired_state, "fixed_user_id": fixed_user_id})
+
+
+@blueprint_api.route("/api/1/send_beta_emails", methods=["POST"])
+@requires_auth(permission="access-jeeves")
+def send_beta_emails():
+    try:
+        spike_id = request.json["spike_id"]
+        description = request.json["description"]
+    except KeyError:
+        abort(make_response("Missing required form data", 400))
+    if any([not spike_id, not description]):
+        abort(make_response("Missing required form data", 400))
+
     user_id = g.user_id
-    app_registry(SpikeIndexDAL).set_spike_confirm_setting(spike_id, desired_state, user_id)
-    return json.jsonify({"confirmed": desired_state, "user_id": user_id})
+
+    spike = app_registry(SpikeIndexDAL).get_spike_by_id(spike_id)
+    if spike.email_sent_date:
+        abort(make_response("Email already sent for this spike", 400))
+
+    app_registry(SpikeIndexDAL).set_spike_email_sent(spike_id, user_id, date_to_str(datetime.now()))
+
+    # Currently just sends an email to Caleb Noble
+    app_registry(PublishManager).send_beta_reported_issue_fixed_email(23133309, description)
+    return json.jsonify({"email_user_id": user_id, "num_emails": 1})
 
 
 @blueprint_api.route("/api/1/<lang>/spike_stats")

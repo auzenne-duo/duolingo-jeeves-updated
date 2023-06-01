@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 
 import { encodeURLSearchParams } from "../util";
 import ConfirmButton from "components/ConfirmButton";
+import EmailBetaButton from "components/EmailBetaButton";
 import ExperimentsList from "components/ExperimentsList";
+import FixedToggle from "components/FixedToggle";
 import Table from "components/Table";
 import styles from "styles/SpikeTable.scss";
 
@@ -36,7 +38,7 @@ const SpikeTable = ({
     <Table className={styles.table}>
       <thead>
         <tr>
-          <th colSpan={3}>
+          <th colSpan={5}>
             <Link
               to={`/${language}/spike?${encodeURLSearchParams(
                 spikeDetectorParams,
@@ -52,6 +54,8 @@ const SpikeTable = ({
           <th>Word</th>
           <th>Summary</th>
           <th>Confirmed</th>
+          <th>Fixed</th>
+          <th>Email Beta</th>
         </tr>
       </thead>
       <tbody>
@@ -93,12 +97,18 @@ const SpikeTable = ({
                 <td>
                   <ConfirmButton spike={spike} />
                 </td>
+                <td>
+                  <FixedToggle spike={spike} />
+                </td>
+                <td>
+                  <EmailBetaButton spike={spike} />
+                </td>
               </tr>
             );
           })}
         {!spikes.length && !isLoading ? (
           <tr>
-            <td colSpan={3}>No data is available for this date.</td>
+            <td colSpan={4}>No data is available for this date.</td>
           </tr>
         ) : null}
       </tbody>

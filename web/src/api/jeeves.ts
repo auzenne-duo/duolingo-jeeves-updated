@@ -1,7 +1,7 @@
 import { format, formatISO, parseISO } from "date-fns";
 
 import { convertTimeZone } from "../util";
-import { get, patch } from "api/client";
+import { get, patch, post } from "api/client";
 import { transformQuery } from "elastic";
 
 /** Converts a date and time to a format that the API supports. */
@@ -181,11 +181,23 @@ export const getTimeSeries = async (
   }));
 };
 
+export const sendBetaEmails = async (description: string, spikeId: string) =>
+  post<JSONAPI.FixedResponse>("/1/send_beta_emails", {
+    description,
+    spike_id: spikeId,
+  });
+
 export const setSpikeConfirmed = async (
-  spikeId: string,
   desiredState: boolean,
+  spikeId: string,
 ) =>
   patch<JSONAPI.ConfirmedResponse>("/1/set_spike_confirm", {
+    desired_state: desiredState,
+    spike_id: spikeId,
+  });
+
+export const setSpikeFixed = async (desiredState: boolean, spikeId: string) =>
+  patch<JSONAPI.FixedResponse>("/1/set_spike_fixed", {
     desired_state: desiredState,
     spike_id: spikeId,
   });

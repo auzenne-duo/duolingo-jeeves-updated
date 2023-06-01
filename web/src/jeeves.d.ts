@@ -6,7 +6,7 @@ declare namespace JSONAPI {
 
   interface ConfirmedResponse {
     confirmed: boolean;
-    user_id: number;
+    confirmed_user_id: number;
   }
 
   interface DuolingoMetadata {
@@ -24,6 +24,12 @@ declare namespace JSONAPI {
   interface ExperimentSpike {
     experiment: string;
     score: number;
+  }
+
+  interface FixedResponse {
+    fixed: boolean;
+    fixed_user_id: number;
+    num_emails: number;
   }
 
   interface Info {
@@ -110,13 +116,17 @@ declare namespace JSONAPI {
 
   interface SpikeWord {
     confirmed: boolean;
+    confirmed_user_id?: number;
     experiment_spikes: ExperimentSpike[];
+    email_sent_date?: string;
+    email_user_id?: number;
+    fixed: boolean;
+    fixed_user_id?: number;
     is_bug: boolean;
     lang: string;
     score: number;
     spike_id: string;
     summary: string;
-    user_id?: number;
     word: string;
   }
 

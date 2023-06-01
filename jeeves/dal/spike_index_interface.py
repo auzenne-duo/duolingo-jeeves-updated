@@ -1,7 +1,7 @@
 import sys
 from collections import defaultdict
 from datetime import date
-from typing import Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
 
 import rollbar
 from duolingo_base.config import Config
@@ -76,6 +76,24 @@ class SpikeIndexDAL:
             rollbar.report_exc_info(sys.exc_info())
             raise Exception(error_message)
 
+    def _update_settings(self, settings: Dict[str, Any], spike_id: str) -> None:
+        """
+        Updates settings of a spikeword by spike_id to the specified states
+
+        Parameters:
+            settings: a mapping from SpikeWord attributes to the desired state.
+            spike_id: id string corresponding to a SpikeWord document
+            user_id: number of a user's id
+        """
+        response = self._es.update(  # pylint: disable=E1123
+            index=self._spikename,
+            id=spike_id,
+            body={"doc": settings},
+            refresh=True,
+        )
+        if response["_shards"]["total"] != response["_shards"]["successful"]:
+            raise Exception(f"Update to settings {settings} of spike {spike_id} failed")
+
     def set_spike_confirm_setting(self, spike_id: str, desired_state: bool, user_id: int) -> None:
         """
         Sets the confirmed status of a spikeword by spike_id to the specified state
@@ -85,14 +103,31 @@ class SpikeIndexDAL:
             desired_state: desired boolean setting of the confirmed state
             user_id: number of a user's id
         """
-        response = self._es.update(  # pylint: disable=E1123
-            index=self._spikename,
-            id=spike_id,
-            body={"doc": {"confirmed": desired_state, "user_id": user_id}},
-            refresh=True,
+        self._update_settings({"confirmed": desired_state, "confirmed_user_id": user_id}, spike_id)
+
+    def set_spike_fixed_setting(self, spike_id: str, desired_state: bool, user_id: int) -> None:
+        """
+        Sets the fixed status of a spikeword by spike_id to the specified state
+
+        Parameters:
+            spike_id: id string corresponding to a SpikeWord document
+            desired_state: desired boolean setting of the fixed state
+            user_id: number of a user's id
+        """
+        self._update_settings({"fixed": desired_state, "fixed_user_id": user_id}, spike_id)
+
+    def set_spike_email_sent(self, spike_id: str, user_id: int, email_sent_date: str):
+        """
+        Sets the email_sent_date and user_id settings of a spikeword
+
+        Parameters:
+            spike_id: id string corresponding to a SpikeWord document
+            user_id: number of a user's id
+            email_sent_date: date string of when the email was sent
+        """
+        self._update_settings(
+            {"email_user_id": user_id, "email_sent_date": email_sent_date}, spike_id
         )
-        if response["_shards"]["total"] != response["_shards"]["successful"]:
-            raise Exception(f"Update to confirmed setting of spike {spike_id} failed")
 
     def calculate_spike_stats(
         self,

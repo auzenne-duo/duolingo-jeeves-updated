@@ -13,7 +13,11 @@ class SpikeWord:
     lang: str = attr.ib()
     spike_group: Optional[SpikeCategory] = attr.ib()
     confirmed: bool = attr.ib(default=False)
-    user_id: Optional[int] = attr.ib(default=None)
+    confirmed_user_id: Optional[int] = attr.ib(default=None)
+    email_sent_date: Optional[str] = attr.ib(default=None)
+    email_user_id: Optional[int] = attr.ib(default=None)
+    fixed: bool = attr.ib(default=False)
+    fixed_user_id: Optional[int] = attr.ib(default=None)
     summary: Optional[str] = attr.ib(default=None)
     is_bug: Optional[bool] = attr.ib(default=None)
     experiment_spikes: Optional[Dict[str, int]] = attr.ib(default=None)
@@ -29,7 +33,15 @@ class SpikeWord:
             if spike_dict["spike_group"] in SpikeCategory.__members__
             else None,
             confirmed=spike_dict["confirmed"] if "confirmed" in spike_dict else False,
-            user_id=spike_dict["user_id"] if "user_id" in spike_dict else None,
+            confirmed_user_id=spike_dict["confirmed_user_id"]
+            if "confirmed_user_id" in spike_dict
+            else None,
+            email_sent_date=spike_dict["email_sent_date"]
+            if "email_sent_date" in spike_dict
+            else None,
+            email_user_id=spike_dict["email_user_id"] if "email_user_id" in spike_dict else None,
+            fixed=spike_dict["fixed"] if "fixed" in spike_dict else False,
+            fixed_user_id=spike_dict["fixed_user_id"] if "fixed_user_id" in spike_dict else None,
             summary=spike_dict["summary"] if "summary" in spike_dict else None,
             is_bug=spike_dict["is_bug"] if "is_bug" in spike_dict else True,
             experiment_spikes=spike_dict["experiment_spikes"].to_dict()
@@ -45,7 +57,11 @@ class SpikeWord:
             "lang": self.lang,
             "spike_group": self.spike_group.name,
             "confirmed": self.confirmed,
-            "user_id": self.user_id,
+            "confirmed_user_id": self.confirmed_user_id,
+            "email_sent_date": self.email_sent_date,
+            "email_user_id": self.email_user_id,
+            "fixed": self.fixed,
+            "fixed_user_id": self.fixed_user_id,
             "summary": self.summary,
             "is_bug": self.is_bug,
             "experiment_spikes": self.experiment_spikes,

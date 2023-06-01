@@ -7,3 +7,7 @@ resource "aws_sns_topic" "emergency" {
 resource "aws_sns_topic" "warning" {
   name = "${var.product}-${var.service}-warning"
 }
+
+resource "aws_sns_topic" "jeeves-beta-feedback" {
+  name = "jeeves-beta-feedback"
+}

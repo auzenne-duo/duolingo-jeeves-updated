@@ -348,15 +348,13 @@ def _find_spiked_words(
                 confirmed=False,
                 experiment_spikes=experiment_spikes,
             )
-            # check if spike word has been confirmed
-            # use the previous spike summary if it exists in case gpt times out
+            # if a previous spike exists, persist everything except the score
             prev_spike = app_registry(SpikeIndexDAL).get_spike_by_id(spike_word.get_spike_id())
             if prev_spike:
-                spike_word.confirmed = prev_spike.confirmed
-                spike_word.is_bug = prev_spike.is_bug
-                spike_word.summary = prev_spike.summary
-                spike_word.user_id = prev_spike.user_id
-            result.append(spike_word)
+                prev_spike.score = spike_word.score
+                result.append(prev_spike)
+            else:
+                result.append(spike_word)
     return result, prompts
 
 
