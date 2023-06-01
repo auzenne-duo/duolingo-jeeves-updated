@@ -51,6 +51,8 @@ import time
 
 import requests
 
+from jeeves.util.sleep_check import sleep_check
+
 _LOCALE = "en-us"
 
 _URL_TEMPLATE = (
@@ -74,6 +76,7 @@ class ZendeskFAQDAL:
         """
         count = 1
         while True:
+            sleep_check()
             url = _URL_TEMPLATE.format(locale=_LOCALE, page=count)
             response = requests.get(url)
             json_response = response.json()

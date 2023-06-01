@@ -18,6 +18,7 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.zendesk_document import ZendeskDocument
 from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
 from jeeves.util.error_util import print_request_exception
+from jeeves.util.sleep_check import sleep_check
 
 _USER = os.environ.get("ZENDESK_USER")
 _PASSWORD = os.environ.get("ZENDESK_PASSWORD")
@@ -58,6 +59,7 @@ class ZendeskManager(JeevesManager):
         with Session() as s:
             s.auth = (_USER, _PASSWORD)
             while True:
+                sleep_check()
                 if len(urls) > 0:
                     print("Sleeping", flush=True)
                     time.sleep(10)

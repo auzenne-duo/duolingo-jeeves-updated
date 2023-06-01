@@ -9,6 +9,7 @@ import jeeves.lib.ticket_crawler as tc
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.manager.jeeves_duplicate_manager import JeevesDuplicateManager
+from jeeves.util.sleep_check import sleep_check
 
 _config = Config.load_config()
 _config.apply_logging()
@@ -44,6 +45,7 @@ if __name__ == "__main__":
 
         batch_list = []
         while True:
+            sleep_check()
             messages = sqs_client.receive_messages()
             print(f"Received {len(messages)} messages in batch", flush=True)
             documents = [_message_to_document(m) for m in messages]

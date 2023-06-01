@@ -2,6 +2,7 @@
 Manager for JIRA documents.
 """
 import json
+import logging
 import re
 import sys
 from datetime import datetime
@@ -18,6 +19,10 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
+
+LOG = logging.getLogger("process JIRA document")
+logging.basicConfig()
+LOG.setLevel(logging.INFO)
 
 
 class JiraManager(JeevesManager):
@@ -115,6 +120,7 @@ class JiraManager(JeevesManager):
             # Store to S3
             issue_updated_time = parse_external_datetime(issue["fields"]["updated"])
             issue_updated_date = date_to_str(issue_updated_time)
+            LOG.info("%s, Store issue id %s to S3", issue_updated_time, str(issue["id"]))
             upload_path = f"{JiraManager.get_managed_document_type().get_data_source_identifier()}/{issue_updated_date}/{issue['id']}"
             s3_client.upload(bucket_name, upload_path, json.dumps(issue))
             issue_updated_millis = int(issue_updated_time.timestamp() * 1000)

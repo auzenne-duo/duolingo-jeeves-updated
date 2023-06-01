@@ -130,6 +130,7 @@ services:
       - DUOLINGO_CONFIG
       - HOSTNAME=localstack
       - LOCALSTACK_HOST=localstack
+      - LS_LOG=warn
       - USER_AWS_ACCESS_KEY_ID
       - USER_AWS_SECRET_ACCESS_KEY
     healthcheck:
@@ -171,6 +172,7 @@ services:
       - DUOLINGO_CONFIG
       - JIRA_API_TOKEN
       - JIRA_USERNAME
+      - LOG_LEVEL=debug
     image: duolingojeeves_api_local
     networks:
       - localstack-net

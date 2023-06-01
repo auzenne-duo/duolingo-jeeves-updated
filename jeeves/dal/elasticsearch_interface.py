@@ -36,6 +36,7 @@ from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
 from jeeves.util.error_util import SearchUnsuccessfulException
 from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
+from jeeves.util.sleep_check import sleep_check
 
 _config = Config.load_config()
 
@@ -1016,6 +1017,7 @@ class ElasticsearchDAL:
         running_known_duplicates = set(base_document.linked_duplicate_keys)
         output_list = []
         while True:
+            sleep_check()
             s = s[results_page_start : results_page_start + results_page_size]
             results_page = self._execute_search_for_documents(s)
 

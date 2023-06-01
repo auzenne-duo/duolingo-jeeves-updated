@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 import sys
 from typing import List
@@ -9,6 +10,9 @@ from duolingo_base.dal import sqs
 
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.util.json_encoder import JeevesJSONEncoder
+from jeeves.util.sleep_check import sleep_check
+
+LOG = logging.getLogger("process document")
 
 _config = Config.load_config()
 _config.apply_logging()
@@ -50,6 +54,8 @@ def _check_for_data_source(messages: List[sqs.SQSMessage]) -> bool:
 
 if __name__ == "__main__":
     try:
+        logging.basicConfig()
+        LOG.setLevel(logging.INFO)
         sqs_client_input = sqs.SQSClient(
             _config.get_nested(["sqs_download_verify_pipeline", "queue_url"]),
             region_name=_config.get_nested(["sqs_download_verify_pipeline", "region_name"]),
@@ -62,6 +68,7 @@ if __name__ == "__main__":
         )
 
         while True:
+            sleep_check()
             messages = sqs_client_input.receive_messages(MessageAttributeNames=["All"])
 
             # If one or more received messages are missing their data_source,
@@ -84,6 +91,14 @@ if __name__ == "__main__":
                 doc_json = json.loads(m.message_body)
                 processed_doc = manager.process_document(doc_json)
                 if processed_doc:
+                    LOG.info(
+                        "date_time: %s, data_source: %s, document_id: %s, jeeves_uid: %s, header_text: %s",
+                        str(processed_doc.date_time),
+                        processed_doc.data_source,
+                        processed_doc.document_id,
+                        processed_doc.jeeves_uid,
+                        processed_doc.header_text,
+                    )
                     passable_docs.append(processed_doc)
 
             output_messages = [
