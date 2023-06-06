@@ -1,13 +1,13 @@
 @use "constants" as *;
 
 .footer {
-  background-color: $juicy-polar;
+  background-color: web-ui-color("polar");
   border-top: $juicy-border;
   flex-grow: 1;
 }
 
 .wrap {
-  background: $juicy-snow;
+  background: web-ui-color("snow");
   box-shadow: 4px 0 4px rgba(black, 0.04);
   display: flex;
   flex-direction: column;

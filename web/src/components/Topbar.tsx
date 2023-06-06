@@ -101,9 +101,7 @@ const Topbar = () => {
   );
 
   const handleAreaOrTeamChange = (e: SelectListChangeEvent) => {
-    const val = e.selectedValue
-      ? areasAndTeams[parseInt(e.selectedValue, 10)]
-      : undefined;
+    const val = areasAndTeams[e.selectedIndices[0]];
     const params = new URLSearchParams(location.search);
     params.delete("area");
     params.delete("page");
@@ -286,8 +284,8 @@ const Topbar = () => {
             }
           >
             <SelectList
+              items={areasAndTeams}
               onChange={handleAreaOrTeamChange}
-              options={[{ text: "Any area/team", value: "" }, ...areasAndTeams]}
               popoverPosition={{
                 direction: "down",
                 manualPositioning: true,
@@ -301,8 +299,9 @@ const Topbar = () => {
                 },
                 zIndex: 1,
               }}
+              selectedIndices={areaOrTeamIndex > -1 ? [areaOrTeamIndex] : []}
               showSearch={true}
-              value={areaOrTeamIndex > -1 ? `${areaOrTeamIndex}` : ""}
+              text={areaOrTeamIndex > -1 ? undefined : "Any area/team"}
             />
           </div>
         ) : null}

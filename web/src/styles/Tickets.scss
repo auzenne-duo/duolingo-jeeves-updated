@@ -18,7 +18,7 @@ $item-padding-x: 16px;
 
 // Loosely based on https://www.figma.com/file/76Dp0p4frjWbVZX9LXVORJ/%E2%9C%85-Schools-V2-HiFi---Q1-%40anna-%40jenny?node-id=442%3A14441.
 .item {
-  --item-background: #{$juicy-snow};
+  --item-background: #{web-ui-color("snow")};
   // The width of an item's inner contents when the list is at its maximum possible width.
   --width-item-inner: calc(
     var(--width-app) - 2 * var(--margin) - 2 * #{$juicy-border-width} - 2 * #{$item-padding-x}
@@ -34,7 +34,7 @@ $item-padding-x: 16px;
   z-index: 0;
 
   &:not(:last-child) {
-    border-bottom: $juicy-border-width solid $juicy-polar;
+    border-bottom: $juicy-border-width solid web-ui-color("polar");
   }
 
   @media (min-width: #{$width-ipad}) {
@@ -42,13 +42,13 @@ $item-padding-x: 16px;
   }
 
   @include mixins.hover {
-    --item-background: #{$juicy-polar};
+    --item-background: #{web-ui-color("polar")};
   }
 }
 
 .item-selected {
   composes: item;
-  --item-background: #{$juicy-polar};
+  --item-background: #{web-ui-color("polar")};
 }
 
 .list {

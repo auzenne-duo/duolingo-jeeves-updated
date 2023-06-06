@@ -9,12 +9,12 @@
 
   td,
   th {
-    outline: ($juicy-border-width * 0.5) solid $juicy-swan;
+    outline: ($juicy-border-width * 0.5) solid web-ui-color("swan");
     padding: 11.5px 16px;
   }
 
   th {
-    background: $juicy-polar;
+    background: web-ui-color("polar");
     text-align: initial;
   }
 

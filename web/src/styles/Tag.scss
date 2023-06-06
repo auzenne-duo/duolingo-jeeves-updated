@@ -1,9 +1,9 @@
 @use "constants" as *;
 
 .tag {
-  background: $juicy-polar;
+  background: web-ui-color("polar");
   border-radius: 12px;
-  color: $juicy-eel;
+  color: web-ui-color("eel");
   display: inline-flex;
   font-size: 13px;
   // Tags wrapped in <a> shouldn't be bold.
@@ -14,8 +14,8 @@
 
 .tag-priority {
   composes: tag;
-  background: $juicy-cardinal;
-  color: $juicy-snow;
+  background: web-ui-color("cardinal");
+  color: web-ui-color("snow");
 }
 
 .value {

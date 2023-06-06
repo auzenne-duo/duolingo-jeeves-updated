@@ -32,7 +32,7 @@
 .modal-content {
   position: absolute;
   border: $juicy-border;
-  background: $juicy-snow;
+  background: web-ui-color("snow");
   border-radius: $juicy-radius;
   outline: none;
   padding: 20px;

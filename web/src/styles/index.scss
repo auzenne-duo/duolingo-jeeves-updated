@@ -1,6 +1,8 @@
 @use "constants" as *;
+@use "colors" as colors;
 
 :root {
+  @include colors.dynamic-colors(colors.$color-palette);
   --height-topbar: 58px;
   --margin: #{2 * $juicy-length};
   // This includes horizontal padding of 2 * var(--margin).
@@ -20,13 +22,13 @@
 }
 
 a {
-  color: $juicy-macaw;
+  color: web-ui-color("macaw");
   font-weight: 700;
   text-decoration: none;
 }
 
 body {
-  color: $juicy-eel;
+  color: web-ui-color("eel");
   font: 500 17px/25px din-round, sans-serif;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;

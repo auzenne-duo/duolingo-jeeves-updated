@@ -4,7 +4,7 @@
     "date-fns": "2.16.1",
     "js-cookie": "3.0.1",
     "lodash": "4.17.21",
-    "lottie-web": "5.7.6",
+    "lottie-web": "5.12.0",
     "lucene": "2.1.1",
     "normalize.css": "8.0.1",
     "path-to-regexp": "1.8.0",
@@ -17,7 +17,7 @@
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
     "web-excess": "https://s3.amazonaws.com/duolingo-packages/npm/excess/web-excess-3.4.0.tgz",
-    "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.33.0.tgz",
+    "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.64.25.tgz",
     "whatwg-fetch": "3.6.2"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@
 .button {
   --web-ui_button-filter-hover: none;
   align-items: center;
-  background: $juicy-snow;
+  background: web-ui-color("snow");
   border: $juicy-border;
   border-radius: 50%;
   height: $width-icon-button;
@@ -13,7 +13,7 @@
   width: $width-icon-button;
 
   @include mixins.hover {
-    background: $juicy-swan;
+    background: web-ui-color("swan");
   }
 }
 

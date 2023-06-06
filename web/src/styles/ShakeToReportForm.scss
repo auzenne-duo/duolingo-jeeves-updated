@@ -24,7 +24,7 @@
 }
 
 .link-ellipsis {
-  color: $juicy-macaw;
+  color: web-ui-color("macaw");
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;

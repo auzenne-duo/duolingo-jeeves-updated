@@ -1,7 +1,7 @@
 @use "constants" as *;
 
 .item {
-  color: $juicy-eel;
+  color: web-ui-color("eel");
   display: flex;
   font-weight: 700;
   padding: 14px $juicy-margin;
@@ -14,7 +14,7 @@
 
 .item-active {
   composes: item;
-  color: $juicy-macaw;
+  color: web-ui-color("macaw");
 }
 
 .item-language {

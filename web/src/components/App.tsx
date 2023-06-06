@@ -2,6 +2,7 @@ import * as React from "react";
 import { QueryClient, QueryClientProvider, useIsFetching } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { Route, Switch } from "react-router-dom";
+import { ThemeProvider } from "web-ui";
 
 import Lightbox from "components/Lightbox";
 import MenuDrawer from "components/MenuDrawer";
@@ -88,38 +89,40 @@ const App = () => {
   }, []);
 
   return (
-    <AppStateContext.Provider value={[state, dispatch]}>
-      <QueryClientProvider client={queryClient}>
-        <Topbar />
-        <div className={styles[`wrap${state.showAside ? "-shifted" : ""}`]}>
-          <div className={styles.content}>
-            <Switch>
-              <Route path="/:lang/analysis">
-                <Analysis />
-              </Route>
-              <Route path="/:lang/spike-stats">
-                <SpikeStats />
-              </Route>
-              <Route path="/:lang/discovery">
-                <Discovery />
-              </Route>
-              <Route path="/:lang/spike">
-                <Spike />
-              </Route>
-              <Route>
-                <Dashboard />
-              </Route>
-            </Switch>
+    <ThemeProvider theme="light">
+      <AppStateContext.Provider value={[state, dispatch]}>
+        <QueryClientProvider client={queryClient}>
+          <Topbar />
+          <div className={styles[`wrap${state.showAside ? "-shifted" : ""}`]}>
+            <div className={styles.content}>
+              <Switch>
+                <Route path="/:lang/analysis">
+                  <Analysis />
+                </Route>
+                <Route path="/:lang/spike-stats">
+                  <SpikeStats />
+                </Route>
+                <Route path="/:lang/discovery">
+                  <Discovery />
+                </Route>
+                <Route path="/:lang/spike">
+                  <Spike />
+                </Route>
+                <Route>
+                  <Dashboard />
+                </Route>
+              </Switch>
+            </div>
+            <div className={styles.aside} id="aside" />
           </div>
-          <div className={styles.aside} id="aside" />
-        </div>
-        <MenuDrawer
-          isOpen={state.showMenu}
-          onRequestClose={() => dispatch({ type: "HIDE_MENU" })}
-        />
-        <Lightbox />
-      </QueryClientProvider>
-    </AppStateContext.Provider>
+          <MenuDrawer
+            isOpen={state.showMenu}
+            onRequestClose={() => dispatch({ type: "HIDE_MENU" })}
+          />
+          <Lightbox />
+        </QueryClientProvider>
+      </AppStateContext.Provider>
+    </ThemeProvider>
   );
 };
 

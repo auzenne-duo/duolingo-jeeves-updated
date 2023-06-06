@@ -58,7 +58,7 @@
 }
 
 .loading-dots {
-  color: $juicy-owl;
+  color: web-ui-color("owl");
   display: none;
   height: 100%;
   left: 0;
@@ -83,7 +83,7 @@
 }
 
 .logo-link {
-  color: $juicy-owl;
+  color: web-ui-color("owl");
   display: none;
   position: relative;
 
@@ -111,7 +111,7 @@
 }
 
 .wrap {
-  background: $juicy-snow;
+  background: web-ui-color("snow");
   border-bottom: $juicy-border;
   position: fixed;
   align-items: center;
