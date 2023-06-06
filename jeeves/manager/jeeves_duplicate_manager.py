@@ -3,14 +3,14 @@ from typing import Dict, List
 
 from duolingo_base.util import registry
 
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.model.jeeves_document import JeevesDocument
 
 
-@registry.bind(elasticsearch_dal=registry.reference(ElasticsearchDAL))
+@registry.bind(opensearch_dal=registry.reference(OpenSearchDAL))
 class JeevesDuplicateManager:
-    def __init__(self, elasticsearch_dal: ElasticsearchDAL):
-        self._esd = elasticsearch_dal
+    def __init__(self, opensearch_dal: OpenSearchDAL):
+        self._esd = opensearch_dal
 
     def dedup_document_batch(self, documents: List[JeevesDocument]) -> List[JeevesDocument]:
         documents_to_skip_dedup: List[JeevesDocument] = []
@@ -43,7 +43,7 @@ class JeevesDuplicateManager:
             query_string.replace('"', " ")
 
         # See details on query syntax here
-        # https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax
+        # https://opensearch.org/docs/latest/query-dsl/full-text/query-string/
         # Note that this searches for documents whose fields CONTAIN their respective search terms.
         query = (
             f'header_text: "{_clean_up_query_string(doc.header_text)}"'

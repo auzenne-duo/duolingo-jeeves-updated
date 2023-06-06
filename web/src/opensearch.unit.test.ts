@@ -1,4 +1,4 @@
-import { transformQuery } from "./elastic";
+import { transformQuery } from "./opensearch";
 
 describe("transformQuery", () => {
   it("handles term searches on area", () => {

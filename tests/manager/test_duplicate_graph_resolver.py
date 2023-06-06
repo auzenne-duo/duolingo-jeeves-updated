@@ -5,14 +5,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.date_util import get_n_days_ago
 
-mock_es_dal = ElasticsearchDAL()
+mock_es_dal = OpenSearchDAL()
 mock_jira_dal = JiraApiDAL()
 mock_parent_summary_generator = MagicMock()
 

@@ -31,7 +31,7 @@ _LOCK_TIMEOUT = 12
 def force_recalculate_all_spikes() -> None:
     """
     Performs spike detection on all documents currently available, ignoring any
-    existing spike data, and indexes the result into Elasticsearch.
+    existing spike data, and indexes the result into OpenSearch.
 
     To force this method to run on the next invocation of the spike worker,
     simply write a '1' to the file specified in _FORCE_SPIKE_REFRESH_FILE in the

@@ -11,8 +11,8 @@ from typing import Dict, List, Optional, Tuple
 import rollbar
 from duolingo_base.util import registry
 
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.jira_dal import JiraApiDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.parent_summary_manager import ParentSummaryManager
@@ -29,14 +29,14 @@ from jeeves.util.parent_jira_issue_util import (
 
 
 @registry.bind(
-    es_dal=registry.reference(ElasticsearchDAL),
+    es_dal=registry.reference(OpenSearchDAL),
     jira_dal=registry.reference(JiraApiDAL),
     parent_summary_manager=registry.reference(ParentSummaryManager),
 )
 class DuplicateGraphResolver:
     def __init__(
         self,
-        es_dal: ElasticsearchDAL,
+        es_dal: OpenSearchDAL,
         jira_dal: JiraApiDAL,
         parent_summary_manager: ParentSummaryManager,
     ):
@@ -126,7 +126,7 @@ class DuplicateGraphResolver:
 
         We perform the above operation by constructing a graph of the existing
         duplicate relationships, according to what we have stored in
-        Elasticsearch to minimize how many potentially expensive network calls
+        OpenSearch to minimize how many potentially expensive network calls
         we need to make. We then determine what edges need to be added to this
         graph to make it fully connected. Finally, we call mark_duplicate_remote
         for every edge we need to add. If any edge addition fails, we continue

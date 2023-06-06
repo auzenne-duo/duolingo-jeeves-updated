@@ -13,7 +13,7 @@ mock_es = MagicMock()
 mock_search = MagicMock()
 
 _config = Config.load_config()
-spikename = f"jeeves_spikes_v_{_config.get_nested(['elasticsearch', 'data_version_identifier'])}"
+spikename = f"jeeves_spikes_v_{_config.get_nested(['opensearch', 'data_version_identifier'])}"
 
 mock_doc_1 = MagicMock(word="doubling", date="2022-08-28", confirmed=False)
 mock_doc_2 = MagicMock(word="double", date="2022-08-29", confirmed=True)

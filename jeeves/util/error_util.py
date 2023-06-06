@@ -44,10 +44,10 @@ def print_request_exception(e: RequestException, rollbar_level: Optional[str] = 
 
 
 class SearchUnsuccessfulException(Exception):
-    """Exception raised for unsuccessful Elasticsearch searches
+    """Exception raised for unsuccessful OpenSearch searches
 
     Attributes:
-        response -- the response returned from the call the execute().
+        response -- the response returned from the execute() call.
         search_description -- a short description of what we were trying to search for.
     """
 

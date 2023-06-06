@@ -30,8 +30,7 @@ To run the microservice locally:
 
 - [Install Docker](https://docs.docker.com/docker-for-mac/install/) and increase the memory limit to 8GB if you haven't already.
 - Run `./run_local.sh` to run most of the Jeeves stack locally with `docker compose`. (If you're not running this from Pittsburgh HQ, be sure to have the VPN on.)
-- If you hit an error due to another process listening on port 5000, [turn off AirPlay Receiver under Sharing in System Preferences](https://developer.apple.com/forums/thread/682332?answerId=678289022#678289022)
-- Open [`http://localhost:5000/`](http://localhost:5000/).
+- Open [`http://localhost:8080/`](http://localhost:8080/).
 
 The following are required when you update any requirements files.
 
@@ -42,7 +41,7 @@ The following are required when you update any requirements files.
 
 If you run into `ImportError: cannot import name 'BAR_TYPES' from 'pip._internal.cli.progress_bars'`, run the following to install a compatible version of pip: `pip install pip==22.0.4`
 
-The data versioning number in `jeeves/config/config.py` should be updated whenever data should be backfilled. Changing this number to a previously unused value will create new data indices in Elasticsearch and the data update scripts will automatically fill them in. As a convention, we have been incrementing the "major" data version number (i.e. before the decimal point) for adding entirely new data sources and for major structural changes, and incrementing the "minor" data version number (i.e. after the decimal point) for smaller changes to existing structures.
+The data versioning number in `jeeves/config/config.py` should be updated whenever data should be backfilled. Changing this number to a previously unused value will create new data indices in OpenSearch and the data update scripts will automatically fill them in. As a convention, we have been incrementing the "major" data version number (i.e. before the decimal point) for adding entirely new data sources and for major structural changes, and incrementing the "minor" data version number (i.e. after the decimal point) for smaller changes to existing structures.
 
 ### Frontend
 
@@ -80,7 +79,7 @@ Galaxy module (`/galaxy`) | Python script (`/jeeves/scripts`) | Description | Re
 ------------ | ------------- | ------------- | ------------- | -------------
 s3-worker.json | update_jeeves_data.py | Calls `ticket_crawler.crawl_tickets()`, which also calls methods in each `jeeves_manager` implementation in order to make API calls to pull individual documents. | Individual sources (AppFigures, Jira, Zendesk) | S3 bucket: `config.s3_document_cache`, SQS queue: `config.sqs_download_verify_pipeline`
 sqs-worker-1.json | sqs_verify_worker.py | Calls `process_document()` from the relevant `jeeves_manager` implementation. This method returns `None` if the corresponding `jeeves_document.check_should_index_document()` method returns `False`. | SQS queue: `config.sqs_download_verify_pipeline` | SQS queue: `config.sqs_verify_index_pipeline`
-sqs-worker-2.json | sqs_index_worker.py | Calls `check_should_index_document()` from the relevant `jeeves_document` implementation to determine if a document should be indexed. For Zendesk email documents, checks for duplicates before indexing. | SQS queue: `config.sqs_verify_index_pipeline` | Document gets indexed in ElasticSearch
+sqs-worker-2.json | sqs_index_worker.py | Calls `check_should_index_document()` from the relevant `jeeves_document` implementation to determine if a document should be indexed. For Zendesk email documents, checks for duplicates before indexing. | SQS queue: `config.sqs_verify_index_pipeline` | Document gets indexed in OpenSearch
 
 ## Force Refresh
 

@@ -9,7 +9,7 @@ from dateutil.parser import parse
 
 _DATE_FORMAT = "%Y-%m-%d"
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"  # ISO Format https://www.w3.org/TR/NOTE-datetime
-_ELASTICSEARCH_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
+_OPENSEARCH_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 
 
 def get_eastern_today():
@@ -95,7 +95,7 @@ def time_series_str_to_datetime(date_str) -> Optional[datetime.datetime]:
             # Remove colon since python <3.6 can't parse it
             if date_str[-3] == ":":
                 date_str = date_str[:-3] + date_str[-2:]
-            return datetime.datetime.strptime(date_str, _ELASTICSEARCH_FORMAT)
+            return datetime.datetime.strptime(date_str, _OPENSEARCH_FORMAT)
         return datetime.datetime.strptime(date_str, _DATE_FORMAT)
 
 

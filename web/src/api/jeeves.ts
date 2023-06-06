@@ -2,7 +2,7 @@ import { format, formatISO, parseISO } from "date-fns";
 
 import { convertTimeZone } from "../util";
 import { get, patch, post } from "api/client";
-import { transformQuery } from "elastic";
+import { transformQuery } from "opensearch";
 
 /** Converts a date and time to a format that the API supports. */
 const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");

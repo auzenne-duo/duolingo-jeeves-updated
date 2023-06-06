@@ -1,3 +1,5 @@
+# TODO (david.sawicki): Rename module to "jeeves-opensearch" once we upgrade to a higher version of OpenSearch
+# TODO (david.sawicki): upgrade "elasticsearch_version" to "OpenSearch_1.3.10" and then "OpenSearch_2.7.0"
 module "jeeves-elasticsearch" {
   source                = "github.com/duolingo/infra-galaxy//modules/elasticsearch_domain"
   elasticsearch_version = "7.7"

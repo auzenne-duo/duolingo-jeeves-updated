@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import type { Location } from "history";
 
-import { escapeTerm } from "elastic";
+import { escapeTerm } from "opensearch";
 
 export const convertTimeZone = (date: Date, tz: string) =>
   new Date(

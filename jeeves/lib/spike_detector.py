@@ -14,8 +14,8 @@ import rollbar
 
 from jeeves import registry as app_registry
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
 from jeeves.dal.metrics_dal import MetricsDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.dal.tutors_dal import TutorsDAL
 from jeeves.model.jeeves_document import JeevesDocument
@@ -76,7 +76,7 @@ def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
         sort_id = None
         count = 0
         while True:
-            paginated_info = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
+            paginated_info = app_registry(OpenSearchDAL).get_recent_paginated_tickets(
                 lang,
                 "",
                 sort_id=sort_id,
@@ -152,9 +152,7 @@ def run_spike_detector_for_batch(
         )
 
     new_ticket_dates = {ticket.date_time.date() for ticket in new_ticket_batch}
-    new_ticket_ids = [
-        ticket.generate_elasticsearch_internal_id(ticket) for ticket in new_ticket_batch
-    ]
+    new_ticket_ids = [ticket.generate_opensearch_internal_id(ticket) for ticket in new_ticket_batch]
 
     batch_spike_list: List[SpikeWord] = []
     batch_prompt_list: List[str] = []
@@ -220,14 +218,14 @@ def _get_word_to_date_to_count(
         tickets to a mapping from dates to how many times that word appeared on
         that date.
     """
-    # Elasticsearch can take care of tokenization on top of everything else
-    terms = app_registry(ElasticsearchDAL).get_terms_from_docs(new_ticket_ids, lang)
+    # OpenSearch can take care of tokenization on top of everything else
+    terms = app_registry(OpenSearchDAL).get_terms_from_docs(new_ticket_ids, lang)
 
     start_time = timeit.default_timer()
     word_date_count = {}
     for t in terms:
         word_date_count[t] = {}
-        buckets = app_registry(ElasticsearchDAL).aggregate_time_series(
+        buckets = app_registry(OpenSearchDAL).aggregate_time_series(
             lang, spike_category, t, get_n_days_ago(min_target_date, HISTORY_WINDOW_SIZE)
         )
         if "ERROR" in buckets:
@@ -268,7 +266,7 @@ def _find_spiked_words(
     """
     target_date_str = date_to_str(target_dt)
 
-    min_max_datetimes = app_registry(ElasticsearchDAL).get_min_and_max_document_dates(
+    min_max_datetimes = app_registry(OpenSearchDAL).get_min_and_max_document_dates(
         lang, spike_group
     )
     window_start_date = max(
@@ -277,7 +275,7 @@ def _find_spiked_words(
     )
     data_window_size = (target_dt - window_start_date).days
 
-    num_tickets_by_day = app_registry(ElasticsearchDAL).get_num_tickets_by_day(
+    num_tickets_by_day = app_registry(OpenSearchDAL).get_num_tickets_by_day(
         target_dt, spike_group, lang
     )
     average_num_tickets = np.mean(list(num_tickets_by_day.values()))
@@ -312,7 +310,7 @@ def _find_spiked_words(
     for score, word in score_word_pairs:
         if not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD:
             target_datetime = datetime(target_dt.year, target_dt.month, target_dt.day)
-            search_result = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
+            search_result = app_registry(OpenSearchDAL).get_recent_paginated_tickets(
                 lang,
                 word,
                 target_datetime,

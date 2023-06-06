@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 
 const API_URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5000/api";
+  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:8080/api";
 
 const BEARER = `Bearer ${process.env.DUOLINGO_JWT ?? Cookies.get("jwt_token")}`;
 

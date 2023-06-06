@@ -48,15 +48,15 @@ _SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
 _GPT_EMBEDDING_VECTOR_SIZE = 1536
 
 
-class ElasticsearchDAL:
+class OpenSearchDAL:
     def __init__(self) -> None:
-        host = _config.get_nested(["elasticsearch", "host"])
-        port = int(_config.get_nested(["elasticsearch", "port"]))
+        host = _config.get_nested(["opensearch", "host"])
+        port = int(_config.get_nested(["opensearch", "port"]))
 
         self._es = OpenSearch([host], port=port)
 
         self._indexname = (
-            f"jeeves_tickets_v_{_config.get_nested(['elasticsearch', 'data_version_identifier'])}"
+            f"jeeves_tickets_v_{_config.get_nested(['opensearch', 'data_version_identifier'])}"
         )
         self.language = Language.ENGLISH
         self.annotator = TextNLPBackendClient.load(
@@ -66,14 +66,14 @@ class ElasticsearchDAL:
 
     def initialize_index(self) -> None:
         """
-        Initialize Elasticsearch index
+        Initialize OpenSearch index
         Should only be called once, during server startup
         """
         if not self._es.indices.exists(index=self._indexname):
 
             print(f"Creating index {self._indexname}...", flush=True)
 
-            # We need to explicitly set these types because Elasticsearch will
+            # We need to explicitly set these types because OpenSearch will
             # otherwise misinterpret them. In the future we may want to set more
             # types explicitly like this.
             m = Mapping()
@@ -124,12 +124,12 @@ class ElasticsearchDAL:
 
     def _execute_search_for_documents(self, s: Search) -> List[JeevesDocument]:
         """
-        Given an Elasticsearch_DSL Search object, performs the necessary logic
+        Given an OpenSearch_DSL Search object, performs the necessary logic
         to execute that search and convert the results into a list of document
         objects.
 
         Parameters:
-            s: An Elasticsearch_DSL Search object to execute.
+            s: An OpenSearch_DSL Search object to execute.
 
         Returns:
             The results of the input search as a list of JeevesDocument objects.
@@ -140,12 +140,12 @@ class ElasticsearchDAL:
 
     def _parse_response_to_docs(self, response: Response) -> List[JeevesDocument]:
         """
-        Given an Elasticsearch_DSL Response object, performs the necessary logic
+        Given an OpenSearch_DSL Response object, performs the necessary logic
         to convert the results into a list of document
         objects.
 
         Parameters:
-            response (dict): An Elasticsearch_DSL Response object
+            response (dict): An OpenSearch_DSL Response object
 
         Returns:
             The response hits as a list of JeevesDocument objects.
@@ -170,7 +170,7 @@ class ElasticsearchDAL:
 
     def execute_arbitrary_query(self, jsn: JSON) -> List[JeevesDocument]:
         """
-        Given JSON representing an arbitrary Elasticsearch query, execute that
+        Given JSON representing an arbitrary OpenSearch query, execute that
         query and return the results.
 
         Parameters:
@@ -186,7 +186,7 @@ class ElasticsearchDAL:
     def _handle_es_request_errors(self, e: RequestError) -> JSON:
         """
         Interprets and gives response values for RequestErrors returned by
-        Elasticsearch. Currently this is only expected to happen for malformed
+        OpenSearch. Currently this is only expected to happen for malformed
         query_string inputs, but we can extend this function in the future as
         necessary.
 
@@ -216,7 +216,7 @@ class ElasticsearchDAL:
                 }
 
         return {
-            "ERROR": "Elasticsearch encountered an unknown error. Please report this behavior to the repo owner."
+            "ERROR": "OpenSearch encountered an unknown error. Please report this behavior to the repo owner."
         }
 
     def get_recent_paginated_tickets(
@@ -236,14 +236,14 @@ class ElasticsearchDAL:
         filter_jiras_from_jeeves: bool = False,
     ) -> Dict[str, Union[int, List[JeevesDocument]]]:
         """
-        Returns stored user tickets from Elasticsearch in a paginated manner.
+        Returns stored user tickets from OpenSearch in a paginated manner.
         To obtain multiple pages of tickets, call this function multiple times.
         If an empty string is passed to the `word` parameter, replace the normal
         `match against this word` query with a `match all` query.
 
         Parameters:
             lang (str): Language to search for tickets in.
-            word (str): Query to search against in Elasticsearch. An empty string
+            word (str): Query to search against in OpenSearch. An empty string
                         will match to all documents. Uses regular expressions.
             start_time (datetime): The beginning of a date range to search for tickets in.
                                    Results will not have timestamps before this value.
@@ -308,7 +308,7 @@ class ElasticsearchDAL:
 
             if beta_filter_category:
                 s = s.filter("term", shake_to_report_category=beta_filter_category)
-            s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
+            s = SpikeCategory.get_opensearch_transformer_for_category(spike_category)(s)
 
             if filter_jiras_from_jeeves:
                 s = s.query("bool", must_not=[Q({"match": {"labels": JIRA_VIA_JEEVES_LABEL}})])
@@ -391,9 +391,9 @@ class ElasticsearchDAL:
 
         if beta_filter_category:
             s = s.filter("term", shake_to_report_category=beta_filter_category.value)
-        s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
+        s = SpikeCategory.get_opensearch_transformer_for_category(spike_category)(s)
 
-        # Elasticsearch just so happens to have functionality for making a date
+        # OpenSearch just so happens to have functionality for making a date
         # histogram of data, that is, a list of counts of instances of something
         # bucketed by time intervals.
         s.aggs.bucket(
@@ -530,7 +530,7 @@ class ElasticsearchDAL:
 
     def bulk_index_tickets(self, tickets: List[JeevesDocument]) -> None:
         """
-        Store multiple tickets into Elasticsearch.
+        Store multiple tickets into OpenSearch.
 
         Parameters:
             tickets: Object representation of tickets to store.
@@ -542,7 +542,7 @@ class ElasticsearchDAL:
             {
                 "_index": self._indexname,
                 "_source": ticket.serialize_to_json(ticket),
-                "_id": ticket.generate_elasticsearch_internal_id(ticket),
+                "_id": ticket.generate_opensearch_internal_id(ticket),
             }
             for ticket in tickets
         ]
@@ -568,7 +568,7 @@ class ElasticsearchDAL:
 
         Returns:
             Most recent UNIX timestamp across all searched tickets, or None if
-            there were no tickets in Elasticsearch.
+            there were no tickets in OpenSearch.
         """
         s = Search(using=self._es, index=self._indexname).query("match_all")
         if lang:
@@ -640,9 +640,9 @@ class ElasticsearchDAL:
 
         s = Search(using=self._es, index=self._indexname).filter("term", language=lang)
         s = s.filter("range", date_time={"gte": start_date_str, "lte": end_date_str})
-        s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
+        s = SpikeCategory.get_opensearch_transformer_for_category(spike_category)(s)
 
-        # Elasticsearch just so happens to have functionality for making a date
+        # OpenSearch just so happens to have functionality for making a date
         # histogram of data, that is, a list of counts of instances of something
         # bucketed by time intervals.
         s.aggs.bucket(
@@ -772,7 +772,7 @@ class ElasticsearchDAL:
         """
         Helper function for get_terms_from_docs, below.
         Given a list of document IDs, determine all terms used in the
-        corresponding documents, using Elasticsearch's mtermvectors functionality
+        corresponding documents, using OpenSearch's mtermvectors functionality
 
         Parameters:
             doc_ids_slice (List[str]): A list of document IDs for which we want to collect terms.
@@ -818,7 +818,7 @@ class ElasticsearchDAL:
 
         Parameters:
             doc_ids (List[str]): Document IDs to get terms for.
-            lang (str): Specify which Elasticsearch analyzer should be used
+            lang (str): Specify which OpenSearch analyzer should be used
                         for term tokenization.
 
         Returns:
@@ -854,7 +854,7 @@ class ElasticsearchDAL:
         s = Search(using=self._es, index=self._indexname)
         if lang:
             s = s.filter("term", language=lang)
-        s = SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)(s)
+        s = SpikeCategory.get_opensearch_transformer_for_category(spike_category)(s)
 
         s.aggs.metric("min_date", "min", field="date_time", format="yyyy-MM-dd")
         s.aggs.metric("max_date", "max", field="date_time", format="yyyy-MM-dd")
@@ -1010,7 +1010,7 @@ class ElasticsearchDAL:
 
         # Now that we have the query set up, we must address the possibly
         # painful operation of filtering the results down to disjoint sets.
-        # I'm not aware of a way to do this purely in Elasticsearch but if
+        # I'm not aware of a way to do this purely in OpenSearch but if
         # anyone reading this has any ideas please let me know.
         results_page_start = 0
         results_page_size = 10
@@ -1052,11 +1052,11 @@ class ElasticsearchDAL:
                        ensure the presence of.
             force_download: Optional parameter, defaults to False. When True,
                             forces a re-download of the requested issue, even
-                            if we already have a copy in Elasticsearch.
+                            if we already have a copy in OpenSearch.
 
         Returns:
             A JeevesDocument object representing the requested document as it
-            exists in Elasticsearch, or None if we can't find the document.
+            exists in OpenSearch, or None if we can't find the document.
         """
 
         # First, determine if we already have the requested document.
@@ -1104,7 +1104,7 @@ class ElasticsearchDAL:
         Parameters:
             issue_key (str): The issue key of the JIRA issue we wish to find
                              duplicates of. If this issue is not already in
-                             Elasticsearch, we attempt to download it.
+                             OpenSearch, we attempt to download it.
             num_results (int): Optional, upper bound of how many results we
                                should return
             should_filter_project (bool): Optional. If True, results will be

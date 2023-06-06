@@ -11,7 +11,7 @@ from flask import Blueprint, abort, g, json, make_response, request, send_from_d
 
 from jeeves import registry as app_registry
 from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.sns import PublishManager
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
@@ -82,7 +82,7 @@ def manage_tickets(lang):
         prev_sort_id = request.args.get("prev-sort-id", None)
         prev_sort_id = int(prev_sort_id) if prev_sort_id else None
 
-        paginated_tickets = app_registry(ElasticsearchDAL).get_recent_paginated_tickets(
+        paginated_tickets = app_registry(OpenSearchDAL).get_recent_paginated_tickets(
             lang,
             word,
             start_time,
@@ -134,7 +134,7 @@ def get_time_series_data(lang):
             abort(make_response("Invalid value provided for beta-filter", 400))
         beta_filter = ShakeToReportCategory[beta_filter]
 
-    response_buckets = app_registry(ElasticsearchDAL).aggregate_time_series(
+    response_buckets = app_registry(OpenSearchDAL).aggregate_time_series(
         lang, SpikeCategory[spike_category], word, None, use_lemmas, beta_filter
     )
 
@@ -161,7 +161,7 @@ def get_spike_data(lang):
 
     # I could only get around this call with an ugly conditional statement.
     # At the very least, it should be pretty fast and the user won't notice.
-    min_max_possible_dates = app_registry(ElasticsearchDAL).get_min_and_max_document_dates()
+    min_max_possible_dates = app_registry(OpenSearchDAL).get_min_and_max_document_dates()
 
     start_date = request.args.get("start_date", min_max_possible_dates["min"])
     end_date = request.args.get("end_date", min_max_possible_dates["max"])
@@ -362,7 +362,7 @@ def perform_duplicate_jira_detection():
     Parameters:
         issue_key (str): The issue key of the JIRA issue we wish to find
                          duplicates of. If this issue is not already in
-                         Elasticsearch, we attempt to download it.
+                         OpenSearch, we attempt to download it.
 
     Returns:
         A list of suspected duplicate issues.
@@ -381,7 +381,7 @@ def perform_duplicate_jira_detection():
     return json.jsonify(
         [
             issue.serialize_to_json(issue)
-            for issue in app_registry(ElasticsearchDAL).find_potential_jira_duplicates(
+            for issue in app_registry(OpenSearchDAL).find_potential_jira_duplicates(
                 issue_key,
                 num_results=num_results,
                 should_filter_project=should_filter_project,
@@ -401,7 +401,7 @@ def execute_arbitrary_query():
     return json.jsonify(
         [
             doc.serialize_to_json(doc)
-            for doc in app_registry(ElasticsearchDAL).execute_arbitrary_query(json_data)
+            for doc in app_registry(OpenSearchDAL).execute_arbitrary_query(json_data)
         ]
     )
 
@@ -680,14 +680,14 @@ def catch_all(path):
 
 
 def _get_status(lang):
-    most_recent_elastic_timestamp = app_registry(ElasticsearchDAL).get_most_recent_timestamp(lang)
+    most_recent_opensearch_timestamp = app_registry(OpenSearchDAL).get_most_recent_timestamp(lang)
 
     return {
         "deployed_timestamp": _DEPLOYED_TIMESTAMP,
         "initialized_timestamp": _init_timestamp,
         "latest_ticket_timestamp": datetime_to_str(
             datetime.fromtimestamp(
-                most_recent_elastic_timestamp if most_recent_elastic_timestamp else 0
+                most_recent_opensearch_timestamp if most_recent_opensearch_timestamp else 0
             )
         ),
     }

@@ -303,7 +303,7 @@ class ZendeskDocument(JeevesDocument):
         return True
 
     @classmethod
-    def generate_elasticsearch_internal_id(cls, document: JeevesDocument) -> str:
+    def generate_opensearch_internal_id(cls, document: JeevesDocument) -> str:
         """
         Please see parent class for documentation
         """

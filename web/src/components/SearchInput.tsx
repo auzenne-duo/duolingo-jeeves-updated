@@ -4,7 +4,7 @@ import { SearchSuggestions } from "web-ui";
 import PlatformIcon from "components/PlatformIcon";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import AppStateContext from "contexts/AppStateContext";
-import { escapeTerm, unescapeSpaces } from "elastic";
+import { escapeTerm, unescapeSpaces } from "opensearch";
 import styles from "styles/SearchInput.scss";
 
 const FIELDS = ["area", "feature", "platform", "team"] as const;

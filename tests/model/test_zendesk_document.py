@@ -4,7 +4,7 @@ from jeeves.model.zendesk_document import ZendeskDocument
 
 
 class Test(unittest.TestCase):
-    def test_generate_elasticsearch_internal_id(self):
+    def test_generate_opensearch_internal_id(self):
 
         real_json = {
             "data_source": "Zendesk",
@@ -46,24 +46,24 @@ class Test(unittest.TestCase):
             "metadata": {},
         }
         doc_base = ZendeskDocument.deserialize_from_internal_json(real_json)
-        hash_base = ZendeskDocument.generate_elasticsearch_internal_id(doc_base)
+        hash_base = ZendeskDocument.generate_opensearch_internal_id(doc_base)
 
         # Change jeeves_uid
         uid_json = {k: ("Zendesk_00000" if k == "jeeves_uid" else real_json[k]) for k in real_json}
         doc_uid_diff = ZendeskDocument.deserialize_from_internal_json(uid_json)
-        hash_uid_diff = ZendeskDocument.generate_elasticsearch_internal_id(doc_uid_diff)
+        hash_uid_diff = ZendeskDocument.generate_opensearch_internal_id(doc_uid_diff)
 
         # Change requester_id
         user_json = {k: ("some_user" if k == "requester_id" else real_json[k]) for k in real_json}
         doc_user_diff = ZendeskDocument.deserialize_from_internal_json(user_json)
-        hash_user_diff = ZendeskDocument.generate_elasticsearch_internal_id(doc_user_diff)
+        hash_user_diff = ZendeskDocument.generate_opensearch_internal_id(doc_user_diff)
 
         # Change body_text
         body_json = {
             k: ("The quick brown fox" if k == "body_text" else real_json[k]) for k in real_json
         }
         doc_body_diff = ZendeskDocument.deserialize_from_internal_json(body_json)
-        hash_body_diff = ZendeskDocument.generate_elasticsearch_internal_id(doc_body_diff)
+        hash_body_diff = ZendeskDocument.generate_opensearch_internal_id(doc_body_diff)
 
         # All of the above hashes should be different, except the base hash
         # should be identical to the hash that differs by jeeves_uid:

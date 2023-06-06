@@ -36,7 +36,7 @@ declare namespace JSONAPI {
     /** The time that the current Jeeves instance was created. */
     deployed_timestamp: string;
     initialized_timestamp: string;
-    /** The time of the most recent ticket that Elasticsearch has stored. */
+    /** The time of the most recent ticket that OpenSearch has stored. */
     latest_ticket_timestamp: string;
   }
 

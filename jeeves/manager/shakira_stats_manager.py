@@ -9,7 +9,7 @@ from urllib import parse
 
 from duolingo_base.util import registry
 
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shakira_stat import ShakiraStat
 from jeeves.util.date_util import datetime_to_str, get_eastern_today, get_n_days_ago
@@ -19,9 +19,9 @@ _RECENT_RESOLVED_BUGS_WINDOW_DAYS = 60
 _JIRA_RESOLVED_RESOLUTIONS = ["Done", "Fixed", "Merged"]
 
 
-@registry.bind(es_dal=registry.reference(ElasticsearchDAL))
+@registry.bind(es_dal=registry.reference(OpenSearchDAL))
 class ShakiraStatsManager:
-    def __init__(self, es_dal: ElasticsearchDAL):
+    def __init__(self, es_dal: OpenSearchDAL):
         self._es_dal = es_dal
 
     def _get_recent_stats_window(self) -> Tuple[datetime, datetime]:

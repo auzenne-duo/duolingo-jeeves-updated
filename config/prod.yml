@@ -4,7 +4,7 @@ memcached:
   host: duolingo-jeeves-prod.idjnxn.cfg.use1.cache.amazonaws.com
   port: 11211
 
-elasticsearch:
+opensearch:
   host: https://vpc-duolingo-jeeves-es-prod-eg2rc47wen2dsgmzunu4whvfju.us-east-1.es.amazonaws.com
   port: 443
 

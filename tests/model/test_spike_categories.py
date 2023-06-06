@@ -95,9 +95,9 @@ def test_get_predicate_for_every_category():
         SpikeCategory.get_predicate_for_category(spike_category)
 
 
-def test_get_elasticsearch_transformer_for_every_category():
+def test_get_opensearch_transformer_for_every_category():
     for spike_category in SpikeCategory:
-        SpikeCategory.get_elasticsearch_transformer_for_category(spike_category)
+        SpikeCategory.get_opensearch_transformer_for_category(spike_category)
 
 
 def test_get_jeeves_query_params_for_every_active_category():

@@ -31,12 +31,12 @@ const buildParenthesizedNode = (
 };
 
 /**
- * Escapes a string for usage in an Elasticsearch query.
+ * Escapes a string for usage in an OpenSearch query.
  *
  * @param term The search term to escape.
  * @param quoted If true, spaces won't be escaped.
  *
- * @see {@link https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_reserved_characters}
+ * @see {@link https://lucene.apache.org/core/2_9_4/queryparsersyntax.html#Escaping%20Special%20Characters}
  */
 export const escapeTerm = (term: string, quoted = false) => {
   term = term
@@ -86,14 +86,14 @@ const removeNode = (node: NodeExpression, branch: "left" | "right") => {
 
 /**
  * Transforms a user-supplied query to a format that can be processed
- * by Elasticsearch. Specifically, this replaces area and team fields
+ * by OpenSearch. Specifically, this replaces area and team fields
  * with their feature equivalents as we don't currently store areas
  * and teams directly.
  *
- * @param query A user-supplied Elasticsearch query string.
+ * @param query A user-supplied OpenSearch query string.
  * @param areas An array of organization areas, teams, and their features.
  *
- * @see {@link https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax}
+ * @see {@link https://opensearch.org/docs/latest/query-dsl/full-text/query-string/}
  */
 export const transformQuery = (query: string, areas: JSONAPI.Area[]) => {
   const ast = lucene.parse(query);

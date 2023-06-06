@@ -10,7 +10,7 @@ from duolingo_base.dal import s3, sqs
 
 from jeeves import registry as app_registry
 from jeeves.config.config import CRAWL_WINDOW_SIZE
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.jeeves_document import JeevesDocument
@@ -86,13 +86,13 @@ def diff_counts(
 
 def perform_checkpoint(ticket_list: List[JeevesDocument]) -> None:
     """
-    Indexes a batch of tickets into Elasticsearch to checkpoint them,
+    Indexes a batch of tickets into OpenSearch to checkpoint them,
     then performs spike detection based on that batch of tickets.
 
     Parameters:
         ticket_list: List of documents to index
     """
-    app_registry(ElasticsearchDAL).bulk_index_tickets(ticket_list)
+    app_registry(OpenSearchDAL).bulk_index_tickets(ticket_list)
 
 
 def _send_s3_doc_to_sqs(
@@ -114,7 +114,7 @@ def _send_s3_doc_to_sqs(
         bucket_name: The name of the S3 bucket we should read documents from.
         sqs_client: Duolingo base library SQS DAL object. Downstream consumers
                     of the represented queue are responsible for verifying
-                    documents and indexing them into Elasticsearch.
+                    documents and indexing them into OpenSearch.
         manager: A subclass of JeevesManager responsible for managing a given
                  subclass of JeevesDocuments. In this method, provides a string
                  to attach as an attribute to the enqueued document.
@@ -140,7 +140,7 @@ def _crawl_documents_for_data_source(
 ) -> None:
     """
     Downloads documents from a particular data source and stores them to S3.
-    Then, determines what documents need to be indexed into Elasticsearch, and
+    Then, determines what documents need to be indexed into OpenSearch, and
     inserts them into an SQS queue.
 
     Parameters:
@@ -149,20 +149,23 @@ def _crawl_documents_for_data_source(
         bucket_name: The name of the S3 bucket we should store documents to.
         sqs_client: Duolingo base library SQS DAL object. Downstream consumers
                     of the represented queue are responsible for verifying
-                    documents and indexing them into Elasticsearch.
+                    documents and indexing them into OpenSearch.
         manager: A subclass of JeevesManager responsible for managing a given
                  subclass of JeevesDocuments.
     """
 
     data_source_identifier = manager.get_managed_document_type().get_data_source_identifier()
     print(f"Finding latest indexed timestamp for data source {data_source_identifier}", flush=True)
-    latest_timestamp = app_registry(ElasticsearchDAL).get_most_recent_timestamp(
+    latest_timestamp = app_registry(OpenSearchDAL).get_most_recent_timestamp(
         data_source=data_source_identifier
     )
     any_documents_indexed = bool(latest_timestamp)
 
     if not any_documents_indexed:
-        message = f"Didn't find any documents indexed for data source {data_source_identifier}. Will index documents starting from {date_to_str(_THRESHOLD_DATE)}"
+        message = (
+            f"Didn't find any documents indexed for data source {data_source_identifier}. "
+            + f"Will index documents starting from {date_to_str(_THRESHOLD_DATE)}"
+        )
         print(message, flush=True)
         rollbar.report_message(message, "warning")
         latest_timestamp = _THRESHOLD_DATE.timestamp()
@@ -181,9 +184,9 @@ def _crawl_documents_for_data_source(
     )
 
     # After updating we expect the date for which S3 has its most recent data
-    # will be at least as recent as the date for which Elasticsearch has its
+    # will be at least as recent as the date for which OpenSearch has its
     # most recent data. We then determine all dates between and including these
-    # two dates, and export appropriate data from S3 to Elasticsearch.
+    # two dates, and export appropriate data from S3 to OpenSearch.
 
     # Right now, "appropriate data" means "all data", which is acceptable for
     # MVP but there is almost certainly a more intelligent way to select which

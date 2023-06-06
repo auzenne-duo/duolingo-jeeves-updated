@@ -220,12 +220,12 @@ recent_duplicate_exists_test_cases = [
 ]
 
 
-elasticsearch_mock = MagicMock()
-elasticsearch_mock.get_recent_paginated_tickets = MagicMock(
+opensearch_mock = MagicMock()
+opensearch_mock.get_recent_paginated_tickets = MagicMock(
     return_value={"data": [_zendesk_email_document()]}
 )
-elasticsearch_mock.check_if_duplicate_tweet = MagicMock(return_value=True)
-duplicate_manager = JeevesDuplicateManager(elasticsearch_mock)
+opensearch_mock.check_if_duplicate_tweet = MagicMock(return_value=True)
+duplicate_manager = JeevesDuplicateManager(opensearch_mock)
 
 
 @pytest.mark.parametrize("input_documents,expected", dedup_document_batch_test_cases)

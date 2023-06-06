@@ -20,18 +20,18 @@ _config = Config.load_config()
 
 class SpikeIndexDAL:
     def __init__(self) -> None:
-        host = _config.get_nested(["elasticsearch", "host"])
-        port = int(_config.get_nested(["elasticsearch", "port"]))
+        host = _config.get_nested(["opensearch", "host"])
+        port = int(_config.get_nested(["opensearch", "port"]))
 
         self._es = OpenSearch([host], port=port)
 
         self._spikename = (
-            f"jeeves_spikes_v_{_config.get_nested(['elasticsearch', 'data_version_identifier'])}"
+            f"jeeves_spikes_v_{_config.get_nested(['opensearch', 'data_version_identifier'])}"
         )
 
     def initialize_index(self) -> None:
         """
-        Initialize Elasticsearch index
+        Initialize OpenSearch index
         Should only be called once, during server startup
         """
         if not self._es.indices.exists(index=self._spikename):
@@ -46,7 +46,7 @@ class SpikeIndexDAL:
 
     def bulk_index_spikes(self, spikes: List[SpikeWord]) -> None:
         """
-        Stores multiple spikes into Elasticsearch
+        Stores multiple spikes into OpenSearch
 
         Parameters:
             spikes: List of spikes to store. Each spike is a dictionary that

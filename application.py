@@ -11,7 +11,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 from jeeves import apply_registry_to_app, close_registry, registry as app_registry
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
@@ -82,7 +82,7 @@ def init():
     else:
         LOG.info("development")
 
-    app_registry(ElasticsearchDAL).initialize_index()
+    app_registry(OpenSearchDAL).initialize_index()
     app_registry(SpikeIndexDAL).initialize_index()
 
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # Start the flask server, this runs until ctrl-c is pressed
     application.run(
         config.get_nested(["flask", "host"], default="127.0.0.1"),
-        config.get_nested(["flask", "port"], default=5000),
+        config.get_nested(["flask", "port"], default=8080),
     )
 
     if started:

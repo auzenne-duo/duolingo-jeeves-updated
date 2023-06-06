@@ -21,7 +21,7 @@ _BATCH_GROUP_SIZE = 100
 This script is responsible for consuming documents from the verify/index pipeline break,
 aggregating them into groups,
 checking each document to see if a recent, similar document already exists,
-and indexing the new documents into Elasticsearch.
+and indexing the new documents into OpenSearch.
 """
 
 

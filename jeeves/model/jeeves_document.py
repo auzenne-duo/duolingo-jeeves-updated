@@ -57,7 +57,7 @@ class JeevesDocument(ABC):
     # It is VERY IMPORTANT, when you add attributes to a subclass of this class,
     # that the attribute names are distinct from each other attribute name across
     # all other subclasses of this class. If two subclasses share an attribute name,
-    # when they both get tossed into Elasticsearch, they will be treated as the same
+    # when they both get tossed into OpenSearch, they will be treated as the same
     # field. If they have different datatypes this will cause an exception. If they
     # have the same datatype, you probably don't want them being treated identically
     # in all cases anyway.
@@ -93,7 +93,7 @@ class JeevesDocument(ABC):
     def deserialize_from_internal_json(cls, internal_json: JSON) -> "JeevesDocument":
         """
         Create a document object from JSON that was received from somewhere
-        within Jeeves (likely Elasticsearch).
+        within Jeeves (likely OpenSearch).
         Should be overridden in subclasses to suit the needs of particular
         document formats.
 
@@ -155,7 +155,7 @@ class JeevesDocument(ABC):
         return document.language in SUPPORTED_LANGUAGES.__members__
 
     @classmethod
-    def generate_elasticsearch_internal_id(cls, document: "JeevesDocument") -> str:
+    def generate_opensearch_internal_id(cls, document: "JeevesDocument") -> str:
         """
         Generates a string to be used as a unique internal identifier for a
         given document. Previously, the internal identifier in question was
@@ -163,8 +163,8 @@ class JeevesDocument(ABC):
         turn generated based on a document's data source and source-specific
         identifier. However, some data sources were returning documents with
         nearly identical contents but different source-specific identifiers.
-        After some research, the recommendation in the Elasticsearch
-        community is to leverage the uniqueness of Elasticsearch's internal
+        After some research, the recommendation in the OpenSearch
+        community is to leverage the uniqueness of OpenSearch's internal
         ID field to prevent duplicates, since attempting to index a document
         using an internal ID that already exists will just overwrite the
         existing document instead of creating a new entry. As such, if a data

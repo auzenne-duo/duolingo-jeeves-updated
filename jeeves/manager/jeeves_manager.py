@@ -83,7 +83,7 @@ class JeevesManager(ABC):
     def get_checkpointing_threshold() -> int:
         """
         Returns how many documents of this type should be downloaded before
-        storing them in Elasticsearch via checkpointing. This number is somewhat
+        storing them in OpenSearch via checkpointing. This number is somewhat
         arbitrary and is influenced by the speed at which documents are downloaded.
 
         Parameters: None

@@ -183,7 +183,7 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
     for header in present_headers:
         header_idx = body_lines.index(header)
         # The header names as I have them hard-coded include a colon at the end,
-        # but we don't want that colon included in the Elasticsearch field name.
+        # but we don't want that colon included in the OpenSearch field name.
         processed_field_name = header[:-1].replace(" ", "_").lower()
 
         if header in single_value_headers:

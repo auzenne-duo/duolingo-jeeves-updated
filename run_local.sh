@@ -15,14 +15,14 @@ get_config_value() {
 
 # Check for JIRA_USERNAME and JIRA_API_TOKEN environment variables
 if [ -z "${JIRA_USERNAME:-}" ] || [ -z "${JIRA_API_TOKEN:-}" ]; then
-  echo "Warning: JIRA_USERNAME and/or JIRA_API_TOKEN are empty. These are recommended in order to pull JIRA tickets into your local Elasticsearch instance."
+  echo "Warning: JIRA_USERNAME and/or JIRA_API_TOKEN are empty. These are recommended in order to pull JIRA tickets into your local OpenSearch instance."
   echo "Create an API key and export these variables inside your '~/.zshrc' file (or in your current shell): https://id.atlassian.com/manage-profile/security/api-tokens"
   echo "For more information, please read: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/"
 fi
 
 # Check for DUOLINGO_JWT
 if [ -z "${DUOLINGO_JWT:-}" ]; then
-  echo "Warning: DUOLINGO_JWT is empty. This is needed in order to create embeddings for your local Elasticsearch documents."
+  echo "Warning: DUOLINGO_JWT is empty. This is needed in order to create embeddings for your local OpenSearch documents."
   echo "Run 'duo login' or follow these instructions: https://duolingo.atlassian.net/wiki/spaces/DUO/pages/674890786"
 fi
 
@@ -48,7 +48,7 @@ if ! command -v yq > /dev/null 2>&1; then
   exit 1
 fi
 
-get_config_value ".elasticsearch.data_version_identifier"
+get_config_value ".opensearch.data_version_identifier"
 if [ -z "${result}" ]; then
   echo "Error: Could not get the value of 'data_version_identifier' from either ${CONFIG_FILE} or ${CONFIG_FILE_BASE}."
   exit 1
@@ -62,6 +62,5 @@ export USER_AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 export AWS_ACCESS_KEY_ID=foo
 export AWS_DEFAULT_REGION=us-east-1
 export AWS_SECRET_ACCESS_KEY=bar
-export COMPOSE_FILE=docker-compose-local.yml
 
 make web

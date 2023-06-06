@@ -8,7 +8,7 @@ import random
 from typing import List
 
 from jeeves import registry as app_registry
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.annotated_document import AnnotatedDocument
 from jeeves.model.jeeves_document import JeevesDocument
@@ -76,7 +76,7 @@ def fetch_unannotated_dataset(
     source_term = f'{{"term": {{"data_source": "{data_source}"}}}},' if data_source != "all" else ""
     query_string = f'{{"query": {{ "function_score": {{ "query": {{"bool": {{"filter": [{source_term} {{"term": {{"language": "{document_language}"}}}}]}}}}, "functions": [{{"random_score": {{"seed": "{seed}"}}}}]}}}}, "size": {str(dataset_size)}}}'
     query_jsn = json.loads(query_string)
-    return app_registry(ElasticsearchDAL).execute_arbitrary_query(query_jsn)
+    return app_registry(OpenSearchDAL).execute_arbitrary_query(query_jsn)
 
 
 def annotate_dataset(data_list: List[JeevesDocument]) -> List[AnnotatedDocument]:

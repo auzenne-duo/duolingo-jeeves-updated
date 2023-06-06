@@ -1,4 +1,3 @@
-# from elasticsearch_dsl import A, Mapping, Q, Search
 import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
@@ -6,7 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 import numpy as np
 from duolingo_base.config import Config
 
-from jeeves.dal.elasticsearch_interface import ElasticsearchDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.model.spike_categories import SpikeCategory
 
 successful_response = {"_shards": {"total": 2, "successful": 2}}
@@ -17,16 +16,16 @@ mock_search = MagicMock()
 
 _config = Config.load_config()
 
-data_version_identifier = _config.get_nested(["elasticsearch", "data_version_identifier"])
+data_version_identifier = _config.get_nested(["opensearch", "data_version_identifier"])
 spikename = f"jeeves_spikes_v_{data_version_identifier}"
 
 
-class TestElasticSearchInterface(unittest.TestCase):
-    @patch("jeeves.dal.elasticsearch_interface.OpenSearch", Mock(return_value=mock_es))
+class TestOpenSearchInterface(unittest.TestCase):
+    @patch("jeeves.dal.opensearch_interface.OpenSearch", Mock(return_value=mock_es))
     def __init__(self, *args, **kwargs):
-        super(TestElasticSearchInterface, self).__init__(*args, **kwargs)
+        super(TestOpenSearchInterface, self).__init__(*args, **kwargs)
         self.es = mock_es
-        self.dal = ElasticsearchDAL()
+        self.dal = OpenSearchDAL()
 
         self.mock_hits = [
             {"key_as_string": "2022-01-01", "key": 1648440000000, "doc_count": 1},
@@ -52,9 +51,9 @@ class TestElasticSearchInterface(unittest.TestCase):
         }
         self.expected_index = f"jeeves_tickets_v_{data_version_identifier}"
 
-    @patch("jeeves.dal.elasticsearch_interface.Search", Mock(return_value=mock_search))
+    @patch("jeeves.dal.opensearch_interface.Search", Mock(return_value=mock_search))
     @patch(
-        "jeeves.dal.elasticsearch_interface.ElasticsearchDAL.get_min_and_max_document_dates",
+        "jeeves.dal.opensearch_interface.OpenSearchDAL.get_min_and_max_document_dates",
         Mock(return_value={"min": "2022-01-01", "max": "2022-02-01"}),
     )
     def test_get_num_tickets_by_day(self):
@@ -73,9 +72,9 @@ class TestElasticSearchInterface(unittest.TestCase):
             "range", date_time={"gte": "2022-01-01T00:00:00Z", "lte": "2022-03-02T00:00:00Z"}
         )
 
-    @patch("jeeves.dal.elasticsearch_interface.Search", Mock(return_value=mock_search))
+    @patch("jeeves.dal.opensearch_interface.Search", Mock(return_value=mock_search))
     @patch(
-        "jeeves.dal.elasticsearch_interface.ElasticsearchDAL.get_min_and_max_document_dates",
+        "jeeves.dal.opensearch_interface.OpenSearchDAL.get_min_and_max_document_dates",
         Mock(return_value={"min": "2022-01-01", "max": "2022-02-01"}),
     )
     def test_get_num_tickets_by_day_start_date(self):
@@ -99,9 +98,9 @@ class TestElasticSearchInterface(unittest.TestCase):
             "range", date_time={"gte": "2021-01-02T00:00:00Z", "lte": "2022-03-02T00:00:00Z"}
         )
 
-    @patch("jeeves.dal.elasticsearch_interface.MIN_SAMPLES_THRESHOLD", 2)
+    @patch("jeeves.dal.opensearch_interface.MIN_SAMPLES_THRESHOLD", 2)
     @patch(
-        "jeeves.dal.elasticsearch_interface.datetime",
+        "jeeves.dal.opensearch_interface.datetime",
         MagicMock(today=MagicMock(return_value=datetime(2022, 1, 4))),
     )
     def test_generate_term_stats(self):

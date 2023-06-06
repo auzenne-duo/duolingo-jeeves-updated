@@ -12,7 +12,7 @@ COPY web .
 COPY --from=web-requirements /code/node_modules ./node_modules
 RUN rm -rf dist && \
   "$(npm bin)/tsc" -p config && \
-  "$(npm bin)/webpack" --config config/webpack.config.js --mode production
+  "$(npm bin)/webpack" --config config/webpack.config.js --mode development
 
 FROM ubuntu:20.04
 
@@ -54,6 +54,6 @@ RUN pip3 install -r "$REQUIREMENTS" --src /usr/local/src
 COPY . .
 COPY --from=web-builder /code/dist ./web/dist
 
-EXPOSE 5000
+EXPOSE 8080
 
-CMD ["uwsgi", "uwsgi_dev.ini"]
+CMD ["uwsgi", "uwsgi_local.ini"]

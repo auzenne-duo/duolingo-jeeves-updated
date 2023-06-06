@@ -64,18 +64,18 @@ class SpikeCategory(Enum):
         return category_to_predicate[group_category]
 
     @classmethod
-    def get_elasticsearch_transformer_for_category(
+    def get_opensearch_transformer_for_category(
         cls, group_category: "SpikeCategory"
     ) -> Callable[[Search], Search]:
         """
-        Returns an Elasticsearch query dict that will filter JeevesDocuments that should be
+        Returns an OpenSearch query dict that will filter JeevesDocuments that should be
         included in spike analysis for the given spike category.
 
         Parameters:
             group_category: The SpikeCategory we want to check for.
 
         Returns:
-            a dict specifying an Elasticsearch query that filters JeevesDocuments.
+            a dict specifying an OpenSearch query that filters JeevesDocuments.
         """
 
         shake_to_report_categories = cls._get_shake_to_report_categories_for_spike_category(
