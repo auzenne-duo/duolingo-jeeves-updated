@@ -16,7 +16,7 @@ from jeeves.model.jeeves_document import JeevesDocument
 TRAIN_SPLIT = 0.8
 TEST_SPLIT = 0.1
 VALIDATE_SPLIT = 0.1
-DATASET_SIZE = 10
+DATASET_SIZE = 500
 DOCUMENT_LANGUAGE = "en"
 SEED = "1182022"
 DATA_SOURCE = (
