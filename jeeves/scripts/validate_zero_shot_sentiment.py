@@ -1,37 +1,12 @@
 """
 Script for validating zero-shot sentiment classification on all Jeeves data
 """
-from typing import List
-
-import numpy as np
 
 from jeeves import registry as app_registry
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
+from jeeves.model.zero_shot_classifier import NEGATIVE_TARGET_STRING, POSITIVE_TARGET_STRING
 from jeeves.scripts.generate_sentiment_dataset import deserialize_labeled_data_to_json
-
-POSITIVE_TARGET_STRING = "positive"
-NEGATIVE_TARGET_STRING = "negative"
-
-
-def calc_cosine_similarity(target_embedding: List[float], doc_embedding: List[float]) -> float:
-    """
-    Returns the cosine simlarity between two embeddings
-    """
-    return np.dot(target_embedding, doc_embedding) / (
-        np.linalg.norm(target_embedding) * np.linalg.norm(doc_embedding)
-    )
-
-
-def calc_polarity(
-    doc_embedding: List[float], pos_embedding: List[float], neg_embedding: List[float]
-) -> float:
-    """
-    Returns the polarity of a document compared to the positive and negative embeddings
-    """
-    return calc_cosine_similarity(doc_embedding, pos_embedding) - calc_cosine_similarity(
-        doc_embedding, neg_embedding
-    )
-
+from jeeves.util.polarity_calculator import calc_polarity
 
 if __name__ == "__main__":
     labeled_train = deserialize_labeled_data_to_json("annotations/train_data.json")
