@@ -18,7 +18,7 @@ groups:
 
       If you're removing a feature from the list, you need to:
        - Move all tickets with that feature in Jira to a new feature or close them
-       - File a ticket with a Jira admin to remove the feature from the Jira dropdown too. Removing it from here will only remove it from shake-to-report.
+       - [File a ticket with a Jira admin](https://duolingo.atlassian.net/jira/core/projects/JIRA/form/3) to remove the feature from the Jira dropdown too. Removing it from here will only remove it from shake-to-report.
 
       Also, please check if any Jira Automations, filters, or whatever JQLs relying on Jira Feature needs to be update.
 
