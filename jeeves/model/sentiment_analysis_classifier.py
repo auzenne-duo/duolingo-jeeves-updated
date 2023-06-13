@@ -43,6 +43,7 @@ class SentimentClassifierResults:
 
     confusion_matrix: Array
     accuracy: float
+    weighted_f1_score: float
     positive_metrics: SentimentLabelResults
     negative_metrics: SentimentLabelResults
 
@@ -93,6 +94,7 @@ class SentimentAnalysisClassifier(ABC):
         return SentimentClassifierResults(
             confusion_matrix(gt, predicted, labels=labels_list),
             accuracy_score(gt, predicted),
+            f1_score(gt, predicted, labels=labels_list, average="weighted"),
             positive_metrics=(results[POSITIVE_CLASS]),
             negative_metrics=(results[NEGATIVE_CLASS]),
         )
