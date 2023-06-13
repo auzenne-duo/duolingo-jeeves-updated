@@ -5,7 +5,7 @@ Our model for a general abstract sentiment analysis classifier
 from abc import ABC, abstractmethod
 from ctypes import Array
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import attr
 from sklearn.metrics import (
@@ -61,7 +61,13 @@ class SentimentAnalysisClassifier(ABC):
         """
         return NotImplementedError
 
-    def evaluate_classifier(self, labeled_data: List[AnnotatedDocument]) -> Dict:
+    def evaluate_classifier(
+        self, labeled_data: List[AnnotatedDocument]
+    ) -> SentimentClassifierResults:
+        """
+        Utility function to evaluate a sentiment analysis model. Returns the accuracy for the model
+        and the precision, recall, and f1 score for each label
+        """
 
         gt = []
         predicted = []
