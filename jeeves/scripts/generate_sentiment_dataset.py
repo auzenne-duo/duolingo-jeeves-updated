@@ -1,5 +1,5 @@
 """
-Script for generating a dataset from real Jeeves data as a baseline measurement for positive and negative labels. Saves train, test, and validation sets to JSON files
+Script for generating a dataset from real Jeeves data as a baseline measurement for positive and negative labels. Saves train, test, and validation sets to JSON files.
 """
 import datetime
 import json
@@ -7,20 +7,24 @@ import os
 import random
 from typing import List
 
+import click
+
 from jeeves import registry as app_registry
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.annotated_document import AnnotatedDocument
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.util.sentiment_dataset_summarizer import summarize_dataset
 
 TRAIN_SPLIT = 0.8
 TEST_SPLIT = 0.1
 VALIDATE_SPLIT = 0.1
+MULTIPLIER = 5
 DATASET_SIZE = 500
 DOCUMENT_LANGUAGE = "en"
 SEED = "1182022"
 DATA_SOURCE = (
-    "all"  # use 'all' to query from all data sources otherwise use the name of the desired source
+    "All"  # use 'All' to query from all data sources otherwise use the name of the desired source
 )
 
 assert TEST_SPLIT + TRAIN_SPLIT + VALIDATE_SPLIT == 1
@@ -64,19 +68,42 @@ def deserialize_labeled_data_to_json(file_name: str) -> List[AnnotatedDocument]:
 
 
 def fetch_unannotated_dataset(
-    dataset_size=DATASET_SIZE,
-    document_language=DOCUMENT_LANGUAGE,
-    seed=SEED,
-    data_source=DATA_SOURCE,
+    dataset_size: int,
+    document_language: str,
+    seed: str,
+    data_source: str,
 ) -> List[JeevesDocument]:
     """
     Query the opensearch database to fetch a random list of jeeves documents
     """
     print("Querying database")
-    source_term = f'{{"term": {{"data_source": "{data_source}"}}}},' if data_source != "all" else ""
+    source_term = (
+        f'{{"term": {{"data_source": "{data_source}"}}}},' if data_source.lower() != "all" else ""
+    )
     query_string = f'{{"query": {{ "function_score": {{ "query": {{"bool": {{"filter": [{source_term} {{"term": {{"language": "{document_language}"}}}}]}}}}, "functions": [{{"random_score": {{"seed": "{seed}"}}}}]}}}}, "size": {str(dataset_size)}}}'
     query_jsn = json.loads(query_string)
     return app_registry(OpenSearchDAL).execute_arbitrary_query(query_jsn)
+
+
+def fetch_unannotated_twitter_dataset(
+    dataset_size: int, document_language: str, seed: str
+) -> List[JeevesDocument]:
+    print("Getting twitter documents")
+    twitter_documents = []
+    while len(twitter_documents) < dataset_size:
+        data_list = fetch_unannotated_dataset(
+            dataset_size=dataset_size * MULTIPLIER,
+            document_language=document_language,
+            seed=seed,
+            data_source="Zendesk",
+        )
+        for document in data_list:
+            if (
+                len(twitter_documents) < dataset_size
+                and document.via["channel"].lower() == "twitter"
+            ):
+                twitter_documents.append(document)
+    return twitter_documents
 
 
 def annotate_dataset(data_list: List[JeevesDocument]) -> List[AnnotatedDocument]:
@@ -102,13 +129,51 @@ def annotate_dataset(data_list: List[JeevesDocument]) -> List[AnnotatedDocument]
     return labeled_data_list
 
 
-if __name__ == "__main__":
-    data_list = fetch_unannotated_dataset()
+@click.command()
+@click.option("--size", help="Dataset size", default=DATASET_SIZE)
+@click.option("--seed", help="Random seed", default=SEED)
+@click.option("--language", help="Document language", default=DOCUMENT_LANGUAGE)
+@click.option(
+    "--source",
+    help="Choose document source: ['All', 'AppFigures', 'JIRA', 'Reddit', 'Twitter', 'Zendesk']",
+    default=DATA_SOURCE,
+)
+@click.option("--summarize", help="Summarize dataset as tsv", is_flag=True, default=False)
+def main(size: int, seed: str, language: str, source: str, summarize: bool):
+
+    try:
+        data_source_mapper = {
+            "all": "All",
+            "appfigures": "AppFigures",
+            "jira": "JIRA",
+            "reddit": "Reddit",
+            "twitter": "Twitter",
+            "zendesk": "Zendesk",
+        }
+        source = data_source_mapper[source.lower()]
+    except:
+        raise Exception("Invalid data source. Try again!")
+
+    language = language.lower()
+
+    if source.lower() == "twitter":
+        data_list = fetch_unannotated_twitter_dataset(
+            dataset_size=size,
+            document_language=language,
+            seed=seed,
+        )
+    else:
+        data_list = fetch_unannotated_dataset(
+            dataset_size=size,
+            document_language=language,
+            seed=seed,
+            data_source=source,
+        )
+
     labeled_data_list = annotate_dataset(data_list)
 
     train_cutoff = int(len(labeled_data_list) * TRAIN_SPLIT)
     test_cutoff = train_cutoff + int(len(labeled_data_list) * TEST_SPLIT)
-    val_cutoff = len(labeled_data_list)
 
     labeled_train = labeled_data_list[:train_cutoff]
     labeled_test = labeled_data_list[train_cutoff:test_cutoff]
@@ -119,3 +184,11 @@ if __name__ == "__main__":
     serialize_labeled_data_to_json(f"{dir_path}/test_data.json", labeled_test)
     serialize_labeled_data_to_json(f"{dir_path}/train_data.json", labeled_train)
     serialize_labeled_data_to_json(f"{dir_path}/val_data.json", labeled_val)
+
+    if summarize:
+        summarize_dataset(f"{dir_path}/dataset_summary.tsv", labeled_data_list)
+
+
+if __name__ == "__main__":
+    # pylint: disable=no-value-for-parameter
+    main()

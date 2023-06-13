@@ -19,5 +19,4 @@ def summarize_dataset(filename: str, labeled_data: List[AnnotatedDocument]) -> N
         for labeled_doc in labeled_data:
             label = labeled_doc.label
             document = labeled_doc.jeeves_document
-            print(document.document_id)
             writer.writerow([document.document_id, label, document.header_text, document.body_text])
