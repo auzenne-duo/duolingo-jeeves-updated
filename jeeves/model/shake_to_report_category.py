@@ -10,7 +10,7 @@ class ShakeToReportCategory(Enum):
     - INTERNAL documents are those that come from internal shake-to-report
       testers, i.e. Duos.
     - NON_STR_EXTERNAL documents are not associated with shake-to-report and
-      originate from somewhere outside Duolingo, i.e. app store comments.
+      originate from somewhere outside Duolingo, i.e. customer service reports
     - NON_STR_INTERNAL documents are not associated with shake-to-report and
       originate from somewhere inside Duolingo, i.e. Jira.
     """

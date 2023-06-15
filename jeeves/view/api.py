@@ -16,6 +16,7 @@ from jeeves.dal.sns import PublishManager
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
+from jeeves.manager.sentiment_manager import SentimentManager
 from jeeves.manager.shakira import ShakiraManager
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
@@ -45,6 +46,14 @@ _init_timestamp = datetime_to_str(get_utc_today())
 @blueprint_api.route("/api/1/hello")
 def say_hello():
     return json.jsonify({"msg": "hello"})
+
+
+@blueprint_api.route("/query_params", methods=["GET"])
+def get_query_params():
+    query_string = request.args.get("q")
+    if not query_string:
+        abort(make_response("Please provide `q` parameter", 400))
+    return json.jsonify(app_registry(SentimentManager).get_query_parameters(query_string))
 
 
 @blueprint_api.route("/api/1/<lang>/tickets", methods=["GET"])
