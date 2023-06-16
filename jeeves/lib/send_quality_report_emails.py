@@ -15,7 +15,11 @@ _UNSUBSCRIBED = ["example@duolingo.com"]
 
 
 TEAM_TO_RECIPIENTS = {
-    "Path": [("rsalvador@duolingo.com", 591913431), ("ananya@duolingo.com", 361463477)],
+    "Path": [
+        ("rsalvador@duolingo.com", 591913431),
+        ("ananya@duolingo.com", 361463477),
+        ("path-team@duolingo.com", None),
+    ],
     "Delight": [
         ("peter@duolingo", 97197056),
         ("shawn.buessing@duolingo.com", 18288193),
