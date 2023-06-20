@@ -12,8 +12,8 @@ from flask import Blueprint, abort, g, json, make_response, request, send_from_d
 from jeeves import registry as app_registry
 from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
 from jeeves.dal.opensearch_interface import OpenSearchDAL
-from jeeves.dal.sns import PublishManager
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
+from jeeves.lib.send_issue_fixed_emails import IssueFixedEmailSender
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.sentiment_manager import SentimentManager
@@ -249,10 +249,8 @@ def send_beta_emails():
         abort(make_response("Email already sent for this spike", 400))
 
     app_registry(SpikeIndexDAL).set_spike_email_sent(spike_id, user_id, date_to_str(datetime.now()))
-
-    # Currently just sends an email to Caleb Noble
-    app_registry(PublishManager).send_beta_reported_issue_fixed_email(23133309, description)
-    return json.jsonify({"email_user_id": user_id, "num_emails": 1})
+    num_emails = app_registry(IssueFixedEmailSender).send_issue_fixed_emails(spike, description)
+    return json.jsonify({"email_user_id": user_id, "num_emails": num_emails})
 
 
 @blueprint_api.route("/api/1/<lang>/spike_stats")
