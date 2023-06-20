@@ -1,11 +1,14 @@
 """
 A manager for all tasks related to sentiment analysis
 """
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from duolingo_base.util import registry
 
+from jeeves.config.config import GPT_EMBEDDING_MODEL
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
+from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.util.polarity_calculator import calc_cosine_similarity
 
 SYSTEM_PROMPT = """
 This is a list of fields for a python object called a JeevesDocument
@@ -69,9 +72,9 @@ Please format your response like:
 
 Filters: <filter>, <filter>, <filter>
 Target topic: <target topic>
-
-
 """
+
+TARGET_TOPIC_THRESHOLD = 0.77
 
 
 @registry.bind(
@@ -81,6 +84,21 @@ class SentimentManager:
     def __init__(self, ai_completions_dal: AICompletionsDAL):
         self.ai_completions_dal = ai_completions_dal
 
+    def filter_documents_using_topic(
+        self, documents_list: List[JeevesDocument], target_topic: str
+    ) -> List[JeevesDocument]:
+        """
+        Use cosine similarity to determine which documents match the target topic
+        """
+        target_embedding = self.ai_completions_dal.request_embedding(target_topic)
+        docs_on_topic = []
+        for document in documents_list:
+            doc_embedding = document.embeddings[GPT_EMBEDDING_MODEL]
+            similarity = calc_cosine_similarity(target_embedding, doc_embedding)
+            if similarity > TARGET_TOPIC_THRESHOLD:
+                docs_on_topic.append(document)
+        return docs_on_topic
+
     def get_query_parameters(self, user_prompt: str) -> Dict[str, Union[Dict[str, str], str]]:
         """
         Method that should get called for the GET /query_params route. Turns a natural-language user prompt
@@ -88,10 +106,17 @@ class SentimentManager:
         """
         response = {}
         response_text = self.ai_completions_dal.ask(SYSTEM_PROMPT, user_prompt)
-        filters_text, labels_text = response_text.split("\n")
-        response["filters"] = self._clean_up_filters(filters_text)
-        response["topic"] = labels_text.split("Target topic: ")[1]
-        return response
+        if response_text is None:
+            response["filters"] = {}
+            response["topic"] = "anything"
+            return response
+        # Everything on the first line after 'Filters: ' is the filters and everything on the second line after
+        # 'Target topic: ' is the topic
+        else:
+            filters_text, labels_text = response_text.split("\n")
+            response["filters"] = self._clean_up_filters(filters_text)
+            response["topic"] = labels_text.split("Target topic: ")[1]
+            return response
 
     @classmethod
     def _clean_up_filters(cls, filters_text):

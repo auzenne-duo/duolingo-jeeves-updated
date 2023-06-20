@@ -1,6 +1,7 @@
 """
 Model for a JeevesDocument annotated with its sentiment
 """
+from typing import List
 
 import attr
 
@@ -18,3 +19,13 @@ class AnnotatedDocument:
         Returns a summary of the jeeves document and its label
         """
         return f"(document id: {self.jeeves_document.document_id}. label: {self.label}. header text: {self.jeeves_document.header_text}. body text: {self.jeeves_document.body_text})"
+
+    @classmethod
+    def convert_to_jeeves_doc(
+        cls, labeled_documents: List["AnnotatedDocument"]
+    ) -> List[JeevesDocument]:
+        """
+        This function converts a list of AnnotatedDocuments into a list of JeevesDocuments since we often need to
+        convert between the two
+        """
+        return [labeled_doc.jeeves_document for labeled_doc in labeled_documents]
