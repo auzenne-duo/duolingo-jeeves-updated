@@ -8,6 +8,7 @@ import EmailBetaButton from "components/EmailBetaButton";
 import ExperimentsList from "components/ExperimentsList";
 import FixedToggle from "components/FixedToggle";
 import Table from "components/Table";
+import useIsMobile from "components/useIsMobile";
 import styles from "styles/SpikeTable.scss";
 
 interface Props {
@@ -30,6 +31,7 @@ const SpikeTable = ({
   spikes,
 }: Props) => {
   const spikeDetectorParams = new URLSearchParams();
+  const isMobile = useIsMobile();
   if (date) {
     spikeDetectorParams.set("to", addDays(date, 1).toJSON());
     spikeDetectorParams.set("from", date.toJSON());
@@ -38,7 +40,7 @@ const SpikeTable = ({
     <Table className={styles.table}>
       <thead>
         <tr>
-          <th colSpan={5}>
+          <th colSpan={isMobile ? 2 : 5}>
             <Link
               to={`/${language}/spike?${encodeURLSearchParams(
                 spikeDetectorParams,
@@ -53,9 +55,9 @@ const SpikeTable = ({
         <tr>
           <th>Word</th>
           <th>Summary</th>
-          <th>Confirmed</th>
-          <th>Fixed</th>
-          <th>Email Beta</th>
+          <th className={styles["hide-mobile-column"]}>Confirmed</th>
+          <th className={styles["hide-mobile-column"]}>Fixed</th>
+          <th className={styles["hide-mobile-column"]}>Email Beta</th>
         </tr>
       </thead>
       <tbody>
@@ -94,13 +96,13 @@ const SpikeTable = ({
                     </>
                   )}
                 </td>
-                <td>
+                <td className={styles["hide-mobile-column"]}>
                   <ConfirmButton spike={spike} />
                 </td>
-                <td>
+                <td className={styles["hide-mobile-column"]}>
                   <FixedToggle spike={spike} />
                 </td>
-                <td>
+                <td className={styles["hide-mobile-column"]}>
                   <EmailBetaButton spike={spike} />
                 </td>
               </tr>
@@ -108,7 +110,9 @@ const SpikeTable = ({
           })}
         {!spikes.length && !isLoading ? (
           <tr>
-            <td colSpan={4}>No data is available for this date.</td>
+            <td colSpan={isMobile ? 2 : 5}>
+              No data is available for this date.
+            </td>
           </tr>
         ) : null}
       </tbody>

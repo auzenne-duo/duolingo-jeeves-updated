@@ -11,13 +11,17 @@ Technology-driven user support.
 
 ## How to contribute
 
-1. Install [pyenv and virtualenv](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/1205141569) if you haven't already:
+1. Install [pyenv and virtualenv](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/1205141569) if you haven't already (skip steps 1 and 2 if running on Codespaces):
    - `brew update`
    - `brew install pyenv`
    - `brew install pyenv-virtualenv`
 2. Set up Python 3.8.10 in this directory (this repository cannot yet be built using Python 3.11):
    - `pyenv virtualenv 3.8.10 jeeves-3.8.10`
    - `pyenv activate jeeves-3.8.10`
+     - If you run into `Failed to activate virtualenv.` then try running:
+     - `eval "$(pyenv init --path)"`
+     - `eval "$(pyenv init -)"`
+     - `eval "$(pyenv virtualenv-init -)"`
    - `pyenv local jeeves-3.8.10`
 3. Install requirements:
    - `pip3 install -r dev-requirements.txt` (this command includes everything from `requirements.txt`)
