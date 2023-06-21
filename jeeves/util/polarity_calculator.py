@@ -8,7 +8,7 @@ import numpy as np
 
 def calc_cosine_similarity(target_embedding: List[float], doc_embedding: List[float]) -> float:
     """
-    Returns the cosine simlarity between two embeddings
+    Returns the cosine similarity between two embeddings
     """
     return np.dot(target_embedding, doc_embedding) / (
         np.linalg.norm(target_embedding) * np.linalg.norm(doc_embedding)
