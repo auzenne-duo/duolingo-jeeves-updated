@@ -1,3 +1,4 @@
+import json
 import re
 import sys
 import time
@@ -750,6 +751,60 @@ class OpenSearchDAL:
             "avg_docs_per_day": np.mean(list(date_to_doc_count.values())),
             "words": stats,
         }
+
+    def generate_sentiment_docs_from_filters(self, filters: Dict[str, str]) -> List[JeevesDocument]:
+        """
+        Takes in a dictionary of filters from /query_params and uses them to query the OpenSearch database
+        and returns a list of Jeeves documents.
+        Scroll is used since these queries may exceed the 10,000 document maximum.
+        """
+        twitter_only = False
+        if "data_source" in filters.keys() and filters["data_source"].lower() == "twitter":
+            filters["data_source"] = "Zendesk"
+            twitter_only = True
+        fields_list = [f'{{"term": {{"{"language"}": "{"en"}"}}}}']
+        for filter_name, filter_value in filters.items():
+            if filter_name == "data_source" and filter_value.lower() == "all":
+                continue
+            elif filter_name in ("header_text", "body_text"):
+                continue
+            elif filter_name == "date_time":
+                gte, lte = filter_value.split("[")[1].split("]")[0].split(" TO ")
+                fields_list.append(
+                    f'{{"range": {{"{filter_name}": {{"gte": "{gte}","lte": "{lte}"}}}}}}'
+                )
+            else:
+                fields_list.append(f'{{"term": {{"{filter_name}": "{filter_value}"}}}}')
+        query_string = (
+            f'{{"query": {{"bool": {{"must": [{", ".join(fields_list)}]}}}}, "size": {1000}}}'
+        )
+        print(f"query string: {query_string}")
+        query_jsn = json.loads(query_string)
+        resp = self._es.search(  # pylint: disable=unexpected-keyword-arg
+            index=self._indexname,
+            body=query_jsn,
+            scroll="10s",
+        )
+
+        old_scroll_id = resp["_scroll_id"]
+        document_list = []
+
+        while len(resp["hits"]["hits"]):
+            for hit in resp["hits"]["hits"]:
+                document_list.append(
+                    IDManagerMap.get_manager_for_identifier(hit["_source"]["data_source"])
+                    .get_managed_document_type()
+                    .deserialize_from_internal_json(hit["_source"])
+                )
+            resp = self._es.scroll(  # pylint: disable=unexpected-keyword-arg
+                scroll_id=old_scroll_id, scroll="2s"
+            )
+            old_scroll_id = resp["_scroll_id"]
+        if twitter_only:
+            document_list = [
+                doc for doc in document_list if doc.via["channel"].lower() == "twitter"
+            ]
+        return document_list
 
     def _filter_terms(self, terms):
         """

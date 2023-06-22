@@ -14,31 +14,20 @@ SYSTEM_PROMPT = """
 This is a list of fields for a python object called a JeevesDocument
 
     data_source: str = attr.ib()
-    document_id: str = attr.ib()
-    jeeves_uid: str = attr.ib()
     date_time: datetime.datetime = attr.ib()
     header_text: str = attr.ib(default="")
     body_text: str = attr.ib()
-    is_bug: bool = attr.ib(default=True)
     language: str = attr.ib()
-    lemmatized_terms: List[str] = attr.ib(default=[])
-    links: List[str] = attr.ib(default=[])
     shake_to_report_category: ShakeToReportCategory = attr.ib()
-    attachments: List[str] = attr.ib()
-    duolingo_metadata: Dict[str, JSON] = attr.ib()
     app_version: str = attr.ib()
     challenge_id: str = attr.ib(default="")
     challenge_prompt_text: str = attr.ib(default="")
     challenge_type: str = attr.ib(default="")
-    challenge_generator_specific_type: str = attr.ib(default="")
     course: str = attr.ib()
-    fullstory_url: str = attr.ib()
     lesson_number: str = attr.ib(default="")
     level_number: str = attr.ib(default="")
     os_version: str = attr.ib()
     platform: str = attr.ib()
-    screen_size: str = attr.ib()
-    screen_content: str = attr.ib()
     session_bundle_id: str = attr.ib(default="")
     session_id: str = attr.ib(default="")
     session_type: str = attr.ib(default="")
@@ -47,7 +36,6 @@ This is a list of fields for a python object called a JeevesDocument
     skill_tree_id: str = attr.ib(default="")
     ui_language: str = attr.ib()
     username: str = attr.ib()
-    embeddings: Dict[str, List[float]] = attr.ib(default={})
     experiment_conditions: Dict[str, str] = attr.ib()
     user_id: str = attr.ib(default="")
 
@@ -56,7 +44,18 @@ and return the target topic of query in one or two words.
 
 Please do not include words like opinions or reviews in the target topic
 
-Please note that the only options for data_source are Twitter, JIRA, Zendesk, and AppFigures
+Please note that the only options for data_source are
+    - Twitter
+    - JIRA
+    - Zendesk
+    - AppFigures
+    - All
+
+Please select All if all data sources are relevant.
+
+Do not use the words AND or OR
+
+Please use the word TO for a range query
 
 Please note that shake_to_report_category can take four different values
     - EXTERNAL: documents are those that come from external shake-to-report
@@ -72,9 +71,10 @@ Please format your response like:
 
 Filters: <filter>, <filter>, <filter>
 Target topic: <target topic>
+
 """
 
-TARGET_TOPIC_THRESHOLD = 0.77
+TARGET_TOPIC_THRESHOLD = 0.79
 
 
 @registry.bind(
@@ -93,6 +93,10 @@ class SentimentManager:
         target_embedding = self.ai_completions_dal.request_embedding(target_topic)
         docs_on_topic = []
         for document in documents_list:
+            # Skip a document if it doesn't have an embedding
+            # (Could also consider creating an embedding on the fly, but this could get expensive)
+            if GPT_EMBEDDING_MODEL not in document.embeddings.keys():
+                continue
             doc_embedding = document.embeddings[GPT_EMBEDDING_MODEL]
             similarity = calc_cosine_similarity(target_embedding, doc_embedding)
             if similarity > TARGET_TOPIC_THRESHOLD:
@@ -124,7 +128,7 @@ class SentimentManager:
         Helper method to convert GPT filter output into a dict
         """
         filters = {}
-        filters_text = filters_text.split("Filters: ")[1]
+        filters_text = filters_text.split("Filters: ")[1].replace("'", "").replace('"', "")
         for lucene_filter in filters_text.split(",") if "," in filters_text else [filters_text]:
             name, value = lucene_filter.split(":")
             filters[name.strip(" ")] = value.strip(" ")
