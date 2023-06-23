@@ -1,5 +1,5 @@
 """
-Model for a JeevesDocument annotated with its sentiment
+Model for a JeevesDocument annotated with its sentiment and potentially a sentiment score as well
 """
 from typing import List
 
@@ -10,6 +10,9 @@ from jeeves.model.jeeves_document import JeevesDocument
 
 @attr.s(kw_only=True)
 class AnnotatedDocument:
+    """
+    Model for a JeevesDocument annotated with its sentiment
+    """
 
     jeeves_document: JeevesDocument = attr.ib()
     label: str = attr.ib()
@@ -29,3 +32,12 @@ class AnnotatedDocument:
         convert between the two
         """
         return [labeled_doc.jeeves_document for labeled_doc in labeled_documents]
+
+
+@attr.s(kw_only=True)
+class SentimentScoredDocument(AnnotatedDocument):
+    """
+    Model for a JeevesDocument annotated with its sentiment and a sentiment score
+    """
+
+    sentiment_score: float = attr.ib()

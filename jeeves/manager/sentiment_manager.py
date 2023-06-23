@@ -123,7 +123,7 @@ class SentimentManager:
             return response
 
     @classmethod
-    def _clean_up_filters(cls, filters_text):
+    def _clean_up_filters(cls, filters_text: str) -> Dict[str, str]:
         """
         Helper method to convert GPT filter output into a dict
         """

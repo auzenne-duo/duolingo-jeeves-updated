@@ -16,7 +16,7 @@ from sklearn.metrics import (
     recall_score,
 )
 
-from jeeves.model.annotated_document import AnnotatedDocument
+from jeeves.model.annotated_document import AnnotatedDocument, SentimentScoredDocument
 from jeeves.model.jeeves_document import JeevesDocument
 
 POSITIVE_CLASS = "positive"
@@ -57,6 +57,13 @@ class SentimentAnalysisClassifier(ABC):
 
     @abstractmethod
     def classify(self, document: JeevesDocument) -> Tuple[str, float]:
+        """
+        Takes in a JeevesDocument and returns the predicted sentiment label and the polarity
+        """
+        return NotImplementedError
+
+    @abstractmethod
+    def classify_batch(self, document_list: List[JeevesDocument]) -> List[SentimentScoredDocument]:
         """
         Takes in a JeevesDocument and returns the predicted sentiment label and the polarity
         """
