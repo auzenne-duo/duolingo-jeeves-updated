@@ -1,6 +1,8 @@
 """
 Our model for an app store review from the Reddit Pushshift API
 """
+from datetime import datetime
+
 import attr
 
 from jeeves.model.custom_types import JSON
@@ -32,13 +34,13 @@ class RedditDocument(JeevesDocument):
             data_source=cls.get_data_source_identifier(),
             document_id=external_json["id"],
             jeeves_uid=f"{cls.get_data_source_identifier()}_{external_json['id']}",
-            date_time=parse_external_datetime(external_json["utc_datetime_str"]),
+            date_time=datetime.fromtimestamp(external_json["created_utc"]),
             header_text=external_json["title"],
             body_text=body_text,
             language="en",
             links=[f'https://reddit.com{external_json["permalink"]}'],
             shake_to_report_category=ShakeToReportCategory.NON_STR_EXTERNAL,
-            attachments=[],
+            attachments=[external_json["url"]],
             duolingo_metadata={},
             app_version="",
             course="",

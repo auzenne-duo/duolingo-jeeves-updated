@@ -11,6 +11,7 @@
         "hardLimit": 65535
     }],
     "environment": ${environment_vars},
+    "secrets": ${secrets},
     "command": ["python", "./jeeves/scripts/update_jeeves_data.py"],
     "logConfiguration": {
       "logDriver": "awslogs",

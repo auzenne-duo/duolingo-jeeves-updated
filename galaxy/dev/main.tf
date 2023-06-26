@@ -125,6 +125,17 @@ module "duolingo-jeeves-s3-worker" {
   ecs_cluster                        = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition               = "s3-worker.json"
 
+  secrets = [
+    {
+      name  = "REDDIT_SECRET_TOKEN"
+      value = "REDDIT_SECRET_TOKEN/000000"
+    },
+    {
+      name  = "REDDIT_PASSWORD"
+      value = "REDDIT_PASSWORD/000000"
+    }
+  ]
+
   environment_vars = [
     {
       name  = "PYTHONPATH"
@@ -157,6 +168,14 @@ module "duolingo-jeeves-s3-worker" {
     {
       name  = "APPFIGURES_CLIENT_KEY"
       value = data.aws_kms_secrets.secrets.plaintext["appfigures_client_key"]
+    },
+    {
+      name  = "REDDIT_CLIENT_ID"
+      value = "cSp-H5vky827VpmP0fRVeA"
+    },
+    {
+      name  = "REDDIT_USERNAME"
+      value = "reddit-jeeves"
     },
   ]
 
