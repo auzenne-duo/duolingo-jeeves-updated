@@ -86,8 +86,9 @@ class IssueFixedEmailSender:
         for beta_user_id in beta_user_ids:
             self._publish_manager.send_beta_reported_issue_fixed_email(beta_user_id, description)
 
-        # Send to Caleb for testing
-        self._publish_manager.send_beta_reported_issue_fixed_email(23133309, description)
+        # Send to Caleb, Blanca, Peter, and Sharanya for testing
+        for user_id in [23133309, 36291958, 97197056, 105463277]:
+            self._publish_manager.send_beta_reported_issue_fixed_email(user_id, description)
         return len(beta_user_ids)
 
     def get_user_ids_sent_to(self, target_datestring: str) -> Set[int]:
