@@ -2,7 +2,7 @@ data "aws_s3_bucket" "duolingo-jeeves" {
   bucket = "duolingo-jeeves"
 }
 
-# IAM policy used for every environment
+# IAM policy used for every environment in Jeeves
 data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
   statement {
     actions = [
