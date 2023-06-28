@@ -309,6 +309,7 @@ module "duolingo-jeeves-spike-worker" {
   ]
 }
 
+# this task should never run in dev
 module "duolingo-jeeves-email-sender" {
   source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
   environment          = var.environment
