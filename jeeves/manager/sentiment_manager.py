@@ -1,12 +1,16 @@
 """
 A manager for all tasks related to sentiment analysis
 """
+from dataclasses import dataclass
 from typing import Dict, List, Union
 
 from duolingo_base.util import registry
 
 from jeeves.config.config import GPT_EMBEDDING_MODEL
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
+from jeeves.dal.opensearch_interface import OpenSearchDAL
+from jeeves.dal.sentiment_classifier_dal import SentimentClassifierDAL
+from jeeves.model.annotated_document import SentimentScoredDocument
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.polarity_calculator import calc_cosine_similarity
 
@@ -77,12 +81,52 @@ Target topic: <target topic>
 TARGET_TOPIC_THRESHOLD = 0.79
 
 
+@dataclass
+class QueryParamsResults:
+    """
+    Class to hold the results of GET /query_params
+    """
+
+    filters: Dict[str, str]
+    topic: str
+
+    def convert_to_dict(self) -> Dict[str, Union[Dict[str, str], str]]:
+        """
+        Convert data into dict for api route
+        """
+        return {
+            "filters": self.filters,
+            "topic": self.topic,
+        }
+
+
 @registry.bind(
     ai_completions_dal=registry.reference(AICompletionsDAL),
+    opensearch_dal=registry.reference(OpenSearchDAL),
+    sentiment_classifier_dal=registry.reference(SentimentClassifierDAL),
 )
 class SentimentManager:
-    def __init__(self, ai_completions_dal: AICompletionsDAL):
+    def __init__(
+        self,
+        ai_completions_dal: AICompletionsDAL,
+        opensearch_dal: OpenSearchDAL,
+        sentiment_classifier_dal: SentimentClassifierDAL,
+    ):
         self.ai_completions_dal = ai_completions_dal
+        self.opensearch_dal = opensearch_dal
+        self.sentiment_classifier_dal = sentiment_classifier_dal
+
+    def filter_docs_then_classify(
+        self,
+        query_params_results: QueryParamsResults,
+    ) -> List[SentimentScoredDocument]:
+        document_list = self.opensearch_dal.generate_sentiment_docs_from_filters(
+            query_params_results.filters
+        )
+        document_list = self.filter_documents_using_topic(document_list, query_params_results.topic)
+        return self.sentiment_classifier_dal.get_svm_sentiment_classifier().classify_batch(
+            document_list
+        )
 
     def filter_documents_using_topic(
         self, documents_list: List[JeevesDocument], target_topic: str
@@ -103,7 +147,7 @@ class SentimentManager:
                 docs_on_topic.append(document)
         return docs_on_topic
 
-    def get_query_parameters(self, user_prompt: str) -> Dict[str, Union[Dict[str, str], str]]:
+    def get_query_parameters(self, user_prompt: str) -> QueryParamsResults:
         """
         Method that should get called for the GET /query_params route. Turns a natural-language user prompt
         into a set of filters and a topic to search documents for.
@@ -118,9 +162,10 @@ class SentimentManager:
         # 'Target topic: ' is the topic
         else:
             filters_text, labels_text = response_text.split("\n")
-            response["filters"] = self._clean_up_filters(filters_text)
-            response["topic"] = labels_text.split("Target topic: ")[1]
-            return response
+            return QueryParamsResults(
+                filters=self._clean_up_filters(filters_text),
+                topic=labels_text.split("Target topic: ")[1],
+            )
 
     @classmethod
     def _clean_up_filters(cls, filters_text: str) -> Dict[str, str]:

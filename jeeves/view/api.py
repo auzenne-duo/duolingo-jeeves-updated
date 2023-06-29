@@ -53,7 +53,9 @@ def get_query_params():
     query_string = request.args.get("q")
     if not query_string:
         abort(make_response("Please provide `q` parameter", 400))
-    return json.jsonify(app_registry(SentimentManager).get_query_parameters(query_string))
+    return json.jsonify(
+        app_registry(SentimentManager).get_query_parameters(query_string).convert_to_dict()
+    )
 
 
 @blueprint_api.route("/api/1/<lang>/tickets", methods=["GET"])

@@ -102,7 +102,11 @@ filter_documents_using_topic_test_cases = [
 
 
 @patch("jeeves.dal.ai_completions_dal.AICompletionsDAL")
-def test_get_query_parameters(mock_ai_completions_dal):
+@patch("jeeves.dal.opensearch_interface.OpenSearchDAL")
+@patch("jeeves.dal.sentiment_classifier_dal.SentimentClassifierDAL")
+def test_get_query_parameters(
+    mock_ai_completions_dal, mock_opensearch_dal, mock_sentiment_classifier_dal
+):
     """
     Tests that the get_query_parameters function correctly processes the output from ai_completions_backend
     """
@@ -111,8 +115,10 @@ def test_get_query_parameters(mock_ai_completions_dal):
         "now-1M TO now]\nTarget topic: Leaderboards"
     )
     user_prompt = "What do people on Twitter think about leaderboards on Android in the last month?"
-    sentiment_manager = SentimentManager(mock_ai_completions_dal)
-    response = sentiment_manager.get_query_parameters(user_prompt)
+    sentiment_manager = SentimentManager(
+        mock_ai_completions_dal, mock_opensearch_dal, mock_sentiment_classifier_dal
+    )
+    response = sentiment_manager.get_query_parameters(user_prompt).convert_to_dict()
     assert response["filters"] == {
         "data_source": "Twitter",
         "platform": "Android",
@@ -130,17 +136,27 @@ def test_get_query_parameters(mock_ai_completions_dal):
 
 
 @patch("jeeves.dal.ai_completions_dal.AICompletionsDAL")
+@patch("jeeves.dal.opensearch_interface.OpenSearchDAL")
+@patch("jeeves.dal.sentiment_classifier_dal.SentimentClassifierDAL")
 @pytest.mark.parametrize(
     "document_list,target_topic,target_embedding,expected_filtered_list",
     filter_documents_using_topic_test_cases,
 )
 def test_filter_documents_using_topic(
-    mock_ai_completions_dal, document_list, target_topic, target_embedding, expected_filtered_list
+    mock_ai_completions_dal,
+    mock_opensearch_dal,
+    mock_sentiment_classifier_dal,
+    document_list,
+    target_topic,
+    target_embedding,
+    expected_filtered_list,
 ):
     """
     Tests that documents irrelevant to the target topic will be filtered out
     """
-    sentiment_manager = SentimentManager(mock_ai_completions_dal)
+    sentiment_manager = SentimentManager(
+        mock_ai_completions_dal, mock_opensearch_dal, mock_sentiment_classifier_dal
+    )
     mock_ai_completions_dal.request_embedding.return_value = target_embedding
     actual_filtered_list = sentiment_manager.filter_documents_using_topic(
         document_list, target_topic

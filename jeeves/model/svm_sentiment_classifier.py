@@ -110,7 +110,7 @@ class SVMSentimentClassifier(SentimentAnalysisClassifier):
         return [
             SentimentScoredDocument(
                 jeeves_document=document_list[i],
-                label=class_probs[i].argmax(),
+                label=self.num_to_label[class_probs[i].argmax()],
                 sentiment_score=class_probs[i][2] - class_probs[i][0],
             )
             for i in range(len(document_list))
