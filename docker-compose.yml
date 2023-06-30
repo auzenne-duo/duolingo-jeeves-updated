@@ -112,7 +112,7 @@ services:
       start_period: 60s
       test: curl --output /dev/null --silent --fail -X GET "http://opensearch:9200/_cluster/health?wait_for_status=green&timeout=5s"
       timeout: 10s
-    image: curlimages/curl
+    image: curlimages/curl:8.1.1
     networks:
       - opensearch-net
     volumes:
@@ -202,7 +202,7 @@ services:
     networks:
       - localstack-net
       - opensearch-net
-    restart: on-failure
+    restart: always
     volumes:
       - .:/code
       - ./config/aws_credentials_local:/root/.aws/credentials

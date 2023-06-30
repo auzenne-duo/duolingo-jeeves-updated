@@ -12,6 +12,7 @@ type Action =
   | { type: "LOADING" }
   | { issue: ReportedIssue; type: "REPORTED_ISSUE" }
   | { query: string; type: "SEARCH" }
+  | { query: string; type: "SEARCH_NLP" }
   | { type: "SHOW_ASIDE" }
   | { type: "SHOW_MENU" }
   | { type: "TOGGLE_ASIDE" }
@@ -29,6 +30,7 @@ interface State {
   /** Keep a list of issues reported to Jira/Slack since the page was last refreshed. */
   reportedIssues: ReportedIssue[];
   searchHistory: string[];
+  searchHistoryNLP: string[];
   showAside: boolean;
   showMenu: boolean;
 }
@@ -37,6 +39,9 @@ export const initialState: State = {
   loading: false,
   reportedIssues: [],
   searchHistory: JSON.parse(localStorage.getItem("searchHistory") ?? "[]"),
+  searchHistoryNLP: JSON.parse(
+    localStorage.getItem("searchHistoryNLP") ?? "[]",
+  ),
   showAside: false,
   showMenu: canFitMenuAndContent(),
 };
@@ -78,6 +83,19 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
         searchHistory: [
           action.query.trim(),
           ...state.searchHistory
+            .filter(q => q !== action.query.trim())
+            .slice(0, 20),
+        ],
+      };
+    case "SEARCH_NLP":
+      if (action.query.trim() === "") {
+        return state;
+      }
+      return {
+        ...state,
+        searchHistoryNLP: [
+          action.query.trim(),
+          ...state.searchHistoryNLP
             .filter(q => q !== action.query.trim())
             .slice(0, 20),
         ],

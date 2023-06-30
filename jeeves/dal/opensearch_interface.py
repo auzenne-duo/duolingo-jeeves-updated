@@ -5,7 +5,7 @@ import time
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
-from typing import Dict, Generator, Iterator, List, Optional, Set, Union
+from typing import Any, Dict, Generator, Iterator, List, Optional, Set, Union, cast
 
 import numpy as np
 import rollbar
@@ -32,6 +32,7 @@ from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
+from jeeves.model.matching_document import MatchingDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
@@ -1119,7 +1120,7 @@ class OpenSearchDAL:
 
     def _ensure_specific_jira_issue(
         self, issue_key: str, force_download: bool = False
-    ) -> Optional[JeevesDocument]:
+    ) -> Optional[JiraDocument]:
         """
         Determines if we have a particular JIRA issue indexed already.
 
@@ -1143,26 +1144,29 @@ class OpenSearchDAL:
         # First, determine if we already have the requested document.
         # We could do a call to count_by_arbitrary_keywords here but if we have
         # the document then we'll need to call this anyway.
-        filter_results = list(self.filter_by_arbitrary_keywords({"issue_key.keyword": issue_key}))
+        filter_results: List[JeevesDocument] = list(
+            self.filter_by_arbitrary_keywords({"issue_key.keyword": issue_key})
+        )
 
-        base_document = None
+        base_document: Optional[JiraDocument]
 
+        n_results = len(filter_results)
         # If Python had switch statements I would use one but here we are.
         # I'm explicitly checking the length of the list against 0 to emulate a
         # switch statement structure.
-        if force_download or len(filter_results) == 0:
+        if force_download or n_results == 0:
             jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
             base_document = jira_manager.download_specific_issue(issue_key)
             self.bulk_index_tickets([base_document])
 
-        elif len(filter_results) == 1:
-            base_document = filter_results[0]
+        elif n_results == 1:
+            base_document = cast(filter_results[0], JiraDocument)
 
         else:
             # There is no way we should ever get here and if we do something
             # very broken has happened.
             raise Exception(
-                f"Filtering to find issue {issue_key} somehow returned {len(filter_results)} results. Please investigate."
+                f"Filtering to find issue {issue_key} somehow returned {n_results} results. Please investigate."
             )
 
         return base_document
@@ -1206,7 +1210,7 @@ class OpenSearchDAL:
             A list of suspected duplicate issues.
         """
 
-        target_doc = self._ensure_specific_jira_issue(issue_key)
+        target_doc: JiraDocument = self._ensure_specific_jira_issue(issue_key)
 
         if not target_doc:
             print(f"Requested issue with key {issue_key} could not be found.")
@@ -1237,14 +1241,12 @@ class OpenSearchDAL:
 
         response = self._es.search(index=self._indexname, body=query_body)
         result_docs = [
-            IDManagerMap.get_manager_for_identifier(hit["_source"]["data_source"])
-            .get_managed_document_type()
-            .deserialize_from_internal_json(hit["_source"])
+            MatchingDocument.from_response_hit(hit)
             for hit in response["hits"]["hits"]
             if hit["_score"] >= 0.8
         ]
         if should_filter_project:
-            result_docs = [doc for doc in result_docs if doc.project == target_doc.project]
+            result_docs = [d.doc for d in result_docs if d.doc.project == target_doc.project]
         # Filter out issue from its own duplicate list
         result_docs = [doc for doc in result_docs if doc.issue_key != target_doc.issue_key]
         # Filter out known duplicates and clones from duplicate list
@@ -1279,6 +1281,56 @@ class OpenSearchDAL:
             excluded_keys.update(doc.linked_duplicate_keys)
 
         return result_docs
+
+    def perform_knn_search(
+        self,
+        filters: Dict[str, Any],
+        query_embedding: List[float],
+        max_search_depth: int = 50,
+        num_results: int = 5,
+        threshold: float = 0.8,
+    ) -> Dict[str, MatchingDocument]:
+        """
+        Perform a k-NN search on the OpenSearch index against an embeddings vector as well
+        as a set of Query DSL filters extracted by GPT.
+
+        Parameters:
+            filters (Dict[str, Any]): A set of Query DSL filters extracted by GPT
+            query_embedding (List[float]): The embeddings vector to search against
+            max_search_depth (int): Optional. Maximum number of documents to search through
+                                    in order to find num_results hits (default 50).
+            num_results (int): Optional. Number of results to display to user (default 5)
+            threshold (float): Optional. Minimum score for a result to be returned (default 0.8)
+        """
+
+        query_body = {
+            "size": max_search_depth,
+            "query": {
+                "bool": {
+                    "filter": filters,
+                    "must": [
+                        {
+                            "knn": {
+                                f"embeddings.{GPT_EMBEDDING_MODEL}": {
+                                    "k": max_search_depth,
+                                    "vector": query_embedding,
+                                }
+                            }
+                        }
+                    ],
+                }
+            },
+        }
+
+        response = self._es.search(index=self._indexname, body=query_body)
+        result_docs = {
+            hit["_source"]["jeeves_uid"]: MatchingDocument.from_response_hit(hit)
+            for hit in response["hits"]["hits"]
+            if hit["_score"] >= threshold
+        }
+
+        # Get first num_results items from result_docs dict
+        return {k: result_docs[k] for k in list(result_docs.keys())[:num_results]}
 
     def get_parent_for_jira(self, target_doc: JeevesDocument) -> Optional[JeevesDocument]:
         """

@@ -1,6 +1,8 @@
 """
 Our model for a JIRA issue from the JIRA API
 """
+from __future__ import annotations
+
 import datetime
 import sys
 from typing import Dict, List, Union
@@ -193,7 +195,7 @@ class JiraDocument(JeevesDocument):
         return cls._feature_field_key
 
     @classmethod
-    def deserialize_from_external_json(cls, external_json: JSON) -> JeevesDocument:
+    def deserialize_from_external_json(cls, external_json: JSON) -> JiraDocument:
         """
         Please see parent class for documentation
         """
@@ -298,7 +300,7 @@ class JiraDocument(JeevesDocument):
         )
 
     @classmethod
-    def deserialize_from_internal_json(cls, internal_json: JSON) -> JeevesDocument:
+    def deserialize_from_internal_json(cls, internal_json: JSON) -> JiraDocument:
         if internal_json.get("feature_url") is None:
             print(f"feature_url is missing for {internal_json['issue_key']}", file=sys.stderr)
         """

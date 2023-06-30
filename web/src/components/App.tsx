@@ -10,6 +10,7 @@ import Topbar from "components/Topbar";
 import Analysis from "components/pages/Analysis";
 import Dashboard from "components/pages/Dashboard";
 import Discovery from "components/pages/Discovery";
+import NLPSearch from "components/pages/NLPSearch";
 import Spike from "components/pages/Spike";
 import SpikeStats from "components/pages/SpikeStats";
 import AppStateContext, {
@@ -104,6 +105,9 @@ const App = () => {
                 </Route>
                 <Route path="/:lang/discovery">
                   <Discovery />
+                </Route>
+                <Route path="/:lang/nlp-search">
+                  <NLPSearch />
                 </Route>
                 <Route path="/:lang/spike">
                   <Spike />

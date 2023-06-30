@@ -16,7 +16,8 @@ from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.lib.send_issue_fixed_emails import IssueFixedEmailSender
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
-from jeeves.manager.sentiment_manager import SentimentManager
+from jeeves.manager.nlp_search_manager import NLPSearchManager
+from jeeves.manager.query_helper import QueryHelper
 from jeeves.manager.shakira import ShakiraManager
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
@@ -53,9 +54,7 @@ def get_query_params():
     query_string = request.args.get("q")
     if not query_string:
         abort(make_response("Please provide `q` parameter", 400))
-    return json.jsonify(
-        app_registry(SentimentManager).get_query_parameters(query_string).convert_to_dict()
-    )
+    return json.jsonify(app_registry(QueryHelper).get_dsl_query_and_topics(query_string))
 
 
 @blueprint_api.route("/api/1/<lang>/tickets", methods=["GET"])
@@ -673,6 +672,19 @@ def get_spike_categories():
     return json.jsonify(
         [{"value": member.name, "text": member.display_name} for member in SpikeCategory]
     )
+
+
+@blueprint_api.route("/api/3/nlp_search", methods=["POST"])
+def nlp_search():
+    query = request.args.get("q")
+    if not query:
+        abort(make_response("Please provide a query text parameter `q`.", 400))
+
+    num_results = int(request.args.get("num_results", "5"))
+    max_search_depth = int(request.args.get("max_search_depth", "50"))
+
+    result = app_registry(NLPSearchManager).nlp_search(query, num_results, max_search_depth)
+    return json.jsonify(result)
 
 
 @blueprint_api.route("/", defaults={"path": ""})

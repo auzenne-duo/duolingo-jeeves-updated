@@ -1,9 +1,10 @@
 """
 Main entry point for running the service, through command line or mod_wsgi.
 """
-
+import io
 import logging
 import os
+import sys
 
 from duolingo_base.config import Config
 from duolingo_base.view.auth import auth_after_request, requires_auth
@@ -14,6 +15,10 @@ from jeeves import apply_registry_to_app, close_registry, registry as app_regist
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+logging.basicConfig(stream=sys.stdout, encoding="utf-8", level=logging.INFO)
 
 LOG = logging.getLogger("application")
 

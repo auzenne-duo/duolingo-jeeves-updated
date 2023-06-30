@@ -53,6 +53,13 @@ const Sidebar = ({ onItemClick }: Props) => {
       </LinkItem>
       <LinkItem
         onClick={onItemClick}
+        title="Ask free-text questions to GPT about Jeeves documents."
+        to={`/${lang}/nlp-search`}
+      >
+        NLP Search (Beta)
+      </LinkItem>
+      <LinkItem
+        onClick={onItemClick}
         title="Browse the list of trending words where the volume of matched tickets spiked."
         to={`/${lang}/spike`}
       >

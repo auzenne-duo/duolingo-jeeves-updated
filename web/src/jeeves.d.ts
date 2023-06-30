@@ -72,6 +72,15 @@ declare namespace JSONAPI {
     };
   }
 
+  interface LanguageContent {
+    body: string;
+    // The original body text of the document, taken directly from OpenSearch, so that we can check if GPT
+    //   has changed the text somehow while formatting with markup tags
+    body_orig: string;
+    language: string;
+    title: string;
+  }
+
   type LanguageId =
     | "de"
     | "fr"
@@ -82,6 +91,27 @@ declare namespace JSONAPI {
     | "ru"
     | "xx"
     | "zh";
+
+  interface NLPSearchRequest {
+    q: string;
+  }
+
+  interface NLPSearchResponse {
+    answer: string;
+    lucene_query: string[];
+    query: string;
+    results: NLPSearchResult[];
+  }
+
+  interface NLPSearchResult {
+    datetime: string;
+    origin: string;
+    original_text: LanguageContent;
+    score: number;
+    translated_text?: LanguageContent;
+    uid: string;
+    url?: string;
+  }
 
   type Platform = "Android" | "iOS" | "Web";
 

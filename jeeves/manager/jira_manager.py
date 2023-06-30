@@ -95,10 +95,15 @@ class JiraManager(JeevesManager):
                 s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)
             )
         except S3Exception as e:
-            print(f"No checkpoint file found for bucket {bucket_name}, creating one now", e)
+            print(
+                f"No checkpoint file found for bucket {bucket_name}, creating one now",
+                e,
+                flush=True,
+            )
 
         if not checkpoint_files:
             new_checkpoint_string = str(int(default_start_timestamp * 1000))
+            print(f"Making new checkpoint file {new_checkpoint_string}", flush=True)
             s3_client.upload(bucket_name, _CHECKPOINT_FILE, new_checkpoint_string)
 
         start_timestamp_millis = int(s3_client.download(bucket_name, _CHECKPOINT_FILE))
@@ -129,7 +134,7 @@ class JiraManager(JeevesManager):
                 s3_client.upload(bucket_name, _CHECKPOINT_FILE, f"{start_timestamp_millis}")
 
     @staticmethod
-    def download_specific_issue(issue_key: str) -> Optional[JeevesDocument]:
+    def download_specific_issue(issue_key: str) -> Optional[JiraDocument]:
         """
         Performs a one-off download of a specific issue with the given issue key.
         It is assumed but not required that Jeeves does not already have the

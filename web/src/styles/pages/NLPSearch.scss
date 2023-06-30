@@ -1,0 +1,29 @@
+@use "../constants" as *;
+
+.explanation {
+  display: grid;
+  font-size: 15px;
+  grid-gap: 2 * $juicy-length;
+  width: 100%;
+  text-align: center;
+
+  ul {
+    margin: 0;
+  }
+}
+
+.h1 {
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.search {
+  margin-left: 10%;
+  margin-right: 10%;
+  text-align: center;
+  width: 80%;
+  --web-ui_search-suggestions-max-height: min(
+    calc(100vh - 15px - var(--margin)),
+    450px
+  );
+}

@@ -3,7 +3,7 @@ DAL for accessing GPT-4 using the duolingo-ai-completions api.
 """
 
 import os
-from typing import Optional
+from typing import List, Optional
 
 import requests
 from duolingo_base.dal import auth_api
@@ -32,6 +32,7 @@ _EMBEDDING_REQUEST_ROUTE = "/1/ai-completions/embeddings"
 _EMBEDDING_MODEL = "text-embedding-ada-002"
 
 _CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions"
+_CHAT_COMPLETIONS_MODEL = "gpt-dv-duo"
 
 
 @registry.bind(api_client=registry.reference(AICompletionsClient))
@@ -39,13 +40,17 @@ class AICompletionsDAL:
     def __init__(self, api_client: DuolingoApiClient):
         self.client = api_client
 
-    def ask(self, system_prompt, user_prompt):
+    def ask(self, system_prompt: str, user_prompt: str, max_tokens: int = 512):
         body = {
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            "modelParameters": {"model": "gpt-dv-duo", "maxTokens": 512, "topP": 1.0},
+            "modelParameters": {
+                "model": _CHAT_COMPLETIONS_MODEL,
+                "maxTokens": max_tokens,
+                "topP": 1.0,
+            },
             "taskName": "general",
         }
 
@@ -53,7 +58,7 @@ class AICompletionsDAL:
             response = self.client.put(
                 _CHAT_COMPLETIONS_ROUTE,
                 json=body,
-                timeout=30,
+                timeout=90,
             )
             response.raise_for_status()
             return response.json()["message"]["content"]
@@ -61,7 +66,7 @@ class AICompletionsDAL:
             print_request_exception(e, rollbar_level="warning")
             return None
 
-    def request_embedding(self, text: str) -> Optional[str]:
+    def request_embedding(self, text: str) -> Optional[List[float]]:
         try:
             response = self.client.put(
                 _EMBEDDING_REQUEST_ROUTE,

@@ -1,0 +1,16 @@
+@use "constants" as *;
+
+.answer {
+  font-size: 19px;
+}
+
+.error {
+  color: red;
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.loading {
+  font-size: 17px;
+  font-weight: bold;
+}
