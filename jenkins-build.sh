@@ -11,6 +11,7 @@ MODULE_SQS_WORKER_2=duolingo-jeeves-sqs-worker-2
 MODULE_SPIKE_WORKER=duolingo-jeeves-spike-worker
 MODULE_EMAIL_SENDER=duolingo-jeeves-email-sender
 MODULE_PRIORITY_ESTIMATOR_UPDATER=duolingo-jeeves-priority-estimator-updater
+MODULE_ENSURE_EMBEDDINGS_WORKER=duolingo-jeeves-ensure-embeddings-worker
 
 DEV_TERRAFORM_ENV=dev
 
@@ -82,6 +83,7 @@ if [[ $TERRAFORM_ENV == "prod" ]]; then
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_SPIKE_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_EMAIL_SENDER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_PRIORITY_ESTIMATOR_UPDATER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+  echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_ENSURE_EMBEDDINGS_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
 
   # --- run Jira Feature creation script ---
 

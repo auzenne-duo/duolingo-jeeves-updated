@@ -5,7 +5,7 @@ import time
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
-from typing import Dict, Iterator, List, Optional, Set, Union
+from typing import Dict, Generator, Iterator, List, Optional, Set, Union
 
 import numpy as np
 import rollbar
@@ -751,6 +751,32 @@ class OpenSearchDAL:
             "avg_docs_per_day": np.mean(list(date_to_doc_count.values())),
             "words": stats,
         }
+
+    def scroll_arbitrary_query(self, jsn: JSON) -> Generator[JeevesDocument, None, None]:
+        """
+        Given JSON representing an arbitrary OpenSearch query, executes a scroll for that
+        query and yields the results.
+
+        Parameters:
+            jsn: JSON object representing the query to execute
+
+        Returns:
+            A generator of documents that match the query criteria
+        """
+        resp = self._es.search(  # pylint: disable=unexpected-keyword-arg
+            index=self._indexname,
+            body=jsn,
+            scroll="2s",
+        )
+
+        old_scroll_id = resp["_scroll_id"]
+
+        while len(resp["hits"]["hits"]):
+            yield from resp["hits"]["hits"]
+            resp = self._es.scroll(  # pylint: disable=unexpected-keyword-arg
+                scroll_id=old_scroll_id, scroll="2s"
+            )
+            old_scroll_id = resp["_scroll_id"]
 
     def generate_sentiment_docs_from_filters(self, filters: Dict[str, str]) -> List[JeevesDocument]:
         """

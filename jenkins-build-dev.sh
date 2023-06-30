@@ -11,6 +11,7 @@ MODULE_SQS_WORKER_2=duolingo-jeeves-sqs-worker-2
 MODULE_SPIKE_WORKER=duolingo-jeeves-spike-worker
 MODULE_EMAIL_SENDER=duolingo-jeeves-email-sender
 MODULE_PRIORITY_ESTIMATOR_UPDATER=duolingo-jeeves-priority-estimator-updater
+MODULE_ENSURE_EMBEDDINGS_WORKER=duolingo-jeeves-ensure-embeddings-worker
 
 TERRAFORM_ENV=dev
 TERRAFORM_PATH="galaxy/$TERRAFORM_ENV"
@@ -49,4 +50,7 @@ if $DEPLOY_EMAIL_SENDER; then
 fi
 if $DEPLOY_PRIORITY_ESTIMATOR_UPDATER; then
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_PRIORITY_ESTIMATOR_UPDATER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
+fi
+if $DEPLOY_ENSURE_EMBEDDINGS_WORKER; then
+  echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_ENSURE_EMBEDDINGS_WORKER" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"
 fi

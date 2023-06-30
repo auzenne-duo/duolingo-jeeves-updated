@@ -7,6 +7,7 @@ from typing import Dict, List, Union
 
 import attr
 
+from jeeves.config.config import SENTENCE_TRANSFORMER_MODEL
 from jeeves.lib.duplicate_detector import DuplicateIssueDetector
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
@@ -430,8 +431,9 @@ class JiraDocument(JeevesDocument):
             target: The JeevesDocument object we want to have an embedding vector for
         """
         assert target.data_source == cls.get_data_source_identifier()
-        if target.embeddings:
-            return
+
+        if target.embeddings and target.embeddings.get(SENTENCE_TRANSFORMER_MODEL):
+            return target.embeddings.get(SENTENCE_TRANSFORMER_MODEL)
 
         cls._initialize_duplicate_detector()
         return (

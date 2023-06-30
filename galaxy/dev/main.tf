@@ -357,3 +357,37 @@ module "duolingo-jeeves-priority-estimator-updater" {
     },
   ]
 }
+
+module "duolingo-jeeves-ensure-embeddings-worker" {
+  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  environment          = var.environment
+  service              = var.service
+  subservice           = "ensure-embeddings-worker"
+  cpu                  = 1024 # 1024 equals one core
+  memory               = 4096 # in MB
+  min_count            = 1    # Minimum number of tasks to run in autoscaling group
+  max_count            = 1    # Maximum number of tasks to run in autoscaling group
+  product              = var.product
+  owner                = var.owner       # The name of the owner for this service
+  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  container_definition = "ensure-embeddings-worker.json"
+  schedule_expression  = "cron(0 17,21 ? * * *)"
+  release_version      = var.release_version
+  environment_vars = [
+    {
+      name  = "PYTHONPATH"
+      value = "/code"
+    },
+  ]
+
+  secrets = [
+    {
+      name  = "DUOLINGO_USERNAME"
+      value = "DUOLINGO_USERNAME/000001"
+    },
+    {
+      name  = "DUOLINGO_PASSWORD"
+      value = "DUOLINGO_PASSWORD/000000"
+    }
+  ]
+}
