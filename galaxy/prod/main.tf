@@ -398,7 +398,7 @@ module "duolingo-jeeves-ensure-embeddings-worker" {
   max_count            = 1    # Maximum number of tasks to run in autoscaling group
   product              = var.product
   owner                = var.owner       # The name of the owner for this service
-  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster on which to run
   container_definition = "ensure-embeddings-worker.json"
   schedule_expression  = "cron(0 11 ? * * *)"
   release_version      = var.release_version
