@@ -73,4 +73,6 @@ class TopicDefinitionManager:
         response_text = self.ai_completions_dal.ask(
             TOPIC_DEFINITION_SYSTEM_PROMPT, f"{REQ_TOPIC}: {target_topic}"
         )
+        if response_text is None:
+            return target_topic
         return response_text.split(f"{RESP_DESCRIPTION}: ")[1]
