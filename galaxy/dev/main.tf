@@ -371,7 +371,7 @@ module "duolingo-jeeves-ensure-embeddings-worker" {
   owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "ensure-embeddings-worker.json"
-  schedule_expression  = "cron(0 17,21 ? * * *)"
+  schedule_expression  = "cron(0 17 ? * * *)"
   release_version      = var.release_version
   environment_vars = [
     {
