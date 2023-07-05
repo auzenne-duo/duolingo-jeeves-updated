@@ -163,6 +163,7 @@ JIRA_FEATURES = {
             "DuoShorts": ["duo shorts"],
             "Stories": ["story"],
             "Pronunciation Bingo": [],
+            "DuoRadio": [],
         },
     },
     "Learning Scaling": {
