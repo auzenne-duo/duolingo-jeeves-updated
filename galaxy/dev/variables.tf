@@ -27,3 +27,15 @@ variable "office_cidr_blocks" {
   description = "List of CIDR blocks for office addresses/subnets"
   default     = ["10.1.0.0/16", "10.10.0.0/24", "10.11.0.0/24", "10.12.0.0/24", "10.30.0.0/16"]
 }
+
+variable "github_repository" {
+  default = "duolingo-jeeves"
+}
+
+variable "pagerduty_rotation" {
+  default = "none"
+}
+
+variable "team" {
+  default = "delight@duolingo.com"
+}

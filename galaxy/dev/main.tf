@@ -2,6 +2,14 @@
 provider "aws" {
   region  = "us-east-1"
   version = "~> 3.0"
+
+  default_tags {
+    tags = {
+      github-repo = var.github_repository
+      pd-rotation = var.pagerduty_rotation
+      team        = var.team
+    }
+  }
 }
 
 terraform {

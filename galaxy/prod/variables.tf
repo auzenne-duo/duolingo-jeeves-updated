@@ -25,3 +25,11 @@ variable "ecs_cluster" {
 variable "pagerduty_rotation" {
   default = "fireant"
 }
+
+variable "github_repository" {
+  default = "duolingo-jeeves"
+}
+
+variable "team" {
+  default = "delight@duolingo.com"
+}
