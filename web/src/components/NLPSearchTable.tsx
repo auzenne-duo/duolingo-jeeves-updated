@@ -18,7 +18,6 @@ const NLPSearchTable = ({ docs }: Props) => {
           <th className={styles.document}>Document</th>
           <th>Text (Hover to see full text)</th>
           {hasTranslation && <th>Translation</th>}
-          <th className={styles.score}>Score</th>
         </tr>
       </thead>
       <tbody>
@@ -31,7 +30,6 @@ const NLPSearchTable = ({ docs }: Props) => {
             </td>
             <NLPSearchCell cell={d.original_text} />
             {hasTranslation && <NLPSearchCell cell={d.translated_text} />}
-            <td className={styles.score}>{d.score.toFixed(4)}</td>
           </tr>
         ))}
       </tbody>
