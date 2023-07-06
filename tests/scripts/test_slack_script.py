@@ -2,7 +2,7 @@ import unittest
 
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
-from jeeves.scripts.slack import (
+from jeeves.scripts.index_pipeline_and_spike_detector.slack import (
     generate_slack_message,
     get_jeeves_analysis_query_params,
     get_yesterdays_date,

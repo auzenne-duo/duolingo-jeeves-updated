@@ -74,7 +74,7 @@ Set up instructions:
 
 - Set the `SPIKE_REPORTER_SLACK_API_TOKEN` environment variable, or comment out the code that makes the request to the Slack API.
 - Run the steps above to set up the Python virtual environment
-- Run `./env/bin/python ./jeeves/scripts/slack.py`
+- Run `./env/bin/python ./jeeves/scripts/index_pipeline_and_spike_detector/slack.py`
 
 ## Import Infrastructure
 

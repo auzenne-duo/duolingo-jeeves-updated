@@ -10,7 +10,7 @@
         "softLimit": 65535,
         "hardLimit": 65535
     }],
-    "command": ["python","./jeeves/scripts/slack.py"],
+    "command": ["python","./jeeves/scripts/index_pipeline_and_spike_detector/slack.py"],
     "environment": [
         {"name": "PYTHONPATH", "value": "/code"},
         {"name": "SPIKE_REPORTER_SLACK_API_TOKEN", "value": "${cookie_secret}"}

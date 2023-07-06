@@ -90,7 +90,7 @@ if [[ $TERRAFORM_ENV == "prod" ]]; then
   set +x
   export SHAKIRA_JIRA_API_TOKEN_WEB=$(aws secretsmanager get-secret-value --secret-id 'PRODUCT_QUALITY_JIRA_TOKEN' | jq -r '.SecretString')
   set -x
-  docker run -e SHAKIRA_JIRA_USERNAME_WEB="jira-automation@duolingo.com" -e SHAKIRA_JIRA_API_TOKEN_WEB $IMAGE_HASH python jeeves/scripts/create_jira_features.py
+  docker run -e SHAKIRA_JIRA_USERNAME_WEB="jira-automation@duolingo.com" -e SHAKIRA_JIRA_API_TOKEN_WEB $IMAGE_HASH python jeeves/scripts/shakira/create_jira_features.py
 else
   echo "No auto-deployment in dev environment."
 fi

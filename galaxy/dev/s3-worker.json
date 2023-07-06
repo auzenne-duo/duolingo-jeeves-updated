@@ -12,7 +12,7 @@
     }],
     "environment": ${environment_vars},
     "secrets": ${secrets},
-    "command": ["python", "./jeeves/scripts/update_jeeves_data.py"],
+    "command": ["python", "./jeeves/scripts/index_pipeline_and_spike_detector/update_jeeves_data.py"],
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {

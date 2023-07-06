@@ -5,7 +5,7 @@ Script for validating zero-shot sentiment classification on all Jeeves data
 from jeeves import registry as app_registry
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
 from jeeves.model.zero_shot_classifier import NEGATIVE_TARGET_STRING, POSITIVE_TARGET_STRING
-from jeeves.scripts.generate_sentiment_dataset import deserialize_labeled_data_to_json
+from jeeves.scripts.gpt_search.generate_sentiment_dataset import deserialize_labeled_data_to_json
 from jeeves.util.polarity_calculator import calc_polarity
 
 if __name__ == "__main__":

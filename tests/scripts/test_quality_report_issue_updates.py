@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytz
 
-from jeeves.scripts.quality_report_issue_updates import (
+from jeeves.scripts.quality_reports.quality_report_issue_updates import (
     check_issue_updates,
     check_quality_report_updates,
 )
@@ -43,8 +43,10 @@ mockJiraDocument.deserialize_from_external_json.side_effect = lambda x: MagicMoc
 
 
 class TestQualityReportUtil(unittest.TestCase):
-    @patch("jeeves.scripts.quality_report_issue_updates.JiraDAL")
-    @patch("jeeves.scripts.quality_report_issue_updates.JiraDocument", mockJiraDocument)
+    @patch("jeeves.scripts.quality_reports.quality_report_issue_updates.JiraDAL")
+    @patch(
+        "jeeves.scripts.quality_reports.quality_report_issue_updates.JiraDocument", mockJiraDocument
+    )
     def test_check_issue_updates(self, mockJiraDAL):
 
         mockJiraDAL.paginate_search_issues.return_value = [
@@ -62,16 +64,18 @@ class TestQualityReportUtil(unittest.TestCase):
         self.assertEqual(update_actions, expected_update_actions)
 
     @patch(
-        "jeeves.scripts.quality_report_issue_updates.JIRA_FEATURES",
+        "jeeves.scripts.quality_reports.quality_report_issue_updates.JIRA_FEATURES",
         {"area": {"team": [], "team2": []}},
     )
     @patch(
-        "jeeves.scripts.quality_report_issue_updates.datetime",
+        "jeeves.scripts.quality_reports.quality_report_issue_updates.datetime",
         MagicMock(now=MagicMock(return_value=datetime(2021, 9, 10).replace(tzinfo=pytz.utc))),
     )
-    @patch("jeeves.scripts.quality_report_issue_updates.upload_to_jeeves_s3")
-    @patch("jeeves.scripts.quality_report_issue_updates.check_issue_updates")
-    @patch("jeeves.scripts.quality_report_issue_updates.get_past_quality_issue_data")
+    @patch("jeeves.scripts.quality_reports.quality_report_issue_updates.upload_to_jeeves_s3")
+    @patch("jeeves.scripts.quality_reports.quality_report_issue_updates.check_issue_updates")
+    @patch(
+        "jeeves.scripts.quality_reports.quality_report_issue_updates.get_past_quality_issue_data"
+    )
     def test_check_quality_report_updates(
         self, mock_get_past_quality_issue_data, mock_check_issue_updates, mock_upload
     ):

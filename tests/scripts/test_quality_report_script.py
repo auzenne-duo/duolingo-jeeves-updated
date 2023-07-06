@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
-from jeeves.scripts.quality_report_script import (
+from jeeves.scripts.quality_reports.quality_report_script import (
     filter_dev_issues,
     generate_and_save_pdf,
     resolve_duplicate_graphs,
@@ -163,8 +163,8 @@ mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
 
 
 class TestQualityReportScript(unittest.TestCase):
-    @patch("jeeves.scripts.quality_report_script.JiraDAL")
-    @patch("jeeves.scripts.quality_report_script.JiraManager")
+    @patch("jeeves.scripts.quality_reports.quality_report_script.JiraDAL")
+    @patch("jeeves.scripts.quality_reports.quality_report_script.JiraManager")
     def test_search_for_issues(self, MockJiraManager, MockJiraDAL):
         MockJiraDAL.paginate_search_issues.return_value = (
             issue for issue in [JIRA_EXTERNAL_JSON_1]
@@ -176,10 +176,10 @@ class TestQualityReportScript(unittest.TestCase):
         self.assertEqual(result, expected)
 
     @patch(
-        "jeeves.scripts.quality_report_script.IDManagerMap",
+        "jeeves.scripts.quality_reports.quality_report_script.IDManagerMap",
         MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
     )
-    @patch("jeeves.scripts.quality_report_script.app_registry")
+    @patch("jeeves.scripts.quality_reports.quality_report_script.app_registry")
     def test_resolve_duplicate_graphs(self, mock_app_registry):
         def mock_get_duplicate_graph(
             issues: List[JiraDocument], key_to_doc: Dict[str, JiraDocument]
@@ -216,7 +216,7 @@ class TestQualityReportScript(unittest.TestCase):
         self.assertEqual(result[1], expected_key_to_issue)
 
     @patch(
-        "jeeves.scripts.quality_report_script.IDManagerMap",
+        "jeeves.scripts.quality_reports.quality_report_script.IDManagerMap",
         MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
     )
     def test_filter_dev_issues(self):
@@ -231,10 +231,13 @@ class TestQualityReportScript(unittest.TestCase):
         expected = sorted([JIRA_DOCUMENT_1, JIRA_DOCUMENT_2])
         self.assertEqual(sorted(result), expected)
 
-    @patch("jeeves.scripts.quality_report_script.makepdf", MagicMock(return_value="pdf"))
-    @patch("jeeves.scripts.quality_report_script.send_email")
-    @patch("jeeves.scripts.quality_report_script.upload_to_internal_static")
-    @patch("jeeves.scripts.quality_report_script.upload_to_jeeves_s3")
+    @patch(
+        "jeeves.scripts.quality_reports.quality_report_script.makepdf",
+        MagicMock(return_value="pdf"),
+    )
+    @patch("jeeves.scripts.quality_reports.quality_report_script.send_email")
+    @patch("jeeves.scripts.quality_reports.quality_report_script.upload_to_internal_static")
+    @patch("jeeves.scripts.quality_reports.quality_report_script.upload_to_jeeves_s3")
     def test_generate_and_save_pdf(self, mock_upload_s3, mock_upload_static, mock_send_email):
         report = MagicMock(title="title", end_data=datetime(2001, 1, 1))
         generate_and_save_pdf(report)

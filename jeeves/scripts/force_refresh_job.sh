@@ -10,4 +10,4 @@ export PYTHONPATH="$WORKSPACE"
 pip install -U pip wheel setuptools
 pip install -r dev-requirements.txt
 
-python jeeves/scripts/force_refresh.py
+python jeeves/scripts/index_pipeline_and_spike_detector/force_refresh.py

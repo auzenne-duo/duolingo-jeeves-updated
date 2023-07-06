@@ -155,7 +155,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.local
-    command: ["python", "./jeeves/scripts/update_jeeves_data.py"]
+    command:
+      [
+        "python",
+        "./jeeves/scripts/index_pipeline_and_spike_detector/update_jeeves_data.py",
+      ]
     depends_on:
       api:
         condition: service_healthy
@@ -183,7 +187,12 @@ services:
 
   spike-worker:
     image: duolingojeeves_api_local
-    command: ["python", "/code/jeeves/scripts/spike_worker.py", "True"]
+    command:
+      [
+        "python",
+        "/code/jeeves/scripts/index_pipeline_and_spike_detector/spike_worker.py",
+        "True",
+      ]
     build:
       context: .
       dockerfile: Dockerfile.local
@@ -211,7 +220,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.local
-    command: ["python", "/code/jeeves/scripts/sqs_verify_worker.py"]
+    command:
+      [
+        "python",
+        "/code/jeeves/scripts/index_pipeline_and_spike_detector/sqs_verify_worker.py",
+      ]
     depends_on:
       api:
         condition: service_healthy
@@ -233,7 +246,11 @@ services:
       - ./config/aws_credentials_local:/root/.aws/credentials
 
   sqs-worker-2:
-    command: ["python", "/code/jeeves/scripts/sqs_index_worker.py"]
+    command:
+      [
+        "python",
+        "/code/jeeves/scripts/index_pipeline_and_spike_detector/sqs_index_worker.py",
+      ]
     build:
       context: .
       dockerfile: Dockerfile.local

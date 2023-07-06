@@ -10,7 +10,7 @@
         "softLimit": 65535,
         "hardLimit": 65535
     }],
-    "command": ["python","./jeeves/scripts/sqs_index_worker.py"],
+    "command": ["python","./jeeves/scripts/index_pipeline_and_spike_detector/sqs_index_worker.py"],
     "environment": ${environment_vars},
     "secrets": ${secrets},
     "logConfiguration": {

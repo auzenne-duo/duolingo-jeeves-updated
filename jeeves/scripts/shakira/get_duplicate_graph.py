@@ -6,7 +6,7 @@
 # Follow the usual README steps to set up your Python environment.
 #
 # Example: print the keys of all Jira tickets that are reachable from DLAA-10000 or DLAA-10001:
-# python3 jeeves/script/get_duplicate_graph.py DLAA-10000 DLAA-10001
+# python3 jeeves/script/shakira/get_duplicate_graph.py DLAA-10000 DLAA-10001
 #
 # Uncomment lines or add to the script at the bottom to print other information
 

@@ -4,7 +4,7 @@ from typing import Dict
 import pytest
 
 from jeeves.model.shakira_stat import ShakiraStat
-from jeeves.scripts.send_bug_digest_emails import should_send_email
+from jeeves.scripts.shakira.send_bug_digest_emails import should_send_email
 
 should_send_email_test_cases = [
     ({}, False),
