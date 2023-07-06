@@ -257,8 +257,6 @@ JIRA_FEATURES = {
             "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
             "Shake-to-report": ["shakira", "bug report", "shake to report"],
             "Offline support": ["prefetch", "offlin", "zombie", "airplane"],
-        },
-        "None": {
             "Progress Bar": [],
             "Grading Ribbon": [
                 "grading message",
@@ -268,7 +266,6 @@ JIRA_FEATURES = {
                 "correct bottom sheet",
                 "grading drawer",
             ],
-            "Incorrect XP Awarded": ["wrong xp"],
             "Challenge layout issues": [
                 "exercise",
                 "question",
@@ -293,19 +290,7 @@ JIRA_FEATURES = {
                 "4xx",
                 "5xx",
             ],
-        },
-        "Many": {
             "App startup": ["startup", "restart"],
-        },
-    },
-    "None": {
-        "None": {
-            "Feature request / feedback": [],
-            "Other": [],
-        },
-    },
-    "Many": {
-        "Many": {
             "Drawers / home messages": ["drawer", "home message"],
             "Session end screens": [
                 "session end card",
@@ -320,6 +305,15 @@ JIRA_FEATURES = {
                 "SE slide",
             ],
         },
+    },
+    "None": {
+        "None": {
+            "Feature request / feedback": [],
+            "Other": [],
+        },
+    },
+    "Many": {
+        # Features should be added to the relevant team
     },
 }
 
