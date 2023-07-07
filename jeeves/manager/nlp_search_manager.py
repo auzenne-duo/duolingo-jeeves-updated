@@ -6,9 +6,9 @@ from __future__ import annotations
 import json
 import logging
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from json import JSONDecodeError
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional
 
 import tiktoken
 
@@ -18,7 +18,7 @@ from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.manager.query_helper import DSLQueryResponse, QueryHelper
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.matching_document import MatchingDocument
-from jeeves.model.zendesk_document import ZendeskDocument
+from jeeves.model.search_result import DocumentContent, SearchResult, SearchResults
 
 LOG = logging.getLogger(__name__)
 
@@ -173,44 +173,28 @@ class GPTResponse:
 
 
 @dataclass
-class LanguageContent:
+class LanguageContent(DocumentContent):
     """
     The localized content of a JeevesDocument to display in a table cell in the frontend
     """
 
-    body: str
     body_orig: Optional[str]  # The original body text before we asked GPT to bold keywords in it
     language: str
-    title: str
-
-    def to_dict(self):
-        return asdict(self)
 
 
 @dataclass
-class NLPSearchResult:
+class NLPSearchResult(SearchResult):
     """
     A JeevesDocument that GPT suggested as supporting evidence for the answer it gave to the user
     """
 
-    datetime: str
-    origin: str
-    original_text: LanguageContent
-    score: float
     translated_text: Optional[LanguageContent]
-    uid: str
-    url: Optional[str]  # TODO: Add a link to all Jeeves documents so they can be made clickable
 
     @classmethod
     def from_jeeves_document(
         cls, doc: JeevesDocument, match: GPTResponseDocument, score: float
     ) -> NLPSearchResult:
-        origin = doc.data_source
-        if origin.lower() == "zendesk":
-            zdoc = cast(ZendeskDocument, doc)
-            channel = zdoc.via["channel"]
-            if channel.lower() == "twitter":
-                origin = "Twitter (via Zendesk)"
+        origin = SearchResult.get_origin(doc)
 
         original_text = LanguageContent(
             body=match.doc_body_bolded,
@@ -229,32 +213,23 @@ class NLPSearchResult:
             )
 
         return cls(
-            doc.date_time.isoformat(),
-            origin,
-            original_text,
-            score,
-            translated_text,
-            doc.jeeves_uid,
-            None,
+            datetime=doc.date_time.isoformat(),
+            origin=origin,
+            original_text=original_text,
+            score=score,
+            translated_text=translated_text,
+            uid=doc.jeeves_uid,
+            url=None,
         )
-
-    def to_dict(self):
-        return asdict(self)
 
 
 @dataclass
-class NLPSearchResults:
+class NLPSearchResults(SearchResults):
     """
     The object we will return to the user from /api/3/nlp_search
     """
 
     answer: str
-    lucene_query: List[str]
-    query: str
-    results: List[NLPSearchResult]
-
-    def to_dict(self):
-        return asdict(self)
 
 
 def format_for_user_prompt(md: MatchingDocument) -> str:
@@ -337,7 +312,10 @@ class NLPSearchManager:
         #   with an button to reset the filters
         if not hits:
             return NLPSearchResults(
-                "No Jeeves documents found that match the query.", [], query, []
+                answer="No Jeeves documents found that match the query.",
+                lucene_query=[],
+                query=query,
+                results=[],
             )
 
         prompts = [SYSTEM_PROMPT, REQ_DOCUMENTS, REQ_QUESTION, query]
@@ -361,7 +339,9 @@ class NLPSearchManager:
         )
         # TODO: Catch exceptions and give an appropriate response to the user
         if not gpt_resp:
-            return NLPSearchResults("Could not answer the question.", [], query, [])
+            return NLPSearchResults(
+                answer="Could not answer the question.", lucene_query=[], query=query, results=[]
+            )
 
         LOG.debug(f"GPT response: {gpt_resp.encode('ascii', errors='replace')}")
         answer: str
@@ -373,7 +353,12 @@ class NLPSearchManager:
             gpt_matches = gpt_response.matches
         except JSONDecodeError as decode_error:
             LOG.error(f"Could not deserialize response {gpt_resp}", decode_error)
-            return NLPSearchResults("Could not parse the response from GPT.", [], query, [])
+            return NLPSearchResults(
+                answer="Could not parse the response from GPT.",
+                lucene_query=[],
+                query=query,
+                results=[],
+            )
 
         if not answer:
             LOG.warning(f"Could not find field '{RESP_ANSWER}' in response {gpt_resp}")
@@ -404,7 +389,9 @@ class NLPSearchManager:
             result = NLPSearchResult.from_jeeves_document(hit.doc, gpt_match, hit.score)
             supporting_docs.append(result)
 
-        results = NLPSearchResults(answer, lucene_query, query, supporting_docs)
+        results = NLPSearchResults(
+            answer=answer, lucene_query=lucene_query, query=query, results=supporting_docs
+        )
         response_str = json.dumps(results.to_dict(), indent=2).encode("ascii", errors="replace")
         LOG.debug(f"Sending response to user: {response_str}")
         return results

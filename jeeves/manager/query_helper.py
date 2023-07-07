@@ -118,9 +118,9 @@ class QueryHelper:
         gpt_response_json = json.loads(gpt_response)
 
         return DSLQueryResponse(
-            gpt_response_json[RESP_QUERY],
-            gpt_response_json[RESP_LUCENE_QUERY],
-            gpt_response_json[RESP_TARGET_TOPIC],
+            dsl_query=gpt_response_json[RESP_QUERY],
+            lucene_query=gpt_response_json[RESP_LUCENE_QUERY],
+            target_topic=gpt_response_json[RESP_TARGET_TOPIC],
         )
 
     def filter_documents_using_topic(

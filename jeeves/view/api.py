@@ -18,6 +18,7 @@ from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.nlp_search_manager import NLPSearchManager
 from jeeves.manager.query_helper import QueryHelper
+from jeeves.manager.sentiment_search_manager import SentimentSearchManager
 from jeeves.manager.shakira import ShakiraManager
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
@@ -684,6 +685,16 @@ def nlp_search():
     max_search_depth = int(request.args.get("max_search_depth", "50"))
 
     result = app_registry(NLPSearchManager).nlp_search(query, num_results, max_search_depth)
+    return json.jsonify(result)
+
+
+@blueprint_api.route("/api/3/sentiment_time_series", methods=["GET"])
+def sentiment_search():
+    query = request.args.get("q")
+    if not query:
+        abort(make_response("Please provide a query text parameter `q`.", 400))
+
+    result = app_registry(SentimentSearchManager).sentiment_search(query)
     return json.jsonify(result)
 
 
