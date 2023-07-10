@@ -63,6 +63,7 @@ RECEIVE_ALL_REPORTS = [
     ("britni@duolingo.com", 875832803),
     ("rwagner@duolingo.com", 105023805),
     ("sharanya@duolingo.com", 105463277),
+    ("david.sawicki@duolingo.com", 334534112),
 ]
 
 
