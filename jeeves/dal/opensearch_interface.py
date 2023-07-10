@@ -1288,6 +1288,7 @@ class OpenSearchDAL:
         query_embedding: List[float],
         max_search_depth: int = 50,
         num_results: int = 5,
+        request_timeout: int = 30,
         threshold: float = 0.8,
     ) -> Dict[str, MatchingDocument]:
         """
@@ -1300,6 +1301,7 @@ class OpenSearchDAL:
             max_search_depth (int): Optional. Maximum number of documents to search through
                                     in order to find num_results hits (default 50).
             num_results (int): Optional. Number of results to display to user (default 5)
+            request_timeout (int): Optional. Number of seconds to wait for a response from OpenSearch (default 30)
             threshold (float): Optional. Minimum score for a result to be returned (default 0.8)
         """
 
@@ -1322,7 +1324,9 @@ class OpenSearchDAL:
             },
         }
 
-        response = self._es.search(index=self._indexname, body=query_body)
+        response = self._es.search(
+            index=self._indexname, body=query_body, request_timeout=request_timeout
+        )
         result_docs = {
             hit["_source"]["jeeves_uid"]: MatchingDocument.from_response_hit(hit)
             for hit in response["hits"]["hits"]
