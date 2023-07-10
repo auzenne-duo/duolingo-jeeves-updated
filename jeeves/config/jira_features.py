@@ -172,13 +172,12 @@ JIRA_FEATURES = {
         },
     },
     "Monetization": {
-        "Super Packaging": {
+        "Subscription Packaging": {
             "Ads / rewarded ads": ["ads"],
             "Super": [],
             "Hearts / Unlimited Hearts": [
                 "heart",
             ],
-            "Shop items": [],
             "New Years Promo": [],
         },
         "Poseidon": {
@@ -187,6 +186,7 @@ JIRA_FEATURES = {
             "Gems / Lingots": ["gem", "lingot"],
             "Hard mode": [],
             "Match madness": [],
+            "Shop items": [],
         },
         "Gold": {
             "Explain my Answer": [],
