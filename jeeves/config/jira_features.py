@@ -349,7 +349,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "In-app sharing": "Bugs with the share button or share card.",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
     "Legendary": "Bugs with loading or doing legendary lessons",
-    "Lesson complete session end": "Bugs specifically with the lesson complete session end card",
+    "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Goal": "Bugs with monthly quest",
     "Mouth animation": "Problems with mouth visemes (lip synching)",
