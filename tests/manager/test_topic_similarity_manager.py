@@ -1,102 +1,12 @@
 import unittest
-from datetime import datetime
 from unittest.mock import patch
 
 import numpy as np
 import pytest
 
-from jeeves.config.config import GPT_EMBEDDING_MODEL
 from jeeves.manager.topic_similarity_manager import SimilarityCategory, TopicSimilarityManager
 from jeeves.model.matching_document import MatchingDocument
-from jeeves.model.shake_to_report_category import ShakeToReportCategory
-from jeeves.model.zendesk_document import ZendeskDocument
-
-now = datetime.now()
-
-
-def _zendesk_document(
-    document_id="default_doc",
-    jeeves_uid="default_uid",
-    header="I am a header",
-    body="I am body text",
-    embeddings=np.array([0, 0, 0]),
-):
-    doc = ZendeskDocument(
-        data_source="Zendesk",
-        document_id=document_id,
-        jeeves_uid=jeeves_uid,
-        date_time=now,
-        header_text=header,
-        body_text=body,
-        language="en",
-        links=[],
-        shake_to_report_category=ShakeToReportCategory.EXTERNAL,
-        attachments=[],
-        duolingo_metadata={},
-        app_version="",
-        course="",
-        fullstory_url="",
-        os_version="",
-        platform="",
-        screen_size="",
-        screen_content="",
-        ui_language="",
-        username="",
-        embeddings=embeddings,
-        email="",
-        product="LA",
-        priority="urgent",
-        via={
-            "channel": "api",
-            "source": {
-                "from": {},
-                "rel": None,
-                "to": {},
-            },
-        },
-        tags=[],
-        requester_id="requester1",
-        metadata="",
-        experiment_conditions={},
-    )
-    return doc
-
-
-mock_jeeves_document_1 = _zendesk_document(
-    document_id="1",
-    jeeves_uid="uid1",
-    header="Leaderboards are broken",
-    body="@Duolingo when I click on the leaderboard tab the app crashes!",
-    embeddings={GPT_EMBEDDING_MODEL: np.array([0.5, 0.5, 0.6])},
-)
-mock_jeeves_document_2 = _zendesk_document(
-    document_id="2",
-    jeeves_uid="uid2",
-    header="Please add swahili",
-    body="I really want to use Duolingo to learn swahili",
-    embeddings={GPT_EMBEDDING_MODEL: np.array([10000, 200, 0.00002])},
-)
-mock_jeeves_document_3 = _zendesk_document(
-    document_id="3",
-    jeeves_uid="uid3",
-    header="Leagues are so much fun",
-    body="I finally got first in the diamond league!",
-    embeddings={GPT_EMBEDDING_MODEL: np.array([0.5, 0.5, 0.7])},
-)
-mock_jeeves_document_4 = _zendesk_document(
-    document_id="4",
-    jeeves_uid="uid4",
-    header="How do I see my friends on the leaderboard?",
-    body="I want to be in a league with my friends!",
-    embeddings={GPT_EMBEDDING_MODEL: np.array([0.5, 0.5, 0.55])},
-)
-mock_jeeves_document_5 = _zendesk_document(
-    document_id="5",
-    jeeves_uid="uid5",
-    header="Duolingo is so competitive",
-    body="Duolingo makes me feel like I'm competing with my swahili friends",
-    embeddings={GPT_EMBEDDING_MODEL: np.array([0.5, 0.51, 0.55])},
-)
+from tests.test_documents import _zendesk_document, get_mock_jeeves_documents
 
 
 def _matching_document(
@@ -109,28 +19,18 @@ def _matching_document(
     )
 
 
-mock_document_list = [
-    mock_jeeves_document_1,
-    mock_jeeves_document_2,
-    mock_jeeves_document_3,
-    mock_jeeves_document_4,
-    mock_jeeves_document_5,
-]
+mock_document_list = get_mock_jeeves_documents()[
+    0:5
+]  # See these documents in tests/test_documents.py
 
 mock_matching_document_list_leaderboards = [
-    _matching_document(mock_jeeves_document_1, 0.9),
-    _matching_document(mock_jeeves_document_2, 0.5),
-    _matching_document(mock_jeeves_document_3, 0.8),
-    _matching_document(mock_jeeves_document_4, 0.85),
-    _matching_document(mock_jeeves_document_5, 0.81),
+    _matching_document(doc, score)
+    for doc, score in zip(mock_document_list, [0.9, 0.5, 0.8, 0.85, 0.81])
 ]
 
 mock_matching_document_list_swahili = [
-    _matching_document(mock_jeeves_document_1, 0.3),
-    _matching_document(mock_jeeves_document_2, 0.9),
-    _matching_document(mock_jeeves_document_3, 0.4),
-    _matching_document(mock_jeeves_document_4, 0.5),
-    _matching_document(mock_jeeves_document_5, 0.78),
+    _matching_document(doc, score)
+    for doc, score in zip(mock_document_list, [0.3, 0.9, 0.4, 0.5, 0.78])
 ]
 
 LEADERBOARDS = "leaderboards"
@@ -145,10 +45,10 @@ filter_documents_using_topic_test_cases = [
         LEADERBOARDS_TOPIC_DEF,
         np.array([0.5, 0.5, 0.5]),
         [
-            mock_jeeves_document_1,
-            mock_jeeves_document_3,
-            mock_jeeves_document_4,
-            mock_jeeves_document_5,
+            mock_document_list[0],
+            mock_document_list[2],
+            mock_document_list[3],
+            mock_document_list[4],
         ],
     ),
     (
@@ -156,7 +56,7 @@ filter_documents_using_topic_test_cases = [
         SWAHILI,
         SWAHILI_TOPIC_DEF,
         np.array([10001, 201, 0.00022]),
-        [mock_jeeves_document_2],
+        [mock_document_list[1]],
     ),
 ]
 
@@ -164,22 +64,22 @@ sort_documents_using_cosine_similarity_test_cases = [
     (
         mock_matching_document_list_leaderboards,
         {
-            SimilarityCategory.SIMILAR: [mock_jeeves_document_5],
+            SimilarityCategory.SIMILAR: [mock_document_list[4]],
             SimilarityCategory.DISSIMILAR: [],
-            SimilarityCategory.STRONGLY_SIMILAR: [mock_jeeves_document_1, mock_jeeves_document_4],
-            SimilarityCategory.STRONGLY_DISSIMILAR: [mock_jeeves_document_2],
+            SimilarityCategory.STRONGLY_SIMILAR: [mock_document_list[0], mock_document_list[3]],
+            SimilarityCategory.STRONGLY_DISSIMILAR: [mock_document_list[1]],
         },
     ),
     (
         mock_matching_document_list_swahili,
         {
             SimilarityCategory.SIMILAR: [],
-            SimilarityCategory.DISSIMILAR: [mock_jeeves_document_5],
-            SimilarityCategory.STRONGLY_SIMILAR: [mock_jeeves_document_2],
+            SimilarityCategory.DISSIMILAR: [mock_document_list[4]],
+            SimilarityCategory.STRONGLY_SIMILAR: [mock_document_list[1]],
             SimilarityCategory.STRONGLY_DISSIMILAR: [
-                mock_jeeves_document_1,
-                mock_jeeves_document_3,
-                mock_jeeves_document_4,
+                mock_document_list[0],
+                mock_document_list[2],
+                mock_document_list[3],
             ],
         },
     ),
@@ -190,28 +90,28 @@ verify_topic_using_gpt_test_cases = [
         mock_document_list,
         LEADERBOARDS_TOPIC_DEF,
         True,
-        "id: uid1, uid3, uid4, uid5",
+        "id: uid0, uid2, uid3, uid4",
         [
-            mock_jeeves_document_3,
-            mock_jeeves_document_5,
-            mock_jeeves_document_1,
-            mock_jeeves_document_4,
+            mock_document_list[2],
+            mock_document_list[4],
+            mock_document_list[0],
+            mock_document_list[3],
         ],
     ),
-    (mock_document_list, LEADERBOARDS_TOPIC_DEF, False, "id: uid2", [mock_jeeves_document_2]),
+    (mock_document_list, LEADERBOARDS_TOPIC_DEF, False, "id: uid1", [mock_document_list[1]]),
     (
         mock_document_list,
         SWAHILI_TOPIC_DEF,
         False,
-        "id: uid1, uid3, uid4, uid5",
+        "id: uid0, uid2, uid3, uid4",
         [
-            mock_jeeves_document_5,
-            mock_jeeves_document_1,
-            mock_jeeves_document_3,
-            mock_jeeves_document_4,
+            mock_document_list[4],
+            mock_document_list[0],
+            mock_document_list[2],
+            mock_document_list[3],
         ],
     ),
-    (mock_document_list, SWAHILI_TOPIC_DEF, True, "id: uid2", [mock_jeeves_document_2]),
+    (mock_document_list, SWAHILI_TOPIC_DEF, True, "id: uid1", [mock_document_list[1]]),
 ]
 
 
