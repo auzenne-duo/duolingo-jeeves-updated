@@ -261,6 +261,7 @@ class ZendeskDocument(JeevesDocument):
             "accommodation_request",
             "appeal__r_flag_session",
             "appeal__m_flag_session",
+            "appeal__s_flag_session",
             "blocked_account",
             "closed_by_merge",
             "duolingo_english_test___appeal_results",
