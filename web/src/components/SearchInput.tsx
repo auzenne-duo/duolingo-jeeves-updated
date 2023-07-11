@@ -3,7 +3,6 @@ import { SearchSuggestions } from "web-ui";
 
 import PlatformIcon from "components/PlatformIcon";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
-import AppStateContext from "contexts/AppStateContext";
 import { escapeTerm, unescapeSpaces } from "opensearch";
 import styles from "styles/SearchInput.scss";
 
@@ -60,16 +59,23 @@ const alphabeticalSorter = (a: ListItem, b: ListItem) =>
 
 interface Props
   extends Pick<SearchSuggestionsProps, "className" | "onKeyDown" | "value"> {
+  history?: string[];
   onChange?: SearchInputChangeHandler;
+  supportsTicketQuery?: boolean;
 }
 
 const SearchInput = (
-  { className, onChange, onKeyDown, value = "" }: Props,
+  {
+    className,
+    history = [],
+    onChange,
+    onKeyDown,
+    supportsTicketQuery,
+    value = "",
+  }: Props,
   ref: React.Ref<ImperativeHandle>,
 ) => {
   const { data: areas = [] } = useFeaturesByTeamAndArea();
-
-  const [{ searchHistory }] = React.useContext(AppStateContext);
 
   const [matches, setMatches] = React.useState<SubQuery[]>();
   const [selectionStart, setSelectionStart] = React.useState<number>();
@@ -104,30 +110,32 @@ const SearchInput = (
 
   React.useEffect(() => {
     measureCaret();
-    setMatches(
-      [...value.matchAll(new RegExp(PATTERN, "g"))].map<SubQuery>(match => {
-        const prefix = match[1];
-        const field = match[2] as typeof FIELDS[number];
-        const isQuoted = match[3].startsWith('"');
-        const term = isQuoted ? match[3].slice(1) : match[3];
-        const start =
-          // Not sure when this can be undefined?
-          (match.index ?? 0) +
-          prefix.length +
-          field.length +
-          (isQuoted ? 1 : 0) +
-          1;
-        const end = start + term.length;
-        return {
-          end,
-          field,
-          isQuoted,
-          start,
-          term,
-        };
-      }),
-    );
-  }, [value]);
+    if (supportsTicketQuery) {
+      setMatches(
+        [...value.matchAll(new RegExp(PATTERN, "g"))].map<SubQuery>(match => {
+          const prefix = match[1];
+          const field = match[2] as typeof FIELDS[number];
+          const isQuoted = match[3].startsWith('"');
+          const term = isQuoted ? match[3].slice(1) : match[3];
+          const start =
+            // Not sure when this can be undefined?
+            (match.index ?? 0) +
+            prefix.length +
+            field.length +
+            (isQuoted ? 1 : 0) +
+            1;
+          const end = start + term.length;
+          return {
+            end,
+            field,
+            isQuoted,
+            start,
+            term,
+          };
+        }),
+      );
+    }
+  }, [supportsTicketQuery, value]);
 
   React.useImperativeHandle(ref, () => ({
     setCaret: index => {
@@ -177,9 +185,9 @@ const SearchInput = (
           )
           .sort(alphabeticalSorter);
       default:
-        return searchHistory.map(q => ({ text: q }));
+        return history.map(q => ({ text: q }));
     }
-  }, [areas, searchHistory, subQuery?.field]);
+  }, [areas, history, subQuery?.field]);
 
   return (
     <SearchSuggestions

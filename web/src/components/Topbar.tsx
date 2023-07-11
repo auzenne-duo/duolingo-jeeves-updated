@@ -32,15 +32,17 @@ type SelectListChangeEvent = Parameters<
   Exclude<SelectListProps["onChange"], undefined>
 >[0];
 
+// eslint-disable-next-line complexity
 const Topbar = () => {
   const { data: areas = [] } = useFeaturesByTeamAndArea();
   const history = useHistory();
   const location = useLocation();
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
-  const isAnalysisPage = useRouteMatch("/:lang/analysis");
-  const isDiscoveryPage = useRouteMatch("/:lang/discovery");
-  const isSpikePage = useRouteMatch("/:lang/spike");
-  const isSpikeStatsPage = useRouteMatch("/:lang/spike-stats");
+  const isAnalysisPage = !!useRouteMatch("/:lang/analysis");
+  const isDiscoveryPage = !!useRouteMatch("/:lang/discovery");
+  const isNLPSearchPage = !!useRouteMatch("/:lang/nlp-search");
+  const isSpikePage = !!useRouteMatch("/:lang/spike");
+  const isSpikeStatsPage = !!useRouteMatch("/:lang/spike-stats");
   const search = useSearchParams();
 
   const area = search.get("area");
@@ -181,8 +183,12 @@ const Topbar = () => {
 
   React.useEffect(() => {
     // Keep search history.
-    dispatch({ query, type: "SEARCH" });
-  }, [dispatch, query]);
+    dispatch({
+      context: isNLPSearchPage ? "nlp" : "tickets",
+      query,
+      type: "SEARCH",
+    });
+  }, [dispatch, isNLPSearchPage, query]);
 
   React.useEffect(() => {
     if (shouldSubmit) {
@@ -222,6 +228,8 @@ const Topbar = () => {
                 ? "-analysis"
                 : isDiscoveryPage
                 ? "-discovery"
+                : isNLPSearchPage
+                ? "-nlp-search"
                 : isSpikePage
                 ? "-spike"
                 : isSpikeStatsPage
@@ -231,7 +239,7 @@ const Topbar = () => {
           ]
         }
       >
-        {isAnalysisPage || isDiscoveryPage ? (
+        {isAnalysisPage || isDiscoveryPage || isNLPSearchPage ? (
           <>
             <Input
               className={styles["search-mobile"]}
@@ -243,9 +251,13 @@ const Topbar = () => {
             />
             <SearchInput
               className={styles.search}
+              history={
+                isNLPSearchPage ? state.searchHistoryNLP : state.searchHistory
+              }
               onChange={handleSearchInputChange}
               onKeyDown={handleSearchInputKeyDown}
               ref={searchInputRef}
+              supportsTicketQuery={!isNLPSearchPage}
               value={input}
             />
           </>

@@ -1,9 +1,8 @@
 import * as React from "react";
 
+import NLPSearchCell from "components/NLPSearchCell";
+import Table from "components/Table";
 import styles from "styles/NLPSearchTable.scss";
-
-import NLPSearchCell from "./NLPSearchCell";
-import Table from "./Table";
 
 interface Props {
   docs: JSONAPI.NLPSearchResult[];
@@ -16,7 +15,7 @@ const NLPSearchTable = ({ docs }: Props) => {
       <thead>
         <tr>
           <th className={styles.document}>Document</th>
-          <th>Text (Hover to see full text)</th>
+          <th>Text (hover to see full text)</th>
           {hasTranslation && <th>Translation</th>}
         </tr>
       </thead>

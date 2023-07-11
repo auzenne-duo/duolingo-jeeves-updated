@@ -33,6 +33,10 @@
   }
 }
 
+.filters-nlp-search {
+  composes: filters;
+}
+
 .filters-spike {
   composes: filters;
 

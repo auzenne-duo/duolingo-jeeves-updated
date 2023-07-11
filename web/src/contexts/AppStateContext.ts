@@ -11,8 +11,7 @@ type Action =
   | { type: "LOADED" }
   | { type: "LOADING" }
   | { issue: ReportedIssue; type: "REPORTED_ISSUE" }
-  | { query: string; type: "SEARCH" }
-  | { query: string; type: "SEARCH_NLP" }
+  | { context: "nlp" | "tickets"; query: string; type: "SEARCH" }
   | { type: "SHOW_ASIDE" }
   | { type: "SHOW_MENU" }
   | { type: "TOGGLE_ASIDE" }
@@ -78,24 +77,22 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
       if (action.query.trim() === "") {
         return state;
       }
+      if (action.context === "nlp") {
+        return {
+          ...state,
+          searchHistoryNLP: [
+            action.query.trim(),
+            ...state.searchHistoryNLP
+              .filter(q => q !== action.query.trim())
+              .slice(0, 20),
+          ],
+        };
+      }
       return {
         ...state,
         searchHistory: [
           action.query.trim(),
           ...state.searchHistory
-            .filter(q => q !== action.query.trim())
-            .slice(0, 20),
-        ],
-      };
-    case "SEARCH_NLP":
-      if (action.query.trim() === "") {
-        return state;
-      }
-      return {
-        ...state,
-        searchHistoryNLP: [
-          action.query.trim(),
-          ...state.searchHistoryNLP
             .filter(q => q !== action.query.trim())
             .slice(0, 20),
         ],
