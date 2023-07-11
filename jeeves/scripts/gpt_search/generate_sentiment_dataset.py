@@ -106,22 +106,30 @@ def fetch_unannotated_twitter_dataset(
     return twitter_documents
 
 
-def annotate_dataset(data_list: List[JeevesDocument]) -> List[AnnotatedDocument]:
+def annotate_dataset(data_list: List[JeevesDocument], shuffle=False) -> List[AnnotatedDocument]:
     """
     Add sentiment labels to the dataset
     """
     labeled_data_list = []
     label_mapping = {"p": "positive", "n": "negative", "e": "none"}
     print(
-        "Time to label the dataset. Enter 'p' for positive, 'n' for negative, 'e' for no label, and 'r' to remove the document from the dataset"
+        "Time to label the dataset. Enter 'p' for positive, 'n' for negative, 'e' for no label, "
+        "and 'r' to remove the document from the dataset."
     )
-    random.shuffle(data_list)
+    if shuffle:
+        random.shuffle(data_list)
+
     for document in data_list:
-        print("Header text: ", document.header_text)
-        print("Body text: ", document.body_text)
-        label = input("Please enter your label: ")
+        val = (
+            f"\n\n\nHeader text: {document.header_text}"
+            f"\n\nBody text: {document.body_text}"
+            "\n\nPlease enter your label: "
+        )
+        print(val)
+        label = input()
+
         while label not in {"p", "n", "r", "e"}:
-            label = input("Invalid input please enter your label: ")
+            label = input("Invalid input. Please enter your label: ")
         if label != "r":
             labeled_data_list.append(
                 AnnotatedDocument(jeeves_document=document, label=label_mapping[label])

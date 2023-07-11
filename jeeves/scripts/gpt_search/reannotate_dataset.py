@@ -24,7 +24,8 @@ def main(file: str):
     unannotated_data = [labeled_doc.jeeves_document for labeled_doc in annotated_data]
     new_annotations = annotate_dataset(unannotated_data)
 
-    dir_path = f"annotations_{datetime.datetime.utcnow()}"  # Rename this folder to something more descriptive
+    # Rename this folder to something more descriptive
+    dir_path = f"annotations_{datetime.datetime.utcnow().isoformat()}"
     os.mkdir(dir_path)
     serialize_labeled_data_to_json(f"{dir_path}/dataset.json", new_annotations)
     summarize_dataset(f"{dir_path}/dataset_summary.tsv", new_annotations)
