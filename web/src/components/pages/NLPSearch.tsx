@@ -24,10 +24,7 @@ const NLPSearch = () => {
   return query ? (
     <NLPSearchResults />
   ) : (
-    <span>
-      Ask any question about Jeeves data in the search box and press
-      &quot;enter&quot;.
-    </span>
+    <span>Search for anything about Duolingo.</span>
   );
 };
 
