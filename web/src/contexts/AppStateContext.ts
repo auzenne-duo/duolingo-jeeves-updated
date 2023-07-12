@@ -11,7 +11,7 @@ type Action =
   | { type: "LOADED" }
   | { type: "LOADING" }
   | { issue: ReportedIssue; type: "REPORTED_ISSUE" }
-  | { context: "nlp" | "tickets"; query: string; type: "SEARCH" }
+  | { context: "gpt" | "tickets"; query: string; type: "SEARCH" }
   | { type: "SHOW_ASIDE" }
   | { type: "SHOW_MENU" }
   | { type: "TOGGLE_ASIDE" }
@@ -29,7 +29,7 @@ interface State {
   /** Keep a list of issues reported to Jira/Slack since the page was last refreshed. */
   reportedIssues: ReportedIssue[];
   searchHistory: string[];
-  searchHistoryNLP: string[];
+  searchHistoryGPT: string[];
   showAside: boolean;
   showMenu: boolean;
 }
@@ -38,8 +38,8 @@ export const initialState: State = {
   loading: false,
   reportedIssues: [],
   searchHistory: JSON.parse(localStorage.getItem("searchHistory") ?? "[]"),
-  searchHistoryNLP: JSON.parse(
-    localStorage.getItem("searchHistoryNLP") ?? "[]",
+  searchHistoryGPT: JSON.parse(
+    localStorage.getItem("searchHistoryGPT") ?? "[]",
   ),
   showAside: false,
   showMenu: canFitMenuAndContent(),
@@ -77,12 +77,12 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
       if (action.query.trim() === "") {
         return state;
       }
-      if (action.context === "nlp") {
+      if (action.context === "gpt") {
         return {
           ...state,
-          searchHistoryNLP: [
+          searchHistoryGPT: [
             action.query.trim(),
-            ...state.searchHistoryNLP
+            ...state.searchHistoryGPT
               .filter(q => q !== action.query.trim())
               .slice(0, 20),
           ],

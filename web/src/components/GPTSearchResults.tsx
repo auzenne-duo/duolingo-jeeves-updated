@@ -1,20 +1,20 @@
 import * as React from "react";
 import { useQuery } from "react-query";
 
-import { nlpSearch } from "api/jeeves";
-import NLPSearchTable from "components/NLPSearchTable";
+import { gptSearch } from "api/jeeves";
+import GPTSearchTable from "components/GPTSearchTable";
 import useSearchParams from "components/useSearchParams";
-import styles from "styles/NLPSearchResults.scss";
+import styles from "styles/GPTSearchResults.scss";
 
-const NLPSearchResults = () => {
+const GPTSearchResults = () => {
   const search = useSearchParams();
 
   const query = search.get("q") ?? "";
-  const queryKey = ["nlp_search", query];
+  const queryKey = ["gpt-search", query];
 
-  const { data, error, isLoading } = useQuery<JSONAPI.NLPSearchResponse>(
+  const { data, error, isLoading } = useQuery<JSONAPI.GPTSearchResponse>(
     queryKey,
-    () => nlpSearch(query),
+    () => gptSearch(query),
     { keepPreviousData: true },
   );
 
@@ -33,7 +33,7 @@ const NLPSearchResults = () => {
           </ul>
         </div>
       )}
-      <NLPSearchTable docs={data.results} />
+      <GPTSearchTable docs={data.results} />
     </>
   ) : error ? (
     <span className={styles.error}>
@@ -46,4 +46,4 @@ const NLPSearchResults = () => {
   );
 };
 
-export default NLPSearchResults;
+export default GPTSearchResults;

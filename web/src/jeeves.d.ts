@@ -32,6 +32,23 @@ declare namespace JSONAPI {
     num_emails: number;
   }
 
+  interface GPTSearchResponse {
+    answer: string;
+    lucene_query: string[];
+    query: string;
+    results: GPTSearchResult[];
+  }
+
+  interface GPTSearchResult {
+    datetime: string;
+    origin: string;
+    original_text: LanguageContent;
+    score: number;
+    translated_text?: LanguageContent;
+    uid: string;
+    url?: string;
+  }
+
   interface Info {
     /** The time that the current Jeeves instance was created. */
     deployed_timestamp: string;
@@ -91,27 +108,6 @@ declare namespace JSONAPI {
     | "ru"
     | "xx"
     | "zh";
-
-  interface NLPSearchRequest {
-    q: string;
-  }
-
-  interface NLPSearchResponse {
-    answer: string;
-    lucene_query: string[];
-    query: string;
-    results: NLPSearchResult[];
-  }
-
-  interface NLPSearchResult {
-    datetime: string;
-    origin: string;
-    original_text: LanguageContent;
-    score: number;
-    translated_text?: LanguageContent;
-    uid: string;
-    url?: string;
-  }
 
   type Platform = "Android" | "iOS" | "Web";
 

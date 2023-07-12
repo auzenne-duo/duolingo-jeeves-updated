@@ -1,31 +1,31 @@
 import * as React from "react";
 
-import NLPSearchResults from "components/NLPSearchResults";
+import GPTSearchResults from "components/GPTSearchResults";
 import useDocumentTitle from "components/useDocumentTitle";
 import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 
-const NLPSearch = () => {
+const GPTSearch = () => {
   const search = useSearchParams();
 
   const query = search.get("q") ?? "";
 
-  useDocumentTitle("NLP Search");
+  useDocumentTitle("GPT Search");
   usePageView();
 
   React.useEffect(() => {
     ga("send", "event", {
       eventAction: "search",
-      eventCategory: "NLP",
+      eventCategory: "GPT",
       eventLabel: query,
     });
   }, [query]);
 
   return query ? (
-    <NLPSearchResults />
+    <GPTSearchResults />
   ) : (
     <span>Search for anything about Duolingo.</span>
   );
 };
 
-export default NLPSearch;
+export default GPTSearch;

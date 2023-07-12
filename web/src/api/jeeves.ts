@@ -181,11 +181,11 @@ export const getTimeSeries = async (
   }));
 };
 
-export const nlpSearch = async (query: string) => {
+export const gptSearch = async (query: string) => {
   const params = new URLSearchParams();
   params.set("q", query);
 
-  return post<JSONAPI.NLPSearchResponse>(`/3/nlp_search?${params.toString()}`);
+  return post<JSONAPI.GPTSearchResponse>(`/3/nlp_search?${params.toString()}`);
 };
 
 export const sendBetaEmails = async (description: string, spikeId: string) =>

@@ -40,7 +40,7 @@ const Topbar = () => {
   const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
   const isAnalysisPage = !!useRouteMatch("/:lang/analysis");
   const isDiscoveryPage = !!useRouteMatch("/:lang/discovery");
-  const isNLPSearchPage = !!useRouteMatch("/:lang/nlp-search");
+  const isGPTSearchPage = !!useRouteMatch("/:lang/gpt-search");
   const isSpikePage = !!useRouteMatch("/:lang/spike");
   const isSpikeStatsPage = !!useRouteMatch("/:lang/spike-stats");
   const search = useSearchParams();
@@ -184,11 +184,11 @@ const Topbar = () => {
   React.useEffect(() => {
     // Keep search history.
     dispatch({
-      context: isNLPSearchPage ? "nlp" : "tickets",
+      context: isGPTSearchPage ? "gpt" : "tickets",
       query,
       type: "SEARCH",
     });
-  }, [dispatch, isNLPSearchPage, query]);
+  }, [dispatch, isGPTSearchPage, query]);
 
   React.useEffect(() => {
     if (shouldSubmit) {
@@ -228,8 +228,8 @@ const Topbar = () => {
                 ? "-analysis"
                 : isDiscoveryPage
                 ? "-discovery"
-                : isNLPSearchPage
-                ? "-nlp-search"
+                : isGPTSearchPage
+                ? "-gpt-search"
                 : isSpikePage
                 ? "-spike"
                 : isSpikeStatsPage
@@ -239,7 +239,7 @@ const Topbar = () => {
           ]
         }
       >
-        {isAnalysisPage || isDiscoveryPage || isNLPSearchPage ? (
+        {isAnalysisPage || isDiscoveryPage || isGPTSearchPage ? (
           <>
             <Input
               className={styles["search-mobile"]}
@@ -252,12 +252,12 @@ const Topbar = () => {
             <SearchInput
               className={styles.search}
               history={
-                isNLPSearchPage ? state.searchHistoryNLP : state.searchHistory
+                isGPTSearchPage ? state.searchHistoryGPT : state.searchHistory
               }
               onChange={handleSearchInputChange}
               onKeyDown={handleSearchInputKeyDown}
               ref={searchInputRef}
-              supportsTicketQuery={!isNLPSearchPage}
+              supportsTicketQuery={!isGPTSearchPage}
               value={input}
             />
           </>

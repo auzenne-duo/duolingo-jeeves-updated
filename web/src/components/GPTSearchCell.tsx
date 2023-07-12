@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import styles from "styles/NLPSearchCell.scss";
+import styles from "styles/GPTSearchCell.scss";
 
 interface Props {
   cell: JSONAPI.LanguageContent | undefined;
@@ -24,7 +24,7 @@ const renderBoldTags = (body: string) => {
   });
 };
 
-const NLPSearchCell = ({ cell }: Props) =>
+const GPTSearchCell = ({ cell }: Props) =>
   cell ? (
     <td className={styles.cell} title={getHoverText(cell)}>
       {cell.title && (
@@ -39,4 +39,4 @@ const NLPSearchCell = ({ cell }: Props) =>
     <td />
   );
 
-export default NLPSearchCell;
+export default GPTSearchCell;

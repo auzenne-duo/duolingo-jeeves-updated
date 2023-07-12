@@ -1,14 +1,14 @@
 import * as React from "react";
 
-import NLPSearchCell from "components/NLPSearchCell";
+import GPTSearchCell from "components/GPTSearchCell";
 import Table from "components/Table";
-import styles from "styles/NLPSearchTable.scss";
+import styles from "styles/GPTSearchTable.scss";
 
 interface Props {
-  docs: JSONAPI.NLPSearchResult[];
+  docs: JSONAPI.GPTSearchResult[];
 }
 
-const NLPSearchTable = ({ docs }: Props) => {
+const GPTSearchTable = ({ docs }: Props) => {
   const hasTranslation = docs.find(d => d.translated_text);
   return (
     <Table className={styles.table}>
@@ -27,8 +27,8 @@ const NLPSearchTable = ({ docs }: Props) => {
               <br />
               <b>Date:</b> {new Date(d.datetime).toLocaleString()}
             </td>
-            <NLPSearchCell cell={d.original_text} />
-            {hasTranslation && <NLPSearchCell cell={d.translated_text} />}
+            <GPTSearchCell cell={d.original_text} />
+            {hasTranslation && <GPTSearchCell cell={d.translated_text} />}
           </tr>
         ))}
       </tbody>
@@ -36,4 +36,4 @@ const NLPSearchTable = ({ docs }: Props) => {
   );
 };
 
-export default NLPSearchTable;
+export default GPTSearchTable;
