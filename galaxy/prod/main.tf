@@ -354,7 +354,7 @@ module "duolingo-jeeves-email-sender" {
   owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "email-sender.json"
-  schedule_expression  = "cron(0 11 ? * 1 *)"
+  schedule_expression  = "cron(0 16 ? * MON *)"
   release_version      = var.release_version
 
   warning_alarm_actions   = [aws_sns_topic.warning.arn]
