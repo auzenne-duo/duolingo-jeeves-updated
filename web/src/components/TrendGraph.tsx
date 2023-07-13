@@ -1,7 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import Plotly from "plotly.js-basic-dist";
 import * as React from "react";
 import createPlotlyComponent from "react-plotly.js/factory";
-import { useQuery } from "react-query";
 
 import { getTimeSeries } from "api/jeeves";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";

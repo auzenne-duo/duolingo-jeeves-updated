@@ -1,6 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow, startOfYesterday } from "date-fns";
 import * as React from "react";
-import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 
 import { formatReadableDate } from "../../util";

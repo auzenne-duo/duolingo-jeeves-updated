@@ -1,6 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { endOfDay } from "date-fns";
 import * as React from "react";
-import { useQuery } from "react-query";
 import {
   NavLink,
   useHistory,
@@ -65,7 +65,7 @@ const Topbar = () => {
   const searchInputRef =
     React.useRef<React.ElementRef<typeof SearchInput>>(null);
 
-  const spikeCategories = useQuery("spike-categories", () =>
+  const spikeCategories = useQuery(["spike-categories"], () =>
     getSpikeCategories(),
   );
 

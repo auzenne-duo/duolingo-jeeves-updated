@@ -1,5 +1,5 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Toggle } from "web-ui";
 
 import { setSpikeFixed } from "api/jeeves";
@@ -38,7 +38,7 @@ const FixedToggle = ({ spike }: Props) => {
     () => setSpikeFixed(!spike.fixed, spike.spike_id),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries("spikes");
+        queryClient.invalidateQueries(["spikes"]);
       },
     },
   );

@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { useQuery } from "react-query";
 
 import { gptSearch } from "api/jeeves";
 import GPTSearchTable from "components/GPTSearchTable";

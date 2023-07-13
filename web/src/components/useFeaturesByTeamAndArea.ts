@@ -1,9 +1,9 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { getFeaturesByTeamAndArea } from "api/shakira";
 
 const useFeaturesByTeamAndArea = () =>
-  useQuery("areas", () => getFeaturesByTeamAndArea(), {
+  useQuery(["areas"], () => getFeaturesByTeamAndArea(), {
     // Cache data until the page is refreshed.
     cacheTime: Infinity,
     select: data => {

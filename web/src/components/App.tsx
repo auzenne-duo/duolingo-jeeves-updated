@@ -1,6 +1,10 @@
+import {
+  QueryClient,
+  QueryClientProvider,
+  useIsFetching,
+} from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as React from "react";
-import { QueryClient, QueryClientProvider, useIsFetching } from "react-query";
-import { ReactQueryDevtools } from "react-query/devtools";
 import { Route, Switch } from "react-router-dom";
 import { ThemeProvider } from "web-ui";
 

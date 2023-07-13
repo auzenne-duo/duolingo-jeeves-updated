@@ -1,6 +1,6 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import Modal from "react-modal";
-import { useMutation, useQueryClient } from "react-query";
 import { Button, TextArea } from "web-ui";
 
 import { sendBetaEmails } from "api/jeeves";
@@ -48,7 +48,7 @@ const EmailBetaModal = ({ closeModal, isOpen, spike }: Props) => {
       onSuccess: () => {
         setSubmitting(false);
         closeModal();
-        queryClient.invalidateQueries("spikes");
+        queryClient.invalidateQueries(["spikes"]);
       },
     },
   );

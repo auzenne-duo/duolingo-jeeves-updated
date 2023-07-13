@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { useQuery } from "react-query";
 import { Link, useLocation } from "react-router-dom";
 import { LoadingDots } from "web-ui";
 

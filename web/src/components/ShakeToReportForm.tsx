@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { useQuery } from "react-query";
 import {
   Button,
   Input,
@@ -128,10 +128,10 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
     ? [...featuresResult.suggested_features, NONE_APPLY]
     : undefined;
 
-  const { data: slackChannels } = useQuery("slack-report-types", () =>
+  const { data: slackChannels } = useQuery(["slack-report-types"], () =>
     shakiraApi.getSlackReportTypes(),
   );
-  const { data: user } = useQuery("user", () => getLoggedIn());
+  const { data: user } = useQuery(["user"], () => getLoggedIn());
 
   const canShowFeatures = featuresResult !== undefined;
   const feature = _feature ?? suggestedFeature;

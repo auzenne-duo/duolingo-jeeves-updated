@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { useQuery } from "react-query";
 import { Button } from "web-ui";
 
 import { getUser } from "api/user";
