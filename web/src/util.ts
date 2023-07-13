@@ -10,6 +10,56 @@ export const convertTimeZone = (date: Date, tz: string) =>
     }),
   );
 
+const download = (blob: Blob, name: string) => {
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("download", name);
+  link.setAttribute("href", url);
+  link.click();
+};
+
+export const downloadAsCsv = (tickets: JSONAPI.Ticket[]) => {
+  const separator = ",";
+
+  const keys: (keyof typeof tickets[0])[] = [];
+  let k: keyof typeof tickets[0];
+  for (k in tickets[0]) {
+    if (Object.prototype.hasOwnProperty.call(tickets[0], k)) {
+      keys.push(k);
+    }
+  }
+
+  const csvHeader = keys.join(separator);
+  const csvRows = tickets
+    .map(ticket =>
+      keys
+        .map(key => {
+          let cell = ticket[key] ?? "";
+
+          // Avoid calling toString on objects that result in [object Object]
+          cell =
+            cell instanceof Date
+              ? cell.toLocaleString()
+              : typeof cell === "object"
+              ? ""
+              : cell.toString().replace(/"/g, '""');
+
+          if (cell.search(/("|,|\n)/g) >= 0) {
+            cell = `"${cell}"`;
+          }
+          return cell;
+        })
+        .join(separator),
+    )
+    .join("\n");
+  const csvContent = `${csvHeader}\n${csvRows}`;
+
+  download(
+    new Blob([csvContent], { type: "text/csv;charset=utf-8;" }),
+    "jeeves_issues.csv",
+  );
+};
+
 /**
  * Encodes URLSearchParams using encodeURIComponent instead of
  * application/x-www-form-urlencoded, for consistency.
