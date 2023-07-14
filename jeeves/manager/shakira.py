@@ -124,7 +124,7 @@ class ShakiraManager:
         Create an issue in JIRA and/or post the issue to Slack, depending on the client_specified_slack_channel_name, feature, and slack_report_type fields.
 
         parameters:
-            project: e.g. DLAA, DLAI, DLAW, LIT
+            project: e.g. DLAA, DLAI, DLAW, LIT, DETBUG
             feature: e.g. Achievements
             slack_report_type: e.g. "Lesson content / accepted translations" or "Visual polish".
             client_specified_slack_channel_name: e.g. #visual-polish. If this is set, override the other parameters and post in this channel.

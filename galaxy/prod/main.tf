@@ -118,7 +118,7 @@ module "duolingo-jeeves" {
     {
       name  = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
       value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_literacy"]
-    },
+    }
   ]
 
   warning_alarm_actions   = [aws_sns_topic.warning.arn]

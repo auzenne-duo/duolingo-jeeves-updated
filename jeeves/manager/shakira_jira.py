@@ -27,6 +27,8 @@ _USERNAME_WEB = os.environ.get("SHAKIRA_JIRA_USERNAME_WEB")
 _API_TOKEN_WEB = os.environ.get("SHAKIRA_JIRA_API_TOKEN_WEB")
 _USERNAME_LITERACY = os.environ.get("SHAKIRA_JIRA_USERNAME_LITERACY")
 _API_TOKEN_LITERACY = os.environ.get("SHAKIRA_JIRA_API_TOKEN_LITERACY")
+_USERNAME_DET = os.environ.get("JIRA_USERNAME")
+_API_TOKEN_DET = os.environ.get("JIRA_API_TOKEN")
 
 _ISSUE_TYPE_BUG = "Bug"
 _ISSUE_TYPE_STORY = "Story"
@@ -57,6 +59,8 @@ class ShakiraJiraApiClient:
         # If no project is provided, default to iOS for backwards-compatibility
         if project == "LIT":
             return _API_TOKEN_LITERACY
+        elif project == "DETBUG":
+            return _API_TOKEN_DET
         elif project == "DLAA":
             return _API_TOKEN_ANDROID
         elif project == "DLAW":
@@ -71,6 +75,8 @@ class ShakiraJiraApiClient:
         """
         if project == "LIT":
             return HTTPBasicAuth(_USERNAME_LITERACY, _API_TOKEN_LITERACY)
+        elif project == "DETBUG":
+            return HTTPBasicAuth(_USERNAME_DET, _API_TOKEN_DET)
         elif project == "DLAA":
             return HTTPBasicAuth(_USERNAME_ANDROID, _API_TOKEN_ANDROID)
         elif project == "DLAW":
@@ -226,7 +232,7 @@ class ShakiraJiraApiClient:
         For reference: https://docs.atlassian.com/software/jira/docs/api/REST/8.13.1/#api/2/issue
 
         parameters:
-            project: e.g. DLAA, DLAI, DLAW, LIT
+            project: e.g. DLAA, DLAI, DLAW, LIT, DETBUG
             feature: e.g. Achievements
             labels: A list of labels to add to the Jira issue.
             summary: Rougly one-sentence summary of issue.
