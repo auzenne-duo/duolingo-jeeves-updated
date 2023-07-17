@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from jeeves.manager.sentiment_search_manager import SentimentSearchManager
+from jeeves.manager.sentiment_search_manager import SentimentBucket, SentimentSearchManager
 from jeeves.model.annotated_document import SentimentScoredDocument
 from jeeves.model.sentiment_analysis_classifier import NEGATIVE_CLASS, POSITIVE_CLASS
 from tests.test_documents import _zendesk_document, get_mock_jeeves_documents
@@ -65,10 +65,28 @@ mock_sentiment_scored_list = [
     ),
 ]
 
+
+def _sentiment_bucket(
+    average_sentiment_score=0.5,
+    num_documents=3,
+):
+    return SentimentBucket(
+        average_sentiment_score=average_sentiment_score,
+        num_documents=num_documents,
+    )
+
+
 aggregate_sentiment_data_test_cases = [
     (
         mock_sentiment_scored_list,
-        {POSITIVE_CLASS: {"2022-01-18": 0.4}, NEGATIVE_CLASS: {"2023-05-01": -0.5}},
+        {
+            POSITIVE_CLASS: {
+                "2022-01-18": _sentiment_bucket(average_sentiment_score=0.4, num_documents=3)
+            },
+            NEGATIVE_CLASS: {
+                "2023-05-01": _sentiment_bucket(average_sentiment_score=-0.5, num_documents=3)
+            },
+        },
     )
 ]
 
@@ -91,7 +109,7 @@ def test_aggregate_sentiment_data(
     expected_buckets,
 ):
     """
-    Tests that aggregate_sentiment_data correctly buckets the average sentiment scores by date
+    Tests that aggregate_sentiment_data correctly buckets the average sentiment score and document count by date
     """
     sentiment_search_manager = SentimentSearchManager(
         mock_ai_completions_dal,
@@ -107,4 +125,11 @@ def test_aggregate_sentiment_data(
     for label in expected_buckets.keys():
         case.assertCountEqual(expected_buckets[label].keys(), buckets[label].keys())
         for date in expected_buckets[label].keys():
-            case.assertAlmostEqual(expected_buckets[label][date], buckets[label][date], places=3)
+            case.assertAlmostEqual(
+                expected_buckets[label][date].average_sentiment_score,
+                buckets[label][date].average_sentiment_score,
+                places=3,
+            )
+            case.assertEqual(
+                expected_buckets[label][date].num_documents, buckets[label][date].num_documents
+            )

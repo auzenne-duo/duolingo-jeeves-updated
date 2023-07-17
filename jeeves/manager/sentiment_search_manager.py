@@ -4,7 +4,7 @@ A manager for the Jeeves sentiment analysis functionality.
 
 
 import datetime
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Dict, List
 
@@ -63,13 +63,26 @@ class SentimentSearchResult(SearchResult):
 
 
 @dataclass
+class SentimentBucket:
+    """
+    Object representing a bucket of sentiment data
+    """
+
+    average_sentiment_score: float
+    num_documents: int
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass
 class SentimentSearchResults(SearchResults):
     """
     The object we will return to the user from /api/3/sentiment_time_series
     """
 
-    positive_bucket: Dict[str, float]
-    negative_bucket: Dict[str, float]
+    positive_bucket: Dict[str, SentimentBucket]
+    negative_bucket: Dict[str, SentimentBucket]
 
 
 @registry.bind(
@@ -140,12 +153,13 @@ class SentimentSearchManager:
         cls,
         documents_list: List[SentimentScoredDocument],
         bucket_window: BucketWindow = BucketWindow.DAY,
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> Dict[str, Dict[str, SentimentBucket]]:
         """
         Calculates per-day average sentiment scores for positive and negative documents separately.
 
         Returns two dictionaries, one for positive documents and one for negative documents.
-        Each dictionary contains a string representing a date and a float representing the average sentiment score for that date.
+        Each dictionary contains a string representing a date. Each date has a float representing the average sentiment
+        score and the number of documents for that date.
         """
         score_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}}
         count_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}}
@@ -168,6 +182,9 @@ class SentimentSearchManager:
         for label in [POSITIVE_CLASS, NEGATIVE_CLASS]:
             for date in score_dict[label]:
                 if count_dict[label][date] >= MIN_DOC_PER_DAY:
-                    average_dict[label][date] = score_dict[label][date] / count_dict[label][date]
+                    score = score_dict[label][date] / count_dict[label][date]
+                    average_dict[label][date] = SentimentBucket(
+                        average_sentiment_score=score, num_documents=count_dict[label][date]
+                    )
 
         return average_dict
