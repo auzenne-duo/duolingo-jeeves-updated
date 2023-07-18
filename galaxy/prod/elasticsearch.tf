@@ -8,6 +8,7 @@ module "jeeves-elasticsearch" {
   subservice            = "es"
   owner                 = var.owner
   environment           = var.environment
+  cluster_instance_type = "i3.xlarge.elasticsearch"
 }
 
 data "aws_security_group" "duolingo-jeeves-es-prod-internal-esd" {
