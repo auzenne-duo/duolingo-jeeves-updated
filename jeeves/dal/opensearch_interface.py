@@ -1241,12 +1241,12 @@ class OpenSearchDAL:
 
         response = self._es.search(index=self._indexname, body=query_body)
         result_docs = [
-            MatchingDocument.from_response_hit(hit)
+            MatchingDocument.from_response_hit(hit).doc
             for hit in response["hits"]["hits"]
             if hit["_score"] >= 0.8
         ]
         if should_filter_project:
-            result_docs = [d.doc for d in result_docs if d.doc.project == target_doc.project]
+            result_docs = [doc for doc in result_docs if doc.project == target_doc.project]
         # Filter out issue from its own duplicate list
         result_docs = [doc for doc in result_docs if doc.issue_key != target_doc.issue_key]
         # Filter out known duplicates and clones from duplicate list
@@ -1324,7 +1324,7 @@ class OpenSearchDAL:
             },
         }
 
-        response = self._es.search(
+        response = self._es.search(  # pylint: disable=unexpected-keyword-arg
             index=self._indexname, body=query_body, request_timeout=request_timeout
         )
         result_docs = {
