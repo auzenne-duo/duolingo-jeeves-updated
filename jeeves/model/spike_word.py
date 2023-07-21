@@ -4,6 +4,8 @@ import attr
 
 from jeeves.model.spike_categories import SpikeCategory
 
+_DEFAULT_SPIKE_STATUS = "UNCONFIRMED"
+
 
 @attr.s(kw_only=True)
 class SpikeWord:
@@ -21,6 +23,8 @@ class SpikeWord:
     summary: Optional[str] = attr.ib(default=None)
     is_bug: Optional[bool] = attr.ib(default=None)
     experiment_spikes: Optional[Dict[str, int]] = attr.ib(default=None)
+    status: Optional[str] = attr.ib(default=_DEFAULT_SPIKE_STATUS)
+    status_user_id: Optional[int] = attr.ib(default=None)
 
     @classmethod
     def from_dict(cls, spike_dict):
@@ -47,6 +51,8 @@ class SpikeWord:
             experiment_spikes=spike_dict["experiment_spikes"].to_dict()
             if "experiment_spikes" in spike_dict
             else {},
+            status=spike_dict["status"] if "status" in spike_dict else _DEFAULT_SPIKE_STATUS,
+            status_user_id=spike_dict["status_user_id"] if "status_user_id" in spike_dict else None,
         )
 
     def to_dict(self) -> Dict[str, Union[float, str]]:
@@ -65,6 +71,8 @@ class SpikeWord:
             "summary": self.summary,
             "is_bug": self.is_bug,
             "experiment_spikes": self.experiment_spikes,
+            "status": self.status,
+            "status_user_id": self.status_user_id,
         }
 
     def get_spike_id(self) -> str:

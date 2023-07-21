@@ -203,6 +203,8 @@ def get_spike_data(lang):
                     {"experiment": k, "score": v} for k, v in spike.experiment_spikes.items()
                 ],
                 "lang": spike.lang,
+                "status": spike.status,
+                "status_user_id": spike.status_user_id,
             }
         )
     for day in stored_spikes:
@@ -231,6 +233,19 @@ def set_spike_fixed():
     fixed_user_id = g.user_id
     app_registry(SpikeIndexDAL).set_spike_fixed_setting(spike_id, desired_state, fixed_user_id)
     return json.jsonify({"fixed": desired_state, "fixed_user_id": fixed_user_id})
+
+
+@blueprint_api.route("/api/1/set_spike_status", methods=["PATCH"])
+@requires_auth(permission="access-jeeves")
+def set_spike_status():
+    try:
+        spike_id = request.json.get("spike_id")
+        desired_state = request.json.get("desired_state")
+    except KeyError:
+        abort(make_response("Missing required form data", 400))
+    status_user_id = g.user_id
+    app_registry(SpikeIndexDAL).set_spike_status(spike_id, desired_state, status_user_id)
+    return json.jsonify({"status": desired_state, "user_id": status_user_id})
 
 
 @blueprint_api.route("/api/1/send_beta_emails", methods=["POST"])

@@ -3,10 +3,9 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { encodeURLSearchParams } from "../util";
-import ConfirmButton from "components/ConfirmButton";
 import EmailBetaButton from "components/EmailBetaButton";
 import ExperimentsList from "components/ExperimentsList";
-import FixedToggle from "components/FixedToggle";
+import SpikeStatusPicker from "components/SpikeStatusPicker";
 import Table from "components/Table";
 import useIsMobile from "components/useIsMobile";
 import styles from "styles/SpikeTable.scss";
@@ -40,7 +39,7 @@ const SpikeTable = ({
     <Table className={styles.table}>
       <thead>
         <tr>
-          <th colSpan={isMobile ? 2 : 5}>
+          <th colSpan={isMobile ? 2 : 4}>
             <Link
               to={`/${language}/spike?${encodeURLSearchParams(
                 spikeDetectorParams,
@@ -55,8 +54,7 @@ const SpikeTable = ({
         <tr>
           <th>Word</th>
           <th>Summary</th>
-          <th className={styles["hide-mobile-column"]}>Confirmed</th>
-          <th className={styles["hide-mobile-column"]}>Fixed</th>
+          <th className={styles["hide-mobile-column"]}>Status</th>
           <th className={styles["hide-mobile-column"]}>Email Beta</th>
         </tr>
       </thead>
@@ -97,10 +95,7 @@ const SpikeTable = ({
                   )}
                 </td>
                 <td className={styles["hide-mobile-column"]}>
-                  <ConfirmButton spike={spike} />
-                </td>
-                <td className={styles["hide-mobile-column"]}>
-                  <FixedToggle spike={spike} />
+                  <SpikeStatusPicker className={styles.status} spike={spike} />
                 </td>
                 <td className={styles["hide-mobile-column"]}>
                   <EmailBetaButton spike={spike} />
@@ -110,7 +105,7 @@ const SpikeTable = ({
           })}
         {!spikes.length && !isLoading ? (
           <tr>
-            <td colSpan={isMobile ? 2 : 5}>
+            <td colSpan={isMobile ? 2 : 4}>
               No data is available for this date.
             </td>
           </tr>

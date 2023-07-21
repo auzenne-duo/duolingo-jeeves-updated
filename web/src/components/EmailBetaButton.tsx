@@ -11,6 +11,7 @@ interface Props {
 
 const EmailBetaButton = ({ spike }: Props) => {
   const [modalIsOpen, setIsOpen] = React.useState<boolean>(false);
+  const fixedStatus = "FIXED";
 
   const closeModal = () => setIsOpen(false);
 
@@ -37,7 +38,7 @@ const EmailBetaButton = ({ spike }: Props) => {
       ) : (
         <Button
           color="owl"
-          disabled={!spike.confirmed || !spike.fixed}
+          disabled={!(spike.status === fixedStatus)}
           onClick={() => setIsOpen(true)}
           variant="solid"
         >

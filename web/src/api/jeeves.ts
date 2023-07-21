@@ -208,3 +208,12 @@ export const setSpikeFixed = async (desiredState: boolean, spikeId: string) =>
     desired_state: desiredState,
     spike_id: spikeId,
   });
+
+export const setSpikeStatus = async (
+  desiredState: JSONAPI.SpikeStatus,
+  spikeId: string,
+) =>
+  patch<JSONAPI.SpikeStatusResponse>("/1/set_spike_status", {
+    desired_state: desiredState,
+    spike_id: spikeId,
+  });

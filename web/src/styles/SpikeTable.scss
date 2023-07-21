@@ -12,6 +12,11 @@
   }
 }
 
+.status {
+  padding: 18px $juicy-margin;
+  width: 100%;
+}
+
 .table {
   table-layout: fixed;
   width: 100%;
@@ -31,10 +36,12 @@
       overflow-wrap: anywhere;
     }
 
-    td:last-child,
-    td:nth-last-child(2),
-    td:nth-last-child(3) {
+    td:last-child {
       min-width: 150px;
+    }
+
+    td:nth-last-child(2) {
+      min-width: 200px;
     }
   }
 }

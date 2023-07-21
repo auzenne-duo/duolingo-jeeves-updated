@@ -117,6 +117,8 @@ class TestSpikeWord(unittest.TestCase):
                 "summary": "summary",
                 "is_bug": True,
                 "experiment_spikes": {},
+                "status": "UNCONFIRMED",
+                "status_user_id": None,
             },
         )
 

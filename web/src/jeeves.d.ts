@@ -140,6 +140,13 @@ declare namespace JSONAPI {
     word_count: SpikeWordStats[];
   }
 
+  type SpikeStatus = "CONFIRMED" | "UNCONFIRMED" | "FIXED";
+
+  interface SpikeStatusResponse {
+    status: string;
+    user_id: number;
+  }
+
   interface SpikeWord {
     confirmed: boolean;
     confirmed_user_id?: number;
@@ -152,6 +159,8 @@ declare namespace JSONAPI {
     lang: string;
     score: number;
     spike_id: string;
+    status: SpikeStatus;
+    status_user_id?: number;
     summary: string;
     word: string;
   }

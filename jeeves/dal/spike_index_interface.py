@@ -116,6 +116,17 @@ class SpikeIndexDAL:
         """
         self._update_settings({"fixed": desired_state, "fixed_user_id": user_id}, spike_id)
 
+    def set_spike_status(self, spike_id: str, desired_state: bool, user_id: str) -> None:
+        """
+        Sets the status of a spikeword by spike_id to the specified state
+
+        Parameters:
+            spike_id: id string corresponding to a SpikeWord document
+            desired_state: desired setting of the status attribute
+            user_id: number of a user's id
+        """
+        self._update_settings({"status": desired_state, "status_user_id": user_id}, spike_id)
+
     def set_spike_email_sent(self, spike_id: str, user_id: int, email_sent_date: str):
         """
         Sets the email_sent_date and user_id settings of a spikeword
