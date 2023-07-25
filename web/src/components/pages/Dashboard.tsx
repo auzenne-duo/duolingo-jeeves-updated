@@ -22,7 +22,7 @@ const Dashboard = () => {
     },
   );
 
-  const { data: spikesByDate, isLoading } = useQuery(
+  const { data: spikesByDate } = useQuery(
     ["spikes", { spikesStartDate }],
     () =>
       getSpikes(undefined, {
@@ -58,24 +58,15 @@ const Dashboard = () => {
 
   return (
     <>
-      {spikesByDate?.length ? (
-        spikesByDate.map(langToSpikes =>
-          [...langToSpikes.keys()].map(language => (
-            <SpikeTable
-              date={langToSpikes.get(language)?.date}
-              key={`${language}-${langToSpikes.get(language)?.date}`}
-              language={language}
-              spikes={langToSpikes.get(language)?.spikes.slice(0, 5) ?? []}
-            />
-          )),
-        )
-      ) : (
-        <SpikeTable
-          date={spikesStartDate}
-          isLoading={isLoading}
-          language={lang}
-          spikes={[]}
-        />
+      {spikesByDate?.map(langToSpikes =>
+        [...langToSpikes.entries()].map(([language, data]) => (
+          <SpikeTable
+            date={data.date}
+            key={`${language}-${data.date}`}
+            language={language}
+            spikes={data.spikes.slice(0, 5) ?? []}
+          />
+        )),
       )}
       <Table>
         <tbody>

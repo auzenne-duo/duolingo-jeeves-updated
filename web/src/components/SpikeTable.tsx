@@ -11,8 +11,7 @@ import useIsMobile from "components/useIsMobile";
 import styles from "styles/SpikeTable.scss";
 
 interface Props {
-  date: Date | undefined;
-  isLoading?: boolean;
+  date: Date;
   language: JSONAPI.LanguageId;
   linkFilter?: JSONAPI.ShakeToReportCategory;
   onlyBugs?: boolean;
@@ -22,19 +21,16 @@ interface Props {
 
 const SpikeTable = ({
   date,
-  isLoading,
   language,
   linkFilter,
   onlyBugs,
   spikeCategory,
   spikes,
 }: Props) => {
-  const spikeDetectorParams = new URLSearchParams();
   const isMobile = useIsMobile();
-  if (date) {
-    spikeDetectorParams.set("to", addDays(date, 1).toJSON());
-    spikeDetectorParams.set("from", date.toJSON());
-  }
+  const spikeDetectorParams = new URLSearchParams();
+  spikeDetectorParams.set("to", addDays(date, 1).toJSON());
+  spikeDetectorParams.set("from", date.toJSON());
   return (
     <Table className={styles.table}>
       <thead>
@@ -55,7 +51,7 @@ const SpikeTable = ({
           <th>Word</th>
           <th>Summary</th>
           <th className={styles["hide-mobile-column"]}>Status</th>
-          <th className={styles["hide-mobile-column"]}>Email Beta</th>
+          <th className={styles["hide-mobile-column"]}>Email (beta)</th>
         </tr>
       </thead>
       <tbody>
@@ -103,13 +99,13 @@ const SpikeTable = ({
               </tr>
             );
           })}
-        {!spikes.length && !isLoading ? (
+        {spikes.length ? null : (
           <tr>
             <td colSpan={isMobile ? 2 : 4}>
               No data is available for this date.
             </td>
           </tr>
-        ) : null}
+        )}
       </tbody>
     </Table>
   );
