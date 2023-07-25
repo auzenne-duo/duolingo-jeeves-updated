@@ -19,7 +19,7 @@ const Spike = () => {
   const filter = search.get("filter") ?? "ALL_SPIKES";
   const onlyBugs = (search.get("only-bugs") ?? "true") === "true";
 
-  const { data } = useQuery(
+  const { data, isLoading } = useQuery(
     ["spikes", { filter, from, lang, to }],
     () =>
       getSpikes(lang, {
@@ -49,14 +49,12 @@ const Spike = () => {
             spikes={o.spikes}
           />
         ))
-      ) : (
+      ) : isLoading ? null : (
         <>
-          {`No spikes in this date range:
-          ${
-            from ? formatISO(from, { representation: "date" }) : "any date"
-          } - ${
-            to ? formatISO(to, { representation: "date" }) : "any date"
-          } for language: ${lang} and spike category: ${filter}`}
+          No spikes between{" "}
+          {from ? formatISO(from, { representation: "date" }) : "any date"} and{" "}
+          {to ? formatISO(to, { representation: "date" }) : "any date"} for
+          language &quot;{lang}&quot; and spike category &quot;{filter}&quot;.
         </>
       )}
     </>
