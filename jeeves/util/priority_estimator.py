@@ -14,6 +14,19 @@ _PRIORITY_ESTIMATOR_MODEL_PATH = os.environ.get("PRIORITY_ESTIMATOR_MODEL")
 _MAX_LENGTH = 40
 _PRIORITY_INT_TO_STR = {0: "Low", 1: "Medium", 2: "High"}
 
+"""
+In order to use this model, make sure to do the following:
+1. Set the following environment variables:
+    - PRIORITY_ESTIMATOR_MODEL = a file path on your computer
+2. Before the first time running this script, you'll have to download the priority estimator model
+to the $PRIORITY_ESTIMATOR_MODEL file path:
+    a. Make sure the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables are set.
+    b. Run the following (see below if this doesn't work):
+        aws s3 sync "s3://jeeves-document-cache/priority_estimator_model" $PRIORITY_ESTIMATOR_MODEL
+    c. You may have to run the following for the above to work:
+        pip3 install --upgrade awscli
+"""
+
 
 class PriorityEstimator:
     model = None

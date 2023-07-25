@@ -1,16 +1,14 @@
 import unittest
-from datetime import datetime
 from typing import Dict, List
 from unittest.mock import MagicMock, patch
 
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
-from jeeves.scripts.quality_reports.quality_report_script import (
-    filter_dev_issues,
-    generate_and_save_pdf,
+from jeeves.scripts.index_pipeline_and_spike_detector.sync_jira_tickets import (
     resolve_duplicate_graphs,
     search_for_issues,
+    update_dev_related_issues,
 )
 from tests.testutil.test_util_quality_report import create_jira_doc
 
@@ -165,23 +163,23 @@ mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
 
 
 class TestQualityReportScript(unittest.TestCase):
-    @patch("jeeves.scripts.quality_reports.quality_report_script.JiraDAL")
-    @patch("jeeves.scripts.quality_reports.quality_report_script.JiraManager")
+    @patch("jeeves.scripts.index_pipeline_and_spike_detector.sync_jira_tickets.JiraDAL")
+    @patch("jeeves.scripts.index_pipeline_and_spike_detector.sync_jira_tickets.JiraManager")
     def test_search_for_issues(self, MockJiraManager, MockJiraDAL):
         MockJiraDAL.paginate_search_issues.return_value = (
             issue for issue in [JIRA_EXTERNAL_JSON_1]
         )
         MockJiraManager.get_feature_field.return_value = "feature_field"
 
-        result = search_for_issues(datetime(2001, 1, 1))
+        result = search_for_issues()
         expected = [PARSED_JIRA_DOCUMENT_1]
         self.assertEqual(result, expected)
 
     @patch(
-        "jeeves.scripts.quality_reports.quality_report_script.IDManagerMap",
+        "jeeves.scripts.index_pipeline_and_spike_detector.sync_jira_tickets.IDManagerMap",
         MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
     )
-    @patch("jeeves.scripts.quality_reports.quality_report_script.app_registry")
+    @patch("jeeves.scripts.index_pipeline_and_spike_detector.sync_jira_tickets.app_registry")
     def test_resolve_duplicate_graphs(self, mock_app_registry):
         def mock_get_duplicate_graph(
             issues: List[JiraDocument], key_to_doc: Dict[str, JiraDocument]
@@ -214,47 +212,32 @@ class TestQualityReportScript(unittest.TestCase):
             "DLAI-2005": JIRA_DOCUMENT_5,
         }
 
-        self.assertEqual(result[0], {"DLAI-2003", "DLAI-2005"})
-        self.assertEqual(result[1], expected_key_to_issue)
+        # Document 5 is the parent of 1 and 4 since it is the only one open
+        self.assertEqual(
+            JIRA_DOCUMENT_5.child_issues, [JIRA_DOCUMENT_1.issue_key, JIRA_DOCUMENT_4.issue_key]
+        )
+        self.assertEqual(JIRA_DOCUMENT_1.parent_issue, JIRA_DOCUMENT_5.issue_key)
+        self.assertEqual(JIRA_DOCUMENT_4.parent_issue, JIRA_DOCUMENT_5.issue_key)
+        # Document 3 is the parent of 2 according to the parent-bug label
+        self.assertEqual(JIRA_DOCUMENT_3.child_issues, [JIRA_DOCUMENT_2.issue_key])
+        self.assertEqual(JIRA_DOCUMENT_2.parent_issue, JIRA_DOCUMENT_3.issue_key)
+
+        self.assertEqual(result, expected_key_to_issue)
 
     @patch(
-        "jeeves.scripts.quality_reports.quality_report_script.IDManagerMap",
+        "jeeves.scripts.index_pipeline_and_spike_detector.sync_jira_tickets.IDManagerMap",
         MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
     )
     def test_filter_dev_issues(self):
-        result = filter_dev_issues(
-            ["DLAI-2001", "DLAI-2002", "DLAI-2003"],
+        update_dev_related_issues(
+            [JIRA_DOCUMENT_1, JIRA_DOCUMENT_2, JIRA_DOCUMENT_3],
             {
                 "DLAI-2001": JIRA_DOCUMENT_1,
                 "DLAI-2002": JIRA_DOCUMENT_2,
                 "DLAI-2003": JIRA_DOCUMENT_3,
             },
         )
-        expected = sorted([JIRA_DOCUMENT_1, JIRA_DOCUMENT_2])
-        self.assertEqual(sorted(result), expected)
-
-    @patch(
-        "jeeves.scripts.quality_reports.quality_report_script.makepdf",
-        MagicMock(return_value="pdf"),
-    )
-    @patch("jeeves.scripts.quality_reports.quality_report_script.send_email")
-    @patch("jeeves.scripts.quality_reports.quality_report_script.upload_to_internal_static")
-    @patch("jeeves.scripts.quality_reports.quality_report_script.upload_to_jeeves_s3")
-    def test_generate_and_save_pdf(self, mock_upload_s3, mock_upload_static, mock_send_email):
-        report = MagicMock(title="title", end_data=datetime(2001, 1, 1))
-        generate_and_save_pdf(report)
-        assert not mock_upload_s3.called
-        assert not mock_upload_static.called
-        assert not mock_send_email.called
-
-        generate_and_save_pdf(report, send_emails=True)
-        assert not mock_upload_s3.called
-        assert not mock_upload_static.called
-        mock_send_email.assert_called_once_with(report)
-
-        generate_and_save_pdf(report, dry_run=False, send_emails=True)
-        s3_expected_path = f"quality_reports/{report.title}/quality_report_{report.title.lower()}_{report.end_date.strftime('%Y_%m_%d')}.pdf"
-        internal_expected_path = f"delight/{s3_expected_path}"
-        mock_upload_s3.assert_called_once_with(s3_expected_path, "pdf")
-        mock_upload_static.assert_called_once_with(internal_expected_path, "pdf")
-        mock_send_email.assert_called_with(report)
+        # JIRA_DOCUMENT_3 is related to a dev issue (JIRA_DOCUMENT_5)
+        self.assertEqual(JIRA_DOCUMENT_1.is_dev_related, False)
+        self.assertEqual(JIRA_DOCUMENT_2.is_dev_related, False)
+        self.assertEqual(JIRA_DOCUMENT_3.is_dev_related, True)

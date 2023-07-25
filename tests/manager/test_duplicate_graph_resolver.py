@@ -73,6 +73,11 @@ def _jira_document(
         embeddings={},
         experiment_conditions={},
         jira_attachments=[],
+        parent_issue=None,
+        child_issues=[],
+        is_dev_related=False,
+        area="",
+        team="",
     )
     issue_number += 1
     return doc
@@ -175,10 +180,10 @@ mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
 
 populate_parent_child_issue_fields_test_cases = [
     (parent_of_dupes, None, ["DLAA-2", "DLAA-3"]),
-    (child_2, "DLAA-1", None),
-    (child_3, "DLAA-1", None),
-    (no_dupes, None, None),
-    (no_parent_6, None, None),
+    (child_2, "DLAA-1", []),
+    (child_3, "DLAA-1", []),
+    (no_dupes, None, []),
+    (no_parent_6, None, []),
 ]
 
 

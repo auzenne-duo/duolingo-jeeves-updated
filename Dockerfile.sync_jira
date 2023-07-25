@@ -1,0 +1,53 @@
+FROM ubuntu:20.04
+
+ARG ENVIRONMENT
+ARG REFRESH_HOURS
+ARG JIRA_USERNAME
+
+ENV INSTALL_PATH /code
+ENV DEV_REQ_TXT dev-requirements.txt
+ENV PYTHONIOENCODING UTF-8
+ENV DUOLINGO_CONFIG=${INSTALL_PATH}/config/${ENVIRONMENT}.yml
+ENV PYTHONPATH /code
+ENV REFRESH_HOURS=${REFRESH_HOURS}
+ENV JIRA_USERNAME=${JIRA_USERNAME}
+
+WORKDIR $INSTALL_PATH
+
+# Modified techniques from:
+# https://blog.codeship.com/alpine-based-docker-images-make-difference-real-world-apps/
+
+COPY $DEV_REQ_TXT $DEV_REQ_TXT
+
+RUN apt-get update \
+ && apt-get -y --no-install-recommends install \
+      build-essential \
+      python3-dev \
+      python3-pip \
+#     libpq-dev is a postgres library needed by sqlalchemy
+      libpq-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && ln -s /usr/bin/python3 /usr/bin/python
+
+RUN pip3 install -U pip pip-tools wheel \
+ && pip3 install \
+      awscli \
+      setuptools
+
+ARG REQUIREMENTS=dev-requirements.txt
+COPY $REQUIREMENTS $REQUIREMENTS
+RUN pip3 install -r "$REQUIREMENTS" --src /usr/local/src
+
+# Import duplicate detector model
+ENV DUPLICATE_DETECTOR_MODEL=/opt/jeeves/duplicate-detector-model/
+ENV S3_FILE_STORAGE="s3://jeeves-document-cache"
+ENV DUPLICATE_DETECTOR_REMOTE_PATH="$S3_FILE_STORAGE/duplicate-detector-model"
+ARG aws_access_key
+ARG aws_secret_key
+ENV AWS_ACCESS_KEY_ID $aws_access_key
+ENV AWS_SECRET_ACCESS_KEY $aws_secret_key
+RUN aws s3 sync "$DUPLICATE_DETECTOR_REMOTE_PATH" $DUPLICATE_DETECTOR_MODEL
+
+COPY . .
+
+CMD ["python", "uwsgi_dev.ini"]

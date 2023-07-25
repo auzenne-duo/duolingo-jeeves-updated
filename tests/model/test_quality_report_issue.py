@@ -64,6 +64,11 @@ def create_jira_doc(
         feature_url="Onboarding",
         experiment_conditions={},
         jira_attachments=[],
+        parent_issue=None,
+        child_issues=[],
+        is_dev_related=False,
+        area="",
+        team="",
     )
     return doc
 

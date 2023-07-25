@@ -530,7 +530,7 @@ class OpenSearchDAL:
 
             ticket.embeddings = embeddings
 
-    def bulk_index_tickets(self, tickets: List[JeevesDocument]) -> None:
+    def bulk_index_tickets(self, tickets: List[JeevesDocument], populate_embeddings=True) -> None:
         """
         Store multiple tickets into OpenSearch.
 
@@ -538,7 +538,8 @@ class OpenSearchDAL:
             tickets: Object representation of tickets to store.
         """
         self.lemmatize_tickets(tickets)
-        self.populate_embedding_vectors(tickets)
+        if populate_embeddings:
+            self.populate_embedding_vectors(tickets)
 
         bulk_actions = [
             {

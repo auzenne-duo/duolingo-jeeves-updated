@@ -112,7 +112,10 @@ def parse_external_datetime(datetime_str: str) -> datetime.datetime:
 
     """
 
-    return parse(datetime_str).replace(tzinfo=pytz.utc)
+    parsed_datetime = parse(datetime_str)
+    if parsed_datetime.tzinfo is None:
+        parsed_datetime = parsed_datetime.replace(tzinfo=pytz.utc)
+    return parsed_datetime
 
 
 def yield_intermediate_dates(

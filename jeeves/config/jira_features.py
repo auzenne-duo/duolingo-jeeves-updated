@@ -92,7 +92,6 @@ JIRA_FEATURES = {
             "In-app sharing": ["sharing", "share", "share card", "rewarded sharing"],
             "Year in Review": [],
         },
-        "None": {},
     },
     "Learning R&D": {
         "Experimental AI": {
@@ -142,7 +141,6 @@ JIRA_FEATURES = {
                 "synchronization",
             ],
         },
-        "None": {},
         "Path": {
             "Path": [
                 "course",
@@ -166,11 +164,7 @@ JIRA_FEATURES = {
             "DuoRadio": [],
         },
     },
-    "Learning Scaling": {
-        "None": {
-            # Lesson content and TTS issues go to Slack, not Jira
-        },
-    },
+    "Learning Scaling": {},  # Lesson content and TTS issues go to Slack, not Jira
     "Monetization": {
         "Subscription Packaging": {
             "Ads / rewarded ads": ["ads"],
@@ -406,3 +400,12 @@ SESSION_END_SCREEN_TO_FEATURE = {
 }
 
 SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY = "session_end_screen_to_feature"
+
+
+JIRA_TEAM_TO_AREA = {team: area for area, teams in JIRA_FEATURES.items() for team in teams}
+JIRA_FEATURE_TO_TEAM = {
+    feature: team
+    for teams in JIRA_FEATURES.values()
+    for team, features in teams.items()
+    for feature in features.keys()
+}

@@ -91,6 +91,11 @@ def _jira_document(header="I am a header", body="I am body text"):
         embeddings={},
         experiment_conditions={},
         jira_attachments=[],
+        parent_issue=None,
+        child_issues=[],
+        is_dev_related=False,
+        area="",
+        team="",
     )
     return doc
 

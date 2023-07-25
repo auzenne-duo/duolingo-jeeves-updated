@@ -9,6 +9,7 @@ from jeeves.util.date_util import (
     get_eastern_today,
     get_n_days_ago,
     get_utc_today,
+    parse_external_datetime,
     str_to_date,
     yield_intermediate_dates,
 )
@@ -44,3 +45,14 @@ class Test(unittest.TestCase):
 
         # Check that giving two endpoints of a range gives all dates inbetween
         self.assertEqual(week_dates, list(yield_intermediate_dates(week_dates[0], week_dates[6])))
+
+    def test_parse_external_datetime(self):
+        date_string = "2022-06-07T08:17:03.002-0400"
+        expected = datetime.datetime(2022, 6, 7, 12, 17, 3, 2000, tzinfo=pytz.utc)
+        result = parse_external_datetime(date_string)
+        self.assertEqual(result, expected)
+
+        date_string_no_tz = "2022-06-07T08:17:03.002"
+        expected = datetime.datetime(2022, 6, 7, 8, 17, 3, 2000, tzinfo=pytz.utc)
+        result = parse_external_datetime(date_string_no_tz)
+        self.assertEqual(result, expected)

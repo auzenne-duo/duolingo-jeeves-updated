@@ -23,7 +23,9 @@ def create_jira_doc(
     issue_links=None,
     issue_type="",
     screen_content="VCActivity",
-):
+    area="",
+    team="",
+) -> JiraDocument:
     if labels is None:
         labels = []
     if duolingo_metadata is None:
@@ -76,6 +78,11 @@ def create_jira_doc(
         feature_url="Onboarding",
         experiment_conditions={},
         jira_attachments=[],
+        parent_issue=None,
+        child_issues=[],
+        is_dev_related=False,
+        area=area,
+        team=team,
     )
     return doc
 

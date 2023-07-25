@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import datetime
 import sys
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import attr
 
 from jeeves.config.config import SENTENCE_TRANSFORMER_MODEL
+from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.duplicate_detector import DuplicateIssueDetector
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
@@ -29,10 +30,11 @@ PARENT_BUG_LABEL = "parent_bug"
 @attr.s(kw_only=True)
 class JiraDocument(JeevesDocument):
     _feature_field_key = None
+    _team_field_key = None
     _duplicate_detector = None
 
     issue_key: str = attr.ib()
-    issue_links: List[str] = attr.ib()
+    issue_links: List[Dict] = attr.ib()
     issue_type: str = attr.ib()
     project: str = attr.ib()
     linked_duplicate_keys: List[str] = attr.ib()
@@ -54,10 +56,11 @@ class JiraDocument(JeevesDocument):
     comments: List[Dict[str, Union[str, datetime.datetime]]] = attr.ib()
     labels: List[str] = attr.ib()
     jira_attachments: List[Dict[str, str]] = attr.ib()
-
-    # non-indexed fields
-    parent_issue: str = None
-    child_issues: List[str] = None
+    parent_issue: Optional[str] = attr.ib()
+    child_issues: List[str] = attr.ib()
+    is_dev_related: bool = attr.ib()
+    area: Optional[str] = attr.ib()
+    team: Optional[str] = attr.ib()
 
     @classmethod
     def _initialize_duplicate_detector(cls):
@@ -195,6 +198,14 @@ class JiraDocument(JeevesDocument):
         return cls._feature_field_key
 
     @classmethod
+    def set_team_field_key(cls, team_field_key: str):
+        cls._team_field_key = team_field_key
+
+    @classmethod
+    def get_team_field_key(cls) -> str:
+        return cls._team_field_key
+
+    @classmethod
     def deserialize_from_external_json(cls, external_json: JSON) -> JiraDocument:
         """
         Please see parent class for documentation
@@ -215,6 +226,20 @@ class JiraDocument(JeevesDocument):
             body_text, duolingo_metadata = extract_duolingo_metadata(body_text)
 
         std_metadata = MetaStdizer.get_standardized_metadata(duolingo_metadata)
+
+        # Determine team and area based on team field or feature if team field is not defined
+        feature = (
+            external_fields[cls._feature_field_key]["value"]
+            if cls._feature_field_key is not None
+            and external_fields[cls._feature_field_key] is not None
+            else ""
+        )
+        team = (
+            external_fields[cls._team_field_key]["name"]
+            if cls._team_field_key is not None and external_fields[cls._team_field_key] is not None
+            else JIRA_FEATURE_TO_TEAM.get(feature, "")
+        )
+        area = JIRA_TEAM_TO_AREA.get(team, "")
 
         return cls(
             data_source=cls.get_data_source_identifier(),
@@ -275,10 +300,7 @@ class JiraDocument(JeevesDocument):
             if cls._feature_field_key is not None
             and external_fields[cls._feature_field_key] is not None
             else "",
-            feature=external_fields[cls._feature_field_key]["value"]
-            if cls._feature_field_key is not None
-            and external_fields[cls._feature_field_key] is not None
-            else "",
+            feature=feature,
             priority=external_fields["priority"]["name"]
             if external_fields["priority"]
             else "NO PRIORITY GIVEN",
@@ -297,6 +319,11 @@ class JiraDocument(JeevesDocument):
             embeddings={},
             experiment_conditions={},
             user_id=std_metadata["user_id"],
+            parent_issue=None,
+            child_issues=[],
+            is_dev_related=False,
+            area=area,
+            team=team,
         )
 
     @classmethod
@@ -374,6 +401,11 @@ class JiraDocument(JeevesDocument):
             embeddings=internal_json.get("embeddings", {}),
             experiment_conditions=internal_json.get("experiment_conditions", {}),
             user_id=internal_json.get("user_id", ""),
+            parent_issue=internal_json.get("parent_issue"),
+            child_issues=internal_json.get("child_issues", []),
+            is_dev_related=internal_json.get("is_dev_related", False),
+            area=internal_json.get("area"),
+            team=internal_json.get("team"),
         )
 
     @classmethod
