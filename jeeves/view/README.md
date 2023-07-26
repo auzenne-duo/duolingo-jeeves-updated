@@ -210,3 +210,61 @@ include_parent_issues: If the string "0" is provided as the value of this argume
 ```
 
 This route performs duplicate detection on our downloaded Jira issues. Given an issue key of a Jira issue, this route will return other issues that it believes could be duplicate issues of the provided issue.
+
+# Jeeves Routes Documentation
+
+`GET /api/3/sentiment_time_series`
+
+Uses GPT-4 to extract OpenSearch filters and a target topic from the user’s natural language query and performs sentiment analysis. Returns a summary of the related docs as well as buckets for each time period that contain the average sentiment score for documents in that bucket and the number of documents. The date string for a bucket is in ISO notation (i.e. 2022-01-18). The bucket resolution can be either day, week or month. The date for a bucket is always the start date of the time period. For week buckets the date would be Monday's date. For month buckets the date would be the first of the month.
+
+### Parameters
+
+```
+q: the user's natural language query
+```
+
+### Response
+
+```
+{
+    "lucene_query": a list of strings representing the query filters,
+    "query": the OpenSearch query,
+    "results": [
+        {
+            "label": string representing the sentiment label,
+            "score": float repsenting the  sentiment score,
+            "datetime": string representing the date and time,
+            "origin": either "Zendesk", "AppFigures", "JIRA", "Reddit", or "Twitter"
+            "original_text": {
+                "body": body_text of the Jeeves document
+                "title": header_text of the Jeeves document
+            },
+            "uid": unique document identifier
+        }
+    ],
+    "positive_bucket": {
+        "<date_string>": {
+            "average_sentiment_score": average sentiment score of documents within this bucket,
+            "num_documents": number of documents in this bucket
+        },
+        "<date_string>": {
+            "average_sentiment_score": average sentiment score of documents within this bucket,
+            "num_documents": number of documents in this bucket
+        }
+        // Additional date strings and corresponding sentiment buckets go here
+    },
+    "negative_bucket": {
+        "<date_string>": {
+            "average_sentiment_score": average sentiment score of documents within this bucket,
+            "num_documents": number of documents in this bucket
+        },
+        "<date_string>": {
+            "average_sentiment_score": average sentiment score of documents within this bucket,
+            "num_documents": number of documents in this bucket
+        }
+        // Additional date strings and corresponding sentiment buckets go here
+    }
+}
+```
+
+---
