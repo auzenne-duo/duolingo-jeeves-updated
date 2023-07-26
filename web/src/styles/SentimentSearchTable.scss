@@ -1,0 +1,31 @@
+@use "constants" as *;
+
+.body {
+  font-size: 15px;
+}
+
+.document {
+  width: 25%;
+}
+
+.next {
+  margin-left: auto;
+}
+
+.pagination {
+  text-align: right;
+}
+
+.table {
+  table-layout: fixed;
+  width: 100%;
+
+  td {
+    word-wrap: break-word;
+  }
+}
+
+.wrap {
+  display: flex;
+  width: 100%;
+}

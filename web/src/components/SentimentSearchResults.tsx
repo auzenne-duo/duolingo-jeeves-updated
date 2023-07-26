@@ -3,6 +3,7 @@ import * as React from "react";
 
 import { sentimentSearch } from "api/jeeves";
 import SentimentGraph from "components/SentimentGraph";
+import SentimentSearchTable from "components/SentimentSearchTable";
 import useSearchParams from "components/useSearchParams";
 import styles from "styles/SentimentSearchResults.scss";
 
@@ -34,14 +35,7 @@ const SentimentSearchResults = () => {
           </div>
         )}
       {data.results && data.results.length > 0 && (
-        <div className={styles.trend}>
-          Documents
-          <ul>
-            {data.results.map((d: JSONAPI.SentimentSearchResult, i: number) => (
-              <li key={i}>{d.original_text.body}</li>
-            ))}
-          </ul>
-        </div>
+        <SentimentSearchTable docs={data.results} />
       )}
     </>
   ) : error ? (
