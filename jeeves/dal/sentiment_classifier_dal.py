@@ -6,10 +6,12 @@ from enum import Enum, auto
 
 from duolingo_base.dal.s3 import S3Client
 
+from jeeves.model.ensemble_sentiment_classifier import EnsembleSentimentClassifier
 from jeeves.model.svm_sentiment_classifier import SVMSentimentClassifier
 from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 _SVM_MODEL_PATH = "sentiment_classifier_model/svm_model.pkl"
+_ENSEMBLE_MODEL_PATH = "sentiment_classifier_model/ensemble_model.pkl"
 
 
 class SentimentClassifierType(Enum):
@@ -18,6 +20,7 @@ class SentimentClassifierType(Enum):
     SVM = auto()
     GPT_BASED = auto()
     ANCHOR = auto()
+    ENSEMBLE = auto()
 
 
 class SentimentClassifierDAL:
@@ -36,4 +39,11 @@ class SentimentClassifierDAL:
             self.sentiment_classifier = SVMSentimentClassifier.model_from_model(
                 pickle.loads(model_pickle)
             )
+        return self.sentiment_classifier
+
+    def get_ensemble_classifier(self) -> EnsembleSentimentClassifier:
+        if self.model_type != SentimentClassifierType.ENSEMBLE or self.sentiment_classifier is None:
+            model_pickle = self.s3_client.download(self.s3_bucket_name, _ENSEMBLE_MODEL_PATH)
+            self.model_type = SentimentClassifierType.ENSEMBLE
+            self.sentiment_classifier = pickle.loads(model_pickle)
         return self.sentiment_classifier

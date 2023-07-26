@@ -18,7 +18,7 @@ from jeeves.manager.query_helper import DSLQueryResponse, QueryHelper
 from jeeves.manager.topic_similarity_manager import TopicSimilarityManager
 from jeeves.model.annotated_document import SentimentScoredDocument
 from jeeves.model.search_result import DocumentContent, SearchResult, SearchResults
-from jeeves.model.sentiment_analysis_classifier import NEGATIVE_CLASS, POSITIVE_CLASS
+from jeeves.model.sentiment_analysis_classifier import NEGATIVE_CLASS, NEUTRAL_CLASS, POSITIVE_CLASS
 
 LOG = logging.getLogger(__name__)
 
@@ -42,26 +42,25 @@ class SentimentSearchResult(SearchResult):
     A JeevesDocument that matches the user's filters, is related to the target topic, and has been scored by the sentiment classifier
     """
 
+    label: float
+
     @classmethod
     def from_sentiment_scored_document(
         cls, scored_doc: SentimentScoredDocument
     ) -> "SentimentSearchResult":
         document = scored_doc.jeeves_document
-        sentiment_score = scored_doc.sentiment_score
-        origin = SearchResult.get_origin(document)
-
         text = DocumentContent(
             body=document.body_text,
             title=document.header_text,
         )
-
         return cls(
-            document.date_time.isoformat(),
-            origin,
-            text,
-            sentiment_score,
-            document.jeeves_uid,
-            None,
+            datetime=document.date_time.isoformat(),
+            label=scored_doc.label,
+            origin=SearchResult.get_origin(document),
+            original_text=text,
+            score=scored_doc.sentiment_score,
+            uid=document.jeeves_uid,
+            url=None,
         )
 
 
@@ -134,22 +133,26 @@ class SentimentSearchManager:
             max_search_depth,
             threshold=0.5,
         )
-        LOG.debug("Performed knn search...")
+        LOG.debug(f"Performed knn search... got {len(hits.values())} docs")
 
         related_docs = self.topic_similarity_manager.filter_documents_using_topic(
             hits.values(), dsl_response.target_topic
         )
-        LOG.debug("Found related documents...")
+        LOG.debug(f"Found {len(related_docs)} related documents...")
 
-        scored_docs = self.sentiment_classifier_dal.get_svm_sentiment_classifier().classify_batch(
+        scored_docs = self.sentiment_classifier_dal.get_ensemble_classifier().classify_batch(
             related_docs
         )
-        LOG.debug("Classified sentiment of docs...")
+        LOG.debug(f"Classified sentiment of docs... {len(scored_docs)}")
 
-        results = [SentimentSearchResult.from_sentiment_scored_document(doc) for doc in scored_docs]
+        results = [
+            SentimentSearchResult.from_sentiment_scored_document(doc)
+            for doc in scored_docs
+            if doc.label != NEUTRAL_CLASS
+        ]
 
         buckets = self.aggregate_sentiment_data(scored_docs, bucket_window=BucketWindow.DAY)
-        LOG.debug("Bucketed sentiment data... Search complete!")
+        LOG.debug(f"Bucketed sentiment data from {len(results)} docs... Search complete!")
 
         return SentimentSearchResults(
             lucene_query=dsl_response.lucene_query,
@@ -172,9 +175,9 @@ class SentimentSearchManager:
         Each dictionary contains a string representing a date. Each date has a float representing the average sentiment
         score and the number of documents for that date.
         """
-        score_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}}
-        count_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}}
-        average_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}}
+        score_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}, NEUTRAL_CLASS: {}}
+        count_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}, NEUTRAL_CLASS: {}}
+        average_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}, NEUTRAL_CLASS: {}}
         for doc in documents_list:
             date = doc.jeeves_document.date_time
             if bucket_window == BucketWindow.DAY:

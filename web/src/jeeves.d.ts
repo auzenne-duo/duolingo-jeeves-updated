@@ -138,6 +138,7 @@ declare namespace JSONAPI {
   }
 
   interface SentimentSearchResult extends SearchResult {
+    label: string;
     original_text: DocumentContent;
   }
 

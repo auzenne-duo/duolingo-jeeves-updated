@@ -6,7 +6,7 @@ import pytest
 
 from jeeves.manager.sentiment_search_manager import SentimentBucket, SentimentSearchManager
 from jeeves.model.annotated_document import SentimentScoredDocument
-from jeeves.model.sentiment_analysis_classifier import NEGATIVE_CLASS, POSITIVE_CLASS
+from jeeves.model.sentiment_analysis_classifier import NEGATIVE_CLASS, NEUTRAL_CLASS, POSITIVE_CLASS
 from tests.test_documents import _zendesk_document, get_mock_jeeves_documents
 
 now = datetime.now()
@@ -87,6 +87,7 @@ aggregate_sentiment_data_test_cases = [
                 "2023-05-01": _sentiment_bucket(average_sentiment_score=-0.5, num_documents=3),
                 "2022-01-18": _sentiment_bucket(average_sentiment_score=-0.6, num_documents=1),
             },
+            NEUTRAL_CLASS: {},
         },
     )
 ]

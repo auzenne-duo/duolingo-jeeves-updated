@@ -62,8 +62,14 @@ class AppFiguresSentimentClassifier(SentimentAnalysisClassifier):
         star_score = self.star_classify(document)[1]
         svm_score = self.svm_classifier.classify(document)[1]
         score = ((star_score * self.star_weight) + (svm_score * self.svm_weight)) / 2
-        label = self.positive_class if score > 0 else self.negative_class
-        return label, score
+        max_possible_score = self.star_weight + self.svm_weight
+        min_possible_score = -max_possible_score
+        scaled_score = (score - min_possible_score) * 2 / (
+            max_possible_score - min_possible_score
+        ) - 1  # Rescale score to be between -1 and 1 again
+
+        label = self.positive_class if scaled_score > 0 else self.negative_class
+        return label, scaled_score
 
     def classify_batch(
         self, document_list: List[AppfiguresDocument]

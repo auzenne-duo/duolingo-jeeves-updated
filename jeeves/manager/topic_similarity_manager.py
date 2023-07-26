@@ -3,6 +3,7 @@ A manager for filtering documents based on similarity to a target topic for sent
 """
 
 import random
+import re
 from enum import Enum
 from typing import Dict, List
 
@@ -33,7 +34,7 @@ REQ_HEADER = "header"
 REQ_BODY = "body"
 REQ_RESP_TOPIC = "topic"
 REQ_DOCUMENTS = "documents"
-RESP_ID = "id"
+RESP_ID = "ids"
 DOCUMENT_SEPARATOR = (
     "=|*|=|*|="  # GPT document delimiter. Must be unique and not in the documents themselves.
 )
@@ -66,6 +67,8 @@ Input format:
 
 Output format:
 {RESP_ID}: <id>, <id>, <id>, ...
+
+Always include {RESP_ID} at the start of the output
 """
 
 
@@ -151,6 +154,11 @@ class TopicSimilarityManager:
         Construct a dataset for training a SVM model to filter documents based on similarity to a target topic. Then fit a SVM model to the dataset.
         """
 
+        related_embedding = self.ai_completions_dal.request_embedding(topic_description)
+        unrelated_embedding = self.ai_completions_dal.request_embedding(
+            SimilarityCategory.UNRELATED.value
+        )
+
         # Construct related examples for our training dataset
         related_docs = sorted_docs[
             SimilarityCategory.STRONGLY_SIMILAR
@@ -173,11 +181,18 @@ class TopicSimilarityManager:
 
         training_embeddings = np.array(
             [doc.embeddings[GPT_EMBEDDING_MODEL] for doc in related_docs + unrelated_docs]
+            + [related_embedding, unrelated_embedding]
         )
         labels = np.concatenate(
             (
                 np.full((len(related_docs),), label_to_num[SimilarityCategory.RELATED]),
                 np.full((len(unrelated_docs),), label_to_num[SimilarityCategory.UNRELATED]),
+                np.array(
+                    [
+                        label_to_num[SimilarityCategory.RELATED],
+                        label_to_num[SimilarityCategory.UNRELATED],
+                    ]
+                ),
             ),
             axis=None,
         )
@@ -231,7 +246,8 @@ class TopicSimilarityManager:
             SIMILARITY_SYSTEM_PROMPT_PART_1 + similarity_prompt + SIMILARITY_SYSTEM_PROMPT_PART_2
         )
         response_text = self.ai_completions_dal.ask(system_prompt, user_prompt)
-        doc_ids = set([id.strip(" ") for id in response_text.split(f"{RESP_ID}: ")[1].split(",")])
+        pattern = rf"^{RESP_ID}:"
+        doc_ids = set([id.strip(" ") for id in set(re.split(pattern, response_text)[1].split(","))])
 
         filtered_docs = []
         for doc in documents_list:

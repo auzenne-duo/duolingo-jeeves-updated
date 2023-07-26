@@ -1,10 +1,12 @@
 import unittest
+from typing import List
 from unittest.mock import patch
 
 import numpy as np
 import pytest
 
 from jeeves.manager.topic_similarity_manager import SimilarityCategory, TopicSimilarityManager
+from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.matching_document import MatchingDocument
 from tests.test_documents import _zendesk_document, get_mock_jeeves_documents
 
@@ -50,12 +52,26 @@ filter_documents_using_topic_test_cases = [
             mock_document_list[3],
             mock_document_list[4],
         ],
+        [mock_document_list[1]],
+        [
+            mock_document_list[0],
+            mock_document_list[2],
+            mock_document_list[3],
+            mock_document_list[4],
+        ],
     ),
     (
         mock_matching_document_list_swahili,
         SWAHILI,
         SWAHILI_TOPIC_DEF,
         np.array([10001, 201, 0.00022]),
+        [mock_document_list[1]],
+        [
+            mock_document_list[0],
+            mock_document_list[2],
+            mock_document_list[3],
+            mock_document_list[4],
+        ],
         [mock_document_list[1]],
     ),
 ]
@@ -90,7 +106,7 @@ verify_topic_using_gpt_test_cases = [
         mock_document_list,
         LEADERBOARDS_TOPIC_DEF,
         True,
-        "id: uid0, uid2, uid3, uid4",
+        "ids: uid0, uid2, uid3, uid4",
         [
             mock_document_list[2],
             mock_document_list[4],
@@ -98,12 +114,12 @@ verify_topic_using_gpt_test_cases = [
             mock_document_list[3],
         ],
     ),
-    (mock_document_list, LEADERBOARDS_TOPIC_DEF, False, "id: uid1", [mock_document_list[1]]),
+    (mock_document_list, LEADERBOARDS_TOPIC_DEF, False, "ids: uid1", [mock_document_list[1]]),
     (
         mock_document_list,
         SWAHILI_TOPIC_DEF,
         False,
-        "id: uid0, uid2, uid3, uid4",
+        "ids: uid0, uid2, uid3, uid4",
         [
             mock_document_list[4],
             mock_document_list[0],
@@ -111,14 +127,14 @@ verify_topic_using_gpt_test_cases = [
             mock_document_list[3],
         ],
     ),
-    (mock_document_list, SWAHILI_TOPIC_DEF, True, "id: uid1", [mock_document_list[1]]),
+    (mock_document_list, SWAHILI_TOPIC_DEF, True, "ids: uid1", [mock_document_list[1]]),
 ]
 
 
 @patch("jeeves.dal.ai_completions_dal.AICompletionsDAL")
 @patch("jeeves.manager.topic_definition_manager.TopicDefinitionManager")
 @pytest.mark.parametrize(
-    "document_list,target_topic,target_topic_def,target_embedding,expected_filtered_list",
+    "document_list,target_topic,target_topic_def,target_embedding,related_docs,unrelated_docs,expected_filtered_list",
     filter_documents_using_topic_test_cases,
 )
 def test_filter_documents_using_topic(
@@ -128,6 +144,8 @@ def test_filter_documents_using_topic(
     target_topic,
     target_topic_def,
     target_embedding,
+    related_docs,
+    unrelated_docs,
     expected_filtered_list,
 ):
     """
@@ -135,14 +153,26 @@ def test_filter_documents_using_topic(
     """
 
     topic_similarity_manager = TopicSimilarityManager(
-        mock_ai_completions_dal, mock_topic_definition_manager
+        ai_completions_dal=mock_ai_completions_dal,
+        topic_definition_manager=mock_topic_definition_manager,
     )
-    mock_ai_completions_dal.request_embedding.return_value = target_embedding
+    mock_ai_completions_dal.request_embedding.side_effect = lambda x: {
+        target_topic_def: target_embedding,
+        SimilarityCategory.UNRELATED.value: [-10, -10, -10],
+    }[x]
     mock_topic_definition_manager.get_topic_description.return_value = target_topic_def
-    filtered_list = topic_similarity_manager.filter_documents_using_topic(
-        document_list, target_topic
-    )
 
+    def mock_verify_topic_using_gpt(
+        documents_list: List[JeevesDocument], topic_description: str, get_similar: bool
+    ) -> List[JeevesDocument]:
+        return related_docs if get_similar else unrelated_docs
+
+    with patch.object(
+        topic_similarity_manager, "verify_topic_using_gpt", side_effect=mock_verify_topic_using_gpt
+    ):
+        filtered_list = topic_similarity_manager.filter_documents_using_topic(
+            document_list, target_topic
+        )
     case = unittest.TestCase()
     case.assertCountEqual(expected_filtered_list, filtered_list)
 
