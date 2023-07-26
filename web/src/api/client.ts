@@ -1,8 +1,5 @@
 import Cookies from "js-cookie";
 
-const API_URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:8080/api";
-
 const BEARER = `Bearer ${process.env.DUOLINGO_JWT ?? Cookies.get("jwt_token")}`;
 
 export const get = async <T>(url: string): Promise<T> => {
@@ -51,4 +48,4 @@ export const post = async <T>(
 };
 
 const resolveUrl = (url: string) =>
-  /^https?:/.test(url) ? url : `${API_URL}${url}`;
+  /^https?:/.test(url) ? url : `${process.env.API}${url}`;

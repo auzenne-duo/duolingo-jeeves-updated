@@ -10,7 +10,7 @@ interface Configuration extends WebpackConfiguration {
 }
 
 const webpackConfig = (
-  _env: unknown,
+  env: { api?: string },
   argv: { mode: "development" | "production" },
 ): Configuration => ({
   context: path.resolve(__dirname, "../src"),
@@ -75,6 +75,7 @@ const webpackConfig = (
   },
   plugins: [
     new DefinePlugin({
+      "process.env.API": JSON.stringify(env.api ?? "/api"),
       "process.env.DUOLINGO_JWT":
         argv.mode === "development"
           ? JSON.stringify(process.env.DUOLINGO_JWT)

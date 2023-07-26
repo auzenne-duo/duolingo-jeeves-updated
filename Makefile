@@ -52,7 +52,7 @@ web-config:
 
 .PHONY: web-dev
 web-dev: web-config
-	cd web && "$$(npm bin)/webpack" serve --config config/webpack.config.js --mode development
+	cd web && "$$(npm bin)/webpack" serve --config config/webpack.config.js --mode development --env api='http://localhost:5000/api'
 
 .PHONY: web-proxy
 web-proxy:
