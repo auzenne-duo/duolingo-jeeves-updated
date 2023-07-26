@@ -41,6 +41,7 @@ const Topbar = () => {
   const isAnalysisPage = !!useRouteMatch("/:lang/analysis");
   const isDiscoveryPage = !!useRouteMatch("/:lang/discovery");
   const isGPTSearchPage = !!useRouteMatch("/:lang/gpt-search");
+  const isSentimentSearchPage = !!useRouteMatch("/:lang/sentiment-search");
   const isSpikePage = !!useRouteMatch("/:lang/spike");
   const isSpikeStatsPage = !!useRouteMatch("/:lang/spike-stats");
   const search = useSearchParams();
@@ -230,6 +231,8 @@ const Topbar = () => {
                 ? "-discovery"
                 : isGPTSearchPage
                 ? "-gpt-search"
+                : isSentimentSearchPage
+                ? "-sentiment-search"
                 : isSpikePage
                 ? "-spike"
                 : isSpikeStatsPage
@@ -239,7 +242,10 @@ const Topbar = () => {
           ]
         }
       >
-        {isAnalysisPage || isDiscoveryPage || isGPTSearchPage ? (
+        {isAnalysisPage ||
+        isDiscoveryPage ||
+        isGPTSearchPage ||
+        isSentimentSearchPage ? (
           <>
             <Input
               className={styles["search-mobile"]}
@@ -257,7 +263,7 @@ const Topbar = () => {
               onChange={handleSearchInputChange}
               onKeyDown={handleSearchInputKeyDown}
               ref={searchInputRef}
-              supportsTicketQuery={!isGPTSearchPage}
+              supportsTicketQuery={!isGPTSearchPage && !isSentimentSearchPage}
               value={input}
             />
           </>

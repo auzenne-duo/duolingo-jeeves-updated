@@ -9,6 +9,11 @@ declare namespace JSONAPI {
     confirmed_user_id: number;
   }
 
+  interface DocumentContent {
+    body: string;
+    title: string;
+  }
+
   interface DuolingoMetadata {
     app_version?: string;
     course?: string;
@@ -32,21 +37,14 @@ declare namespace JSONAPI {
     num_emails: number;
   }
 
-  interface GPTSearchResponse {
+  interface GPTSearchResponse extends SearchResponse {
     answer: string;
-    lucene_query: string[];
-    query: string;
     results: GPTSearchResult[];
   }
 
-  interface GPTSearchResult {
-    datetime: string;
-    origin: string;
+  interface GPTSearchResult extends SearchResult {
     original_text: LanguageContent;
-    score: number;
     translated_text?: LanguageContent;
-    uid: string;
-    url?: string;
   }
 
   interface Info {
@@ -89,13 +87,11 @@ declare namespace JSONAPI {
     };
   }
 
-  interface LanguageContent {
-    body: string;
+  interface LanguageContent extends DocumentContent {
     // The original body text of the document, taken directly from OpenSearch, so that we can check if GPT
     //   has changed the text somehow while formatting with markup tags
     body_orig: string;
     language: string;
-    title: string;
   }
 
   type LanguageId =
@@ -110,6 +106,40 @@ declare namespace JSONAPI {
     | "zh";
 
   type Platform = "Android" | "iOS" | "Web";
+
+  interface SearchResponse {
+    lucene_query: string[];
+    query: string;
+  }
+
+  interface SearchResult {
+    datetime: string;
+    origin: string;
+    score: number;
+    uid: string;
+    url?: string;
+  }
+
+  interface SentimentBucket {
+    average_sentiment_score: number;
+    num_documents: number;
+  }
+
+  interface SentimentSearchData extends SearchResponse {
+    negative_bucket: { date: Date; score: number; count: number }[];
+    positive_bucket: { date: Date; score: number; count: number }[];
+    results: SentimentSearchResult[];
+  }
+
+  interface SentimentSearchResponse extends SearchResponse {
+    negative_bucket: Record<string, SentimentBucket | undefined>;
+    positive_bucket: Record<string, SentimentBucket | undefined>;
+    results: SentimentSearchResult[];
+  }
+
+  interface SentimentSearchResult extends SearchResult {
+    original_text: DocumentContent;
+  }
 
   type ShakeToReportCategory =
     | "EXTERNAL"

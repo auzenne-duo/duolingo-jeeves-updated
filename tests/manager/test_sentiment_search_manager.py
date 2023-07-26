@@ -84,7 +84,8 @@ aggregate_sentiment_data_test_cases = [
                 "2022-01-18": _sentiment_bucket(average_sentiment_score=0.4, num_documents=3)
             },
             NEGATIVE_CLASS: {
-                "2023-05-01": _sentiment_bucket(average_sentiment_score=-0.5, num_documents=3)
+                "2023-05-01": _sentiment_bucket(average_sentiment_score=-0.5, num_documents=3),
+                "2022-01-18": _sentiment_bucket(average_sentiment_score=-0.6, num_documents=1),
             },
         },
     )

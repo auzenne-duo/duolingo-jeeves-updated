@@ -11,6 +11,19 @@ const formatDateTime = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssxx");
 const formatLocalDate = (date: Date) =>
   formatISO(date, { representation: "date" });
 
+/** Converts bucket data to an array for graphing */
+const createBucketArray = (
+  bucketData: Record<string, JSONAPI.SentimentBucket | undefined>,
+) =>
+  Object.entries(bucketData).map(([date, value]) => ({
+    count: value?.num_documents ?? 0,
+    date: convertTimeZone(
+      parseISO(`${date}T00:00:00`),
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ),
+    score: value?.average_sentiment_score ?? 0,
+  }));
+
 export const getInfo = async (
   lang: JSONAPI.LanguageId,
 ): Promise<{
@@ -186,6 +199,25 @@ export const gptSearch = async (query: string) => {
   params.set("q", query);
 
   return post<JSONAPI.GPTSearchResponse>(`/3/nlp_search?${params.toString()}`);
+};
+
+export const sentimentSearch = async (query: string) => {
+  const params = new URLSearchParams();
+  params.set("q", query);
+
+  const data = await get<JSONAPI.SentimentSearchResponse>(
+    `/3/sentiment_time_series?${params.toString()}`,
+  );
+
+  const positiveBucket = createBucketArray(data.positive_bucket);
+  const negativeBucket = createBucketArray(data.negative_bucket);
+  return {
+    lucene_query: data.lucene_query,
+    negative_bucket: negativeBucket,
+    positive_bucket: positiveBucket,
+    query: data.query,
+    results: data.results,
+  };
 };
 
 export const sendBetaEmails = async (description: string, spikeId: string) =>

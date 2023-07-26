@@ -15,6 +15,7 @@ import Analysis from "components/pages/Analysis";
 import Dashboard from "components/pages/Dashboard";
 import Discovery from "components/pages/Discovery";
 import GPTSearch from "components/pages/GPTSearch";
+import SentimentSearch from "components/pages/SentimentSearch";
 import Spike from "components/pages/Spike";
 import SpikeStats from "components/pages/SpikeStats";
 import AppStateContext, {
@@ -109,6 +110,9 @@ const App = () => {
                 </Route>
                 <Route path="/:lang/gpt-search">
                   <GPTSearch />
+                </Route>
+                <Route path="/:lang/sentiment-search">
+                  <SentimentSearch />
                 </Route>
                 <Route path="/:lang/spike">
                   <Spike />

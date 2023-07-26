@@ -4,6 +4,7 @@ A manager for the Jeeves sentiment analysis functionality.
 
 
 import datetime
+import logging
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Dict, List
@@ -19,8 +20,10 @@ from jeeves.model.annotated_document import SentimentScoredDocument
 from jeeves.model.search_result import DocumentContent, SearchResult, SearchResults
 from jeeves.model.sentiment_analysis_classifier import NEGATIVE_CLASS, POSITIVE_CLASS
 
+LOG = logging.getLogger(__name__)
+
 MAX_SEARCH_RESULTS = 10000
-MIN_DOC_PER_DAY = 3
+MIN_DOC_PER_DAY = 1
 
 
 class BucketWindow(Enum):
@@ -101,6 +104,7 @@ class SentimentSearchManager:
         query_helper: QueryHelper,
         topic_similarity_manager: TopicSimilarityManager,
     ) -> None:
+        LOG.debug("Initializing SentimentSearchManager...")
         self.ai_completions_dal = ai_completions_dal
         self.sentiment_classifier_dal = sentiment_classifier_dal
         self.opensearch_dal = opensearch_dal
@@ -116,9 +120,12 @@ class SentimentSearchManager:
         """
         This function performs sentiment search using the given natural language query.
         """
+        LOG.debug("Starting sentiment search...")
         dsl_response: DSLQueryResponse = self.query_helper.get_dsl_query_and_topics(query)
+        LOG.debug("Got DSL query and topics...")
 
         topic_embedding = self.ai_completions_dal.request_embedding(dsl_response.target_topic)
+        LOG.debug("Got topic embedding...")
 
         hits = self.opensearch_dal.perform_knn_search(
             dsl_response.dsl_query,
@@ -127,18 +134,22 @@ class SentimentSearchManager:
             max_search_depth,
             threshold=0.5,
         )
+        LOG.debug("Performed knn search...")
 
         related_docs = self.topic_similarity_manager.filter_documents_using_topic(
             hits.values(), dsl_response.target_topic
         )
+        LOG.debug("Found related documents...")
 
         scored_docs = self.sentiment_classifier_dal.get_svm_sentiment_classifier().classify_batch(
             related_docs
         )
+        LOG.debug("Classified sentiment of docs...")
 
         results = [SentimentSearchResult.from_sentiment_scored_document(doc) for doc in scored_docs]
 
         buckets = self.aggregate_sentiment_data(scored_docs, bucket_window=BucketWindow.DAY)
+        LOG.debug("Bucketed sentiment data... Search complete!")
 
         return SentimentSearchResults(
             lucene_query=dsl_response.lucene_query,
