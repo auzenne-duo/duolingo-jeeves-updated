@@ -720,10 +720,12 @@ def catch_all(path):
     Serves the web client on any request that wasn't matched.
     The client will handle further routing.
     """
-    if path != "" and os.path.exists("web/dist/" + path):
-        return send_from_directory("web/dist", path)
+    base_path = "web/dist/"
+    fullpath = os.path.normpath(os.path.join(base_path, path))
+    if not fullpath.startswith(base_path) or path == "" or not os.path.exists(fullpath):
+        return send_from_directory(base_path, "index.html")
     else:
-        return send_from_directory("web/dist", "index.html")
+        return send_from_directory(base_path, path)
 
 
 def _get_status(lang):
