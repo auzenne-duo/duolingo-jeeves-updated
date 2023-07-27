@@ -6,7 +6,7 @@ import cn from "classnames";
 import Tag from "components/Tag";
 import styles from "styles/TagFilter.scss";
 
-interface Props extends React.ComponentProps<typeof Tag> {
+export interface Props extends React.ComponentProps<typeof Tag> {
   field: string;
 }
 
@@ -15,7 +15,7 @@ const TagFilter = ({ className, field, ...tagProps }: Props) => {
   return (
     <Link
       className={cn(styles.link, className)}
-      // Prevent clicking a tag from selecting an item in the Issue Discovery list.
+      // Prevent clicking a tag from selecting an item in the tickets list.
       onClick={e => e.stopPropagation()}
       to={getFilterLink(location, field, tagProps.value)}
     >

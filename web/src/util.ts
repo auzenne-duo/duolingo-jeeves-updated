@@ -72,14 +72,6 @@ export const encodeURLSearchParams = (params: URLSearchParams) =>
     )
     .join("&");
 
-export const escapeHTML = (unsafe: string) =>
-  unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
 /** https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent */
 const fixedEncodeURIComponent = (str: string) =>
   encodeURIComponent(str).replace(
@@ -150,19 +142,6 @@ export const getUntruncatedTitle = (t: JSONAPI.Ticket) =>
   (t.data_source === "Zendesk" && t.via?.channel === "mobile_sdk")
     ? t.body_text?.trim().split(/\n|\.\s/)[0]
     : t.header_text;
-
-/**
- * Tries to highlight all instances of a word in the text.
- * Returns the original text if highlighting failed, for
- * example because the generated regex pattern is invalid.
- */
-export const highlightWord = (str: string, word: string) => {
-  try {
-    return str.replace(RegExp(`\\b(${word})\\b`, "gi"), "<mark>$1</mark>");
-  } catch {
-    return str;
-  }
-};
 
 export const isImage = (url: string) => /\.(png|jpe?g)$/.test(url);
 

@@ -1,48 +1,33 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, formatISO, isThisYear, isToday } from "date-fns";
 import { debounce } from "lodash";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Link, useHistory, useLocation, useParams } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
 import { Button } from "web-ui";
-import { alignNearest } from "web-ui/util/scroll";
+import { escapeRegExp } from "web-ui/util";
+import { getIndices } from "web-ui/util/highlight";
 
 import {
   downloadAsCsv,
   encodeURLSearchParams,
-  formatCourseId,
-  formatReadableDate,
-  formatScreen,
-  getFilterLink,
   getPaginationString,
-  getUntruncatedTitle,
 } from "../util";
-import { getTicket, getTickets } from "api/jeeves";
-import JiraStatus from "components/JiraStatus";
+import { getTickets } from "api/jeeves";
 import Pagination from "components/Pagination";
-import PlatformIcon from "components/PlatformIcon";
-import Tag from "components/Tag";
-import TagFilter from "components/TagFilter";
 import Ticket from "components/Ticket";
+import TicketList from "components/TicketList";
 import type { RangeChangeEvent } from "components/TrendGraph";
 import TrendGraph from "components/TrendGraph";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import useSearchParams from "components/useSearchParams";
+import useTicketAside from "components/useTicketAside";
+import useTicketQuery from "components/useTicketQuery";
+import useTicketSelection from "components/useTicketSelection";
 import AppStateContext from "contexts/AppStateContext";
 import styles from "styles/Tickets.scss";
 
 const PER_PAGE = 30;
-
-const formatDate = (date: Date) => {
-  if (isToday(date)) {
-    return format(date, "HH:mm");
-  }
-  if (isThisYear(date)) {
-    return format(date, "d MMM");
-  }
-  return formatISO(date, { representation: "date" });
-};
 
 const handleRangeChangeDebouncer = debounce(
   (callback: () => void) => callback(),
@@ -67,11 +52,9 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const search = useSearchParams();
 
   const [, dispatch] = React.useContext(AppStateContext);
-  const currentRowRef = React.useRef<HTMLLIElement>(null);
 
   const area = search.get("area");
   const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
-  const id = search.get("id");
   const offset = search.get("offset")
     ? parseInt(search.get("offset") as string, 10)
     : 0;
@@ -127,6 +110,12 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
 
   const tickets = data?.data;
 
+  const [id, setId] = useTicketSelection(tickets, {
+    onNext: () => nextLink && history.push(nextLink),
+    onPrev: () => prevLink && history.push(prevLink),
+  });
+  useTicketAside(id);
+
   const nextQuery = useSearchParams();
   nextQuery.set("offset", `${offset + PER_PAGE}`);
   nextQuery.set("sort-id", `${data?.next_sort_id}`);
@@ -157,19 +146,14 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
     [location, offset, prevQuery],
   );
 
-  const { data: selected } = useQuery(
-    ["tickets", id, { lang }],
-    () => getTicket(lang, id as string),
-    {
-      enabled: !!id,
-      initialData: () =>
-        queryClient
-          .getQueryData<JSONAPI.Tickets>(listQueryKey)
-          ?.data.find(t => t.jeeves_uid === id),
-      initialDataUpdatedAt: () =>
-        queryClient.getQueryState(listQueryKey)?.dataUpdatedAt,
-    },
-  );
+  const { data: selected } = useTicketQuery(id, {
+    initialData: () =>
+      queryClient
+        .getQueryData<JSONAPI.Tickets>(listQueryKey)
+        ?.data.find(t => t.jeeves_uid === id),
+    initialDataUpdatedAt: () =>
+      queryClient.getQueryState(listQueryKey)?.dataUpdatedAt,
+  });
 
   const handleClick = (t: JSONAPI.Ticket) => {
     if (t.jeeves_uid === selected?.jeeves_uid) {
@@ -209,107 +193,9 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const handleRangeChangeRef = React.useRef(handleRangeChange);
   handleRangeChangeRef.current = handleRangeChange;
 
-  const setId = React.useCallback(
-    (newId: string | undefined) => {
-      const params = new URLSearchParams(location.search);
-      if (newId === undefined) {
-        params.delete("id");
-      } else {
-        params.set("id", newId);
-      }
-      history.push({
-        ...location,
-        search: encodeURLSearchParams(params),
-      });
-    },
-    [history, location],
-  );
-
   React.useEffect(() => {
     dispatch?.({ type: "HIDE_ASIDE" });
   }, [dispatch, filter, query]);
-
-  React.useEffect(() => {
-    if (id) {
-      dispatch?.({ type: "SHOW_ASIDE" });
-      return () => {
-        dispatch?.({ type: "HIDE_ASIDE" });
-      };
-    }
-    return undefined;
-  }, [dispatch, id]);
-
-  React.useEffect(() => {
-    if (id) {
-      const handleKeydown = (e: KeyboardEvent) => {
-        if (e.key === "]") {
-          dispatch?.({ type: "TOGGLE_ASIDE" });
-          e.preventDefault();
-        }
-      };
-      document.addEventListener("keydown", handleKeydown);
-      return () => document.removeEventListener("keydown", handleKeydown);
-    }
-    return undefined;
-  }, [dispatch, id]);
-
-  React.useEffect(() => {
-    if (currentRowRef.current) {
-      const bodyStyle = getComputedStyle(document.body);
-      const topbarHeight = parseFloat(
-        bodyStyle.getPropertyValue("--height-topbar"),
-      );
-      const margin = parseFloat(bodyStyle.getPropertyValue("--margin"));
-      const target = currentRowRef.current.getBoundingClientRect();
-      document.documentElement.scrollTop += alignNearest(
-        topbarHeight + margin,
-        window.innerHeight - margin,
-        window.innerHeight - topbarHeight - 2 * margin,
-        0,
-        0,
-        target.top,
-        target.bottom,
-        target.height,
-      );
-    }
-  }, [id, tickets]);
-
-  React.useEffect(() => {
-    if (tickets?.length) {
-      const currentIndex = tickets.findIndex(t => t.jeeves_uid === id);
-
-      const next = () => {
-        if (currentIndex < tickets.length - 1) {
-          setId(tickets[currentIndex + 1].jeeves_uid);
-        } else if (nextLink) {
-          history.push(nextLink);
-        }
-      };
-
-      const prev = () => {
-        if (currentIndex === -1) {
-          setId(tickets[tickets.length - 1].jeeves_uid);
-        } else if (currentIndex > 0) {
-          setId(tickets[currentIndex - 1].jeeves_uid);
-        } else if (prevLink) {
-          history.push(prevLink);
-        }
-      };
-
-      const handleKeydown = (e: KeyboardEvent) => {
-        if (e.key === "j") {
-          next();
-          e.preventDefault();
-        } else if (e.key === "k") {
-          prev();
-          e.preventDefault();
-        }
-      };
-      document.addEventListener("keydown", handleKeydown);
-      return () => document.removeEventListener("keydown", handleKeydown);
-    }
-    return undefined;
-  }, [history, id, nextLink, prevLink, setId, tickets]);
 
   // This has a dependency on both `isPreviousData` and `offset` so
   // that the page is scrolled to the top when either cached or
@@ -340,120 +226,12 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       ) : null}
       {tickets?.length ? (
         <>
-          <ul className={styles.list}>
-            {tickets?.map((t, i) => {
-              const date = t.date_time ? new Date(t.date_time) : undefined;
-              return (
-                <li
-                  className={
-                    styles[
-                      `item${
-                        t.jeeves_uid === selected?.jeeves_uid ? "-selected" : ""
-                      }`
-                    ]
-                  }
-                  key={i}
-                  onClick={() => handleClick(t)}
-                  ref={
-                    t.jeeves_uid === selected?.jeeves_uid
-                      ? currentRowRef
-                      : undefined
-                  }
-                >
-                  <div className={styles["title-container"]}>
-                    <span className={styles.title}>
-                      {getUntruncatedTitle(t)}
-                    </span>
-                  </div>
-                  <div className={styles.tags}>
-                    {t.issue_key ? (
-                      <Tag className={styles["tag-ipad"]} value={t.issue_key} />
-                    ) : null}
-                    {t.course ? (
-                      <TagFilter
-                        className={styles["tag-ipad"]}
-                        field="course"
-                        text={formatCourseId(t.course)}
-                        value={t.course}
-                      />
-                    ) : null}
-                    {t.screen_content ? (
-                      <TagFilter
-                        className={styles["tag-ipad"]}
-                        field="screen_content"
-                        text={formatScreen(t.screen_content)}
-                        value={t.screen_content}
-                      />
-                    ) : null}
-                    {t.app_version ? (
-                      <TagFilter
-                        className={styles["tag-ipad"]}
-                        field="app_version"
-                        text={
-                          t.platform === "Web"
-                            ? t.app_version.slice(0, 7)
-                            : t.app_version
-                        }
-                        value={t.app_version}
-                      />
-                    ) : null}
-                    {t.data_source === "JIRA" && t.status ? (
-                      <Link
-                        className={styles["tag-jira"]}
-                        onClick={e => e.stopPropagation()}
-                        to={getFilterLink(location, "status", t.status)}
-                      >
-                        <JiraStatus status={t.status} />
-                      </Link>
-                    ) : null}
-                    {t.platform ? (
-                      <Link
-                        className={styles["tag-platform"]}
-                        onClick={e => e.stopPropagation()}
-                        to={getFilterLink(location, "platform", t.platform)}
-                      >
-                        <PlatformIcon
-                          className={styles.icon}
-                          platform={t.platform}
-                        />
-                      </Link>
-                    ) : t.data_source === "Reddit" ? (
-                      <Link
-                        className={styles["tag-platform"]}
-                        onClick={e => e.stopPropagation()}
-                        to={getFilterLink(location, "data_source", "reddit")}
-                      >
-                        <PlatformIcon
-                          className={styles.icon}
-                          platform="Reddit"
-                        />
-                      </Link>
-                    ) : t.data_source === "Zendesk" &&
-                      t.via?.channel === "twitter" ? (
-                      <Link
-                        className={styles["tag-platform"]}
-                        onClick={e => e.stopPropagation()}
-                        to={getFilterLink(location, "via.channel", "twitter")}
-                      >
-                        <PlatformIcon
-                          className={styles.icon}
-                          platform="Twitter"
-                        />
-                      </Link>
-                    ) : null}
-                    {date ? (
-                      <span
-                        className={styles.date}
-                        title={formatReadableDate(date)}
-                      >
-                        {formatDate(date)}
-                      </span>
-                    ) : null}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <TicketList
+            onClick={handleClick}
+            selectedId={id}
+            supportsTicketQuery={true}
+            tickets={tickets}
+          />
           <div className={styles.pagination}>
             {getPaginationString({
               offset,
@@ -477,7 +255,10 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
         ? createPortal(
             <Ticket
               className={styles.ticket}
-              highlight={query}
+              highlight={getIndices(
+                selected.body_text ?? "",
+                new RegExp(escapeRegExp(query), "i"),
+              )}
               // Don't reuse the component for different tickets as it's stateful.
               key={selected.jeeves_uid}
               onRequestClose={() => setId(undefined)}

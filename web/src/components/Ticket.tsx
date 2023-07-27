@@ -2,15 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LoadingDots } from "web-ui";
+import type { Range } from "web-ui/util/highlight";
+import { highlightText } from "web-ui/util/highlight";
 
 import {
-  escapeHTML,
   formatAttachment,
   formatCourseId,
   formatReadableDate,
   formatScreen,
   getFilterLink,
-  highlightWord,
   isImage,
   normalizeNewLines,
 } from "../util";
@@ -38,7 +38,7 @@ const getZendeskChannel = (ticket: JSONAPI.Ticket) =>
 
 interface Props {
   className?: string;
-  highlight?: string;
+  highlight?: Range[];
   onRequestClose?: () => void;
   ticket: JSONAPI.Ticket;
 }
@@ -50,10 +50,11 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
   const [state, dispatch] = React.useContext(AppStateContext);
   const [isReporting, setIsReporting] = React.useState(false);
 
-  let body = normalizeNewLines(escapeHTML(ticket.body_text ?? ""))
+  const body = normalizeNewLines(
+    highlightText(ticket.body_text ?? "", highlight ?? []),
+  )
     .trim()
     .replace(/\n/g, "<br />");
-  body = highlight ? highlightWord(body, highlight) : body;
 
   const duplicates = ticket.issue_links?.filter(
     link => link.type.name === "Duplicate",

@@ -9,6 +9,8 @@ declare namespace JSONAPI {
     confirmed_user_id: number;
   }
 
+  type DataSource = "AppFigures" | "JIRA" | "Reddit" | "Zendesk";
+
   interface DocumentContent {
     body: string;
     title: string;
@@ -221,7 +223,7 @@ declare namespace JSONAPI {
     /** Currently only available for Jira tickets. */
     creation_date?: string;
     /** String identifying where we got the ticket. */
-    data_source: "AppFigures" | "JIRA" | "Reddit" | "Zendesk";
+    data_source: DataSource;
     /** The date and time the ticket was submitted to its respective service. */
     date_time?: string;
     /** An identifier for the ticket, assigned by the API we got the ticket from. */
