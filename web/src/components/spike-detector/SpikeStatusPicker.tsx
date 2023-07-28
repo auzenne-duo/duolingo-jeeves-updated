@@ -53,7 +53,6 @@ const SpikeStatusPicker = ({ className, spike }: Props) => {
           value: k,
         }))}
         text={`${STATUSES[spike.status]}`}
-        type="secondary"
         value={spike.status}
       />
       {spike.status_user_id && username && (
