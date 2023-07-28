@@ -30,7 +30,7 @@ const Pagination = ({ nextLink, prevLink }: Props) => (
     {nextLink ? (
       typeof nextLink === "function" ? (
         <Button className={styles.next} onClick={nextLink} variant="stroke">
-          Previous
+          Next
         </Button>
       ) : (
         <Link
