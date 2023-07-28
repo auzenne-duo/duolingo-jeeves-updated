@@ -51,7 +51,7 @@ const SpikeTable = ({
           <th>Word</th>
           <th>Summary</th>
           <th className={styles["hide-mobile-column"]}>Status</th>
-          <th className={styles["hide-mobile-column"]}>Email (beta)</th>
+          <th className={styles["hide-mobile-column"]}>Email beta program</th>
         </tr>
       </thead>
       <tbody>
