@@ -83,6 +83,7 @@ class SentimentSearchResults(SearchResults):
     The object we will return to the user from /api/3/sentiment_time_series
     """
 
+    topic: str
     positive_bucket: Dict[str, SentimentBucket]
     negative_bucket: Dict[str, SentimentBucket]
 
@@ -160,6 +161,7 @@ class SentimentSearchManager:
             positive_bucket=buckets[POSITIVE_CLASS],
             negative_bucket=buckets[NEGATIVE_CLASS],
             results=results,
+            topic=dsl_response.target_topic,
         )
 
     @classmethod

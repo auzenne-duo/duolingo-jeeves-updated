@@ -26,6 +26,25 @@ class AnchorSentimentClassifier(SentimentAnalysisClassifier):
     negative_anchor_embedding: npt.ArrayLike = attr.ib()
 
     @classmethod
+    def rescale_sentiment_score(
+        cls,
+        sentiment_score: float,
+    ):
+        """
+        The sentiment score is the inverse distance, so we need to clamp it
+        and then rescale it to be between -1 and 1
+        """
+        min_mapped = -1
+        max_mapped = 1
+
+        min_original = -3
+        max_original = 3
+        sentiment_score = max(min(sentiment_score, max_original), min_original)
+        return (sentiment_score - min_original) * (max_mapped - min_mapped) / (
+            max_original - min_original
+        ) + min_mapped
+
+    @classmethod
     def model_from_dataset(
         cls,
         dataset: List[AnnotatedDocument],
@@ -80,9 +99,9 @@ class AnchorSentimentClassifier(SentimentAnalysisClassifier):
         )
 
         if positive_distance <= negative_distance:
-            return self.positive_class, 1 / positive_distance
+            return self.positive_class, self.rescale_sentiment_score(1 / positive_distance)
         else:
-            return self.negative_class, -1 / negative_distance
+            return self.negative_class, self.rescale_sentiment_score(-1 / negative_distance)
 
     def classify_batch(self, document_list: List[JeevesDocument]) -> List[SentimentScoredDocument]:
         """

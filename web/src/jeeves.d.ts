@@ -131,12 +131,14 @@ declare namespace JSONAPI {
     negative_bucket: { date: Date; score: number; count: number }[];
     positive_bucket: { date: Date; score: number; count: number }[];
     results: SentimentSearchResult[];
+    topic: string;
   }
 
   interface SentimentSearchResponse extends SearchResponse {
     negative_bucket: Record<string, SentimentBucket | undefined>;
     positive_bucket: Record<string, SentimentBucket | undefined>;
     results: SentimentSearchResult[];
+    topic: string;
   }
 
   interface SentimentSearchResult extends SearchResult {

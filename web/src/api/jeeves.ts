@@ -217,6 +217,7 @@ export const sentimentSearch = async (query: string) => {
     positive_bucket: positiveBucket,
     query: data.query,
     results: data.results,
+    topic: data.topic,
   };
 };
 
