@@ -201,7 +201,9 @@ export const gptSearch = async (query: string) => {
   return post<JSONAPI.GPTSearchResponse>(`/3/nlp_search?${params.toString()}`);
 };
 
-export const sentimentSearch = async (query: string) => {
+export const sentimentSearch = async (
+  query: string,
+): Promise<JSONAPI.SentimentSearchData> => {
   const params = new URLSearchParams();
   params.set("q", query);
 

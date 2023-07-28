@@ -55,12 +55,11 @@ const GPTSearchResults = () => {
 
   const query = search.get("q") ?? "";
 
-  const { data, error, isLoading, isPreviousData } =
-    useQuery<JSONAPI.GPTSearchResponse>(
-      ["gpt-search", query],
-      () => gptSearch(query),
-      { keepPreviousData: true },
-    );
+  const { data, error, isLoading, isPreviousData } = useQuery(
+    ["gpt-search", query],
+    () => gptSearch(query),
+    { keepPreviousData: true },
+  );
 
   const docs = data?.results;
 

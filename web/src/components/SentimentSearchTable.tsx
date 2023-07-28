@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Button } from "web-ui";
 
 import { getPaginationString } from "../util";
+import Pagination from "components/Pagination";
 import Table from "components/Table";
 import styles from "styles/SentimentSearchTable.scss";
 
@@ -64,22 +64,12 @@ const SentimentSearchTable = ({ docs }: Props) => {
           total: docs.length,
         })}
       </div>
-      <nav className={styles.wrap}>
-        {currentPage !== 1 && (
-          <Button onClick={handlePrevPage} variant="stroke">
-            Previous
-          </Button>
-        )}
-        {currentPage !== totalPages && (
-          <Button
-            className={styles.next}
-            onClick={handleNextPage}
-            variant="stroke"
-          >
-            Next
-          </Button>
-        )}
-      </nav>
+      {currentPage > 1 || currentPage < totalPages ? (
+        <Pagination
+          nextLink={currentPage < totalPages ? handleNextPage : undefined}
+          prevLink={currentPage > 1 ? handlePrevPage : undefined}
+        />
+      ) : null}
     </>
   );
 };

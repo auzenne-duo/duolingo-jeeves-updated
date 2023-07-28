@@ -1,30 +1,45 @@
 import type { LocationDescriptor } from "history";
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { getButtonClassName } from "web-ui";
+import { Button, getButtonClassName } from "web-ui";
 
 import cn from "classnames";
 import styles from "styles/Pagination.scss";
 
 interface Props {
-  nextLink?: LocationDescriptor;
-  prevLink?: LocationDescriptor;
+  nextLink?: LocationDescriptor | (() => void);
+  prevLink?: LocationDescriptor | (() => void);
 }
 
 const Pagination = ({ nextLink, prevLink }: Props) => (
   <nav className={styles.wrap}>
     {prevLink ? (
-      <Link className={getButtonClassName({ variant: "stroke" })} to={prevLink}>
-        Previous
-      </Link>
+      typeof prevLink === "function" ? (
+        <Button onClick={prevLink} variant="stroke">
+          Previous
+        </Button>
+      ) : (
+        <Link
+          className={getButtonClassName({ variant: "stroke" })}
+          to={prevLink}
+        >
+          Previous
+        </Link>
+      )
     ) : null}
     {nextLink ? (
-      <Link
-        className={cn(getButtonClassName({ variant: "stroke" }), styles.next)}
-        to={nextLink}
-      >
-        Next
-      </Link>
+      typeof nextLink === "function" ? (
+        <Button className={styles.next} onClick={nextLink} variant="stroke">
+          Previous
+        </Button>
+      ) : (
+        <Link
+          className={cn(getButtonClassName({ variant: "stroke" }), styles.next)}
+          to={nextLink}
+        >
+          Next
+        </Link>
+      )
     ) : null}
   </nav>
 );

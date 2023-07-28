@@ -11,10 +11,9 @@ const SentimentSearchResults = () => {
   const search = useSearchParams();
 
   const query = search.get("q") ?? "";
-  const queryKey = ["sentiment-search", query];
 
-  const { data, error, isLoading } = useQuery<JSONAPI.SentimentSearchData>(
-    queryKey,
+  const { data, error, isLoading } = useQuery(
+    ["sentiment-search", query],
     () => sentimentSearch(query),
     { keepPreviousData: true },
   );
