@@ -1,0 +1,11 @@
+@use "styles/constants" as *;
+
+.explanation {
+  display: grid;
+  font-size: 15px;
+  grid-gap: 2 * $juicy-length;
+
+  ul {
+    margin: 0;
+  }
+}

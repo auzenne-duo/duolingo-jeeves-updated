@@ -2,7 +2,7 @@ import * as React from "react";
 import { NavLink, useHistory, useLocation, useParams } from "react-router-dom";
 
 import LanguagePicker from "components/LanguagePicker";
-import styles from "styles/Sidebar.scss";
+import styles from "components/Sidebar.scss";
 
 const LinkItem = ({
   children,

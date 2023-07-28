@@ -4,8 +4,8 @@ import * as React from "react";
 import { getTimeSeries } from "api/jeeves";
 import type { RelayoutEvent } from "components/ResizableGraph";
 import ResizableGraph, { usePlotState } from "components/ResizableGraph";
+import styles from "components/TrendGraph.scss";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
-import styles from "styles/TrendGraph.scss";
 
 export interface RangeChangeEvent {
   from?: Date;

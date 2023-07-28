@@ -1,0 +1,46 @@
+@use "styles/constants" as *;
+
+.summary {
+  word-break: keep-all;
+}
+
+.hide-mobile-column {
+  display: none;
+
+  @media (min-width: $width-ipad) {
+    display: table-cell;
+  }
+}
+
+.status {
+  width: 100%;
+}
+
+.table {
+  table-layout: fixed;
+  width: 100%;
+
+  td:first-child {
+    min-width: 100px;
+    max-width: 150px;
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: $width-ipad) {
+    table-layout: auto;
+
+    td:first-child {
+      width: 150px;
+      max-width: 150px;
+      overflow-wrap: anywhere;
+    }
+
+    td:last-child {
+      min-width: 150px;
+    }
+
+    td:nth-last-child(2) {
+      min-width: 200px;
+    }
+  }
+}

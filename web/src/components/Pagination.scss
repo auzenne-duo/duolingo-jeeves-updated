@@ -1,0 +1,11 @@
+@use "styles/constants" as *;
+@use "styles/mixins";
+
+.next {
+  margin-left: auto;
+}
+
+.wrap {
+  display: flex;
+  width: 100%;
+}

@@ -16,7 +16,7 @@ import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
 import TagFilter from "components/TagFilter";
 import type { Props as TagFilterProps } from "components/TagFilter";
-import styles from "styles/TicketList.scss";
+import styles from "components/TicketList.scss";
 
 const formatDate = (date: Date) => {
   if (isToday(date)) {

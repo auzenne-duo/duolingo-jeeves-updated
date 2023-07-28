@@ -16,6 +16,7 @@ import { getTickets } from "api/jeeves";
 import Pagination from "components/Pagination";
 import Ticket from "components/Ticket";
 import TicketList from "components/TicketList";
+import styles from "components/Tickets.scss";
 import type { RangeChangeEvent } from "components/TrendGraph";
 import TrendGraph from "components/TrendGraph";
 import useDateRangeFilter from "components/useDateRangeFilter";
@@ -25,7 +26,6 @@ import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";
 import useTicketSelection from "components/useTicketSelection";
 import AppStateContext from "contexts/AppStateContext";
-import styles from "styles/Tickets.scss";
 
 const PER_PAGE = 30;
 

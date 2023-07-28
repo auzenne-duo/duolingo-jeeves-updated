@@ -19,12 +19,12 @@ import Hamburger from "components/Hamburger";
 import LabelledToggle from "components/LabelledToggle";
 import type { SearchInputChangeEvent } from "components/SearchInput";
 import SearchInput from "components/SearchInput";
+import styles from "components/Topbar.scss";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
 import imageLogo from "images/logo.svg";
-import styles from "styles/Topbar.scss";
 
 type SelectListProps = React.ComponentProps<typeof SelectList>;
 

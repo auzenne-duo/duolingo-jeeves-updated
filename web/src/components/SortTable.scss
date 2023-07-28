@@ -1,0 +1,13 @@
+@use "styles/constants" as *;
+
+.clickable {
+  cursor: pointer;
+}
+
+.triangle {
+  margin-left: $juicy-length;
+}
+
+.widetable {
+  width: 100%;
+}

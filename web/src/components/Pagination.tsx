@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button, getButtonClassName } from "web-ui";
 
 import cn from "classnames";
-import styles from "styles/Pagination.scss";
+import styles from "components/Pagination.scss";
 
 interface Props {
   nextLink?: LocationDescriptor | (() => void);

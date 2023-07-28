@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import cn from "classnames";
-import styles from "styles/Tag.scss";
+import styles from "components/Tag.scss";
 
 interface Props {
   className?: string;

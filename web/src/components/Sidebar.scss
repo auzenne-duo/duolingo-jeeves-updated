@@ -1,0 +1,28 @@
+@use "styles/constants" as *;
+
+.item {
+  color: web-ui-color("eel");
+  display: flex;
+  font-weight: 700;
+  padding: 14px $juicy-margin;
+  transition: color $duration-fade;
+
+  &:not(:last-child) {
+    border-bottom: $juicy-border;
+  }
+}
+
+.item-active {
+  composes: item;
+  color: web-ui-color("macaw");
+}
+
+.item-language {
+  composes: item;
+  padding: 0;
+}
+
+.language {
+  padding: 18px $juicy-margin;
+  width: 100%;
+}

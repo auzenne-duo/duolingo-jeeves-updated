@@ -1,0 +1,33 @@
+@use "styles/mixins";
+
+._status {
+  border-radius: 3px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  overflow: hidden;
+  padding: 2px 4px;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blue {
+  composes: _status;
+  background-color: rgb(222, 235, 255);
+  color: rgb(7, 71, 166);
+}
+
+.gray {
+  composes: _status;
+  background-color: rgb(223, 225, 230);
+  color: rgb(66, 82, 110);
+}
+
+.green {
+  composes: _status;
+  background-color: rgb(227, 252, 239);
+  color: rgb(0, 102, 68);
+}

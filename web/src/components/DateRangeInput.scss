@@ -1,0 +1,31 @@
+@use "styles/constants" as *;
+
+._popover-positioned {
+  position: absolute !important;
+  top: 100%;
+}
+
+.popover-align-end {
+  composes: _popover-positioned;
+  right: 0;
+}
+
+.popover-align-start {
+  composes: _popover-positioned;
+  left: 0;
+}
+
+.separator {
+  color: web-ui-color("wolf");
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wrap {
+  align-items: center;
+  display: inline-grid;
+  grid-gap: $juicy-margin * 0.5;
+  grid-template-columns: 130px min-content 130px;
+  position: relative;
+}

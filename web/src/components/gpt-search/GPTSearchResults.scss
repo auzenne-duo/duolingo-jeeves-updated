@@ -1,0 +1,10 @@
+@use "styles/constants" as *;
+
+.error {
+  color: web-ui-color("cardinal");
+  font-weight: 700;
+}
+
+.ticket {
+  max-height: 100%;
+}

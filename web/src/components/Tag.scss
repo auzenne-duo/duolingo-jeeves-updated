@@ -1,0 +1,25 @@
+@use "styles/constants" as *;
+
+.tag {
+  background: web-ui-color("polar");
+  border-radius: 12px;
+  color: web-ui-color("eel");
+  display: inline-flex;
+  font-size: 13px;
+  // Tags wrapped in <a> shouldn't be bold.
+  font-weight: 500;
+  line-height: 1;
+  padding: 5px 9px;
+}
+
+.tag-priority {
+  composes: tag;
+  background: web-ui-color("cardinal");
+  color: web-ui-color("snow");
+}
+
+.value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

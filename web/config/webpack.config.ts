@@ -55,7 +55,7 @@ const webpackConfig = (
         options: {
           importLoaders: 1,
           modules: {
-            localIdentName: "[name]--[local]",
+            localIdentName: "[path][name]--[local]",
           },
         },
         test: /\.scss$/,

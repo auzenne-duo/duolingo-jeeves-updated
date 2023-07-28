@@ -22,10 +22,10 @@ import PlatformIcon from "components/PlatformIcon";
 import ShakeToReportForm from "components/ShakeToReportForm";
 import Tag from "components/Tag";
 import TagFilter from "components/TagFilter";
+import styles from "components/Ticket.scss";
 import AppStateContext from "contexts/AppStateContext";
 import imageBug from "images/ant.svg";
 import imageClose from "images/x.svg";
-import styles from "styles/Ticket.scss";
 
 const getZendeskChannel = (ticket: JSONAPI.Ticket) =>
   ticket.via?.channel === "email"

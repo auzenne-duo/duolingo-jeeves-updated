@@ -2,9 +2,9 @@ import * as React from "react";
 import { SearchSuggestions } from "web-ui";
 
 import PlatformIcon from "components/PlatformIcon";
+import styles from "components/SearchInput.scss";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import { escapeTerm, unescapeSpaces } from "opensearch";
-import styles from "styles/SearchInput.scss";
 
 const FIELDS = ["area", "feature", "platform", "team"] as const;
 

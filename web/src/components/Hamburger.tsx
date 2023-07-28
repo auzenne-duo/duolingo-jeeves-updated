@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "web-ui";
 
-import styles from "styles/Hamburger.scss";
+import styles from "components/Hamburger.scss";
 
 interface Props {
   isOpen: boolean;

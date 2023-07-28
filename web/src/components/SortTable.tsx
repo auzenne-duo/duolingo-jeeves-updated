@@ -2,8 +2,8 @@ import * as _ from "lodash";
 import React from "react";
 
 import DisclosureTriangle from "components/DisclosureTriangle";
+import styles from "components/SortTable.scss";
 import Table from "components/Table";
-import styles from "styles/SortTable.scss";
 
 interface Props<T> {
   columns: Column<T>[];

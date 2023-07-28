@@ -1,8 +1,8 @@
 import * as React from "react";
 import { DimmedOverlay, Fade } from "web-ui";
 
+import styles from "components/Lightbox.scss";
 import AppStateContext from "contexts/AppStateContext";
-import styles from "styles/Lightbox.scss";
 
 const Lightbox = () => {
   const [state, dispatch] = React.useContext(AppStateContext);

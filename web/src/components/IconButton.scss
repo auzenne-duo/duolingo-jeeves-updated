@@ -1,0 +1,22 @@
+@use "styles/constants" as *;
+@use "styles/mixins";
+
+.button {
+  --web-ui_button-filter-hover: none;
+  align-items: center;
+  background: web-ui-color("snow");
+  border: $juicy-border;
+  border-radius: 50%;
+  height: $width-icon-button;
+  justify-content: center;
+  transition: background $duration-button-transition;
+  width: $width-icon-button;
+
+  @include mixins.hover {
+    background: web-ui-color("swan");
+  }
+}
+
+.icon {
+  height: 50%;
+}

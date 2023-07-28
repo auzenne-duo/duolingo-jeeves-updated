@@ -8,21 +8,21 @@ import * as React from "react";
 import { Route, Switch } from "react-router-dom";
 import { ThemeProvider } from "web-ui";
 
+import styles from "components/App.scss";
 import Lightbox from "components/Lightbox";
 import MenuDrawer from "components/MenuDrawer";
 import Topbar from "components/Topbar";
-import Analysis from "components/pages/Analysis";
-import Dashboard from "components/pages/Dashboard";
-import Discovery from "components/pages/Discovery";
-import GPTSearch from "components/pages/GPTSearch";
-import SentimentSearch from "components/pages/SentimentSearch";
-import Spike from "components/pages/Spike";
-import SpikeStats from "components/pages/SpikeStats";
+import Dashboard from "components/dashboard/Dashboard";
+import GPTSearch from "components/gpt-search/GPTSearch";
+import IssueDiscovery from "components/issue-discovery/IssueDiscovery";
+import SentimentSearch from "components/sentiment-search/SentimentSearch";
+import SpikeDetector from "components/spike-detector/SpikeDetector";
+import SpikeStats from "components/spike-stats/SpikeStats";
+import TimeSeriesAnalyzer from "components/time-series-analyzer/TimeSeriesAnalyzer";
 import AppStateContext, {
   initialState,
   reducer,
 } from "contexts/AppStateContext";
-import styles from "styles/App.scss";
 import track from "track";
 
 const queryClient = new QueryClient({
@@ -103,10 +103,10 @@ const App = () => {
             <div className={styles.content}>
               <Switch>
                 <Route path="/:lang/analysis">
-                  <Analysis />
+                  <TimeSeriesAnalyzer />
                 </Route>
                 <Route path="/:lang/discovery">
-                  <Discovery />
+                  <IssueDiscovery />
                 </Route>
                 <Route path="/:lang/gpt-search">
                   <GPTSearch />
@@ -115,7 +115,7 @@ const App = () => {
                   <SentimentSearch />
                 </Route>
                 <Route path="/:lang/spike">
-                  <Spike />
+                  <SpikeDetector />
                 </Route>
                 <Route path="/:lang/spike-stats">
                   <SpikeStats />
