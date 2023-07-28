@@ -15,7 +15,7 @@ variable "environment" {
 }
 
 variable "owner" {
-  default = "yijin@duolingo.com"
+  default = "david.sawicki@duolingo.com"
 }
 
 variable "ecs_cluster" {
@@ -23,7 +23,7 @@ variable "ecs_cluster" {
 }
 
 variable "pagerduty_rotation" {
-  default = "fireant"
+  default = "snow"
 }
 
 variable "github_repository" {
@@ -31,5 +31,5 @@ variable "github_repository" {
 }
 
 variable "team" {
-  default = "delight@duolingo.com"
+  default = "tri-team@duolingo.com"
 }

@@ -475,7 +475,7 @@ def submit_duplicates():
         if False in remote_successes:
             abort(
                 make_response(
-                    "Something went wrong. Make sure your issue keys exist or let #team-delight know.",
+                    "Something went wrong. Make sure your issue keys exist or let #team-test-and-release-infrastructure know.",
                     400,
                 )
             )
