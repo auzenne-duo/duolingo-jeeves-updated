@@ -222,3 +222,14 @@ class Test(unittest.TestCase):
             expected_override_output,
             MetaStdizer.get_standardized_metadata(platform_auto_detect_input, "Web"),
         )
+
+        mega_course_input = {
+            "user_information": {
+                "current_course": "MUSIC_MT (none <- English)",
+            }
+        }
+        expected_mega_course_output = {"course": "MUSIC_MT"}
+        self.assertEqual(
+            expected_mega_course_output,
+            MetaStdizer.get_standardized_metadata(mega_course_input),
+        )

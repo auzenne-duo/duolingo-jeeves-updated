@@ -18,8 +18,14 @@ class MetadataStandardizer:
             f"DUOLINGO_{lang_code_pattern}_{lang_code_pattern}", re.X
         )
         course_codes_arrow_re = re.compile(f"{lang_code_pattern} <- {lang_code_pattern}", re.X)
+        mega_course_re = re.compile("(MATH_BT|MUSIC_MT) .*")
         lang_names_arrow_re = re.compile("([^<]*) <- (.*)")
-        self._course_re_list = [direct_output_course_re, course_codes_arrow_re, lang_names_arrow_re]
+        self._course_re_list = [
+            direct_output_course_re,
+            course_codes_arrow_re,
+            mega_course_re,
+            lang_names_arrow_re,
+        ]
 
         self._fullstory_url_re_list = [re.compile("((?:https://)?app[.]fullstory[.]com/[^ ]*)")]
 
@@ -203,12 +209,16 @@ class MetadataStandardizer:
         course_match = self._try_ordered_regular_expressions(
             flat_metadata, self._course_re_list, possible_course_fields
         )
-        if course_match and len(course_match.groups()) >= 2:
-            to_lang = LangCodeMap.code_lookup(course_match.group(1))
-            from_lang = LangCodeMap.code_lookup(course_match.group(2))
+        if course_match:
+            if len(course_match.groups()) >= 2:
+                to_lang = LangCodeMap.code_lookup(course_match.group(1))
+                from_lang = LangCodeMap.code_lookup(course_match.group(2))
 
-            if to_lang != "??" and from_lang != "??":
-                std_data["course"] = f"DUOLINGO_{to_lang}_{from_lang}"
+                if to_lang != "??" and from_lang != "??":
+                    std_data["course"] = f"DUOLINGO_{to_lang}_{from_lang}"
+            elif len(course_match.groups()) == 1:
+                # This must be a Mega course
+                std_data["course"] = course_match.group(1)
 
         possible_fullstory_fields = [f for f in flat_metadata if "fullstory" in f]
         if "session_url" in flat_metadata:
