@@ -1,29 +1,21 @@
-import Plotly from "plotly.js-basic-dist";
 import * as React from "react";
-import createPlotlyComponent from "react-plotly.js/factory";
 
+import ResizableGraph, { usePlotState } from "components/ResizableGraph";
 import styles from "styles/SentimentGraph.scss";
 
-interface PlotState {
-  config: unknown;
-  data: unknown[];
-  frames: unknown[];
-  layout: unknown;
-}
+const BUCKET_SIZE = 0.2;
 
+// Colors
 const BLACK_TEXT = "#3c3c3c";
 const JUICY_SWAN = "#e5e5e5";
 const JUICY_OWL = "#58cc02";
 const JUICY_CARDINAL = "#ff4b4b";
-
-const Plot = createPlotlyComponent(Plotly);
 
 interface Props {
   negativeBucket: { date: Date; score: number; count: number }[];
   positiveBucket: { date: Date; score: number; count: number }[];
 }
 
-const BUCKET_SIZE = 0.2;
 const getColorOpacity = (score: number): string => {
   const lowerBound = Math.floor(score / BUCKET_SIZE) * BUCKET_SIZE;
   const color = score > 0 ? JUICY_OWL : JUICY_CARDINAL;
@@ -35,26 +27,7 @@ const getColorOpacity = (score: number): string => {
 };
 
 const SentimentGraph = ({ negativeBucket, positiveBucket }: Props) => {
-  const [plotState, setPlotState] = React.useState<PlotState>({
-    config: {},
-    data: [],
-    frames: [],
-    layout: {},
-  });
-
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const plotRef = React.useRef<typeof Plot>(null);
-
-  React.useEffect(() => {
-    if (containerRef.current && plotRef.current) {
-      const observer = new ResizeObserver(() =>
-        Plotly.Plots.resize(plotRef.current.el),
-      );
-      observer.observe(containerRef.current);
-      return () => observer.disconnect();
-    }
-    return undefined;
-  }, []);
+  const [plotState, setPlotState] = usePlotState();
 
   React.useEffect(() => {
     const positiveX = positiveBucket?.map(({ date }) => date);
@@ -147,27 +120,14 @@ const SentimentGraph = ({ negativeBucket, positiveBucket }: Props) => {
         },
       },
     });
-  }, [positiveBucket, negativeBucket]);
+  }, [negativeBucket, positiveBucket, setPlotState]);
 
   return (
-    <div className={styles.container} ref={containerRef}>
-      <div className={styles.inner}>
-        <Plot
-          className={styles.plot}
-          config={plotState.config}
-          data={plotState.data}
-          frames={plotState.frames}
-          layout={plotState.layout}
-          onInitialized={(figure: Partial<PlotState>) =>
-            setPlotState(value => ({ ...value, figure }))
-          }
-          onUpdate={(figure: Partial<PlotState>) =>
-            setPlotState(value => ({ ...value, figure }))
-          }
-          ref={plotRef}
-        />
-      </div>
-    </div>
+    <ResizableGraph
+      className={styles.graph}
+      onChange={setPlotState}
+      state={plotState}
+    />
   );
 };
 

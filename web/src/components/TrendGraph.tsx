@@ -1,42 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import Plotly from "plotly.js-basic-dist";
 import * as React from "react";
-import createPlotlyComponent from "react-plotly.js/factory";
 
 import { getTimeSeries } from "api/jeeves";
+import type { RelayoutEvent } from "components/ResizableGraph";
+import ResizableGraph, { usePlotState } from "components/ResizableGraph";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import styles from "styles/TrendGraph.scss";
-
-interface PlotState {
-  config: unknown;
-  data: unknown[];
-  frames: unknown[];
-  layout: unknown;
-}
 
 export interface RangeChangeEvent {
   from?: Date;
   to?: Date;
 }
 
-/* eslint-disable @typescript-eslint/naming-convention */
-interface RelayoutEvent {
-  /** Set when double clicking the plot to reset the range. */
-  "xaxis.autorange"?: boolean;
-  /** Set when using the range slider. */
-  "xaxis.range"?: [string, string];
-  /** Set when selecting an area directly on the plot. */
-  "xaxis.range[0]"?: string;
-  /** Set when selecting an area directly on the plot. */
-  "xaxis.range[1]"?: string;
-}
-/* eslint-enable @typescript-eslint/naming-convention */
-
 const BLACK_TEXT = "#3c3c3c";
 const JUICY_MACAW = "#1cb0f6";
 const JUICY_SWAN = "#e5e5e5";
-
-const Plot = createPlotlyComponent(Plotly);
 
 interface Props {
   filter?: JSONAPI.ShakeToReportCategory;
@@ -77,15 +55,7 @@ const TrendGraph = ({
     },
   );
 
-  const [plotState, setPlotState] = React.useState<PlotState>({
-    config: {},
-    data: [],
-    frames: [],
-    layout: {},
-  });
-
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const plotRef = React.useRef<typeof Plot>(null);
+  const [plotState, setPlotState] = usePlotState();
 
   const handleRelayout = (e: RelayoutEvent) => {
     if (!data) {
@@ -110,21 +80,10 @@ const TrendGraph = ({
         to: to ? new Date(to) : undefined,
       });
     } else if (e["xaxis.autorange"]) {
-      // User double clicked the plot to reset the range.
+      // User double-clicked the plot to reset the range.
       onRangeChange?.({ from: undefined, to: undefined });
     }
   };
-
-  React.useEffect(() => {
-    if (containerRef.current && plotRef.current) {
-      const observer = new ResizeObserver(() =>
-        Plotly.Plots.resize(plotRef.current.el),
-      );
-      observer.observe(containerRef.current);
-      return () => observer.disconnect();
-    }
-    return undefined;
-  }, []);
 
   React.useEffect(() => {
     const x = data?.map(({ date }) => date);
@@ -182,28 +141,15 @@ const TrendGraph = ({
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, zoomFrom?.valueOf(), zoomTo?.valueOf()]);
+  }, [data, setPlotState, zoomFrom?.valueOf(), zoomTo?.valueOf()]);
 
   return (
-    <div className={styles.container} ref={containerRef}>
-      <div className={styles.inner}>
-        <Plot
-          className={styles.plot}
-          config={plotState.config}
-          data={plotState.data}
-          frames={plotState.frames}
-          layout={plotState.layout}
-          onInitialized={(figure: Partial<PlotState>) =>
-            setPlotState(value => ({ ...value, figure }))
-          }
-          onRelayout={handleRelayout}
-          onUpdate={(figure: Partial<PlotState>) =>
-            setPlotState(value => ({ ...value, figure }))
-          }
-          ref={plotRef}
-        />
-      </div>
-    </div>
+    <ResizableGraph
+      className={styles.graph}
+      onChange={setPlotState}
+      onRelayout={handleRelayout}
+      state={plotState}
+    />
   );
 };
 

@@ -1,25 +1,7 @@
-.container {
-  // The plot is resized asynchronously so it might overflow for an instant.
-  overflow: hidden;
-  padding-top: 50%;
-  position: relative;
+.graph {
+  aspect-ratio: 1 / 0.5;
 
   @media (min-width: 700px) {
-    padding-top: 40%;
+    aspect-ratio: 1/ 0.4;
   }
-}
-
-// Plotly overrides the position of .plot, so we
-// need this extra wrapper to allow absolute positioning.
-.inner {
-  height: 100%;
-  left: 0;
-  position: absolute;
-  top: 0;
-  width: 100%;
-}
-
-.plot {
-  height: 100%;
-  width: 100%;
 }
