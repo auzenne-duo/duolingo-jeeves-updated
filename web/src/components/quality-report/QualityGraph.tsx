@@ -32,30 +32,31 @@ const PROJECTS = ["DLAA", "DLAI", "DLAW", "Overall"] as const;
 
 interface Props {
   className?: string;
+  overallOnly?: boolean;
   scores: JSONAPI.QualityReport["areas"][number]["scores"];
   title: string;
 }
 
-const QualityGraph = ({ className, scores, title }: Props) => {
+const QualityGraph = ({ className, overallOnly, scores, title }: Props) => {
   const [plotState, setPlotState] = usePlotState();
 
   const data = React.useMemo(
     () =>
-      PROJECTS.map(project => ({
+      PROJECTS.filter(p => !overallOnly || p === "Overall").map(p => ({
         line: {
-          color: COLOR_MAP[project],
-          dash: project === "Overall" ? "solid" : "dashdot",
+          color: COLOR_MAP[p],
+          dash: p === "Overall" ? "solid" : "dashdot",
         },
-        mode: project === "Overall" ? "lines+markers" : "lines",
-        name: LEGEND_MAP[project],
+        mode: p === "Overall" ? "lines+markers" : "lines",
+        name: overallOnly ? "Overall quality score" : LEGEND_MAP[p],
         type: "scatter",
         // Scores are actually computed on EST date grouping, but
         // for simplicity we pretend that they are local date groups
         // in the UI.
-        x: scores[project].map(([date]) => parseISO(`${date}T00:00:00`)),
-        y: scores[project].map(([, value]) => value),
+        x: scores[p].map(([date]) => parseISO(`${date}T00:00:00`)),
+        y: scores[p].map(([, value]) => value),
       })),
-    [scores],
+    [overallOnly, scores],
   );
 
   React.useEffect(() => {
@@ -81,6 +82,7 @@ const QualityGraph = ({ className, scores, title }: Props) => {
           r: 10,
           t: 40,
         },
+        showlegend: true,
         title: {
           font: {
             // Matches the <h2> element style.
@@ -100,7 +102,7 @@ const QualityGraph = ({ className, scores, title }: Props) => {
         },
       },
     });
-  }, [data, setPlotState, title]);
+  }, [data, overallOnly, setPlotState, title]);
 
   return (
     <ResizableGraph

@@ -25,7 +25,7 @@ const QualityReportOverview = () => {
           key={a.title}
           to={`/${lang}/quality-report?area=${encodeURIComponent(a.title)}`}
         >
-          <QualityGraph scores={a.scores} title={a.title} />
+          <QualityGraph overallOnly={true} scores={a.scores} title={a.title} />
         </Link>
       ))}
     </div>
