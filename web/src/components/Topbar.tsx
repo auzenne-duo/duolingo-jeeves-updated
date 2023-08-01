@@ -41,6 +41,7 @@ const Topbar = () => {
   const isAnalysisPage = !!useRouteMatch("/:lang/analysis");
   const isDiscoveryPage = !!useRouteMatch("/:lang/discovery");
   const isGPTSearchPage = !!useRouteMatch("/:lang/gpt-search");
+  const isQualityReportPage = !!useRouteMatch("/:lang/quality-report");
   const isSentimentSearchPage = !!useRouteMatch("/:lang/sentiment-search");
   const isSpikePage = !!useRouteMatch("/:lang/spike");
   const isSpikeStatsPage = !!useRouteMatch("/:lang/spike-stats");
@@ -72,8 +73,9 @@ const Topbar = () => {
 
   const areasAndTeams = React.useMemo(() => {
     const options = areas.flatMap(a => [
-      { field: "area", text: a.area_name, value: "" },
+      { area: a, field: "area", text: a.area_name, value: "" },
       ...a.teams.flatMap(t => ({
+        area: a,
         description: `in ${a.area_name}`,
         field: "team",
         text: t.team_name,
@@ -86,9 +88,13 @@ const Topbar = () => {
 
   const areaOrTeamIndex = React.useMemo(
     () =>
-      area || team
-        ? areasAndTeams.findIndex(
-            o => (area && o.text === area) || (team && o.text === team),
+      area
+        ? areasAndTeams.findIndex(o =>
+            team
+              ? o.field === "team" &&
+                o.text === team &&
+                o.area.area_name === area
+              : o.field === "area" && o.text === area,
           )
         : -1,
     [area, areasAndTeams, team],
@@ -110,8 +116,14 @@ const Topbar = () => {
     params.delete("page");
     params.delete("team");
     if (val) {
+      if (val.field === "team") {
+        // The team is unique within an area, so also set the area parameter.
+        params.set("area", val.area.area_name);
+      }
       params.set(val.field, val.text);
-      params.set("filter", "INTERNAL");
+      if (isDiscoveryPage) {
+        params.set("filter", "INTERNAL");
+      }
     }
     applyFilters(params);
   };
@@ -231,6 +243,8 @@ const Topbar = () => {
                 ? "-discovery"
                 : isGPTSearchPage
                 ? "-gpt-search"
+                : isQualityReportPage
+                ? "-quality-report"
                 : isSentimentSearchPage
                 ? "-sentiment-search"
                 : isSpikePage
@@ -293,7 +307,7 @@ const Topbar = () => {
             to={to}
           />
         ) : null}
-        {isDiscoveryPage ? (
+        {isDiscoveryPage || isQualityReportPage ? (
           <div
             className={cn(styles.area, styles["hide-on-mobile"])}
             onKeyDown={

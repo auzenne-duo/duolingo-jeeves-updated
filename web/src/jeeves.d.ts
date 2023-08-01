@@ -11,6 +11,35 @@ declare namespace JSONAPI {
 
   type DataSource = "AppFigures" | "JIRA" | "Reddit" | "Zendesk";
 
+  interface DetailedAreaQualityReport extends DetailedQualityReport {
+    teams: DetailedQualityReport[];
+  }
+
+  interface DetailedQualityReport {
+    end_date: string;
+    features: string[];
+    max_dupes_issues: Ticket[];
+    max_priority_issues: Ticket[];
+    open_bugs_count: number;
+    open_bugs_url: string;
+    overall_score: number;
+    score_breakdowns: {
+      closed_points: number;
+      date: string;
+      num_issues: number;
+      open_points: number;
+      overall_score: number;
+      quality_score_type_counts: {
+        count: number;
+        label: string;
+        points: number;
+      }[];
+    }[];
+    scores: QualityScores;
+    start_date: string;
+    title: string;
+  }
+
   interface DocumentContent {
     body: string;
     title: string;
@@ -108,6 +137,20 @@ declare namespace JSONAPI {
     | "zh";
 
   type Platform = "Android" | "iOS" | "Web";
+
+  interface QualityReport {
+    areas: {
+      scores: QualityScores;
+      title: string;
+    }[];
+  }
+
+  interface QualityScores {
+    DLAA: [date: string, score: number][];
+    DLAI: [date: string, score: number][];
+    DLAW: [date: string, score: number][];
+    Overall: [date: string, score: number][];
+  }
 
   interface SearchResponse {
     lucene_query: string[];

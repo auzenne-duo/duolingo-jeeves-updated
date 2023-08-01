@@ -1,0 +1,52 @@
+@use "styles/constants" as *;
+
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $juicy-length;
+}
+
+.graph {
+  max-height: 500px;
+  width: 100%;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  gap: $juicy-length;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.header-left,
+.header-right {
+  display: grid;
+  grid-gap: $juicy-length;
+}
+
+.header-right {
+  text-align: end;
+}
+
+.strong {
+  font-weight: 700;
+}
+
+.table {
+  width: 100%;
+}
+
+.team-card {
+  padding: 9.5px 16px;
+}
+
+.teams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $juicy-length;
+}
+
+.ticket {
+  max-height: 100%;
+}

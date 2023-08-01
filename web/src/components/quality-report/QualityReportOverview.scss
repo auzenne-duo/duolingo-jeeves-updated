@@ -1,0 +1,11 @@
+@use "styles/constants" as *;
+
+.grid {
+  display: grid;
+  grid-gap: var(--margin);
+  width: 100%;
+
+  @media (min-width: $width-ipad) {
+    grid-template-columns: 1fr 1fr;
+  }
+}

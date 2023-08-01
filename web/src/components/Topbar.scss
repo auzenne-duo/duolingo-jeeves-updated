@@ -37,6 +37,15 @@
   composes: filters;
 }
 
+.filters-quality-report {
+  composes: filters;
+
+  @media (min-width: $width-ipad) {
+    grid-template-columns: min-content;
+    margin-left: auto;
+  }
+}
+
 .filters-sentiment-search {
   composes: filters;
 }

@@ -54,12 +54,11 @@ const SentimentGraph = ({ negativeBucket, positiveBucket }: Props) => {
     );
 
     const completeX = positiveX.concat(negativeX);
-    const range = completeX
-      ? [
-          new Date(Math.min(...completeX.map(d => d.valueOf()))),
-          new Date(Math.max(...completeX.map(d => d.valueOf()))),
-        ]
-      : undefined;
+
+    const range = [
+      new Date(Math.min(...completeX.map(d => d.valueOf()))),
+      new Date(Math.max(...completeX.map(d => d.valueOf()))),
+    ];
 
     setPlotState({
       config: {

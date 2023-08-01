@@ -3,7 +3,7 @@ import { formatDistanceToNow, startOfYesterday } from "date-fns";
 import * as React from "react";
 import { useParams } from "react-router-dom";
 
-import { formatReadableDate } from "../../util";
+import { formatReadableDateTime } from "../../util";
 import { getInfo, getSpikes } from "api/jeeves";
 import Table from "components/Table";
 import SpikeTable from "components/spike-detector/SpikeTable";
@@ -86,7 +86,7 @@ const Dashboard = () => {
           <tr>
             <th>Last Jeeves deployment</th>
             {info ? (
-              <td>{formatReadableDate(info.deployed_timestamp)}</td>
+              <td>{formatReadableDateTime(info.deployed_timestamp)}</td>
             ) : isLoadingInfo ? null : (
               <td>Failed to retrieve data.</td>
             )}

@@ -6,7 +6,7 @@ import { alignNearest } from "web-ui/util/scroll";
 
 import {
   formatCourseId,
-  formatReadableDate,
+  formatReadableDateTime,
   formatScreen,
   getFilterLink,
   getUntruncatedTitle,
@@ -184,7 +184,10 @@ const TicketList = ({
                 </LinkOrSpan>
               ) : null}
               {date ? (
-                <span className={styles.date} title={formatReadableDate(date)}>
+                <span
+                  className={styles.date}
+                  title={formatReadableDateTime(date)}
+                >
                   {formatDate(date)}
                 </span>
               ) : null}

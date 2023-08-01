@@ -8,7 +8,7 @@ import { highlightText } from "web-ui/util/highlight";
 import {
   formatAttachment,
   formatCourseId,
-  formatReadableDate,
+  formatReadableDateTime,
   formatScreen,
   getFilterLink,
   isImage,
@@ -301,7 +301,7 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
       {ticket.date_time ? (
         <section className={styles.section}>
           <span className={styles.label}>Reported at</span>
-          <div>{formatReadableDate(new Date(ticket.date_time))}</div>
+          <div>{formatReadableDateTime(new Date(ticket.date_time))}</div>
         </section>
       ) : null}
       {ticket.screen_content ? (

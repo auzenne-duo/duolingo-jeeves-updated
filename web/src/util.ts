@@ -97,6 +97,9 @@ export const formatCourseId = (courseId: string) => {
 };
 
 export const formatReadableDate = (date: Date) =>
+  format(date, "eee, d MMM yyyy");
+
+export const formatReadableDateTime = (date: Date) =>
   format(date, "eee, d MMM yyyy HH:mm:ss z");
 
 export const formatScreen = (screen: string) =>

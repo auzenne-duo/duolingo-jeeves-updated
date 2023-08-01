@@ -58,6 +58,9 @@ const Sidebar = ({ onItemClick }: Props) => {
       >
         GPT Search (beta)
       </LinkItem>
+      <LinkItem onClick={onItemClick} to={`/${lang}/quality-report`}>
+        Quality Report (mock data)
+      </LinkItem>
       <LinkItem
         onClick={onItemClick}
         title="Browse the list of trending words where the volume of matched tickets spiked."
