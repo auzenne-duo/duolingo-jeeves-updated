@@ -1,5 +1,5 @@
 import unittest
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from unittest.mock import patch
 
 import numpy as np
@@ -89,12 +89,23 @@ sort_documents_using_cosine_similarity_test_cases = [
         },
     ),
 ]
-
+FORMATTED_DOCS_OUTPUT_STRING = f"""
+id:0 header:Leaderboards are broken body:@Duolingo when I click on the leaderboard tab the app crashes!
+ =|*|=|*|=
+id:1 header:Please add swahili body:I really want to use Duolingo to learn swahili
+ =|*|=|*|=
+id:2 header:Leagues are so much fun body:I finally got first in the diamond league!
+ =|*|=|*|=
+id:3 header:How do I see my friends on the leaderboard? body:I want to be in a league with my friends!
+ =|*|=|*|=
+id:4 header:Duolingo is so competitive body:Duolingo makes me feel like I'm competing with my swahili friends
+"""
+ID_MAPPER = {"uid0": "0", "uid1": "1", "uid2": "2", "uid3": "3", "uid4": "4", "uid5": "5"}
 verify_topic_using_gpt_test_cases = [
     (
         mock_document_list,
         LEADERBOARDS,
-        f'{{"related ids": ["uid2","uid4","uid0", "uid3"],"unrelated ids": ["uid1"]}}',
+        f'{{"related ids": ["2","4","0","3"],"unrelated ids": ["1"]}}',
         {
             SimilarityCategory.RELATED: [
                 mock_document_list[2],
@@ -108,7 +119,7 @@ verify_topic_using_gpt_test_cases = [
     (
         mock_document_list,
         SWAHILI,
-        f'{{"unrelated ids": ["uid2","uid4","uid0","uid3"],"related ids": ["uid1"]}}',
+        f'{{"unrelated ids": ["2","4","0","3"],"related ids": ["1"]}}',
         {
             SimilarityCategory.UNRELATED: [
                 mock_document_list[2],
@@ -122,7 +133,7 @@ verify_topic_using_gpt_test_cases = [
     (
         mock_document_list,
         STREAK,
-        f'{{"unrelated ids": ["uid2","uid4","uid0","uid3","uid1"],"related ids": []}}',
+        f'{{"unrelated ids": ["2","4","0","3","1"],"related ids": []}}',
         {
             SimilarityCategory.UNRELATED: [
                 mock_document_list[2],
@@ -221,8 +232,18 @@ def test_verify_topic_using_gpt(
 
     topic_similarity_manger = TopicSimilarityManager(mock_ai_completions_dal)
     mock_ai_completions_dal.ask.return_value = ai_completions_response
-    filtered_dict = topic_similarity_manger.verify_topic_using_gpt(document_list, target_topic)
 
+    def mocked_get_max_docs_under_content_length_limit(
+        self, docs: List[JeevesDocument]
+    ) -> Tuple[List[str], Dict[int, str]]:
+        return FORMATTED_DOCS_OUTPUT_STRING, ID_MAPPER
+
+    with patch.object(
+        TopicSimilarityManager,
+        "get_max_docs_under_content_length_limit",
+        new=mocked_get_max_docs_under_content_length_limit,
+    ):
+        filtered_dict = topic_similarity_manger.verify_topic_using_gpt(document_list, target_topic)
     case = unittest.TestCase()
     for category in [
         SimilarityCategory.RELATED,

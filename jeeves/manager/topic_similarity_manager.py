@@ -5,7 +5,7 @@ A manager for filtering documents based on similarity to a target topic for sent
 import json
 import random
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 import tiktoken
@@ -48,7 +48,7 @@ Some documents are about the topic and some are not.
 
 List any documents that ARE about the target topic in a JSON array as the value of the key "{RELATED_RESP_IDS}" in your response. Documents that
 are about the target topic either contain the keywords of the topic or keywords related to
-the topic. Return at most 15 related document ids. Return at most 35 unrelated document ids.
+the topic.
 
 List any documents that ARE NOT about the target topic in a JSON array as the value of the key "{UNRELATED_RESP_IDS}" in your response.
 
@@ -85,13 +85,13 @@ class SimilarityCategory(Enum):
     UNRELATED = "unrelated"  # Documents that are either dissimilar or strongly dissimilar
 
 
-def format_for_user_prompt(document: JeevesDocument) -> str:
+def format_for_user_prompt(document: JeevesDocument, doc_id: str) -> str:
     """
     Truncate a document as needed and format it for GPT
     """
     header = document.header_text.replace("\n", " ")[:MAX_HEADER_CHARS]
     body = document.body_text.replace("\n", " ")[:MAX_BODY_CHARS]
-    return f"{REQ_ID}:{document.jeeves_uid} {REQ_HEADER}:{header} {REQ_BODY}:{body}"
+    return f"{REQ_ID}:{doc_id} {REQ_HEADER}:{header} {REQ_BODY}:{body}"
 
 
 @registry.bind(
@@ -169,13 +169,12 @@ class TopicSimilarityManager:
             + sorted_docs[SimilarityCategory.STRONGLY_DISSIMILAR]
         )
         gpt_docs = self.verify_topic_using_gpt(
-            document_list=potential_related_docs[0 : min(50, len(potential_related_docs))]
+            document_list=potential_related_docs[0 : min(75, len(potential_related_docs))]
             + potential_unrelated_docs[
                 max(len(potential_unrelated_docs) - 50, 0) : len(potential_unrelated_docs)
             ],
             target_topic=target_topic,
         )
-
         # Construct related examples for our training dataset
         related_docs = (
             sorted_docs[SimilarityCategory.STRONGLY_SIMILAR] + gpt_docs[SimilarityCategory.RELATED]
@@ -248,27 +247,30 @@ class TopicSimilarityManager:
         relevant_docs = {SimilarityCategory.RELATED: [], SimilarityCategory.UNRELATED: []}
         user_prompt = f"{REQ_RESP_TOPIC}: {target_topic}\n{REQ_DOCUMENTS}: "
         random.shuffle(document_list)
-        user_prompt += f"\n {DOCUMENT_SEPARATOR} \n".join(
-            self.get_max_docs_under_content_length_limit(document_list)
-        )
-
+        formatted_docs, id_mapper = self.get_max_docs_under_content_length_limit(document_list)
+        user_prompt += f"\n {DOCUMENT_SEPARATOR} \n".join(formatted_docs)
         response_text = self.ai_completions_dal.ask(SIMILARITY_SYSTEM_PROMPT, user_prompt)
         response_data = json.loads(response_text)
 
         if RELATED_RESP_IDS in response_data:
             related_id_set = set(response_data[RELATED_RESP_IDS])
             relevant_docs[SimilarityCategory.RELATED] = [
-                doc for doc in document_list if doc.jeeves_uid in related_id_set
+                doc
+                for doc in document_list
+                if (doc.jeeves_uid in id_mapper and id_mapper[doc.jeeves_uid] in related_id_set)
             ]
         if UNRELATED_RESP_IDS in response_data:
             unrelated_id_set = set(response_data[UNRELATED_RESP_IDS])
             relevant_docs[SimilarityCategory.UNRELATED] = [
-                doc for doc in document_list if doc.jeeves_uid in unrelated_id_set
+                doc
+                for doc in document_list
+                if (doc.jeeves_uid in id_mapper and id_mapper[doc.jeeves_uid] in unrelated_id_set)
             ]
-
         return relevant_docs
 
-    def get_max_docs_under_content_length_limit(self, docs: List[JeevesDocument]) -> List[str]:
+    def get_max_docs_under_content_length_limit(
+        self, docs: List[JeevesDocument]
+    ) -> Tuple[List[str], Dict[int, str]]:
         """
         Given the CONTEXT_LENGTH for our GPT model, return the greatest number of documents possible
         while still staying under the total token limit.
@@ -279,15 +281,19 @@ class TopicSimilarityManager:
 
         docs_token_sum = 0
         final_docs = []
+        curr_id = 0
+        id_mapper = {}
         for doc in docs:
-            formatted = format_for_user_prompt(doc)
+            formatted = format_for_user_prompt(doc, str(curr_id))
             n = self.token_len(formatted)
             docs_token_sum += n
             if docs_token_sum > max_remaining_tokens:
                 break
             final_docs.append(formatted)
+            id_mapper[doc.jeeves_uid] = str(curr_id)
+            curr_id += 1
 
-        return final_docs
+        return final_docs, id_mapper
 
     def token_len(self, text: str):
         return len(self.tokenizer.encode(text))
