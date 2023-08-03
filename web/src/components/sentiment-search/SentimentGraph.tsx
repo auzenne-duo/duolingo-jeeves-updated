@@ -67,23 +67,23 @@ const SentimentGraph = ({ negativeBucket, positiveBucket }: Props) => {
       },
       data: [
         {
-          hovertemplate: "%{text}",
+          customdata: positiveText,
+          hovertemplate: "%{customdata}",
           marker: {
             color: positiveColors, // Map higher scores to darker shades of green
           },
           name: "",
-          text: positiveText,
           type: "bar",
           x: positiveX,
           y: positiveY,
         },
         {
-          hovertemplate: "%{text}",
+          customdata: negativeText,
+          hovertemplate: "%{customdata}",
           marker: {
             color: negativeColors, // Map higher scores to darker shades of red
           },
           name: "",
-          text: negativeText,
           type: "bar",
           x: negativeX,
           y: negativeY,
