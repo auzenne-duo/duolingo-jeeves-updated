@@ -154,7 +154,7 @@ JIRA_FEATURES = {
                 "unit review",
             ],
             "Guidebook": [],
-            "Path Sections": ["sections"],
+            "Path Sections": ["daily refresh", "sections"],
             "Skill tree migration": ["course update"],
         },
         "Media Learning": {
