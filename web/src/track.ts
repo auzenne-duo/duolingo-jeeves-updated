@@ -12,7 +12,23 @@ try {
 }
 
 interface TrackingEvents {
-  jeeves_active_user: undefined;
+  jeeves_active_user: {
+    is_admin: boolean;
+    language?: string;
+    page?: string;
+    user_agent: string;
+    utc_offset: number;
+  };
+  jeeves_search: {
+    answer?: string;
+    id: string;
+    language?: string;
+    link?: string;
+    num_results: number;
+    query_time_ms: number;
+    query_type: string;
+    search_string: string;
+  };
   shake_to_report_feedback: {
     feature?: string;
     number_suggested_features: number;

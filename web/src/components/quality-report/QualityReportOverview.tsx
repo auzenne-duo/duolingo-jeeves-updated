@@ -1,18 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { getQualityReport } from "api/jeeves";
 import QualityGraph from "components/quality-report/QualityGraph";
 import styles from "components/quality-report/QualityReportOverview.scss";
 import useDocumentTitle from "components/useDocumentTitle";
-import usePageView from "components/usePageView";
+import usePageLanguage from "components/usePageLanguage";
 
 const QualityReportOverview = () => {
-  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
+  const lang = usePageLanguage();
 
   useDocumentTitle("Quality Report");
-  usePageView();
 
   const { data: report } = useQuery(["quality-report"], () =>
     getQualityReport(),

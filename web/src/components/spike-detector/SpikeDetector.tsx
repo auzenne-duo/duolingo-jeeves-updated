@@ -1,19 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { formatISO } from "date-fns";
 import * as React from "react";
-import { useParams } from "react-router-dom";
 
 import { spikeToStrCategory } from "../../util";
 import { getSpikes } from "api/jeeves";
 import SpikeTable from "components/spike-detector/SpikeTable";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";
-import usePageView from "components/usePageView";
+import usePageLanguage from "components/usePageLanguage";
 import useSearchParams from "components/useSearchParams";
 
 const SpikeDetector = () => {
   const { from, to } = useDateRangeFilter({ daysAgo: 3 });
-  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
+  const lang = usePageLanguage();
   const search = useSearchParams();
 
   const filter = search.get("filter") ?? "ALL_SPIKES";
@@ -33,7 +32,6 @@ const SpikeDetector = () => {
   );
 
   useDocumentTitle("Spike Detector");
-  usePageView();
 
   return (
     <>

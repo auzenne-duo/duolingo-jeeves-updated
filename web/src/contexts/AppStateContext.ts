@@ -1,4 +1,5 @@
 import * as React from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import type { ReportIssueResult } from "api/shakira";
 import { canFitMenuAndContent } from "components/MenuDrawer";
@@ -11,7 +12,19 @@ type Action =
   | { type: "LOADED" }
   | { type: "LOADING" }
   | { issue: ReportedIssue; type: "REPORTED_ISSUE" }
-  | { context: "gpt" | "tickets"; query: string; type: "SEARCH" }
+  | {
+      language?: JSONAPI.LanguageId;
+      queryType: string;
+      searchString: string;
+      timestamp: number;
+      type: "SEARCH_BEGIN";
+    }
+  | {
+      answer?: string;
+      numResults: number;
+      timestamp: number;
+      type: "SEARCH_END";
+    }
   | { type: "SHOW_ASIDE" }
   | { type: "SHOW_MENU" }
   | { type: "TOGGLE_ASIDE" }
@@ -23,29 +36,49 @@ interface ReportedIssue {
   summary: string;
 }
 
+interface SearchContext {
+  id: string;
+  language?: JSONAPI.LanguageId;
+  queryType: string;
+  searchString: string;
+  startTime: number;
+}
+
+interface Search extends SearchContext {
+  answer?: string;
+  endTime: number;
+  numResults: number;
+}
+
 interface State {
   lightboxUrl?: string;
   loading: boolean;
+  pendingSearch?: SearchContext;
   /** Keep a list of issues reported to Jira/Slack since the page was last refreshed. */
   reportedIssues: ReportedIssue[];
   searchHistory: string[];
   searchHistoryGPT: string[];
+  searches: Search[];
   showAside: boolean;
   showMenu: boolean;
 }
 
 export const initialState: State = {
   loading: false,
+  pendingSearch: undefined,
   reportedIssues: [],
   searchHistory: JSON.parse(localStorage.getItem("searchHistory") ?? "[]"),
   searchHistoryGPT: JSON.parse(
     localStorage.getItem("searchHistoryGPT") ?? "[]",
   ),
+  searches: [],
   showAside: false,
   showMenu: canFitMenuAndContent(),
 };
 
 export const reducer: React.Reducer<State, Action> = (state, action) => {
+  // eslint-disable-next-line no-console
+  console.log(action);
   switch (action.type) {
     case "ESCAPE":
       return state.lightboxUrl
@@ -73,30 +106,50 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
           action.issue,
         ],
       };
-    case "SEARCH":
-      if (action.query.trim() === "") {
-        return state;
-      }
-      if (action.context === "gpt") {
-        return {
-          ...state,
-          searchHistoryGPT: [
-            action.query.trim(),
-            ...state.searchHistoryGPT
-              .filter(q => q !== action.query.trim())
-              .slice(0, 20),
-          ],
+    case "SEARCH_BEGIN": {
+      const query = action.searchString.trim();
+      let updatedHistory = {};
+      if (query) {
+        const key =
+          action.queryType === "gpt-search" ||
+          action.queryType === "sentiment-search"
+            ? "searchHistoryGPT"
+            : "searchHistory";
+        updatedHistory = {
+          [key]: [query, ...state[key].filter(q => q !== query).slice(0, 20)],
         };
       }
       return {
         ...state,
-        searchHistory: [
-          action.query.trim(),
-          ...state.searchHistory
-            .filter(q => q !== action.query.trim())
-            .slice(0, 20),
+        ...updatedHistory,
+        pendingSearch: {
+          id: uuidv4(),
+          language: action.language,
+          queryType: action.queryType,
+          searchString: action.searchString,
+          startTime: action.timestamp,
+        },
+      };
+    }
+    case "SEARCH_END": {
+      const pending = state.pendingSearch;
+      if (!pending) {
+        return state;
+      }
+      return {
+        ...state,
+        pendingSearch: undefined,
+        searches: [
+          ...state.searches,
+          {
+            ...pending,
+            answer: action.answer,
+            endTime: action.timestamp,
+            numResults: action.numResults,
+          },
         ],
       };
+    }
     case "SHOW_ASIDE":
       return { ...state, showAside: true };
     case "SHOW_MENU":

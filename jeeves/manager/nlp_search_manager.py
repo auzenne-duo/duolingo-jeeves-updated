@@ -163,6 +163,8 @@ class GPTResponse:
 
     @classmethod
     def from_json(cls, json_str: str) -> GPTResponse:
+        # Sanitize all control characters from JSON string before parsing
+        json_str = re.sub(r"[\x00-\x1F\x7F-\x9F]", " ", json_str)
         data = json.loads(json_str)
         matches = [
             GPTResponseDocument.from_dict(match)
@@ -352,7 +354,7 @@ class NLPSearchManager:
             answer = gpt_response.answer
             gpt_matches = gpt_response.matches
         except JSONDecodeError as decode_error:
-            LOG.error(f"Could not deserialize response {gpt_resp}", decode_error)
+            LOG.error("Could not deserialize response from GPT", exc_info=decode_error)
             return NLPSearchResults(
                 answer="Could not parse the response from GPT.",
                 lucene_query=[],

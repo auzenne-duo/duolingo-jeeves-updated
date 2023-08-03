@@ -55,13 +55,24 @@ const GPTSearchResults = () => {
 
   const query = search.get("q") ?? "";
 
-  const { data, error, isLoading, isPreviousData } = useQuery(
-    ["gpt-search", query],
-    () => gptSearch(query),
-    { keepPreviousData: true },
+  const { data, error, isLoading } = useQuery(["gpt-search", query], () =>
+    gptSearch(query),
   );
 
+  const answer = data?.answer;
   const docs = data?.results;
+  const numResults = docs?.length ?? 0;
+
+  React.useEffect(() => {
+    if (data) {
+      dispatch?.({
+        answer,
+        numResults,
+        timestamp: window.performance.now(),
+        type: "SEARCH_END",
+      });
+    }
+  }, [answer, data, dispatch, numResults]);
 
   // TODO (david.sawicki): return actual Jeeves documents from the backend.
   const tickets = React.useMemo(
@@ -107,18 +118,17 @@ const GPTSearchResults = () => {
   }, [dispatch, query]);
 
   // Scrolls the page to the top when fresh query data is loaded.
-  // This value changes between true and false as data is fetched.
   React.useEffect(() => {
-    if (!isPreviousData) {
+    if (data) {
       window.scrollTo(0, 0);
     }
-  }, [isPreviousData]);
+  }, [data]);
 
   return isLoading ? (
     <span>Loading results from GPT...</span>
   ) : data && tickets ? (
     <>
-      <span>{data.answer}</span>
+      <span>{answer}</span>
       {data.lucene_query && data.lucene_query.length > 0 && (
         <div>
           OpenSearch filters applied:

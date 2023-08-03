@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { useParams } from "react-router-dom";
 
 import { spikeToStrCategory } from "../../util";
 import { getSpikeStats } from "api/jeeves";
@@ -8,12 +7,12 @@ import ConfirmationStatsTable from "components/spike-stats/ConfirmationStatsTabl
 import SpikeWordStatsTable from "components/spike-stats/SpikeWordStatsTable";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useDocumentTitle from "components/useDocumentTitle";
-import usePageView from "components/usePageView";
+import usePageLanguage from "components/usePageLanguage";
 import useSearchParams from "components/useSearchParams";
 
 const SpikeStats = () => {
   const { from, to } = useDateRangeFilter({ monthsAgo: 3 });
-  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
+  const lang = usePageLanguage();
   const search = useSearchParams();
 
   const filter = search.get("filter") ?? "ALL_SPIKES";
@@ -27,7 +26,6 @@ const SpikeStats = () => {
   );
 
   useDocumentTitle("Spike Stats");
-  usePageView();
 
   return data ? (
     <>

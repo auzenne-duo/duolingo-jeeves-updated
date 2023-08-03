@@ -4,7 +4,6 @@ import Tickets from "components/Tickets";
 import SearchExample from "components/time-series-analyzer/SearchExample";
 import styles from "components/time-series-analyzer/TimeSeriesAnalyzer.scss";
 import useDocumentTitle from "components/useDocumentTitle";
-import usePageView from "components/usePageView";
 import useSearchParams from "components/useSearchParams";
 
 const EXAMPLES = [
@@ -27,15 +26,6 @@ const TimeSeriesAnalyzer = () => {
   const query = search.get("q") ?? "";
 
   useDocumentTitle("Time Series Analyzer");
-  usePageView();
-
-  React.useEffect(() => {
-    ga("send", "event", {
-      eventAction: "search",
-      eventCategory: "Tickets",
-      eventLabel: query,
-    });
-  }, [query]);
 
   return query ? (
     <Tickets hasTrend={true} monthsAgo={3} />

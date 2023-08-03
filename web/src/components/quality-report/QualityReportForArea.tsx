@@ -12,7 +12,6 @@ import TicketList from "components/TicketList";
 import QualityGraph from "components/quality-report/QualityGraph";
 import styles from "components/quality-report/QualityReportForArea.scss";
 import useDocumentTitle from "components/useDocumentTitle";
-import usePageView from "components/usePageView";
 import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";
 import useTicketSelection from "components/useTicketSelection";
@@ -28,7 +27,6 @@ const QualityReportForArea = ({ area, onTeamChange, team }: Props) => {
   const [, dispatch] = React.useContext(AppStateContext);
 
   useDocumentTitle(`${area} Quality Report`);
-  usePageView();
 
   const { data } = useQuery(["quality-report", area], () =>
     getQualityReportForArea(),

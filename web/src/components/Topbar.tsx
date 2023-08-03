@@ -1,13 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { endOfDay } from "date-fns";
 import * as React from "react";
-import {
-  NavLink,
-  useHistory,
-  useLocation,
-  useParams,
-  useRouteMatch,
-} from "react-router-dom";
+import { NavLink, useHistory, useLocation } from "react-router-dom";
 import { Input, LoadingDots, Select, SelectList } from "web-ui";
 
 import { encodeURLSearchParams } from "../util";
@@ -22,6 +16,8 @@ import SearchInput from "components/SearchInput";
 import styles from "components/Topbar.scss";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
+import usePage, { Page } from "components/usePage";
+import usePageLanguage from "components/usePageLanguage";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";
 import imageLogo from "images/logo.svg";
@@ -36,15 +32,9 @@ type SelectListChangeEvent = Parameters<
 const Topbar = () => {
   const { data: areas = [] } = useFeaturesByTeamAndArea();
   const history = useHistory();
+  const language = usePageLanguage();
   const location = useLocation();
-  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
-  const isAnalysisPage = !!useRouteMatch("/:lang/analysis");
-  const isDiscoveryPage = !!useRouteMatch("/:lang/discovery");
-  const isGPTSearchPage = !!useRouteMatch("/:lang/gpt-search");
-  const isQualityReportPage = !!useRouteMatch("/:lang/quality-report");
-  const isSentimentSearchPage = !!useRouteMatch("/:lang/sentiment-search");
-  const isSpikePage = !!useRouteMatch("/:lang/spike");
-  const isSpikeStatsPage = !!useRouteMatch("/:lang/spike-stats");
+  const page = usePage();
   const search = useSearchParams();
 
   const area = search.get("area");
@@ -55,8 +45,9 @@ const Topbar = () => {
   const useLemmas = search.get("use-lemmas") === "true";
 
   const { from, to } = useDateRangeFilter({
-    daysAgo: isSpikePage ? 3 : undefined,
-    monthsAgo: isAnalysisPage || isSpikeStatsPage ? 3 : undefined,
+    daysAgo: page === Page.Spike ? 3 : undefined,
+    monthsAgo:
+      page === Page.Analysis || page === Page.SpikeStats ? 3 : undefined,
   });
 
   const [state, dispatch] = React.useContext(AppStateContext);
@@ -121,7 +112,7 @@ const Topbar = () => {
         params.set("area", val.area.area_name);
       }
       params.set(val.field, val.text);
-      if (isDiscoveryPage) {
+      if (page === Page.Discovery) {
         params.set("filter", "INTERNAL");
       }
     }
@@ -195,13 +186,17 @@ const Topbar = () => {
   }, [query]);
 
   React.useEffect(() => {
-    // Keep search history.
-    dispatch({
-      context: isGPTSearchPage ? "gpt" : "tickets",
-      query,
-      type: "SEARCH",
-    });
-  }, [dispatch, isGPTSearchPage, query]);
+    if (query) {
+      // Begin tracking the search query
+      dispatch?.({
+        language,
+        queryType: page ?? "",
+        searchString: query,
+        timestamp: window.performance.now(),
+        type: "SEARCH_BEGIN",
+      });
+    }
+  }, [dispatch, language, page, query]);
 
   React.useEffect(() => {
     if (shouldSubmit) {
@@ -229,37 +224,18 @@ const Topbar = () => {
   return (
     <div className={cn(styles.wrap, { [styles.loading]: state.loading })}>
       <Hamburger isOpen={state.showMenu} onClick={handleHamburgerClick} />
-      <NavLink className={styles["logo-link"]} to={`/${lang}`}>
+      <NavLink className={styles["logo-link"]} to={`/${language}`}>
         <img alt="Duolingo Jeeves" className={styles.logo} src={imageLogo} />
         {state.loading ? <LoadingDots type="button" /> : null}
       </NavLink>
-      <div
-        className={
-          styles[
-            `filters${
-              isAnalysisPage
-                ? "-analysis"
-                : isDiscoveryPage
-                ? "-discovery"
-                : isGPTSearchPage
-                ? "-gpt-search"
-                : isQualityReportPage
-                ? "-quality-report"
-                : isSentimentSearchPage
-                ? "-sentiment-search"
-                : isSpikePage
-                ? "-spike"
-                : isSpikeStatsPage
-                ? "-spike-stats"
-                : ""
-            }`
-          ]
-        }
-      >
-        {isAnalysisPage ||
-        isDiscoveryPage ||
-        isGPTSearchPage ||
-        isSentimentSearchPage ? (
+      <div className={page ? styles[`filters-${page}`] : styles["filters"]}>
+        {page &&
+        [
+          Page.Analysis,
+          Page.Discovery,
+          Page.GPTSearch,
+          Page.SentimentSearch,
+        ].includes(page) ? (
           <>
             <Input
               className={styles["search-mobile"]}
@@ -272,17 +248,21 @@ const Topbar = () => {
             <SearchInput
               className={styles.search}
               history={
-                isGPTSearchPage ? state.searchHistoryGPT : state.searchHistory
+                [Page.GPTSearch, Page.SentimentSearch].includes(page)
+                  ? state.searchHistoryGPT
+                  : state.searchHistory
               }
               onChange={handleSearchInputChange}
               onKeyDown={handleSearchInputKeyDown}
               ref={searchInputRef}
-              supportsTicketQuery={!isGPTSearchPage && !isSentimentSearchPage}
+              supportsTicketQuery={
+                ![Page.GPTSearch, Page.SentimentSearch].includes(page)
+              }
               value={input}
             />
           </>
         ) : null}
-        {isAnalysisPage ? (
+        {page === Page.Analysis ? (
           <LabelledToggle
             checked={useLemmas}
             className={styles["hide-on-mobile"]}
@@ -290,7 +270,7 @@ const Topbar = () => {
             title="Use lemmas: "
           />
         ) : null}
-        {isSpikePage ? (
+        {page === Page.Spike ? (
           <LabelledToggle
             checked={onlyBugs}
             className={styles["hide-on-mobile"]}
@@ -298,7 +278,7 @@ const Topbar = () => {
             title="Only bugs: "
           />
         ) : null}
-        {isAnalysisPage || isSpikePage || isSpikeStatsPage ? (
+        {page && [Page.Analysis, Page.Spike, Page.SpikeStats].includes(page) ? (
           <DateRangeInput
             alignPopover="end"
             className={styles["hide-on-mobile"]}
@@ -307,7 +287,7 @@ const Topbar = () => {
             to={to}
           />
         ) : null}
-        {isDiscoveryPage || isQualityReportPage ? (
+        {page && [Page.Discovery, Page.QualityReport].includes(page) ? (
           <div
             className={cn(styles.area, styles["hide-on-mobile"])}
             onKeyDown={
@@ -337,7 +317,7 @@ const Topbar = () => {
             />
           </div>
         ) : null}
-        {isAnalysisPage || isDiscoveryPage ? (
+        {page && [Page.Analysis, Page.Discovery].includes(page) ? (
           <Select
             className={styles["hide-on-mobile"]}
             onChange={handleFilterChange}
@@ -350,7 +330,7 @@ const Topbar = () => {
             value={filter ?? ""}
           />
         ) : null}
-        {isSpikePage || isSpikeStatsPage ? (
+        {page && [Page.Spike, Page.SpikeStats].includes(page) ? (
           <Select
             className={styles["hide-on-mobile"]}
             onChange={handleFilterChange}

@@ -2,12 +2,14 @@ import {
   QueryClient,
   QueryClientProvider,
   useIsFetching,
+  useQuery,
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as React from "react";
 import { Route, Switch } from "react-router-dom";
 import { ThemeProvider } from "web-ui";
 
+import { getLoggedIn } from "api/user";
 import styles from "components/App.scss";
 import Lightbox from "components/Lightbox";
 import MenuDrawer from "components/MenuDrawer";
@@ -20,6 +22,8 @@ import SentimentSearch from "components/sentiment-search/SentimentSearch";
 import SpikeDetector from "components/spike-detector/SpikeDetector";
 import SpikeStats from "components/spike-stats/SpikeStats";
 import TimeSeriesAnalyzer from "components/time-series-analyzer/TimeSeriesAnalyzer";
+import usePage from "components/usePage";
+import usePageLanguage from "components/usePageLanguage";
 import AppStateContext, {
   initialState,
   reducer,
@@ -51,8 +55,15 @@ const AppProvider = () => {
 };
 
 const App = () => {
-  const [state, dispatch] = React.useContext(AppStateContext);
   const isFetching = useIsFetching();
+
+  const [state, dispatch] = React.useContext(AppStateContext);
+  const [trackedSearches, setTrackedSearches] = React.useState<string[]>([]);
+
+  const language = usePageLanguage();
+  const page = usePage();
+  const user = useQuery(["user"], () => getLoggedIn()).data;
+  const isAdmin = user?.roles?.includes("admin") ?? false;
 
   React.useEffect(() => {
     if (isFetching) {
@@ -67,6 +78,36 @@ const App = () => {
   React.useEffect(() => {
     localStorage.setItem("searchHistory", JSON.stringify(state.searchHistory));
   }, [state.searchHistory]);
+
+  React.useEffect(() => {
+    localStorage.setItem(
+      "searchHistoryGPT",
+      JSON.stringify(state.searchHistoryGPT),
+    );
+  }, [state.searchHistoryGPT]);
+
+  React.useEffect(() => {
+    const trackableSearches = state.searches.filter(
+      s => !trackedSearches.includes(s.id),
+    );
+    trackableSearches.forEach(s => {
+      track("jeeves_search", {
+        answer: s.answer,
+        id: s.id,
+        language: s.language,
+        num_results: s.numResults,
+        query_time_ms: s.endTime - s.startTime,
+        query_type: s.queryType,
+        search_string: s.searchString,
+      });
+    });
+    if (trackableSearches.length) {
+      setTrackedSearches(value => [
+        ...value,
+        ...trackableSearches.map(s => s.id),
+      ]);
+    }
+  }, [state.searches, trackedSearches]);
 
   React.useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -85,7 +126,14 @@ const App = () => {
   React.useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        track("jeeves_active_user");
+        track("jeeves_active_user", {
+          is_admin: isAdmin,
+          language,
+          page,
+          user_agent: navigator.userAgent,
+          // Convert minutes to hours and invert the sign to match how we track utc_offset
+          utc_offset: new Date().getTimezoneOffset() / -60,
+        });
       }
     };
     handleVisibilityChange();
@@ -93,7 +141,7 @@ const App = () => {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [isAdmin, language, page]);
 
   return (
     <ThemeProvider theme="light">

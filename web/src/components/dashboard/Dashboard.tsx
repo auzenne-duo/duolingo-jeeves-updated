@@ -1,17 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow, startOfYesterday } from "date-fns";
 import * as React from "react";
-import { useParams } from "react-router-dom";
 
 import { formatReadableDateTime } from "../../util";
 import { getInfo, getSpikes } from "api/jeeves";
 import Table from "components/Table";
 import SpikeTable from "components/spike-detector/SpikeTable";
-import usePageView from "components/usePageView";
+import usePageLanguage from "components/usePageLanguage";
 
 const Dashboard = () => {
-  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
-
+  const lang = usePageLanguage();
   const spikesStartDate = startOfYesterday();
 
   const { data: info, isLoading: isLoadingInfo } = useQuery(
@@ -53,8 +51,6 @@ const Dashboard = () => {
       },
     },
   );
-
-  usePageView();
 
   return (
     <>

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { debounce } from "lodash";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { useHistory, useLocation, useParams } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { Button } from "web-ui";
 import { escapeRegExp } from "web-ui/util";
 import { getIndices } from "web-ui/util/highlight";
@@ -21,6 +21,7 @@ import type { RangeChangeEvent } from "components/TrendGraph";
 import TrendGraph from "components/TrendGraph";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
+import usePageLanguage from "components/usePageLanguage";
 import useSearchParams from "components/useSearchParams";
 import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";
@@ -45,9 +46,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
     useFeaturesByTeamAndArea();
   const history = useHistory();
   const location = useLocation();
-  const { lang } = useParams<{
-    lang: JSONAPI.LanguageId;
-  }>();
+  const lang = usePageLanguage();
   const queryClient = useQueryClient();
   const search = useSearchParams();
 
@@ -109,6 +108,17 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   );
 
   const tickets = data?.data;
+  const numResults = data?.total_records ?? 0;
+
+  React.useEffect(() => {
+    if (data) {
+      dispatch?.({
+        numResults,
+        timestamp: window.performance.now(),
+        type: "SEARCH_END",
+      });
+    }
+  }, [data, dispatch, numResults]);
 
   const [id, setId] = useTicketSelection(tickets, {
     onNext: () => nextLink && history.push(nextLink),
@@ -177,10 +187,6 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
     }
     if (e.from || e.to) {
       params.delete("page");
-      ga("send", "event", {
-        eventAction: "modify_range",
-        eventCategory: "Tickets",
-      });
     }
     history.push({
       ...location,

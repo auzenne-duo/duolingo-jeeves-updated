@@ -4,7 +4,7 @@ import { get } from "api/client";
 
 const API_ORIGIN = "https://www.duolingo.com/2017-06-30";
 
-const USER_FIELDS = ["email", "username"].join(",");
+const USER_FIELDS = ["email", "roles", "username"].join(",");
 
 export const getLoggedIn = () => {
   const loggedInUserId = getLoggedInUserId();

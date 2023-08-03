@@ -1,8 +1,9 @@
 import * as React from "react";
-import { NavLink, useHistory, useLocation, useParams } from "react-router-dom";
+import { NavLink, useHistory, useLocation } from "react-router-dom";
 
 import LanguagePicker from "components/LanguagePicker";
 import styles from "components/Sidebar.scss";
+import usePageLanguage from "components/usePageLanguage";
 
 const LinkItem = ({
   children,
@@ -25,7 +26,7 @@ interface Props {
 const Sidebar = ({ onItemClick }: Props) => {
   const history = useHistory();
   const location = useLocation();
-  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
+  const lang = usePageLanguage();
 
   return (
     <nav className={styles.wrap}>

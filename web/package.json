@@ -17,6 +17,7 @@
     "react-plotly.js": "2.6.0",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
+    "uuid": "9.0.0",
     "web-excess": "https://s3.amazonaws.com/duolingo-packages/npm/excess/web-excess-3.4.0.tgz",
     "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.64.25.tgz",
     "whatwg-fetch": "3.6.2"
@@ -32,6 +33,7 @@
     "@types/react-modal": "3.16.0",
     "@types/react-router": "5.1.20",
     "@types/react-router-dom": "5.1.7",
+    "@types/uuid": "9.0.2",
     "@typescript-eslint/eslint-plugin": "5.51.0",
     "css-loader": "6.7.3",
     "eslint": "7.31.0",
