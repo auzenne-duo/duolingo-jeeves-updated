@@ -26,6 +26,7 @@ nosetests.xml
 coverage.xml
 .profile
 pylint.out
+.mypy_cache
 
 # files generated from webpack
 web/dist/

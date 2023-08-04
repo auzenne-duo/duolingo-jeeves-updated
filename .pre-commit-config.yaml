@@ -11,6 +11,39 @@ repos:
         entry: pylint
         language: system
         files: \.py$
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        files: \.py$
+        args:
+          - --follow-imports=silent
+          - --ignore-missing-imports
+          - --no-implicit-optional
+          - --no-incremental
+        exclude:
+          | # TODO: remove each file from this list as they are updated with type annotations
+          (?x)^(
+              jeeves/config/|
+              jeeves/dal/|
+              jeeves/lib/|
+              jeeves/manager/|
+              jeeves/model/|
+              jeeves/resources/|
+              jeeves/scripts/|
+              jeeves/util/|
+              jeeves/view/|
+              tests/config/|
+              tests/dal/|
+              tests/lib/|
+              tests/manager/|
+              tests/model/|
+              tests/resources/|
+              tests/scripts/|
+              tests/testutil/|
+              tests/util/|
+              tests/view/|
+          )
   - repo: local
     hooks:
       - id: sync-requirements
