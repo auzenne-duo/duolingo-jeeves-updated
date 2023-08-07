@@ -20,12 +20,14 @@ from jeeves.util.date_util import (
     get_n_days_ago,
     get_utc_today,
     parse_external_datetime,
+    str_to_date,
     yield_intermediate_dates,
 )
 from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 _THRESHOLD_DATE = get_n_days_ago(get_utc_today(), CRAWL_WINDOW_SIZE)
-_REFRESH_DAYS = os.environ.get("REFRESH_DAYS")
+_REFRESH_START_DATE = os.environ.get("REFRESH_START_DATE")  # String in ISO format
+_REFRESH_END_DATE = os.environ.get("REFRESH_END_DATE")  # String in ISO format
 
 # Size, in bytes, above which we exclude tickets from indexing.
 # This originally was a method of ensuring reasonable network packet sizes
@@ -235,10 +237,27 @@ def force_refresh_tickets() -> None:
     Refreshes tickets by getting all the tickets from s3 and adding them to sqs
     """
     s3_client, s3_bucket_name, sqs_client = get_s3_client_buckets_and_sqs()
-    date_threshold = _THRESHOLD_DATE
-    if _REFRESH_DAYS:
-        date_threshold = get_n_days_ago(get_utc_today(), int(_REFRESH_DAYS))
-    print(f"Forcefully refreshing all documents from S3 back to {date_threshold}", flush=True)
+
+    start_date = _THRESHOLD_DATE.date()
+    end_date = get_utc_today().date()
+    if _REFRESH_START_DATE is None or _REFRESH_START_DATE == "":
+        raise Exception("Please provide a start date")
+    try:
+        start_date = str_to_date(_REFRESH_START_DATE)
+    except:
+        raise Exception("Could not parse start date range string")
+    if _REFRESH_END_DATE is not None and _REFRESH_END_DATE != "":
+        try:
+            end_date = str_to_date(_REFRESH_END_DATE)
+        except:
+            raise Exception("Could not parse end date range string")
+    if start_date > end_date or end_date > get_utc_today().date():
+        raise Exception("Invalid date range")
+
+    print(
+        f"Forcefully refreshing all documents from S3 from {start_date} to {end_date}",
+        flush=True,
+    )
     for manager in IDManagerMap.get_all_managers():
         s3_path_stem = manager.get_managed_document_type().get_data_source_identifier()
         document_count, document_scan_count = 0, 0
@@ -249,9 +268,9 @@ def force_refresh_tickets() -> None:
             try:
                 date = parse_external_datetime(s3_file.split("/")[1])
             except:
-                print("couldn't parse", date)
+                print(f"couldn't parse {date}")
                 continue
-            if date < date_threshold:
+            if date.date() < start_date or date.date() > end_date:
                 continue
             if document_count % 1000 == 0:
                 print(f"{document_count} {s3_path_stem} documents refreshed", flush=True)
