@@ -1,0 +1,54 @@
+@use "styles/constants" as *;
+
+$padding-x: 16px;
+
+.link {
+  align-items: center;
+  color: web-ui-color("eel");
+  display: flex;
+  font-weight: 500;
+  // More or less match the dimensions of a Button component.
+  padding: 11.5px $padding-x;
+  position: relative;
+  white-space: nowrap;
+}
+
+.link-active {
+  color: web-ui-color("macaw");
+
+  &::after {
+    background: currentColor;
+    content: "";
+    height: 2 * $juicy-border-width;
+    left: 50%;
+    position: absolute;
+    top: calc(100% - #{$juicy-border-width});
+    transform: translateX(-50%);
+    // Extend 4px beyond the text on each side, matching the tabs
+    // navigation on the careers website.
+    width: calc(100% - #{2 * $padding-x} + 2 * 4px);
+    z-index: 1;
+  }
+}
+
+.tab {
+  border-bottom: $juicy-border-width solid transparent;
+  display: flex;
+  position: relative;
+
+  &::after {
+    background: web-ui-color("swan");
+    bottom: -$juicy-border-width;
+    content: "";
+    height: $juicy-border-width;
+    left: 0;
+    position: absolute;
+    width: 100vw;
+  }
+}
+
+.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+}

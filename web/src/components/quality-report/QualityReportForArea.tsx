@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Card, CardRadioGroup } from "web-ui";
+import { useLocation } from "react-router-dom";
 
 import { formatReadableDate } from "../../util";
 import { getQualityReportForArea } from "api/jeeves";
 import Table from "components/Table";
+import TabsNav from "components/TabsNav";
 import Tag from "components/Tag";
 import Ticket from "components/Ticket";
 import TicketList from "components/TicketList";
@@ -19,11 +20,12 @@ import AppStateContext from "contexts/AppStateContext";
 
 interface Props {
   area: string;
-  onTeamChange: (newValue: string) => void;
   team?: string;
 }
 
-const QualityReportForArea = ({ area, onTeamChange, team }: Props) => {
+const QualityReportForArea = ({ area, team }: Props) => {
+  const location = useLocation();
+
   const [, dispatch] = React.useContext(AppStateContext);
 
   useDocumentTitle(`${area} Quality Report`);
@@ -59,20 +61,23 @@ const QualityReportForArea = ({ area, onTeamChange, team }: Props) => {
 
   return report ? (
     <>
-      <CardRadioGroup
-        className={styles.teams}
-        onChange={e => onTeamChange(e.value)}
-        value={team ?? "-1"}
-      >
-        <Card className={styles["team-card"]} role="radio" value="-1">
-          Entire area
-        </Card>
-        {teams?.map(t => (
-          <Card className={styles["team-card"]} key={t} role="radio" value={t}>
-            {t}
-          </Card>
-        ))}
-      </CardRadioGroup>
+      <TabsNav
+        className={styles.tabs}
+        tabs={[
+          {
+            href: `${location.pathname}?area=${encodeURIComponent(area)}`,
+            isActive: team === undefined,
+            name: "Entire area",
+          },
+          ...(teams?.map(t => ({
+            href: `${location.pathname}?area=${encodeURIComponent(
+              area,
+            )}&team=${encodeURIComponent(t)}`,
+            isActive: t === team,
+            name: t,
+          })) ?? []),
+        ]}
+      />
       <div className={styles.header}>
         <h1 className={styles.title}>{report.title} Quality Report</h1>
         <strong>Overall score: {report.overall_score}</strong>

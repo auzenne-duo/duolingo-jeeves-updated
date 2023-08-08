@@ -22,23 +22,14 @@
   font-weight: 700;
 }
 
-.table {
+.table,
+.tabs {
   width: 100%;
 
   @media not all and (min-width: #{$width-ipad}) {
     // This doesn't fit well on mobile.
     display: none;
   }
-}
-
-.team-card {
-  padding: 9.5px 16px;
-}
-
-.teams {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $juicy-length;
 }
 
 .ticket {

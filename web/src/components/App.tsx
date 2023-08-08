@@ -56,14 +56,15 @@ const AppProvider = () => {
 
 const App = () => {
   const isFetching = useIsFetching();
+  const page = usePage();
+  const language = usePageLanguage();
 
   const [state, dispatch] = React.useContext(AppStateContext);
   const [trackedSearches, setTrackedSearches] = React.useState<string[]>([]);
 
-  const language = usePageLanguage();
-  const page = usePage();
-  const user = useQuery(["user"], () => getLoggedIn()).data;
-  const isAdmin = user?.roles?.includes("admin") ?? false;
+  const isAdmin = useQuery(["user"], () => getLoggedIn(), {
+    select: data => data.roles?.includes("admin"),
+  }).data;
 
   React.useEffect(() => {
     if (isFetching) {
@@ -132,7 +133,7 @@ const App = () => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         track("jeeves_active_user", {
-          is_admin: isAdmin,
+          is_admin: isAdmin ?? false,
           language,
           page,
           user_agent: navigator.userAgent,
