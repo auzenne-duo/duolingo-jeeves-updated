@@ -190,7 +190,8 @@ const Topbar = () => {
       // Begin tracking the search query
       dispatch?.({
         language,
-        queryType: page ?? "",
+        page: page ?? "",
+        queryType: page ?? "", // This may diverge from 'page' in the future
         searchString: query,
         timestamp: window.performance.now(),
         type: "SEARCH_BEGIN",

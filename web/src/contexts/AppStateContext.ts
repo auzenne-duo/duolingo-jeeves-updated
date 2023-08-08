@@ -14,6 +14,7 @@ type Action =
   | { issue: ReportedIssue; type: "REPORTED_ISSUE" }
   | {
       language?: JSONAPI.LanguageId;
+      page?: string;
       queryType: string;
       searchString: string;
       timestamp: number;
@@ -39,6 +40,7 @@ interface ReportedIssue {
 interface SearchContext {
   id: string;
   language?: JSONAPI.LanguageId;
+  page?: string;
   queryType: string;
   searchString: string;
   startTime: number;
@@ -125,6 +127,7 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
         pendingSearch: {
           id: uuidv4(),
           language: action.language,
+          page: action.page,
           queryType: action.queryType,
           searchString: action.searchString,
           startTime: action.timestamp,

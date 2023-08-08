@@ -92,13 +92,18 @@ const App = () => {
     );
     trackableSearches.forEach(s => {
       track("jeeves_search", {
-        answer: s.answer,
         id: s.id,
+        is_admin: isAdmin,
+        jeeves_answer: s.answer,
         language: s.language,
         num_results: s.numResults,
+        page: s.page,
+        query: s.searchString,
         query_time_ms: s.endTime - s.startTime,
         query_type: s.queryType,
-        search_string: s.searchString,
+        user_agent: navigator.userAgent,
+        // Convert minutes to hours and invert the sign to match how we track utc_offset
+        utc_offset: new Date().getTimezoneOffset() / -60,
       });
     });
     if (trackableSearches.length) {
@@ -107,7 +112,7 @@ const App = () => {
         ...trackableSearches.map(s => s.id),
       ]);
     }
-  }, [state.searches, trackedSearches]);
+  }, [isAdmin, state.searches, trackedSearches]);
 
   React.useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {

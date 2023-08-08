@@ -20,14 +20,18 @@ interface TrackingEvents {
     utc_offset: number;
   };
   jeeves_search: {
-    answer?: string;
     id: string;
+    is_admin: boolean;
+    jeeves_answer?: string;
     language?: string;
     link?: string;
     num_results: number;
+    page?: string;
+    query: string;
     query_time_ms: number;
     query_type: string;
-    search_string: string;
+    user_agent: string;
+    utc_offset: number;
   };
   shake_to_report_feedback: {
     feature?: string;
