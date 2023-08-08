@@ -1,6 +1,6 @@
 import os
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, DefaultDict, List, Tuple
 from uuid import uuid4
 
@@ -19,7 +19,6 @@ from jeeves.util.date_util import (
     datetime_to_str,
     get_n_days_ago,
     get_utc_today,
-    parse_external_datetime,
     str_to_date,
     yield_intermediate_dates,
 )
@@ -237,7 +236,6 @@ def force_refresh_tickets() -> None:
     Refreshes tickets by getting all the tickets from s3 and adding them to sqs
     """
     s3_client, s3_bucket_name, sqs_client = get_s3_client_buckets_and_sqs()
-
     start_date = _THRESHOLD_DATE.date()
     end_date = get_utc_today().date()
     if _REFRESH_START_DATE is None or _REFRESH_START_DATE == "":
@@ -258,24 +256,28 @@ def force_refresh_tickets() -> None:
         f"Forcefully refreshing all documents from S3 from {start_date} to {end_date}",
         flush=True,
     )
-    for manager in IDManagerMap.get_all_managers():
-        s3_path_stem = manager.get_managed_document_type().get_data_source_identifier()
-        document_count, document_scan_count = 0, 0
-        for s3_file in s3_client.yield_filenames(s3_bucket_name, path_prefix=s3_path_stem):
-            document_scan_count += 1
-            if document_scan_count % 1000 == 0:
-                print(f"{document_scan_count} {s3_path_stem} documents scanned through", flush=True)
-            try:
-                date = parse_external_datetime(s3_file.split("/")[1])
-            except:
-                print(f"couldn't parse {date}")
-                continue
-            if date.date() < start_date or date.date() > end_date:
-                continue
-            if document_count % 1000 == 0:
-                print(f"{document_count} {s3_path_stem} documents refreshed", flush=True)
-            if s3_file != manager.get_checkpoint_file_name():
-                _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
-                document_count += 1
-
-        print(f"Finished refreshing documents from {s3_path_stem}", flush=True)
+    document_count = 0
+    delta = end_date - start_date
+    for i in range(
+        delta.days, -1, -1
+    ):  # Iterate through days from end date to start date (inclusive)
+        day = start_date + timedelta(days=i)
+        for manager in IDManagerMap.get_all_managers():
+            s3_path_stem = manager.get_managed_document_type().get_data_source_identifier()
+            prev_doc_count = document_count
+            for s3_file in s3_client.yield_filenames(
+                s3_bucket_name, path_prefix=f"{s3_path_stem}/{day}"
+            ):
+                if document_count % 1000 == 0:
+                    print(
+                        f"{document_count} documents refreshed at {s3_path_stem}/{day}", flush=True
+                    )
+                if s3_file != manager.get_checkpoint_file_name():
+                    document_count += 1
+                    _send_s3_doc_to_sqs(s3_client, s3_bucket_name, sqs_client, manager, s3_file)
+            if prev_doc_count == document_count:
+                print(f"Warning! There are 0 files in {s3_path_stem}/{day}", flush=True)
+        print(
+            f"Finished refreshing documents from {day}. {document_count} documents refreshed",
+            flush=True,
+        )
