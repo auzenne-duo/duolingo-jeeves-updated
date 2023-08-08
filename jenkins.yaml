@@ -131,11 +131,22 @@ jobs:
           - dev
           - prod
       - type: string
-        description: |-
-          Number of days of historical docs to refresh
+        description: ""
         trim: false
-        name: REFRESH_DAYS
-        default: "90"
+        name: BUILD_BRANCH
+        default: master
+      - type: string
+        description: |-
+          Date in ISO format (YYYY-MM-DD) that is the end of date range (inclusive) in which to refresh documents. Defaults to current date.
+        trim: false
+        name: REFRESH_END_DATE
+        default: ""
+      - type: string
+        description: |-
+          Date in ISO format (YYYY-MM-DD) that is the beginnning of date range (inclusive) in which to refresh documents.
+        trim: false
+        name: REFRESH_START_DATE
+        default: ""
     throttle_job:
       max_concurrent_per_node: 0
       max_concurrent_total: 0
@@ -144,6 +155,7 @@ jobs:
       throttle_option: project
       limit_one_job_with_matching_params: false
       params_to_use_for_limit: ""
+    branch: ${BUILD_BRANCH}
     scm: {}
     timestamps: true
     command: bash -ex force_refresh_job.sh
