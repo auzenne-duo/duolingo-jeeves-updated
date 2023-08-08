@@ -14,19 +14,8 @@
 .header {
   align-items: center;
   display: flex;
-  gap: $juicy-length;
-  justify-content: space-between;
+  flex-direction: column;
   width: 100%;
-}
-
-.header-left,
-.header-right {
-  display: grid;
-  grid-gap: $juicy-length;
-}
-
-.header-right {
-  text-align: end;
 }
 
 .strong {
@@ -35,6 +24,11 @@
 
 .table {
   width: 100%;
+
+  @media not all and (min-width: #{$width-ipad}) {
+    // This doesn't fit well on mobile.
+    display: none;
+  }
 }
 
 .team-card {
@@ -49,4 +43,8 @@
 
 .ticket {
   max-height: 100%;
+}
+
+.title {
+  margin-bottom: $juicy-length;
 }

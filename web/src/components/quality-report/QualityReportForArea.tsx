@@ -74,19 +74,15 @@ const QualityReportForArea = ({ area, onTeamChange, team }: Props) => {
         ))}
       </CardRadioGroup>
       <div className={styles.header}>
-        <div className={styles["header-left"]}>
-          <h1>{report.title} Quality Report</h1>
-          <span>Overall score: {report.overall_score}</span>
-        </div>
-        <div className={styles["header-right"]}>
-          <span>
-            {formatReadableDate(new Date(report.start_date))} to{" "}
-            {formatReadableDate(new Date(report.end_date))}
-          </span>
-          <a href={report.open_bugs_url}>
-            {report.open_bugs_count} open bug reports
-          </a>
-        </div>
+        <h1 className={styles.title}>{report.title} Quality Report</h1>
+        <strong>Overall score: {report.overall_score}</strong>
+        <a href={report.open_bugs_url}>
+          {report.open_bugs_count} open bug reports
+        </a>
+        <span>
+          {formatReadableDate(new Date(report.start_date))} to{" "}
+          {formatReadableDate(new Date(report.end_date))}
+        </span>
       </div>
       <QualityGraph
         className={styles.graph}
