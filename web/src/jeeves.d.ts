@@ -73,8 +73,9 @@ declare namespace JSONAPI {
     results: GPTSearchResult[];
   }
 
-  interface GPTSearchResult extends SearchResult {
-    original_text: LanguageContent;
+  interface GPTSearchResult {
+    bolded_body: string;
+    doc: Ticket;
     translated_text?: LanguageContent;
   }
 

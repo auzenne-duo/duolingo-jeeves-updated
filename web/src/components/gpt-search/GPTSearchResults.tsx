@@ -74,23 +74,7 @@ const GPTSearchResults = () => {
     }
   }, [answer, data, dispatch, numResults]);
 
-  // TODO (david.sawicki): return actual Jeeves documents from the backend.
-  const tickets = React.useMemo(
-    () =>
-      docs?.map(
-        (d): JSONAPI.Ticket => ({
-          body_text: d.original_text.body_orig,
-          data_source: d.origin as JSONAPI.DataSource,
-          date_time: d.datetime,
-          document_id: "",
-          duolingo_metadata: {},
-          header_text: d.original_text.title,
-          jeeves_uid: d.uid,
-          shake_to_report_category: "" as JSONAPI.ShakeToReportCategory,
-        }),
-      ),
-    [docs],
-  );
+  const tickets = docs?.map(d => d.doc);
 
   // TODO (renspoesse): pass on pagination functions once implemented.
   // TODO (renspoesse): implement these hooks and the TicketList component
@@ -101,8 +85,12 @@ const GPTSearchResults = () => {
   const { data: selected } = useTicketQuery(id);
 
   const highlight = React.useMemo(() => {
-    const doc = docs?.find(d => selected && d.uid === selected.jeeves_uid);
-    return doc ? getHighlightIndices(doc.original_text.body) : undefined;
+    const doc = docs?.find(
+      d => selected && d.doc.jeeves_uid === selected.jeeves_uid,
+    );
+    return doc?.doc?.body_text
+      ? getHighlightIndices(doc.bolded_body)
+      : undefined;
   }, [docs, selected]);
 
   const handleClick = (t: JSONAPI.Ticket) => {

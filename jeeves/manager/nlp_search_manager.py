@@ -8,7 +8,7 @@ import logging
 import re
 from dataclasses import dataclass
 from json import JSONDecodeError
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import tiktoken
 
@@ -18,7 +18,7 @@ from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.manager.query_helper import DSLQueryResponse, QueryHelper
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.matching_document import MatchingDocument
-from jeeves.model.search_result import DocumentContent, SearchResult, SearchResults
+from jeeves.model.search_result import DocumentContent, SearchResults
 
 LOG = logging.getLogger(__name__)
 
@@ -185,25 +185,21 @@ class LanguageContent(DocumentContent):
 
 
 @dataclass
-class NLPSearchResult(SearchResult):
+class NLPSearchResult:
     """
-    A JeevesDocument that GPT suggested as supporting evidence for the answer it gave to the user
+    A JSON of a JeevesDocument that GPT suggested as supporting evidence for the answer it gave to the user
+    with the translated text and cosine similarity
     """
 
+    bolded_body: str
     translated_text: Optional[LanguageContent]
+    score: float
+    doc: Dict[str, Any]
 
     @classmethod
     def from_jeeves_document(
         cls, doc: JeevesDocument, match: GPTResponseDocument, score: float
     ) -> NLPSearchResult:
-        origin = SearchResult.get_origin(doc)
-
-        original_text = LanguageContent(
-            body=match.doc_body_bolded,
-            body_orig=doc.body_text,
-            language=match.doc_language,
-            title=doc.header_text,
-        )
 
         translated_text = None
         if match.translation_body_bolded is not None:
@@ -213,15 +209,11 @@ class NLPSearchResult(SearchResult):
                 language=match.translation_language,
                 title=match.translation_title,
             )
-
         return cls(
-            datetime=doc.date_time.isoformat(),
-            origin=origin,
-            original_text=original_text,
+            bolded_body=match.doc_body_bolded,
             score=score,
             translated_text=translated_text,
-            uid=doc.jeeves_uid,
-            url=None,
+            doc=doc.serialize_to_json(doc),
         )
 
 
@@ -394,6 +386,8 @@ class NLPSearchManager:
         results = NLPSearchResults(
             answer=answer, lucene_query=lucene_query, query=query, results=supporting_docs
         )
-        response_str = json.dumps(results.to_dict(), indent=2).encode("ascii", errors="replace")
+        response_str = json.dumps(results.to_dict(), indent=2, default=str).encode(
+            "ascii", errors="replace"
+        )
         LOG.debug(f"Sending response to user: {response_str}")
         return results

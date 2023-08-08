@@ -3,7 +3,7 @@ Models for the results of nlp search or sentiment search
 """
 
 from dataclasses import asdict, dataclass
-from typing import List, Optional, cast
+from typing import Any, List, Optional, cast
 
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.zendesk_document import ZendeskDocument
@@ -57,7 +57,7 @@ class SearchResults:
 
     lucene_query: List[str]
     query: str
-    results: List[SearchResult]
+    results: List[Any]
 
     def to_dict(self):
         return asdict(self)
