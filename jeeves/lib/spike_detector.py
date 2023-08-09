@@ -14,10 +14,10 @@ import rollbar
 
 from jeeves import registry as app_registry
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD
+from jeeves.dal.ai_completions_dal import AICompletionsDAL
 from jeeves.dal.metrics_dal import MetricsDAL
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
-from jeeves.dal.tutors_dal import TutorsDAL
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.reporter_identity import ReporterIdentity
 from jeeves.model.spike_categories import SpikeCategory
@@ -174,8 +174,11 @@ def run_spike_detector_for_batch(
 
     # Bulk generate spike summaries
     try:
-        responses = app_registry(TutorsDAL).request_openai_completion_batch(
-            SPIKE_SUMMARIZER_SYSTEM_PROMPT, batch_prompt_list[:MAX_SPIKE_SUMMARIES]
+        responses = app_registry(AICompletionsDAL).batched_ask(
+            system_prompt=SPIKE_SUMMARIZER_SYSTEM_PROMPT,
+            user_prompts=batch_prompt_list[:MAX_SPIKE_SUMMARIES],
+            max_tokens=1024,
+            topP=0.8,
         )
         for i, response in enumerate(responses):
             batch_spike_list[i].summary = response.split("\n")[0].split("SUMMARY:")[1].strip()

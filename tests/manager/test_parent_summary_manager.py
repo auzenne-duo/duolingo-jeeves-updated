@@ -5,17 +5,17 @@ import responses
 
 from jeeves.manager.parent_summary_manager import ParentSummaryManager
 
-mock_tutors_dal = MagicMock()
+mock_ai_completions_dal = MagicMock()
 
 
 class TestParentSummaryManager(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestParentSummaryManager, self).__init__(*args, **kwargs)
-        self.summary_generator = ParentSummaryManager(mock_tutors_dal)
+        self.summary_generator = ParentSummaryManager(mock_ai_completions_dal)
 
     @responses.activate
     def test_generate_summary_and_description(self):
-        mock_tutors_dal.ask.return_value = "Title: World character not loading or displaying\nDescription: Multiple users have reported that the world character is not loading or displaying in various lessons and challenges. Reports indicate that this issue may be transient, but is reproducible for some users. Some users have reported that the space for the character still appears, while others say the UI looks different than they remember."
+        mock_ai_completions_dal.ask.return_value = "Title: World character not loading or displaying\nDescription: Multiple users have reported that the world character is not loading or displaying in various lessons and challenges. Reports indicate that this issue may be transient, but is reproducible for some users. Some users have reported that the space for the character still appears, while others say the UI looks different than they remember."
 
         headers = [
             "World character missing",
@@ -65,7 +65,7 @@ class TestParentSummaryManager(unittest.TestCase):
         )
 
         # Test an error
-        mock_tutors_dal.ask.return_value = None
+        mock_ai_completions_dal.ask.return_value = None
 
         header, description = self.summary_generator.generate_summary_and_description(
             headers, descriptions
