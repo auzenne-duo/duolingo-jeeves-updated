@@ -32,12 +32,19 @@ const PROJECTS = ["DLAA", "DLAI", "DLAW", "Overall"] as const;
 
 interface Props {
   className?: string;
+  disableHover?: boolean;
   overallOnly?: boolean;
   scores: JSONAPI.QualityReport["areas"][number]["scores"];
   title: string;
 }
 
-const QualityGraph = ({ className, overallOnly, scores, title }: Props) => {
+const QualityGraph = ({
+  className,
+  disableHover,
+  overallOnly,
+  scores,
+  title,
+}: Props) => {
   const [plotState, setPlotState] = usePlotState();
 
   const data = React.useMemo(
@@ -48,7 +55,7 @@ const QualityGraph = ({ className, overallOnly, scores, title }: Props) => {
           dash: p === "Overall" ? "solid" : "dashdot",
         },
         mode: p === "Overall" ? "lines+markers" : "lines",
-        name: overallOnly ? "Overall quality score" : LEGEND_MAP[p],
+        name: LEGEND_MAP[p],
         type: "scatter",
         // Scores are actually computed on EST date grouping, but
         // for simplicity we pretend that they are local date groups
@@ -73,16 +80,17 @@ const QualityGraph = ({ className, overallOnly, scores, title }: Props) => {
           color: BLACK_TEXT,
           family: "din-round, sans-serif",
         },
+        hovermode: disableHover ? false : undefined,
         legend: {
           orientation: "h",
         },
         margin: {
-          b: 0,
-          l: 20,
-          r: 10,
+          b: overallOnly ? 20 : 0,
+          l: 25,
+          r: 0,
           t: 40,
         },
-        showlegend: true,
+        showlegend: !overallOnly,
         title: {
           font: {
             // Matches the <h2> element style.
@@ -102,7 +110,7 @@ const QualityGraph = ({ className, overallOnly, scores, title }: Props) => {
         },
       },
     });
-  }, [data, overallOnly, setPlotState, title]);
+  }, [data, disableHover, overallOnly, setPlotState, title]);
 
   return (
     <ResizableGraph
