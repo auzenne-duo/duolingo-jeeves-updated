@@ -14,6 +14,7 @@ from jeeves.lib.profiling import traced_function
 from jeeves.model.custom_types import JSON
 from jeeves.model.jira_document import PARENT_BUG_LABEL, JiraDocument
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
+from jeeves.util.async_util import get_asyncio_loop
 from jeeves.util.error_util import print_request_exception
 
 _USERNAME = os.environ.get("JIRA_USERNAME")
@@ -226,7 +227,7 @@ class JiraApiDAL:
         remove_parent_bug_label: bool = False,
         feature: Optional[str] = None,
         priority: Optional[str] = None,
-    ):
+    ) -> None:
         """
         Update the issue's fields.
         """
@@ -327,7 +328,6 @@ class JiraApiDAL:
         Returns:
             True if the link is created, otherwise False.
         """
-
         url = self._host + "/rest/api/3/issueLink"
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
         data = {
@@ -349,7 +349,7 @@ class JiraApiDAL:
     ) -> List[Tuple[str, str, bool]]:
         results = []
         with ThreadPoolExecutor(max_workers=10) as executor:
-            loop = asyncio.get_event_loop()
+            loop = get_asyncio_loop()
             default_timer()
             tasks = [
                 loop.run_in_executor(

@@ -19,6 +19,7 @@ from jeeves.manager.parent_summary_manager import ParentSummaryManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
+from jeeves.util.async_util import get_asyncio_loop
 from jeeves.util.cleanup import extract_duolingo_metadata
 from jeeves.util.parent_jira_issue_util import (
     generate_parent_body_text_from_data,
@@ -93,10 +94,7 @@ class DuplicateGraphResolver:
                     continue
             target_issue = key_to_doc[target_key]
             for existing_duplicate in target_issue.linked_duplicate_keys:
-                if (
-                    existing_duplicate not in visited.keys()
-                    and existing_duplicate not in missing_issues
-                ):
+                if existing_duplicate not in visited and existing_duplicate not in missing_issues:
                     unvisited.add(existing_duplicate)
                     if existing_duplicate not in key_to_doc:
                         docs_to_fetch.add(existing_duplicate)
@@ -204,7 +202,7 @@ class DuplicateGraphResolver:
         any_failure = False
         result_list = []
 
-        loop = asyncio.get_event_loop()
+        loop = get_asyncio_loop()
         future = asyncio.ensure_future(self._jira_dal.mark_duplicates_async(remaining_links))
         results = loop.run_until_complete(future)
 

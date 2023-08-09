@@ -222,8 +222,9 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         "jeeves.manager.duplicate_graph_resolver.IDManagerMap",
         MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
     )
-    @patch("jeeves.manager.duplicate_graph_resolver.asyncio")
-    def test_connect_duplicates_remote(self, mock_asyncio):
+    @patch("jeeves.manager.duplicate_graph_resolver.asyncio", MagicMock())
+    @patch("jeeves.manager.duplicate_graph_resolver.get_asyncio_loop")
+    def test_connect_duplicates_remote(self, mock_get_asyncio_loop):
         expected_links = {
             ("DLAA-5", "parent_key"),
             ("DLAA-6", "parent_key"),
@@ -232,7 +233,7 @@ class TestDuplicateGraphResolver(unittest.TestCase):
             ("DLAA-4", "DLAA-5"),
         }
         asyncio_return = [(inward, outward, True) for inward, outward in expected_links]
-        mock_asyncio.get_event_loop.return_value.run_until_complete.return_value = asyncio_return
+        mock_get_asyncio_loop.return_value.run_until_complete.return_value = asyncio_return
         magic_mock_jira_dal = MagicMock()
         parent_issue = MagicMock(
             body_text="Random description someone entered\nAPP VERSIONS:\nNOT PRESENT: 2\n6.117.0.1: 1\n\n\nPLATFORMS:\nNOT PRESENT: 2\niOS: 1\n\n\nCOURSES:\nNOT PRESENT: 2\nDUOLINGO_FR_EN: 1\n\n\nINTERFACE LANGUAGES:\nNOT PRESENT: 2\nen: 1\n\n\nOPERATING SYSTEMS:\nNOT PRESENT: 2\niOS 14.4.1: 1\n\n\nAREAS:\n\n"

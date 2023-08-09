@@ -62,9 +62,10 @@ const App = () => {
   const [state, dispatch] = React.useContext(AppStateContext);
   const [trackedSearches, setTrackedSearches] = React.useState<string[]>([]);
 
-  const isAdmin = useQuery(["user"], () => getLoggedIn(), {
-    select: data => data.roles?.includes("admin"),
-  }).data;
+  const isAdmin =
+    useQuery(["user"], () => getLoggedIn(), {
+      select: data => data.roles?.includes("admin"),
+    }).data ?? false;
 
   React.useEffect(() => {
     if (isFetching) {
