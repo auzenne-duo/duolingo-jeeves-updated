@@ -33,7 +33,6 @@ _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "TTS is mispronounced": SlackChannel.FEEDBACK_TTS,
     "TTS is missing": SlackChannel.PROJ_MISSING_TTS,
     "Visual polish": SlackChannel.VISUAL_POLISH,
-    "Localization issue": SlackChannel.FEEDBACK_LOCALIZATION,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
     "Visemes/Mouth movements": SlackChannel.FEEDBACK_VISEMES,
 }
@@ -74,8 +73,8 @@ class ShakiraManager:
         If the project is invalid, return an error message. Otherwise return None.
         """
         return (
-            f"Invalid project - must be one of {list(JIRA_PROJ_TO_PLATFORM.keys())}"
-            if project not in JIRA_PROJ_TO_PLATFORM.keys()
+            f"Invalid project - must be one of {list(JIRA_PROJ_TO_PLATFORM)}"
+            if project not in JIRA_PROJ_TO_PLATFORM
             else None
         )
 

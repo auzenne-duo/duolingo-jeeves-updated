@@ -46,7 +46,6 @@ class Test(unittest.TestCase):
                 {"name": "Lesson content issue", "alsoPostsToJira": False},
                 {"name": "TTS is mispronounced", "alsoPostsToJira": False},
                 {"name": "TTS is missing", "alsoPostsToJira": False},
-                {"name": "Localization issue", "alsoPostsToJira": False},
                 {"name": "Feature request", "alsoPostsToJira": False},
                 {
                     "name": "Visemes/Mouth movements",
