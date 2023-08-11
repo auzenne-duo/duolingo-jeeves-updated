@@ -364,6 +364,7 @@ class JiraDocument(JeevesDocument):
             ),
             course=internal_json["course"],
             fullstory_url=internal_json["fullstory_url"],
+            lemmatized_terms=internal_json.get("lemmatized_terms", []),
             lesson_number=internal_json.get("lesson_number", ""),
             level_number=internal_json.get("level_number", ""),
             os_version=internal_json["os_version"],

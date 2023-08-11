@@ -70,9 +70,9 @@ deprecation==2.1.0
     # via
     #   duolingo-base
     #   duolingo-nlp
-duolingo-base==1.9.0
+duolingo-base==1.10.2
     # via -r requirements.in
-duolingo-nlp==4.7.0
+duolingo-nlp==4.17.0
     # via -r requirements.in
 duolingo-notify==2.6.1
     # via -r requirements.in
@@ -120,13 +120,12 @@ hvac==1.1.0
     # via duolingo-base
 idna==3.4
     # via requests
-importlib-metadata==4.8.3
+importlib-metadata==6.8.0
     # via
-    #   -r requirements.in
     #   duolingo-nlp
     #   flask
     #   markdown
-importlib-resources==5.12.0
+importlib-resources==6.0.1
     # via matplotlib
 itsdangerous==2.1.2
     # via flask
@@ -165,7 +164,6 @@ mpmath==1.3.0
 networkx==3.0
     # via
     #   -r requirements.in
-    #   duolingo-nlp
     #   torch
 nltk==3.8.1
     # via sentence-transformers
@@ -395,8 +393,9 @@ pytz==2023.3
     #   -r requirements.in
     #   duolingo-notify
     #   pandas
-pyyaml==6.0
+pyyaml==6.0.1
     # via
+    #   -r requirements.in
     #   duolingo-base
     #   duolingo-nlp
     #   huggingface-hub

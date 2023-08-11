@@ -1,6 +1,7 @@
 """
 Our model for a general, abstract document
 """
+from __future__ import annotations
 
 import datetime
 from abc import ABC, abstractmethod
@@ -73,7 +74,7 @@ class JeevesDocument(ABC):
 
     @classmethod
     @abstractmethod
-    def deserialize_from_external_json(cls, external_json: JSON) -> "JeevesDocument":
+    def deserialize_from_external_json(cls, external_json: JSON) -> JeevesDocument:
         """
         Create a document object from JSON that was received from a source
         external to Jeeves (i.e. a data source API).
@@ -90,7 +91,7 @@ class JeevesDocument(ABC):
 
     @classmethod
     @abstractmethod
-    def deserialize_from_internal_json(cls, internal_json: JSON) -> "JeevesDocument":
+    def deserialize_from_internal_json(cls, internal_json: JSON) -> JeevesDocument:
         """
         Create a document object from JSON that was received from somewhere
         within Jeeves (likely OpenSearch).
@@ -107,7 +108,7 @@ class JeevesDocument(ABC):
 
     @classmethod
     def serialize_to_json(
-        cls, document: "JeevesDocument", subserial_filter: Optional[List[str]] = None
+        cls, document: JeevesDocument, subserial_filter: Optional[List[str]] = None
     ) -> JSON:
         """
         Convert a document object into JSON. May be overridden as needed.
@@ -137,7 +138,7 @@ class JeevesDocument(ABC):
 
     @classmethod
     @abstractmethod
-    def check_should_index_document(cls, document: "JeevesDocument") -> bool:
+    def check_should_index_document(cls, document: JeevesDocument) -> bool:
         """
         Checks if a given document should be indexed or not.
         This is meant to be called during document download; documents that
@@ -155,7 +156,7 @@ class JeevesDocument(ABC):
         return document.language in SUPPORTED_LANGUAGES.__members__
 
     @classmethod
-    def generate_opensearch_internal_id(cls, document: "JeevesDocument") -> str:
+    def generate_opensearch_internal_id(cls, document: JeevesDocument) -> str:
         """
         Generates a string to be used as a unique internal identifier for a
         given document. Previously, the internal identifier in question was

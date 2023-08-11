@@ -5,12 +5,11 @@ boto3==1.26.97
 blinker
 click
 cssselect2==0.4.1
-duolingo-base==1.9.0
+duolingo-base==1.10.2
 duolingo-notify
-duolingo-nlp==4.7.0
+duolingo-nlp==4.17.0
 filelock==3.9.0
 fonttools==4.27.1
-importlib-metadata==4.8.3 # otherwise it wouldn't be compatible with python 3.6
 langid
 Flask
 flask-cors
@@ -53,6 +52,7 @@ pydyf==0.6.0
 pyphen==0.11.0
 pystache
 pytz
+pyyaml==6.0.1
 scipy==1.10.1
 scikit-learn==1.2.1
 seaborn

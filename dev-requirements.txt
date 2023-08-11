@@ -98,9 +98,9 @@ deprecation==2.1.0
     #   duolingo-nlp
 dill==0.3.6
     # via pylint
-duolingo-base==1.9.0
+duolingo-base==1.10.2
     # via -r requirements.txt
-duolingo-nlp==4.7.0
+duolingo-nlp==4.17.0
     # via -r requirements.txt
 duolingo-notify==2.6.1
     # via -r requirements.txt
@@ -164,13 +164,13 @@ idna==3.4
     # via
     #   -r requirements.txt
     #   requests
-importlib-metadata==4.8.3
+importlib-metadata==6.8.0
     # via
     #   -r requirements.txt
     #   duolingo-nlp
     #   flask
     #   markdown
-importlib-resources==5.12.0
+importlib-resources==6.0.1
     # via
     #   -r requirements.txt
     #   matplotlib
@@ -233,7 +233,6 @@ mypy-extensions==1.0.0
 networkx==3.0
     # via
     #   -r requirements.txt
-    #   duolingo-nlp
     #   torch
 nltk==3.8.1
     # via
@@ -513,7 +512,7 @@ pytz==2023.3
     #   -r requirements.txt
     #   duolingo-notify
     #   pandas
-pyyaml==6.0
+pyyaml==6.0.1
     # via
     #   -r requirements.txt
     #   duolingo-base

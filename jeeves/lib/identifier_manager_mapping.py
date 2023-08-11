@@ -23,7 +23,7 @@ class IdentifierManagerMapping:
 
     def get_manager_for_identifier(self, identifier: str) -> Optional[Type[JeevesManager]]:
         """
-        Looks up the manager for a partiuclar identifier. Returns None for
+        Looks up the manager for a particular identifier. Returns None for
         unrecognized identifiers.
 
         Parameters:

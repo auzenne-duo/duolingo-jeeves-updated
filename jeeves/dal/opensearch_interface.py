@@ -11,7 +11,7 @@ import numpy as np
 import rollbar
 from duolingo_base.config import Config
 from duolingo_nlp.annotations import AnnotationKind, Language, Text
-from duolingo_nlp.annotators.text.nlp_client import TextNLPBackendClient
+from duolingo_nlp.annotators.text.client.nlp import TextNLPBackendClient
 from duolingo_nlp.models.annotations.text.word import WordProperty
 from opensearch_dsl import A, Mapping, Q, Search
 from opensearch_dsl.query import MoreLikeThis
@@ -188,7 +188,7 @@ class OpenSearchDAL:
     def _handle_es_request_errors(self, e: RequestError) -> JSON:
         """
         Interprets and gives response values for RequestErrors returned by
-        OpenSearch. Currently this is only expected to happen for malformed
+        OpenSearch. Currently, this is only expected to happen for malformed
         query_string inputs, but we can extend this function in the future as
         necessary.
 
@@ -198,7 +198,7 @@ class OpenSearchDAL:
         Returns:
             A JSON object containing information about the error. This object
             should be returned in place of the normal return value of the
-            calling function, since if a RequestError occured, obtaining a
+            calling function, since if a RequestError occurred, obtaining a
             proper return value is likely not possible. This also lets us
             communicate with the user about the nature of the error.
         """
@@ -227,11 +227,11 @@ class OpenSearchDAL:
         word: str,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-        beta_filter_category: Optional[str] = False,
+        beta_filter_category: Optional[str] = None,
         jeeves_id: Optional[str] = None,
         limit: int = 10,
-        sort_id: int = None,
-        prev_sort_id: int = None,
+        sort_id: Optional[int] = None,
+        prev_sort_id: Optional[int] = None,
         offset: int = 0,
         spike_category: Optional[SpikeCategory] = SpikeCategory.ALL_SPIKES,
         use_lemmas: bool = False,
@@ -1149,7 +1149,7 @@ class OpenSearchDAL:
             self.filter_by_arbitrary_keywords({"issue_key.keyword": issue_key})
         )
 
-        base_document: Optional[JiraDocument]
+        base_document: JiraDocument
 
         n_results = len(filter_results)
         # If Python had switch statements I would use one but here we are.
@@ -1161,7 +1161,14 @@ class OpenSearchDAL:
             self.bulk_index_tickets([base_document])
 
         elif n_results == 1:
-            base_document = cast(filter_results[0], JiraDocument)
+            base_document = cast(JiraDocument, filter_results[0])
+            embeddings = base_document.embeddings
+            if (
+                embeddings is None
+                or embeddings.get(SENTENCE_TRANSFORMER_MODEL) is None
+                or embeddings.get(GPT_EMBEDDING_MODEL) is None
+            ):
+                self.bulk_index_tickets([base_document])
 
         else:
             # There is no way we should ever get here and if we do something
