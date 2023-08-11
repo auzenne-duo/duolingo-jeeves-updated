@@ -122,7 +122,9 @@ class SentimentSearchManager:
         """
         LOG.debug("Starting sentiment search...")
         dsl_response: DSLQueryResponse = self.query_helper.get_dsl_query_and_topics(query)
-        LOG.debug("Got DSL query and topics...")
+        LOG.debug(
+            f"Got DSL query and topics... {dsl_response.dsl_query} {dsl_response.target_topic}"
+        )
 
         topic_embedding = self.ai_completions_dal.request_embedding(dsl_response.target_topic)
         LOG.debug("Got topic embedding...")

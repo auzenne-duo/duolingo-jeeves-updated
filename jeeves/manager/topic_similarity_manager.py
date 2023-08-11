@@ -3,6 +3,7 @@ A manager for filtering documents based on similarity to a target topic for sent
 """
 
 import json
+import logging
 import random
 from enum import Enum
 from typing import Dict, List, Tuple
@@ -18,13 +19,15 @@ from jeeves.dal.ai_completions_dal import AICompletionsDAL
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.matching_document import MatchingDocument
 
+LOG = logging.getLogger(__name__)
+
 STRONGLY_SIMILAR_TOPIC_THRESHOLD = 0.82
 SIMILAR_TOPIC_THRESHOLD = 0.80
 DISSIMILAR_TOPIC_THRESHOLD = 0.79
 STRONGLY_DISSIMILAR_TOPIC_THRESHOLD = 0.77
 
 CONTEXT_LENGTH = 4096
-MAX_RESPONSE_TOKENS = 512
+MAX_RESPONSE_TOKENS = 700
 MAX_HEADER_CHARS = 200
 MAX_BODY_CHARS = 1000
 
@@ -89,8 +92,10 @@ def format_for_user_prompt(document: JeevesDocument, doc_id: str) -> str:
     """
     Truncate a document as needed and format it for GPT
     """
-    header = document.header_text.replace("\n", " ")[:MAX_HEADER_CHARS]
-    body = document.body_text.replace("\n", " ")[:MAX_BODY_CHARS]
+    translation_table = str.maketrans({"\n": " ", "\r": " ", ":": " "})
+
+    header = document.header_text.translate(translation_table)[:MAX_HEADER_CHARS]
+    body = document.body_text.translate(translation_table)[:MAX_BODY_CHARS]
     return f"{REQ_ID}:{doc_id} {REQ_HEADER}:{header} {REQ_BODY}:{body}"
 
 
@@ -114,6 +119,8 @@ class TopicSimilarityManager:
         A subset of the related and not related documents will be labeled by gpt and included in the training data as well.
         Construct a SVM model and use it to predict which documents are related to the target topic.
         """
+
+        LOG.debug(f"Filtering out documents unrelated to {target_topic}")
 
         # Remove documents that don't have an embedding
         documents_list = [
@@ -160,31 +167,22 @@ class TopicSimilarityManager:
         unrelated_embedding = self.ai_completions_dal.request_embedding(
             SimilarityCategory.UNRELATED.value
         )
-        potential_related_docs = (
-            sorted_docs[SimilarityCategory.SIMILAR]
-            + sorted_docs[SimilarityCategory.STRONGLY_SIMILAR]
-        )
-        potential_unrelated_docs = (
-            sorted_docs[SimilarityCategory.DISSIMILAR]
+        docs = (
+            sorted_docs[SimilarityCategory.STRONGLY_SIMILAR]
+            + sorted_docs[SimilarityCategory.SIMILAR]
+            + sorted_docs[SimilarityCategory.DISSIMILAR]
             + sorted_docs[SimilarityCategory.STRONGLY_DISSIMILAR]
         )
         gpt_docs = self.verify_topic_using_gpt(
-            document_list=potential_related_docs[0 : min(75, len(potential_related_docs))]
-            + potential_unrelated_docs[
-                max(len(potential_unrelated_docs) - 50, 0) : len(potential_unrelated_docs)
-            ],
+            likely_related_docs=docs[0 : min(75, len(docs) // 2)],
+            likely_unrelated_docs=docs[max(len(docs) - 50, min(75, len(docs) // 2)) : len(docs)],
             target_topic=target_topic,
         )
         # Construct related examples for our training dataset
-        related_docs = (
-            sorted_docs[SimilarityCategory.STRONGLY_SIMILAR] + gpt_docs[SimilarityCategory.RELATED]
-        )
+        related_docs = gpt_docs[SimilarityCategory.RELATED]
 
         # Construct unrelated examples for our training dataset
-        unrelated_docs = (
-            sorted_docs[SimilarityCategory.STRONGLY_DISSIMILAR]
-            + gpt_docs[SimilarityCategory.UNRELATED]
-        )
+        unrelated_docs = gpt_docs[SimilarityCategory.UNRELATED]
 
         training_embeddings = np.array(
             [doc.embeddings[GPT_EMBEDDING_MODEL] for doc in related_docs + unrelated_docs]
@@ -236,20 +234,40 @@ class TopicSimilarityManager:
 
     def verify_topic_using_gpt(
         self,
-        document_list: List[JeevesDocument],
+        likely_related_docs: List[JeevesDocument],
+        likely_unrelated_docs: List[JeevesDocument],
         target_topic: str,
     ) -> Dict[str, List[JeevesDocument]]:
         """
         Use GPT to determine which documents are related to the target topic and which are not
         related to the target topic. Return two lists where one is a list of related documents
         and one is a list of unrelated documents
+
+        Likely related docs and likely unrelated docs should both be sorted from highest to lowest cosine similarity
         """
         relevant_docs = {SimilarityCategory.RELATED: [], SimilarityCategory.UNRELATED: []}
         user_prompt = f"{REQ_RESP_TOPIC}: {target_topic}\n{REQ_DOCUMENTS}: "
-        random.shuffle(document_list)
+        LOG.debug(
+            f"Likely Potential Documents to send to GPT-4 {[f'Title: {doc.header_text} Description: {doc.body_text}' for doc in likely_related_docs]}"
+        )
+        LOG.debug(
+            f"Unlikely Potential Documents to send to GPT-4 {[f'Title: {doc.header_text} Description: {doc.body_text}' for doc in likely_unrelated_docs]}"
+        )
+        # We want to send the documents that are most likely to be related/unrelated to GPT
+        likely_unrelated_docs.reverse()
+        document_list = (
+            [x for pair in zip(likely_related_docs, likely_unrelated_docs) for x in pair]
+            + likely_related_docs[len(likely_unrelated_docs) :]
+            + likely_unrelated_docs[len(likely_related_docs) :]
+        )
         formatted_docs, id_mapper = self.get_max_docs_under_content_length_limit(document_list)
+        random.shuffle(formatted_docs)  # Improves GPT results
         user_prompt += f"\n {DOCUMENT_SEPARATOR} \n".join(formatted_docs)
-        response_text = self.ai_completions_dal.ask(SIMILARITY_SYSTEM_PROMPT, user_prompt)
+        response_text = self.ai_completions_dal.ask(
+            system_prompt=SIMILARITY_SYSTEM_PROMPT,
+            user_prompt=user_prompt,
+            max_tokens=MAX_RESPONSE_TOKENS,
+        )
         response_data = json.loads(response_text)
 
         if RELATED_RESP_IDS in response_data:
@@ -266,6 +284,12 @@ class TopicSimilarityManager:
                 for doc in document_list
                 if (doc.jeeves_uid in id_mapper and id_mapper[doc.jeeves_uid] in unrelated_id_set)
             ]
+        LOG.debug(
+            f"GPT found these documents to be about {target_topic}: {[f'Title: {doc.header_text} Description: {doc.body_text}' for doc in relevant_docs[SimilarityCategory.RELATED]]}"
+        )
+        LOG.debug(
+            f"GPT found these documents to not be about {target_topic}: {[f'Title: {doc.header_text} Description: {doc.body_text}' for doc in relevant_docs[SimilarityCategory.UNRELATED]]}"
+        )
         return relevant_docs
 
     def get_max_docs_under_content_length_limit(

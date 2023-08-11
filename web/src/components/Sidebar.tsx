@@ -59,6 +59,13 @@ const Sidebar = ({ onItemClick }: Props) => {
       >
         GPT Search (beta)
       </LinkItem>
+      <LinkItem
+        onClick={onItemClick}
+        title="Ask free-text questions to GPT about the sentiment of Jeeves documents."
+        to={`/${lang}/sentiment-search`}
+      >
+        Sentiment Search (beta)
+      </LinkItem>
       <LinkItem onClick={onItemClick} to={`/${lang}/quality-report`}>
         Quality Report (mock data)
       </LinkItem>
