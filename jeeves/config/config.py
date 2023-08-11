@@ -23,8 +23,11 @@ PRIORITY_ESTIMATOR_S3_PATH = "priority_estimator_model/"
 JIRA_PRIORITY_STR_TO_INT = {"Low": 0, "Lowest": 0, "Medium": 1, "High": 2, "Highest": 2}
 
 # Directory for storing quality reports
+QUALITY_REPORT_S3_PATH = "quality_report_scores"
 QUALITY_REPORT_PLOTS_DIRECTORY = "plots"
-QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY = "delight/quality-report/"
+QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY = (
+    "https://public-static.duolingo.com/delight/quality-report/"
+)
 
 # For spikes, occurrences should be at least five-sigma away from historical values.
 SPIKE_THRESHOLD = 5

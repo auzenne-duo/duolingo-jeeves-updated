@@ -1,8 +1,7 @@
 {% extends "email_base.html" %} {% block sub_team_scores %}
 <!-- team breakdowns -->
 <table width="100%" style="width: 100%; max-width: 600px; padding-top: 40px">
-  {% for team_report in report.sub_teams.values() %} {% if loop.index % 3 == 1
-  %}
+  {% for team_report in report.team_data %} {% if loop.index % 3 == 1 %}
   <tr>
     {% endif %}
     <td>
@@ -23,7 +22,7 @@
             "
             class="mobile-pb30"
           >
-            <a href="{{team_report.internal_static_link}}" target="_blank">
+            <a href="{{team_report.jeeves_link}}" target="_blank">
               <table
                 class="board chameleon-line hover-background"
                 cellpadding="0"
@@ -100,8 +99,7 @@
                                   </b>
                                 </td>
                               </tr>
-                              {% if team_report.previous_aggregate_overall_score
-                              %}
+                              {% if team_report.previous_overall_score %}
                               <tr>
                                 <td
                                   valign="top"
@@ -122,13 +120,12 @@
                                     "
                                     class="stat-heading"
                                   >
-                                    {% if team_report.aggregate_overall_score >
-                                    team_report.previous_aggregate_overall_score
-                                    %}Up from {% elif
-                                    team_report.aggregate_overall_score <
-                                    team_report.previous_aggregate_overall_score
-                                    %}Down from {% else %}Same as {%endif %}
-                                    {{team_report.previous_aggregate_overall_score}}
+                                    {% if team_report.overall_score >
+                                    team_report.previous_overall_score %}Up from
+                                    {% elif team_report.overall_score <
+                                    team_report.previous_overall_score %}Down
+                                    from {% else %}Same as {%endif %}
+                                    {{team_report.previous_overall_score}}
                                   </b>
                                 </td>
                               </tr>
@@ -170,7 +167,7 @@ report.max_priority_issues %} {% if loop.index == 1 %}
           {% if issue.header_text|length > 60 %} {{issue.header_text[:57]}}...
           {% else %} {{issue.header_text}} {% endif %}
         </td>
-        <td style="width: 45px">{{issue.score_params.priority}}</td>
+        <td style="width: 45px">{{issue.quality_score_params.group.value}}</td>
       </tr>
     </table>
   </a>
@@ -223,7 +220,7 @@ report.max_dupes_visual_polish_issues %} {% if loop.index == 1 %}
         </td>
         <td style="min-width: 57px">
           {% if issue.linked_duplicate_keys | length == 1 %} 1
-          {{issue.score_params.priority}} report {% else %}
+          {{issue.quality_score_params.group.value}} report {% else %}
           {{issue.linked_duplicate_keys | length}} reports {% endif %}
         </td>
       </tr>

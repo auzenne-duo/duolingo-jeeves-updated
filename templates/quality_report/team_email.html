@@ -13,7 +13,7 @@ report.max_priority_issues %} {% if loop.index == 1 %}
           {% if issue.header_text|length > 65 %} {{issue.header_text[:62]}}.. {%
           else %} {{issue.header_text}} {% endif %}
         </td>
-        <td style="width: 45px">{{issue.score_params.priority}}</td>
+        <td style="width: 45px">{{issue.quality_score_params.group.value}}</td>
       </tr>
     </table>
   </a>
@@ -57,7 +57,7 @@ report.max_dupes_visual_polish_issues %} {% if loop.index == 1 %}
         </td>
         <td style="min-width: 100px">
           {% if issue.linked_duplicate_keys | length == 0 %} 1
-          {{issue.score_params.priority}} report {% else %}
+          {{issue.quality_score_params.group.value}} report {% else %}
           {{issue.linked_duplicate_keys | length + 1}} reports {% endif %}
         </td>
       </tr>

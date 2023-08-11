@@ -174,7 +174,7 @@ JIRA_FEATURES = {
             ],
             "New Years Promo": [],
         },
-        "Poseidon": {
+        "In-App Purchases (Poseidon)": {
             "In-app purchases": ["shop"],
             "Ramp-up challenge": ["ramp up", "ramp-up"],
             "Gems / Lingots": ["gem", "lingot"],
@@ -182,7 +182,7 @@ JIRA_FEATURES = {
             "Match madness": [],
             "Shop items": [],
         },
-        "Gold": {
+        "Max": {
             "Explain my Answer": [],
             "Role Play": ["roleplay", "role-play"],
             "Max": [],
@@ -428,4 +428,15 @@ JIRA_FEATURE_TO_TEAM = {
     for teams in JIRA_FEATURES.values()
     for team, features in teams.items()
     for feature in features.keys()
+}
+
+# Maps from area/team name to a set of their features
+AREA_TO_FEATURES = {
+    area: {feature for features in teams.values() for feature in features}
+    for area, teams in JIRA_FEATURES.items()
+}
+TEAM_TO_FEATURES = {
+    team: {feature for feature in features.keys()}
+    for teams in JIRA_FEATURES.values()
+    for team, features in teams.items()
 }

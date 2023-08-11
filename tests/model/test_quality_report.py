@@ -2,32 +2,20 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from jeeves.model.quality_report import QualityReportTeam, RecentChanges
-from tests.testutil.test_util_quality_report import REPORT_ISSUE_1, REPORT_ISSUE_2
-
-mock_score_history = (
-    '{"title":"Test", "score_history":{"Overall":[], "DLAA":[], "DLAI":[], "DLAW":[]}}'
+from jeeves.model.quality_report import QualityReportIssueDataset, QualityReportTeam, RecentChanges
+from jeeves.util.quality_report_util import QUALITY_REPORT_OVERALL_KEY
+from tests.testutil.test_util_quality_report import (
+    REPORT_ISSUE_1,
+    REPORT_ISSUE_2,
+    REPORT_ISSUE_2_OPEN,
+    REPORT_ISSUE_10,
 )
 
-
-def mock_s3(filepath):
-    if "issue_data" in filepath:
-        return '[{"title":"Test", "issue_data":[], "date":"2022-01-01"}]'
-    return mock_score_history
+mock_score_history = {QUALITY_REPORT_OVERALL_KEY: [], "DLAA": [], "DLAI": [], "DLAW": []}
 
 
 class TestQualityReport(unittest.TestCase):
     @classmethod
-    @patch("jeeves.model.quality_report.upload_to_jeeves_s3", MagicMock())
-    @patch(
-        "jeeves.model.quality_report.get_s3_client_and_bucket",
-        MagicMock(
-            return_value=(
-                MagicMock(download=MagicMock(side_effect=mock_s3)),
-                MagicMock(),
-            )
-        ),
-    )
     @patch("jeeves.model.quality_report.create_plot", MagicMock(return_value=("file", "external")))
     @patch(
         "jeeves.model.quality_report_project_section.create_plot",
@@ -37,13 +25,14 @@ class TestQualityReport(unittest.TestCase):
     @patch("jeeves.model.quality_report.upload_to_public_static", MagicMock())
     def setUpClass(cls):
         issues = [REPORT_ISSUE_1, REPORT_ISSUE_2]
-        key_to_issue = {issue.issue_key: issue for issue in issues}
         cls.report = QualityReportTeam(
             datetime(2022, 1, 1),
             issues,
-            key_to_issue,
-            datetime(2022, 1, 1),
-            "Onboarding",
+            past_issue_datasets=[],
+            project_to_scores=mock_score_history,
+            start_date=datetime(2022, 1, 1),
+            team="Onboarding",
+            area="Growth",
         )
 
     def test_find_issues_with_closed_parents(self):
@@ -68,41 +57,11 @@ class TestQualityReport(unittest.TestCase):
         score with newly removed issue: (10/20) = 0.5
         change in score due to newly removed issues: 0.5 - 0.4 = 0.1
         """
+
         issue_data = [
-            {
-                "date": "2021-01-01",
-                "issues": {
-                    "DLAI-2003": {
-                        "is_done": False,
-                        "creation_date": "2021-01-01",
-                        "is_fixed": False,
-                        "score_params": {
-                            "is_done": False,
-                            "priority": "High",
-                            "score": 5,
-                            "group": "LOW_LOWEST",
-                            "resolution": "OPEN",
-                            "time_to_fix": "NOT_WITHIN_ONE_WEEK",
-                        },
-                        "fixed_within_one_week": False,
-                    },
-                    "DLAI-2002": {
-                        "is_done": False,
-                        "creation_date": "2021-01-01",
-                        "is_fixed": False,
-                        "score_params": {
-                            "is_done": False,
-                            "priority": "High",
-                            "score": 100,
-                            "group": "HIGH_HIGHEST",
-                            "resolution": "OPEN",
-                            "time_to_fix": "NOT_WITHIN_ONE_WEEK",
-                        },
-                        "fixed_within_one_week": False,
-                    },
-                },
-            },
-            {"date": "2022-01-06", "issues": {}},
+            QualityReportIssueDataset(
+                datetime(2021, 1, 1), "Onboarding", [REPORT_ISSUE_2_OPEN, REPORT_ISSUE_10], [], []
+            )
         ]
         result = self.report.find_recent_changes(issue_data)
         expected = RecentChanges(
@@ -110,9 +69,9 @@ class TestQualityReport(unittest.TestCase):
             change_due_to_removed_issues=10.0,
             change_due_to_resolved_issues=66.66666666666667,
             newly_included_issues={"DLAI-2001"},
-            newly_removed_issues={"DLAI-2003"},
+            newly_removed_issues={"DLAI-2010"},
             newly_resolved_issues={"DLAI-2002"},
-            previous_report_date="2021-01-01",
+            previous_report_date_string="2021-01-01",
         )
         self.assertEqual(result, expected)
 
@@ -126,27 +85,7 @@ class TestQualityReport(unittest.TestCase):
         change in score due to newly included issues: 0.5 - 1 = -0.5
         """
         issue_data = [
-            {
-                "date": "2021-01-01",
-                "issues": {
-                    "DLAI-2002": {
-                        "is_done": True,
-                        "creation_date": "2021-01-01",
-                        "is_fixed": False,
-                        "score_params": {
-                            "is_done": True,
-                            "priority": "High",
-                            "score": 10,
-                            "group": "HIGH_HIGHEST",
-                            "resolution": "CLOSED_UNFIXED",
-                            "time_to_fix": "NOT_WITHIN_ONE_WEEK",
-                        },
-                        "fixed_within_one_week": False,
-                        "resolution_date": "2021-01-02",
-                    }
-                },
-            },
-            {"date": "2022-01-06", "issues": {}},
+            QualityReportIssueDataset(datetime(2021, 1, 1), "Onboarding", [REPORT_ISSUE_2], [], [])
         ]
         result = self.report.find_recent_changes(issue_data)
         expected = RecentChanges(
@@ -156,6 +95,25 @@ class TestQualityReport(unittest.TestCase):
             newly_included_issues={"DLAI-2001"},
             newly_removed_issues=set(),
             newly_resolved_issues=set(),
-            previous_report_date="2021-01-01",
+            previous_report_date_string="2021-01-01",
         )
+        self.assertEqual(result, expected)
+
+    def test_jeeves_link(self):
+        result = self.report.jeeves_link
+        expected = "https://jeeves.duolingo.com/en/quality-report?area=Growth&team=Onboarding"
+        self.assertEqual(result, expected)
+
+        issues = [REPORT_ISSUE_1, REPORT_ISSUE_2]
+        test_report = QualityReportTeam(
+            datetime(2022, 1, 1),
+            issues,
+            past_issue_datasets=[],
+            project_to_scores=mock_score_history,
+            start_date=datetime(2022, 1, 1),
+            team="Generated Sessions",
+            area="Learning R&D",
+        )
+        result = test_report.jeeves_link
+        expected = "https://jeeves.duolingo.com/en/quality-report?area=Learning%20R%26D&team=Generated%20Sessions"
         self.assertEqual(result, expected)

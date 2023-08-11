@@ -1,4 +1,4 @@
-import uuid
+import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
@@ -15,7 +15,7 @@ from jeeves.config.config import (
 )
 from jeeves.model.quality_report_base import QualityReportBase
 from jeeves.util.date_util import date_to_str
-from jeeves.util.quality_report_util import PROJECT_TO_CLIENT
+from jeeves.util.quality_report_util import PROJECT_TO_CLIENT, QUALITY_REPORT_OVERALL_KEY
 
 # day of the month to start the monthly plots. 26 provides a buffer since the
 # data is plotted on the 1st of the month
@@ -44,7 +44,7 @@ _TITLE_TO_COLOR = {
     "DLAI": _JUICY_LIGHT_BLUE,
     "DLAA": _JUICY_ORANGE,
     "DLAW": _JUICY_PURPLE,
-    "Overall": _JUICY_GREEN,
+    QUALITY_REPORT_OVERALL_KEY: _JUICY_GREEN,
 }
 
 # set various plot styles
@@ -142,7 +142,7 @@ def create_plot(
     is_monthly=False,
 ) -> Tuple[str, str]:
     """
-    Given a list of date/score tuples, creates a plot, saves it, and returns the filename
+    Given a list of date/score tuples, creates a plot, saves it, and returns the internal and external filepaths
 
     params:
         report: QualityReportBase object
@@ -152,13 +152,13 @@ def create_plot(
         add_numbers: flag to indicate whether the score should be added to the plot
         is_monthly: flag to indicate whether the plot is monthly or weekly
 
-    returns: filename as a string and external filename (in s3)
+    returns: internal and external (s3) filepaths as a strings
     """
 
     # set the color of lines to be slightly transparent for all but Overall
     for title, color in _TITLE_TO_COLOR.items():
         rgb = matplotlib.colors.to_rgb(color)
-        if title != "Overall" and len(project_to_scores) > 1:
+        if title != QUALITY_REPORT_OVERALL_KEY and len(project_to_scores) > 1:
             rgb = rgb + (0.75,)
         _TITLE_TO_COLOR[title] = rgb
 
@@ -202,7 +202,7 @@ def create_plot(
         marker = ""
         # add text labels to the plot if only one project is being plotted
         # or if the overall plot is being plotted
-        if (len(project_to_scores) == 1 or title == "Overall") and add_numbers:
+        if (len(project_to_scores) == 1 or title == QUALITY_REPORT_OVERALL_KEY) and add_numbers:
             marker = "o"
             for date, value in zip(dates, y):
                 date_scores = date_to_scores[date]
@@ -237,8 +237,11 @@ def create_plot(
             ncol=4,
         )
 
-    filename = f"{QUALITY_REPORT_PLOTS_DIRECTORY}/{report.title}_{plot_title}.png"
-    external_filename = f"{QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY}{report.title.replace(' ', '-')}-{plot_title}-{date_to_str(report.end_date)}-{uuid.uuid4()}.png"
-    plt.savefig(filename, bbox_inches="tight")
+    filepath = f"{QUALITY_REPORT_PLOTS_DIRECTORY}/{report.title}_{plot_title}.png"
+    external_filepath = f"{QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY}{report.title.replace(' ', '-')}-{plot_title}-{date_to_str(report.end_date)}.png"
+    # Ensure directory for graphs exists
+    if not os.path.exists(QUALITY_REPORT_PLOTS_DIRECTORY):
+        os.mkdir(QUALITY_REPORT_PLOTS_DIRECTORY)
+    plt.savefig(filepath, bbox_inches="tight")
     plt.close()
-    return filename, external_filename
+    return filepath, external_filepath

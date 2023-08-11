@@ -26,14 +26,12 @@ class TestQualityReportProjectSection(unittest.TestCase):
             REPORT_ISSUE_8,
             REPORT_ISSUE_9,
         ]
-        key_to_issue = {issue.issue_key: issue for issue in jira_issues}
         score_history = [("2000-01-01", 50)]
         cls.report = QualityReportProjectSection(
             datetime(2022, 1, 1),
             "DLAI",
             ["Onboarding"],
             jira_issues,
-            key_to_issue,
             score_history,
             datetime(2021, 10, 1),
             "China",
@@ -59,14 +57,12 @@ class TestQualityReportProjectSection(unittest.TestCase):
             REPORT_ISSUE_8,
             REPORT_ISSUE_9,
         ]
-        key_to_issue = {issue.issue_key: issue for issue in jira_issues}
         score_history = [("2000-01-01", 50)]
         report = QualityReportProjectSection(
             datetime(2022, 1, 1),
             "DLAA",
             ["Onboarding"],
             jira_issues,
-            key_to_issue,
             score_history,
             datetime(2021, 10, 1),
             "China",
@@ -86,14 +82,12 @@ class TestQualityReportProjectSection(unittest.TestCase):
             REPORT_ISSUE_8,
             REPORT_ISSUE_9,
         ]
-        key_to_issue = {issue.issue_key: issue for issue in jira_issues}
         score_history = [("2000-01-01", 50)]
         report = QualityReportProjectSection(
             datetime(2022, 1, 1),
             "DLAW",
             ["Onboarding"],
             jira_issues,
-            key_to_issue,
             score_history,
             datetime(2021, 10, 1),
             "China",

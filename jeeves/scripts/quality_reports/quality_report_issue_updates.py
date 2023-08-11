@@ -4,11 +4,12 @@ from typing import List
 
 import pytz
 
+from jeeves import registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.dal.jira_dal import JiraDAL
+from jeeves.dal.quality_report_dal import QualityReportDAL
 from jeeves.model.jira_document import JiraDocument
-from jeeves.util.date_util import date_to_str, parse_external_datetime, str_to_date
-from jeeves.util.quality_report_util import get_past_quality_issue_data
+from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.s3_client_and_bucket import upload_to_jeeves_s3
 
 
@@ -77,25 +78,21 @@ def check_quality_report_updates(since_date: datetime = None):
     team_to_stats = {}
     for _, TEAM_TO_FEATURES in JIRA_FEATURES.items():
         for team in TEAM_TO_FEATURES:
-            issue_data = get_past_quality_issue_data(team)
-            if issue_data == []:
+            issue_datasets = app_registry(QualityReportDAL).get_past_quality_issue_datasets(team)
+            if issue_datasets == []:
                 print(team, "no data")
                 continue
             index = -1
             if since_date:
-                for i in range(len(issue_data) - 1, -1, -1):
-                    report_date = str_to_date(issue_data[i]["date"])
-                    if report_date <= since_date.date():
+                for i in range(len(issue_datasets) - 1, -1, -1):
+                    report_date = issue_datasets[i].date
+                    if report_date <= since_date:
                         index = i
                         break
-            issue_keys = (
-                issue_data[index]["max_priority_issues"] + issue_data[index]["max_dupes_issues"]
-            )
-
+            issue_data = issue_datasets[index]
+            issue_keys = issue_data.max_priority_issue_keys + issue_data.max_dupes_issue_keys
             if issue_keys:
-                updated_issues, update_actions = check_issue_updates(
-                    issue_keys, parse_external_datetime(issue_data[index]["date"])
-                )
+                updated_issues, update_actions = check_issue_updates(issue_keys, issue_data.date)
                 score = len(updated_issues) / len(issue_keys)
                 team_to_stats[team] = {
                     "score": score,

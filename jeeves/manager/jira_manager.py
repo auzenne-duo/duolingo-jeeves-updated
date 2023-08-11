@@ -207,3 +207,41 @@ class JiraManager(JeevesManager):
                     experiment_conditions[key] = value
                 jira_doc.experiment_conditions = experiment_conditions
                 return
+
+    @staticmethod
+    def get_jira_issues_since(start_datetime_string: str) -> List[JiraDocument]:
+        """
+        Yields bugs that have been updated since the start date
+
+        Params:
+            start_datetime_string (str): only consider issues with updated after this datetime
+                examples include "2023-02-14" or "-40h"
+
+        Returns:
+            List of JiraDocuments
+        """
+        JiraManager._try_set_jira_document_feature_field_key()
+
+        max_results_per_page = 100
+        projects_fetch_string = (
+            f"project IN ({','.join(JIRA_PROJECTS)}) "
+            + f"AND updated >= {start_datetime_string} "
+            + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
+            + f"ORDER BY updated asc"
+        )
+
+        url_params = {
+            "fields": "*all",
+            "maxResults": max_results_per_page,
+            "startAt": 0,
+            "jql": projects_fetch_string,
+        }
+
+        issues = []
+        for i, issue in enumerate(JiraDAL.paginate_search_issues(url_params)):
+            jira_doc = JiraDocument.deserialize_from_external_json(issue)
+            issues.append(jira_doc)
+            if i % 500 == 0:
+                print(f"Paginating jira issues; at {i}", flush=True)
+        print("finished paginating")
+        return issues

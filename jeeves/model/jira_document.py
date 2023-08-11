@@ -14,6 +14,7 @@ from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.duplicate_detector import DuplicateIssueDetector
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
+from jeeves.model.quality_score_params import QualityScoreParams
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import detect_language
@@ -40,7 +41,7 @@ class JiraDocument(JeevesDocument):
     linked_duplicate_keys: List[str] = attr.ib()
     creation_date: datetime.datetime = attr.ib()
     updated_date: datetime.datetime = attr.ib()
-    resolution_date: datetime.datetime = attr.ib()
+    resolution_date: Optional[datetime.datetime] = attr.ib()
     status: str = attr.ib()
     resolution: str = attr.ib()
     components: List[str] = attr.ib()
@@ -61,6 +62,10 @@ class JiraDocument(JeevesDocument):
     is_dev_related: bool = attr.ib()
     area: Optional[str] = attr.ib()
     team: Optional[str] = attr.ib()
+
+    # non-indexed fields
+    quality_score_params: Optional[QualityScoreParams] = None
+    client: Optional[str] = None
 
     @classmethod
     def _initialize_duplicate_detector(cls):

@@ -267,4 +267,141 @@ q: the user's natural language query
 }
 ```
 
+`GET /api/3/quality_report`
+
+Retrieves the past quality scores for all areas. A quality score (see in [Confluence](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/2492432385/Quality+Reports)) is a weighted ratio of closed bugs to open bugs.
+
+### Response
+
+```
+{
+    "areas": [
+        {
+            "overall_score": 20,
+            "scores": {
+                "DLAW": {
+                    "2018-08-10": 15,
+                    "2018-08-11": 20,
+                    ...
+                },
+                "DLAI": {
+                    ...
+                }
+            },
+            "title": "Learning R&D",
+
+        },
+        { ... },
+    ]
+}
+```
+
+`GET /api/3/quality_report_team`
+
+Retrieves the most recently generated quality report for a specific team.
+
+### Parameters
+
+```
+area: A string of the area name such as "Learning R&D"
+team: A string of the team name such as "Connections"
+```
+
+### Response
+
+```
+{
+    "Path": {
+        "features": ["path", ...],
+        "open_bugs_url": "https://..."
+        "open_bugs_count": 83,
+        "overall_score": 56,
+        "score_breakdowns": [
+            {
+                "closed_points": 423,
+                "date": "2023-07-21",
+                "issue_type_counts": [
+                    {
+                        "count": 3,
+                        "score": 150,
+                        "label": "HIGH_HIGHEST Fixed"
+                    }
+                ]
+                "num_issues": 213,
+                "open_points": 321,
+                "overall_score": 100
+            },
+        ],
+        "scores": {
+            "DLAW": {
+                "2018-08-10": 1,
+                "2018-08-11": 0,
+                ...
+            },
+            "DLAI": {
+                ...
+            }
+        }
+        "max_priority_issues": JSONAPI.Tickets,
+        "max_dupes_issues": JSONAPI.Tickets,
+    }
+}
+```
+
+`GET /api/3/quality_report_area`
+
+Retrieves the most recently generated quality report for a specific area. Also includes most recent quality reports for that area's teams.
+
+### Parameters
+
+```
+
+area: A string of the area name such as "Learning R&D"
+
+```
+
+### Response
+
+```
+
+{
+    "Learning R&D": {
+        "features": ["Path", ...]
+        "open_bugs_url": "https://duolingo.atlassian..."
+        "open_bugs_count": 84,
+        "overall_score": 37,
+        "score_breakdowns": [
+            {
+                "closed_points": 5651,
+                "date": "2023-07-28",
+                "quality_score_type_counts": [
+                    {"count": 24, "points": 100, "label": "High Fixed within one week"}
+                    ...
+                ]
+                "num_issues": 564,
+                "open_points": 0,
+                "overall_score": 100
+            }
+        "start_date": "2023-04-29",
+        "end_date": "2023-07-28",
+        "max_priority_issues": JSONAPI.Tickets
+        "max_dupes_issues": JSONAPI.Tickets,
+        "scores": {
+            "DLAW": {
+                "2018-08-10": 1,
+                "2018-08-11": 0,
+                ...
+            },
+            "DLAI": {
+                ...
+            }
+        }
+        "teams": [
+            {"Path": JSONAPI.DetailedQualityReport}
+        ]
+        "title": "Virality"
+    }
+}
+
 ---
+```

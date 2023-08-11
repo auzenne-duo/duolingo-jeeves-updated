@@ -17,6 +17,7 @@ from jeeves.lib.send_issue_fixed_emails import IssueFixedEmailSender
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.nlp_search_manager import NLPSearchManager
+from jeeves.manager.quality_report_manager import QualityReportManager
 from jeeves.manager.query_helper import QueryHelper
 from jeeves.manager.sentiment_search_manager import SentimentSearchManager
 from jeeves.manager.shakira import ShakiraManager
@@ -711,6 +712,39 @@ def sentiment_search():
 
     result = app_registry(SentimentSearchManager).sentiment_search(query)
     return json.jsonify(result)
+
+
+@blueprint_api.route("/api/3/quality_report", methods=["GET"])
+def quality_report():
+    """
+    Returns high level quality report data for all areas for the quality report landing page
+    """
+
+    return json.jsonify({"areas": app_registry(QualityReportManager).get_area_quality_overviews()})
+
+
+@blueprint_api.route("/api/3/quality_report_area", methods=["GET"])
+def quality_report_area():
+    """
+    Retrieves the most recently generated quality report data for a specifc area along with quality report data for that area's teams
+    """
+    area = request.args.get("area")
+    if not area:
+        abort(make_response("Please provide an area parameter.", 400))
+
+    return app_registry(QualityReportManager).get_serialized_quality_report(area)
+
+
+@blueprint_api.route("/api/3/quality_report_team", methods=["GET"])
+def quality_report_team():
+    """
+    Retrieves the most recently generated quality report data for a specifc team
+    """
+    team = request.args.get("team")
+    if not team:
+        abort(make_response("Please provide a team parameter.", 400))
+
+    return app_registry(QualityReportManager).get_serialized_quality_report(team)
 
 
 @blueprint_api.route("/", defaults={"path": ""})

@@ -762,23 +762,27 @@
                             class="mobile-pt13"
                           >
                             <p class="subtext subtext-bold chameleon-text">
-                              Overall Score: {{report.aggregate_overall_score}}
+                              Overall Score:
+                              {{report.score_breakdown.overall_score}}
                             </p>
-                            {% if report.previous_aggregate_overall_score %}
+                            {% if report.score_breakdown.previous_overall_score
+                            %}
                             <p class="subtext subtext-bold chameleon-text">
-                              {% if report.aggregate_overall_score >
-                              report.previous_aggregate_overall_score %} Your
-                              score is
+                              {% if report.score_breakdown.overall_score >
+                              report.score_breakdown.previous_overall_score %}
+                              Your score is
                               <span style="color: #71aa30">up</span> from last
-                              week: {{report.previous_aggregate_overall_score}}
-                              {% elif report.aggregate_overall_score <
-                              report.previous_aggregate_overall_score %} Your
-                              score is
+                              week:
+                              {{report.score_breakdown.previous_overall_score}}
+                              {% elif report.score_breakdown.overall_score <
+                              report.score_breakdown.previous_overall_score %}
+                              Your score is
                               <span style="color: #c65353">down</span> from last
-                              week: {{report.previous_aggregate_overall_score}}
+                              week:
+                              {{report.score_breakdown.previous_overall_score}}
                               {% else %} Your score is the same as last week:
-                              {{report.previous_aggregate_overall_score}} {%
-                              endif %}
+                              {{report.score_breakdown.previous_overall_score}}
+                              {% endif %}
                             </p>
                             {% endif %}
                             <a href="{{report.open_issues_link}}">
@@ -829,7 +833,7 @@
             style="width: 100%; max-width: 600px"
             class="chameleon-line deviceWidth"
           >
-            {% if report.recent_changes.previous_report_date %}
+            {% if report.recent_changes.previous_report_date_string %}
             <tr>
               <td
                 align="center"
@@ -861,7 +865,7 @@
                         class="stat-heading"
                       >
                         Changes since
-                        {{report.recent_changes.previous_report_date}}
+                        {{report.recent_changes.previous_report_date_string}}
                       </b>
                       <div
                         style="
@@ -1015,7 +1019,7 @@
                       >
                         <tr>
                           <td align="center">
-                            <a href="{{report.internal_static_link}}"
+                            <a href="{{report.jeeves_link}}"
                               ><div class="button hover-background">
                                 See Full Report
                               </div></a

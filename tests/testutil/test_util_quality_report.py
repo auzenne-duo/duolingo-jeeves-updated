@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from jeeves.model.jira_document import JiraDocument
-from jeeves.model.quality_report_issue import QualityReportIssue
+from jeeves.model.quality_score_params import QualityScoreParams
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.date_util import parse_external_datetime
 
@@ -17,8 +17,6 @@ def create_jira_doc(
     body_text="",
     str_category=ShakeToReportCategory.INTERNAL,
     status="",
-    is_done=False,
-    is_fixed=False,
     fixed_within_one_week=False,
     issue_links=None,
     issue_type="",
@@ -87,15 +85,18 @@ def create_jira_doc(
     return doc
 
 
-def create_quality_report_issue(doc: JiraDocument):
-    return QualityReportIssue(doc)
+def add_quality_score_params(doc: JiraDocument) -> JiraDocument:
+    doc.quality_score_params = QualityScoreParams.init_from_jira_data(
+        doc.creation_date, doc.priority, doc.resolution_date, doc.labels, doc.resolution
+    )
+    return doc
 
 
-REPORT_ISSUE_1 = create_quality_report_issue(
+REPORT_ISSUE_1 = add_quality_score_params(
     create_jira_doc("DLAI-2001", "Onboarding", "Unresolved", "Medium", ["DLAI-2002", "DLAI-2003"])
 )
 
-REPORT_ISSUE_2 = create_quality_report_issue(
+REPORT_ISSUE_2 = add_quality_score_params(
     create_jira_doc(
         "DLAI-2002",
         "Onboarding",
@@ -103,56 +104,60 @@ REPORT_ISSUE_2 = create_quality_report_issue(
         "High",
         ["DLAI-2001"],
         labels=["parent_bug"],
-        is_done=True,
     )
 )
 
-REPORT_ISSUE_3 = create_quality_report_issue(
+REPORT_ISSUE_2_OPEN = add_quality_score_params(
+    create_jira_doc(
+        "DLAI-2002",
+        "Onboarding",
+        "Unresolved",
+        "High",
+        ["DLAI-2001"],
+        labels=["parent_bug"],
+    )
+)
+
+REPORT_ISSUE_3 = add_quality_score_params(
     create_jira_doc(
         "DLAI-2003", "Onboarding", "Unresolved", "High", [], screen_content="VCScreenName"
     )
 )
 
-REPORT_ISSUE_4 = create_quality_report_issue(
+REPORT_ISSUE_4 = add_quality_score_params(
     create_jira_doc(
         "DLAI-2004",
         "Onboarding",
         "Done",
         "High",
         [],
-        is_done=True,
-        is_fixed=True,
         fixed_within_one_week=True,
     )
 )
 
-REPORT_ISSUE_5 = create_quality_report_issue(
+REPORT_ISSUE_5 = add_quality_score_params(
     create_jira_doc(
         "DLAI-2005",
         "Onboarding",
         "Fixed",
         "Medium",
         [],
-        is_done=True,
-        is_fixed=True,
         fixed_within_one_week=False,
     )
 )
 
-REPORT_ISSUE_6 = create_quality_report_issue(
+REPORT_ISSUE_6 = add_quality_score_params(
     create_jira_doc(
         "DLAI-2006",
         "Onboarding",
         "Fixed",
         "Medium",
         [],
-        is_done=True,
-        is_fixed=True,
         fixed_within_one_week=False,
     )
 )
 
-REPORT_ISSUE_8 = create_quality_report_issue(
+REPORT_ISSUE_8 = add_quality_score_params(
     create_jira_doc(
         "DLAA-2008",
         "Onboarding",
@@ -163,7 +168,7 @@ REPORT_ISSUE_8 = create_quality_report_issue(
     )
 )
 
-REPORT_ISSUE_9 = create_quality_report_issue(
+REPORT_ISSUE_9 = add_quality_score_params(
     create_jira_doc(
         "DLAW-2009",
         "Onboarding",
@@ -172,4 +177,30 @@ REPORT_ISSUE_9 = create_quality_report_issue(
         [],
         screen_content="test.com/learn",
     )
+)
+
+
+REPORT_ISSUE_10 = add_quality_score_params(
+    create_jira_doc(
+        "DLAI-2010",
+        "Onboarding",
+        "Unresolved",
+        "Low",
+        [],
+    )
+)
+
+REPORT_ISSUE_11 = add_quality_score_params(
+    create_jira_doc(
+        "DLAI-2011",
+        "Onboarding",
+        "Unresolved",
+        "Low",
+        [],
+        issue_links=[{"type": {"name": ["Relates"]}, "inwardIssue": {"key": "DLAI-2012"}}],
+    )
+)
+
+REPORT_ISSUE_12 = add_quality_score_params(
+    create_jira_doc("DLAI-2012", "Onboarding", "Unresolved", "Low", [], issue_type="Not a bug")
 )

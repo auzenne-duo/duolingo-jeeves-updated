@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytz
 
+from jeeves.model.quality_report import QualityReportIssueDataset
 from jeeves.scripts.quality_reports.quality_report_issue_updates import (
     check_issue_updates,
     check_quality_report_updates,
@@ -73,21 +74,20 @@ class TestQualityReportUtil(unittest.TestCase):
     )
     @patch("jeeves.scripts.quality_reports.quality_report_issue_updates.upload_to_jeeves_s3")
     @patch("jeeves.scripts.quality_reports.quality_report_issue_updates.check_issue_updates")
-    @patch(
-        "jeeves.scripts.quality_reports.quality_report_issue_updates.get_past_quality_issue_data"
-    )
+    @patch("jeeves.dal.quality_report_dal.QualityReportDAL.get_past_quality_issue_datasets")
     def test_check_quality_report_updates(
         self, mock_get_past_quality_issue_data, mock_check_issue_updates, mock_upload
     ):
         mock_get_past_quality_issue_data.side_effect = [
             [],
             [
-                {
-                    "date": "2021-09-09",
-                    "title": "team2",
-                    "max_priority_issues": ["DLAA-1000"],
-                    "max_dupes_issues": ["DLAA-1001"],
-                }
+                QualityReportIssueDataset(
+                    datetime(2021, 9, 9, tzinfo=pytz.utc),
+                    "team2",
+                    [],
+                    ["DLAA-1000"],
+                    ["DLAA-1001"],
+                )
             ],
         ]
         mock_check_issue_updates.return_value = (

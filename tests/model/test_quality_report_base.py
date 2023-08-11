@@ -1,8 +1,9 @@
 import unittest
 from datetime import date, datetime
 
-from jeeves.model.issue_score_parameters import IssueScoreParameters
-from jeeves.model.quality_report_base import _QUOTE_ESCAPE_CHAR, QualityReportBase, ScoreBreakdown
+from jeeves.model.quality_report_base import _QUOTE_ESCAPE_CHAR, QualityReportBase, ScoreTypeCount
+
+# from jeeves.model.quality_score_params import QualityScoreParams
 from tests.testutil.test_util_quality_report import (
     REPORT_ISSUE_1,
     REPORT_ISSUE_2,
@@ -17,9 +18,8 @@ class TestQualityReportBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         issues = [REPORT_ISSUE_1, REPORT_ISSUE_2, REPORT_ISSUE_3]
-        key_to_issue = {issue.issue_key: issue for issue in issues}
         cls.report = QualityReportBase(
-            datetime(2022, 1, 1), None, issues, key_to_issue, None, datetime(2021, 10, 1), ""
+            datetime(2022, 1, 1), None, issues, None, datetime(2021, 10, 1), ""
         )
 
     def test_calculate_scores(self):
@@ -32,32 +32,22 @@ class TestQualityReportBase(unittest.TestCase):
             REPORT_ISSUE_5,
             REPORT_ISSUE_6,
         ]
-        overall, open_score, closed_score, score_breakdown = self.report.calculate_scores(
-            self.report.issues
-        )
-        self.assertEqual(open_score, 110)  # Medium: 10 + High: 100
+        score_breakdown = self.report.calculate_scores(self.report.issues)
+        self.assertEqual(score_breakdown.open_points, 110)  # Medium: 10 + High: 100
         self.assertEqual(
-            closed_score, 130
+            score_breakdown.closed_points, 130
         )  # Medium fixed: 10*2 + High fixed within one week: 100 + high close: 10
-        self.assertEqual(overall, int(100 * 130 / 240))
-        print(score_breakdown.status_priority_group_count)
-        expected_status_priority_group_count = {
-            "Closed": {
-                "HIGH_HIGHEST": {
-                    IssueScoreParameters(
-                        "High", is_done=True, is_fixed=True, fixed_within_one_week=True
-                    ): 1,
-                    IssueScoreParameters("High", is_done=True): 1,
-                },
-                "MEDIUM": {IssueScoreParameters("Medium", is_done=True, is_fixed=True): 2},
-            },
-            "Open": {
-                "HIGH_HIGHEST": {IssueScoreParameters("High"): 1},
-                "MEDIUM": {IssueScoreParameters("Medium"): 1},
-            },
-        }
+        self.assertEqual(score_breakdown.overall_score, int(100 * 130 / 240))
+
+        expected_quality_score_type_counts = [
+            ScoreTypeCount(count=1, points=100, label="High Open"),
+            ScoreTypeCount(count=1, points=100, label="High Fixed within one week"),
+            ScoreTypeCount(count=1, points=10, label="High Closed"),
+            ScoreTypeCount(count=1, points=10, label="Medium Open"),
+            ScoreTypeCount(count=2, points=10, label="Medium Fixed"),
+        ]
         self.assertEqual(
-            score_breakdown.status_priority_group_count, expected_status_priority_group_count
+            score_breakdown.quality_score_type_counts, expected_quality_score_type_counts
         )
 
     def test_create_open_issues_link(self):
@@ -107,22 +97,3 @@ class TestQualityReportBase(unittest.TestCase):
         result = self.report.calculate_max_dupes_issues([REPORT_ISSUE_1, REPORT_ISSUE_3])
         expected = [REPORT_ISSUE_1]
         self.assertEqual(result, expected)
-
-    def test_score_breakdown(self):
-        result = ScoreBreakdown(
-            10,
-            50,
-            {
-                IssueScoreParameters("High"): 2,
-                IssueScoreParameters("High", is_done=True): 1,
-                IssueScoreParameters("Medium", is_done=True, is_fixed=True): 1,
-            },
-        )
-        expected_status_priority_group_count = {
-            "Closed": {
-                "HIGH_HIGHEST": {IssueScoreParameters("High", is_done=True): 1},
-                "MEDIUM": {IssueScoreParameters("Medium", is_done=True, is_fixed=True): 1},
-            },
-            "Open": {"HIGH_HIGHEST": {IssueScoreParameters("High"): 2}},
-        }
-        self.assertEqual(result.status_priority_group_count, expected_status_priority_group_count)

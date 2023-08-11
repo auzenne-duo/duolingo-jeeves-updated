@@ -116,8 +116,8 @@ class JeevesDocument(ABC):
 
         Parameters:
             document: The document we wish to convert to JSON
-            subserial_filter: An optional list of fields to restrict
-                              the serialization to.
+            subserial_filter: An optional list of fields to not include in the
+                              serialization.
 
         Returns:
             A JSON representation of the provided object.
@@ -126,7 +126,7 @@ class JeevesDocument(ABC):
         retval = {}
 
         if subserial_filter:
-            retval = attr.asdict(document, filter=lambda attr, _: attr.name in subserial_filter)
+            retval = attr.asdict(document, filter=lambda attr, _: attr.name not in subserial_filter)
         else:
             retval = attr.asdict(document)
 

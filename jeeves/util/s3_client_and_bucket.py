@@ -16,6 +16,14 @@ def get_s3_client_and_bucket():
     return s3_client, s3_bucket_name
 
 
+def download_from_jeeves_s3(filename: str) -> bytes:
+    """
+    Downloads data from jeeves document cache in s3 using given filename
+    """
+    s3_client, s3_bucket_name = get_s3_client_and_bucket()
+    return s3_client.download(s3_bucket_name, filename)
+
+
 def _upload_to_s3(filename, data, bucket):
     """
     Uploads data to s3 under filename

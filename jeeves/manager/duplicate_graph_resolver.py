@@ -13,8 +13,8 @@ from duolingo_base.util import registry
 
 from jeeves.dal.jira_dal import JiraApiDAL
 from jeeves.dal.opensearch_interface import OpenSearchDAL
-from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.lib.profiling import traced_function
+from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.parent_summary_manager import ParentSummaryManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
@@ -27,11 +27,13 @@ from jeeves.util.parent_jira_issue_util import (
     strip_parent_description,
     update_parent_data_from_child,
 )
+from jeeves.util.quality_report_util import is_jira_issue_resolved
 
 
 @registry.bind(
     es_dal=registry.reference(OpenSearchDAL),
     jira_dal=registry.reference(JiraApiDAL),
+    jira_manager=registry.reference(JiraManager),
     parent_summary_manager=registry.reference(ParentSummaryManager),
 )
 class DuplicateGraphResolver:
@@ -39,11 +41,12 @@ class DuplicateGraphResolver:
         self,
         es_dal: OpenSearchDAL,
         jira_dal: JiraApiDAL,
+        jira_manager: JiraManager,
         parent_summary_manager: ParentSummaryManager,
     ):
         self._es_dal = es_dal
         self._jira_dal = jira_dal
-        self._jira_manager = IDManagerMap.get_manager_for_identifier("JIRA")
+        self._jira_manager = jira_manager
         self._parent_summary_manager = parent_summary_manager
 
     @traced_function()
@@ -431,3 +434,87 @@ class DuplicateGraphResolver:
                     issue.parent_issue = parent_issues[0].issue_key
                 elif len(parent_issues) > 1:
                     issue.parent_issue, _ = self.resolve_multiple_parent_issues(parent_issues)
+
+    def resolve_duplicate_graphs(
+        self,
+        jira_issues: List[JiraDocument],
+    ) -> Tuple[List[JiraDocument], Dict[str, JiraDocument]]:
+        """
+        Params:
+            jira_issues: list of JiraDocuments
+
+        Returns:
+            A tuple of
+                a set of jira issue keys with only one representative issue from each duplicate graph.
+                a mapping from issue key to Jira document
+
+        For each jira issue we resolve the duplicate graph and determine a representative of each dupe graph
+        The rep will be the parent of the graph if it exists. If there is only one issue, then that issue is
+        the rep. Otherwise, if there is at least one open issue, some open issue is used as the rep. Finally
+        if all issues are done, then any issue that was not closed as a Duplicate is used.
+
+        Assigns parent issue and child_issue attributes for jira documents
+        """
+
+        # Fetch all directly linked duplicates in batch and compile a mapping from issue key to issue
+        key_to_issue = {issue.issue_key: issue for issue in jira_issues}
+        issues_to_fetch = {
+            key
+            for issue in jira_issues
+            for key in issue.linked_duplicate_keys
+            if not key in key_to_issue
+        }
+
+        downloaded_issues = self._jira_manager.download_bulk_issues_with_features(
+            list(issues_to_fetch)
+        )
+        key_to_issue.update({issue.issue_key: issue for issue in downloaded_issues})
+        # For each issue determine the duplicate graph and choose a representative.
+        parent_representatives = []
+        visited_issues = set()
+        for issue in jira_issues:
+            if issue.issue_key in visited_issues:
+                continue
+            duplicate_graph = self.get_duplicate_graph([issue.issue_key], key_to_doc=key_to_issue)
+            duplicate_graph_issues = list(duplicate_graph.issue_keys_to_documents.values())
+            visited_issues.update(duplicate_graph.issue_keys_to_documents.keys())
+            parent_issues = [
+                issue for issue in duplicate_graph_issues if JiraDocument.is_group_parent(issue)
+            ]
+
+            if len(parent_issues) == 1:
+                parent_issue = parent_issues[0]
+            elif len(parent_issues) > 1:
+                # check to see if any issue is open
+                for potential_parent_issue in parent_issues:
+                    if not is_jira_issue_resolved(potential_parent_issue.resolution):
+                        parent_issue = potential_parent_issue
+                        break
+                else:
+                    parent_issue = potential_parent_issue
+            elif len(duplicate_graph_issues) == 1:
+                parent_issue = issue
+            else:
+                open_issues = [
+                    issue
+                    for issue in duplicate_graph_issues
+                    if not is_jira_issue_resolved(issue.resolution)
+                ]
+                if len(open_issues) > 0:
+                    parent_issue = open_issues[0]
+                else:
+                    non_dupes = [
+                        issue for issue in duplicate_graph_issues if issue.resolution != "Duplicate"
+                    ]
+                    parent_issue = duplicate_graph_issues[0] if non_dupes == [] else non_dupes[0]
+
+            parent_issue.child_issues = [
+                i.issue_key for i in duplicate_graph_issues if i.issue_key != parent_issue.issue_key
+            ]
+            for child_issue in duplicate_graph_issues:
+                if child_issue == parent_issue:
+                    continue
+                child_issue.parent_issue = parent_issue.issue_key
+            parent_representatives.append(parent_issue)
+
+        return parent_representatives, key_to_issue

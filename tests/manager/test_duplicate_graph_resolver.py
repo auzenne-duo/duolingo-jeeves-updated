@@ -135,7 +135,7 @@ def test_choose_parent_issue(
     expected_other_parents: List[JiraDocument],
 ):
     duplicate_graph_resolver = DuplicateGraphResolver(
-        mock_es_dal, mock_jira_dal, mock_parent_summary_generator
+        mock_es_dal, mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
     )
 
     (
@@ -162,7 +162,13 @@ no_parent_5 = _jira_document(
     feature="achievements",
     header_text="site crashed",
 )
-no_parent_6 = _jira_document(issue_number=6, linked_duplicate_keys=["DLAA-5"], feature="shake")
+no_parent_6 = _jira_document(
+    issue_number=6,
+    linked_duplicate_keys=["DLAA-5"],
+    feature="shake",
+    status="Done",
+    resolution="Duplicate",
+)
 jira_documents = {
     "DLAA-1": parent_of_dupes,
     "DLAA-2": child_2,
@@ -178,6 +184,7 @@ mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
     jira_documents[key] for key in keys
 ]
 
+
 populate_parent_child_issue_fields_test_cases = [
     (parent_of_dupes, None, ["DLAA-2", "DLAA-3"]),
     (child_2, "DLAA-1", []),
@@ -191,20 +198,14 @@ populate_parent_child_issue_fields_test_cases = [
     "jira_doc,expected_parent_issue,expected_child_issues",
     populate_parent_child_issue_fields_test_cases,
 )
-@patch(
-    "jeeves.manager.duplicate_graph_resolver.IDManagerMap",
-    MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
-)
 def test_populate_parent_child_issue_fields(
     jira_doc: JiraDocument,
     expected_parent_issue: str,
     expected_child_issues: List[str],
 ):
-    mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
-        jira_documents[key] for key in keys
-    ]
+
     duplicate_graph_resolver = DuplicateGraphResolver(
-        mock_es_dal, mock_jira_dal, mock_parent_summary_generator
+        mock_es_dal, mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
     )
 
     duplicate_graph_resolver.populate_parent_child_issue_fields([jira_doc])
@@ -218,10 +219,6 @@ MOCK_DESCRIPTION = "Description"
 
 
 class TestDuplicateGraphResolver(unittest.TestCase):
-    @patch(
-        "jeeves.manager.duplicate_graph_resolver.IDManagerMap",
-        MagicMock(get_manager_for_identifier=MagicMock(return_value=mock_jira_manager)),
-    )
     @patch("jeeves.manager.duplicate_graph_resolver.asyncio", MagicMock())
     @patch("jeeves.manager.duplicate_graph_resolver.get_asyncio_loop")
     def test_connect_duplicates_remote(self, mock_get_asyncio_loop):
@@ -247,7 +244,7 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         )
 
         duplicate_graph_resolver = DuplicateGraphResolver(
-            mock_es_dal, magic_mock_jira_dal, mock_parent_summary_generator
+            mock_es_dal, magic_mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
         )
         duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
         expected_summary = f"[Parent] {MOCK_SUMMARY}"
@@ -317,3 +314,35 @@ class TestDuplicateGraphResolver(unittest.TestCase):
             feature="shake",
             priority="High",
         )
+
+    @patch("jeeves.scripts.index_pipeline_and_spike_detector.sync_jira_tickets.app_registry")
+    def test_resolve_duplicate_graphs(self, mock_app_registry):
+        magic_mock_jira_dal = MagicMock()
+        duplicate_graph_resolver = DuplicateGraphResolver(
+            mock_es_dal, magic_mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
+        )
+        list_of_parents, key_to_issue = duplicate_graph_resolver.resolve_duplicate_graphs(
+            [parent_of_dupes, child_2, no_parent_5]
+        )
+        expected_key_to_issue = {
+            "DLAA-1": parent_of_dupes,
+            "DLAA-2": child_2,
+            "DLAA-3": child_3,
+            "DLAA-5": no_parent_5,
+            "DLAA-6": no_parent_6,
+        }
+        expected_list_of_parents = [
+            parent_of_dupes,
+            no_parent_5,
+        ]
+
+        # Document DLAA-1 is the parent of DLAA-2 and DLAA-3 according to the parent-bug label
+        self.assertEqual(parent_of_dupes.child_issues, [child_2.issue_key, child_3.issue_key])
+        self.assertEqual(child_2.parent_issue, parent_of_dupes.issue_key)
+        self.assertEqual(child_3.parent_issue, parent_of_dupes.issue_key)
+        # Document DLAA-5 is the parent of DLAA-6 since DLAA-6 is closed as duplicate while DLAA-5 is open
+        self.assertEqual(no_parent_5.child_issues, [no_parent_6.issue_key])
+        self.assertEqual(no_parent_6.parent_issue, no_parent_5.issue_key)
+
+        self.assertEqual(key_to_issue, expected_key_to_issue)
+        self.assertEqual(list_of_parents, expected_list_of_parents)
