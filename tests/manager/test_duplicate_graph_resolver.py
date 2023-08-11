@@ -185,35 +185,6 @@ mock_jira_manager.download_bulk_issues_with_features = lambda keys: [
 ]
 
 
-populate_parent_child_issue_fields_test_cases = [
-    (parent_of_dupes, None, ["DLAA-2", "DLAA-3"]),
-    (child_2, "DLAA-1", []),
-    (child_3, "DLAA-1", []),
-    (no_dupes, None, []),
-    (no_parent_6, None, []),
-]
-
-
-@pytest.mark.parametrize(
-    "jira_doc,expected_parent_issue,expected_child_issues",
-    populate_parent_child_issue_fields_test_cases,
-)
-def test_populate_parent_child_issue_fields(
-    jira_doc: JiraDocument,
-    expected_parent_issue: str,
-    expected_child_issues: List[str],
-):
-
-    duplicate_graph_resolver = DuplicateGraphResolver(
-        mock_es_dal, mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
-    )
-
-    duplicate_graph_resolver.populate_parent_child_issue_fields([jira_doc])
-    unittest.TestCase()
-    assert jira_doc.parent_issue == expected_parent_issue
-    assert jira_doc.child_issues == expected_child_issues
-
-
 MOCK_SUMMARY = "Summary"
 MOCK_DESCRIPTION = "Description"
 

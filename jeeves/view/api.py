@@ -111,7 +111,6 @@ def manage_tickets(lang):
         )
 
         tickets = paginated_tickets["data"]
-        app_registry(DuplicateGraphResolver).populate_parent_child_issue_fields(tickets)
         values = [ticket.serialize_to_json(ticket) for ticket in tickets]
         total_records = paginated_tickets["total_records"]
 

@@ -16,7 +16,6 @@ from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.parent_summary_manager import ParentSummaryManager
-from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 from jeeves.util.async_util import get_asyncio_loop
@@ -389,51 +388,6 @@ class DuplicateGraphResolver:
                 remove_parent_bug_label=True,
             )
             self._jira_dal.close_issue_as_duplicate(issue.issue_key)
-
-    def populate_parent_child_issue_fields(self, issues: List[JeevesDocument]):
-        """
-        Sets the parent_issue and child_issues fields of JiraDocuments by getting the duplicate graph
-        to determine duplicate parent or children.
-
-        Parameters:
-            issues: list of Jeeves documents
-        """
-        filtered_issues = [
-            issue
-            for issue in issues
-            if JiraDocument.get_data_source_identifier() == issue.get_data_source_identifier()
-            and issue.linked_duplicate_keys != []
-        ]
-
-        if not filtered_issues:
-            return
-        docs_to_fetch = {
-            key
-            for issue in filtered_issues
-            for key in issue.linked_duplicate_keys + [issue.issue_key]
-        }
-
-        docs = self._jira_manager.download_bulk_issues_with_features(list(docs_to_fetch))
-        key_to_doc = {doc.issue_key: doc for doc in docs}
-        for issue in filtered_issues:
-            duplicate_graph = self.get_duplicate_graph(
-                [issue.issue_key] + issue.linked_duplicate_keys, key_to_doc=key_to_doc
-            )
-
-            if JiraDocument.is_group_parent(issue):
-                issue.child_issues = sorted(
-                    list(set(duplicate_graph.issue_keys_to_documents) - {issue.issue_key})
-                )
-            else:
-                parent_issues = [
-                    issue
-                    for key, issue in duplicate_graph.issue_keys_to_documents.items()
-                    if JiraDocument.is_group_parent(issue)
-                ]
-                if len(parent_issues) == 1:
-                    issue.parent_issue = parent_issues[0].issue_key
-                elif len(parent_issues) > 1:
-                    issue.parent_issue, _ = self.resolve_multiple_parent_issues(parent_issues)
 
     def resolve_duplicate_graphs(
         self,
