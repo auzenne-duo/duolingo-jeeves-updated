@@ -14,7 +14,7 @@ const ROTATIONS: Record<Direction, number> = {
   down: 0,
   left: 90,
   right: 270,
-  up: 180,
+  up: -180,
 };
 
 const DisclosureTriangle = ({ className, direction }: Props) => (
