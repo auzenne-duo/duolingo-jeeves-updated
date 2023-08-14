@@ -173,6 +173,7 @@ JIRA_FEATURES = {
                 "heart",
             ],
             "New Years Promo": [],
+            "Max Upsell": [],
         },
         "In-App Purchases (Poseidon)": {
             "In-app purchases": ["shop"],
@@ -182,11 +183,13 @@ JIRA_FEATURES = {
             "Match madness": [],
             "Shop items": [],
         },
-        "Max": {
+        "Coach": {
             "Explain my Answer": [],
-            "Role Play": ["roleplay", "role-play"],
-            "Max": [],
         },
+        "Immersion": {
+            "Role Play": ["roleplay", "role-play"],
+        },
+        "Max Engine": {"Max Backend": []},
         "Super Features": {
             "Side Quests": ["side quest"],
             "Mistakes inbox": [],
