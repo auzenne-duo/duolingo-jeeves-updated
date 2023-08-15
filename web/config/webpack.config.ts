@@ -71,6 +71,7 @@ const webpackConfig = (
     ],
   },
   output: {
+    filename: "[name].[contenthash].js",
     publicPath: "/",
   },
   plugins: [
