@@ -184,7 +184,9 @@ JIRA_FEATURES = {
             "Shop items": [],
         },
         "Coach": {
-            "Explain my Answer": [],
+            "Explain my Answer": ["EMA", "explanation"],
+            "Lesson Coach": ["Coach"],
+            "On-call tips": ["OCT"],
         },
         "Immersion": {
             "Role Play": ["roleplay", "role-play"],
