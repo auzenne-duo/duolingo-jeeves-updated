@@ -13,12 +13,14 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.quality_report_base import QualityReportBase, ScoreBreakdown
 from jeeves.model.quality_report_project_section import QualityReportProjectSection
-from jeeves.util.date_util import date_to_str
+from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.quality_report_util import QUALITY_REPORT_OVERALL_KEY
 from jeeves.util.s3_client_and_bucket import upload_to_public_static
 
+_JIRA_FIELDS_TO_FILTER = ["embeddings", "experiment_conditions", "comments"]
 _NUM_WEEKS_IN_PAST_SCORE_BREAKDOWN = 4
 _QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY_PREFIX = "https://public-static.duolingo.com/"
+_SCORE_CUTTOFF_DAYS = 90
 _VISUAL_POLISH_LABEL = "visual-polish"
 
 QualityScoreHistory = List[Tuple[str, int]]
@@ -59,6 +61,7 @@ class SerializedQualityReportData:
     end_date: str
     max_priority_issues: List[JSON]
     max_dupes_issues: List[JSON]
+    visual_polish_issues: List[JSON]
     title: str
 
 
@@ -107,7 +110,7 @@ class QualityReportIssueDataset:
             "date": self.date,
             "title": self.title,
             "issues": [
-                JiraDocument.serialize_to_json(issue, ["embeddings", "experiment_conditions"])
+                JiraDocument.serialize_to_json(issue, _JIRA_FIELDS_TO_FILTER)
                 for issue in self.issues
             ],
             "max_priority_issue_keys": self.max_priority_issue_keys,
@@ -139,11 +142,18 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         """
         super().__init__(end_date, features, issues, None, start_date, title)
         self.area = area
-        self.start_date = start_date
         self.issue_datasets = past_issue_datasets
 
         # Add current scores to the history of quality scores
         self.project_to_scores = project_to_scores
+        # truncate past score to the past X days
+        score_cutoff_date = self.end_date - timedelta(days=_SCORE_CUTTOFF_DAYS)
+        for project, score_history in self.project_to_scores.items():
+            self.project_to_scores[project] = [
+                (date, score)
+                for (date, score) in score_history
+                if parse_external_datetime(date) > score_cutoff_date
+            ]
         self.project_to_scores[QUALITY_REPORT_OVERALL_KEY].append(
             (date_to_str(self.end_date), self.score_breakdown.overall_score)
         )
@@ -158,6 +168,8 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
                 self.start_date,
                 self.title,
             )
+            if section.open_issues == 0:
+                continue
             self.project_sections.append(section)
             self.project_to_scores[project].append(
                 (date_to_str(self.end_date), section.score_breakdown.overall_score)
@@ -339,10 +351,16 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         returns a SerializedQualityReportData object representing the quality report object
         """
         max_priority_issues_json = [
-            JiraDocument.serialize_to_json(issue) for issue in self.max_priority_issues
+            JiraDocument.serialize_to_json(issue, _JIRA_FIELDS_TO_FILTER)
+            for issue in self.max_priority_issues
         ]
         max_dupes_issues_json = [
-            JiraDocument.serialize_to_json(issue) for issue in self.max_dupes_issues
+            JiraDocument.serialize_to_json(issue, _JIRA_FIELDS_TO_FILTER)
+            for issue in self.max_dupes_issues
+        ]
+        visual_polish_issues_json = [
+            JiraDocument.serialize_to_json(issue, _JIRA_FIELDS_TO_FILTER)
+            for issue in self.max_dupes_visual_polish_issues
         ]
         return SerializedQualityReportData(
             end_date=date_to_str(self.end_date),
@@ -356,6 +374,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             start_date=date_to_str(self.start_date),
             max_priority_issues=max_priority_issues_json,
             max_dupes_issues=max_dupes_issues_json,
+            visual_polish_issues=visual_polish_issues_json,
             title=self.title,
         )
 

@@ -8,9 +8,6 @@ from typing import Dict, List, Optional
 FIXED_RESOLUTIONS = ["Fixed", "Done"]
 UNRESOLVED_RESOLUTIONS = ["Unresolved", ""]
 
-_FIXED_WITHIN_ONE_WEEK = True
-_NOT_FIXED_WITHIN_ONE_WEEK = False
-
 
 class PriorityValue(Enum):
     UNPRIORITIZED = "Unprioritized"
@@ -31,6 +28,7 @@ PRIORITY_SORTING_ORDER: Dict[PriorityValue, int] = {
 
 class Resolution(Enum):
     FIXED = "Fixed"
+    FIXED_WITHIN_ONE_WEEK = "Fixed within one week"
     CLOSED_UNFIXED = "Closed"
     OPEN = "Open"
 
@@ -48,27 +46,32 @@ priority_map = {
 
 score_map = {
     PriorityValue.ACUTE: {
-        Resolution.FIXED: {_FIXED_WITHIN_ONE_WEEK: 200, _NOT_FIXED_WITHIN_ONE_WEEK: 100},
+        Resolution.FIXED_WITHIN_ONE_WEEK: 200,
+        Resolution.FIXED: 100,
         Resolution.CLOSED_UNFIXED: 20,
         Resolution.OPEN: 200,
     },
     PriorityValue.HIGH_HIGHEST: {
-        Resolution.FIXED: {_FIXED_WITHIN_ONE_WEEK: 100, _NOT_FIXED_WITHIN_ONE_WEEK: 50},
+        Resolution.FIXED_WITHIN_ONE_WEEK: 100,
+        Resolution.FIXED: 50,
         Resolution.CLOSED_UNFIXED: 10,
         Resolution.OPEN: 100,
     },
     PriorityValue.MEDIUM: {
-        Resolution.FIXED: {_FIXED_WITHIN_ONE_WEEK: 20, _NOT_FIXED_WITHIN_ONE_WEEK: 10},
+        Resolution.FIXED_WITHIN_ONE_WEEK: 20,
+        Resolution.FIXED: 10,
         Resolution.CLOSED_UNFIXED: 2,
         Resolution.OPEN: 10,
     },
     PriorityValue.LOW_LOWEST: {
-        Resolution.FIXED: {_FIXED_WITHIN_ONE_WEEK: 10, _NOT_FIXED_WITHIN_ONE_WEEK: 5},
+        Resolution.FIXED_WITHIN_ONE_WEEK: 10,
+        Resolution.FIXED: 5,
         Resolution.CLOSED_UNFIXED: 1,
         Resolution.OPEN: 5,
     },
     PriorityValue.UNPRIORITIZED: {
-        Resolution.FIXED: {_FIXED_WITHIN_ONE_WEEK: 10, _NOT_FIXED_WITHIN_ONE_WEEK: 5},
+        Resolution.FIXED_WITHIN_ONE_WEEK: 10,
+        Resolution.FIXED: 5,
         Resolution.CLOSED_UNFIXED: 1,
         Resolution.OPEN: 50,
     },
@@ -78,11 +81,22 @@ score_map = {
 @dataclass(frozen=True, eq=True)
 class QualityScoreParams:
     is_done: bool
-    is_fixed_within_one_week: bool
     group: PriorityValue
     resolution: Resolution
     score: int
     text: str
+
+    @classmethod
+    def init_from_group_and_resolution(
+        cls, group: PriorityValue, resolution: Resolution
+    ) -> QualityScoreParams:
+        """
+        Initialize a score params object from the priority group and resolution
+        """
+        is_done = not resolution is Resolution.OPEN
+        score = cls.get_score(group, resolution)
+        text = cls.get_text(group, resolution)
+        return QualityScoreParams(is_done, group, resolution, score, text)
 
     @classmethod
     def init_from_jira_data(
@@ -91,13 +105,13 @@ class QualityScoreParams:
         priority: str,
         resolution_date: Optional[datetime],
         labels: Optional[List[str]] = None,
-        resolution: str = "",
+        resolution_str: str = "",
     ) -> QualityScoreParams:
         """
         Initialize a score parameters object from Jira data
         """
-        is_fixed = resolution in FIXED_RESOLUTIONS
-        is_done = resolution not in UNRESOLVED_RESOLUTIONS
+        is_fixed = resolution_str in FIXED_RESOLUTIONS
+        is_done = resolution_str not in UNRESOLVED_RESOLUTIONS
         is_fixed_within_one_week = False
         if is_fixed and resolution_date and creation_date:
             is_fixed_within_one_week = (resolution_date - creation_date).days <= 7
@@ -105,17 +119,30 @@ class QualityScoreParams:
         group = priority_map[priority]
         if labels and any("acute" in label.lower() for label in labels):
             group = PriorityValue.ACUTE
-        resolution = (
-            Resolution.OPEN
-            if not is_done
-            else Resolution.FIXED
-            if is_fixed
-            else Resolution.CLOSED_UNFIXED
-        )
-        score = score_map[group][resolution]
-        if resolution == Resolution.FIXED:
-            score = score_map[group][resolution][is_fixed_within_one_week]
-        text = f"{group.value} {resolution.value}"
-        if is_fixed_within_one_week:
-            text = f"{text} within one week"
-        return QualityScoreParams(is_done, is_fixed_within_one_week, group, resolution, score, text)
+
+        if is_fixed:
+            resolution = (
+                Resolution.FIXED_WITHIN_ONE_WEEK if is_fixed_within_one_week else Resolution.FIXED
+            )
+        else:
+            resolution = Resolution.OPEN if not is_done else Resolution.CLOSED_UNFIXED
+
+        score = cls.get_score(group, resolution)
+        text = cls.get_text(group, resolution)
+        return QualityScoreParams(is_done, group, resolution, score, text)
+
+    @classmethod
+    def get_score(cls, group, resolution) -> int:
+        return score_map[group][resolution]
+
+    @classmethod
+    def get_text(cls, group, resolution) -> str:
+        return f"{group.value} {resolution.value}"
+
+    @classmethod
+    def get_all_possible_score_params(cls) -> List[QualityScoreParams]:
+        return [
+            QualityScoreParams.init_from_group_and_resolution(group, resolution)
+            for group in PriorityValue
+            for resolution in Resolution
+        ]

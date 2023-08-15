@@ -11,9 +11,8 @@ class TestQualityScoreParams(unittest.TestCase):
         )
         expected = QualityScoreParams(
             True,
-            True,
             PriorityValue.HIGH_HIGHEST,
-            Resolution.FIXED,
+            Resolution.FIXED_WITHIN_ONE_WEEK,
             100,
             "High Fixed within one week",
         )
@@ -23,13 +22,13 @@ class TestQualityScoreParams(unittest.TestCase):
             datetime(2000, 1, 20), "High", None, [], "Unresolved"
         )
         expected = QualityScoreParams(
-            False, False, PriorityValue.HIGH_HIGHEST, Resolution.OPEN, 100, "High Open"
+            False, PriorityValue.HIGH_HIGHEST, Resolution.OPEN, 100, "High Open"
         )
 
         params = QualityScoreParams.init_from_jira_data(
             datetime(2000, 1, 20), "Low", datetime(2000, 1, 30), [], "Closed as duplicate"
         )
         expected = QualityScoreParams(
-            True, False, PriorityValue.LOW_LOWEST, Resolution.CLOSED_UNFIXED, 1, "Low Closed"
+            True, PriorityValue.LOW_LOWEST, Resolution.CLOSED_UNFIXED, 1, "Low Closed"
         )
         self.assertEqual(params, expected)

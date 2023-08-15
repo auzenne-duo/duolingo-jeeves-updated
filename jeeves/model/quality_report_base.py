@@ -101,7 +101,7 @@ class QualityReportBase:
             overall_score = round(closed_points / (open_points + closed_points) * 100)
 
         # We want to have the type counts sorted by priority and then score
-        score_params_types = list(quality_score_params_count.keys())
+        score_params_types = QualityScoreParams.get_all_possible_score_params()
         score_params_types.sort(
             key=lambda score_params: (
                 PRIORITY_SORTING_ORDER[score_params.group],

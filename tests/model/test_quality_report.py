@@ -2,6 +2,8 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
+import pytz
+
 from jeeves.model.quality_report import QualityReportIssueDataset, QualityReportTeam, RecentChanges
 from jeeves.util.quality_report_util import QUALITY_REPORT_OVERALL_KEY
 from tests.testutil.test_util_quality_report import (
@@ -26,11 +28,11 @@ class TestQualityReport(unittest.TestCase):
     def setUpClass(cls):
         issues = [REPORT_ISSUE_1, REPORT_ISSUE_2]
         cls.report = QualityReportTeam(
-            datetime(2022, 1, 1),
+            datetime(2022, 1, 1, tzinfo=pytz.utc),
             issues,
             past_issue_datasets=[],
             project_to_scores=mock_score_history,
-            start_date=datetime(2022, 1, 1),
+            start_date=datetime(2022, 1, 1, tzinfo=pytz.utc),
             team="Onboarding",
             area="Growth",
         )
@@ -60,7 +62,11 @@ class TestQualityReport(unittest.TestCase):
 
         issue_data = [
             QualityReportIssueDataset(
-                datetime(2021, 1, 1), "Onboarding", [REPORT_ISSUE_2_OPEN, REPORT_ISSUE_10], [], []
+                datetime(2021, 1, 1, tzinfo=pytz.utc),
+                "Onboarding",
+                [REPORT_ISSUE_2_OPEN, REPORT_ISSUE_10],
+                [],
+                [],
             )
         ]
         result = self.report.find_recent_changes(issue_data)
@@ -85,7 +91,9 @@ class TestQualityReport(unittest.TestCase):
         change in score due to newly included issues: 0.5 - 1 = -0.5
         """
         issue_data = [
-            QualityReportIssueDataset(datetime(2021, 1, 1), "Onboarding", [REPORT_ISSUE_2], [], [])
+            QualityReportIssueDataset(
+                datetime(2021, 1, 1, tzinfo=pytz.utc), "Onboarding", [REPORT_ISSUE_2], [], []
+            )
         ]
         result = self.report.find_recent_changes(issue_data)
         expected = RecentChanges(
@@ -106,11 +114,11 @@ class TestQualityReport(unittest.TestCase):
 
         issues = [REPORT_ISSUE_1, REPORT_ISSUE_2]
         test_report = QualityReportTeam(
-            datetime(2022, 1, 1),
+            datetime(2022, 1, 1, tzinfo=pytz.utc),
             issues,
             past_issue_datasets=[],
             project_to_scores=mock_score_history,
-            start_date=datetime(2022, 1, 1),
+            start_date=datetime(2022, 1, 1, tzinfo=pytz.utc),
             team="Generated Sessions",
             area="Learning R&D",
         )

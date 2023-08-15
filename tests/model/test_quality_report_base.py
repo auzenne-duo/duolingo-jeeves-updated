@@ -40,11 +40,26 @@ class TestQualityReportBase(unittest.TestCase):
         self.assertEqual(score_breakdown.overall_score, int(100 * 130 / 240))
 
         expected_quality_score_type_counts = [
-            ScoreTypeCount(count=1, points=100, label="High Open"),
+            ScoreTypeCount(count=0, points=200, label="Acute Fixed within one week"),
+            ScoreTypeCount(count=0, points=200, label="Acute Open"),
+            ScoreTypeCount(count=0, points=100, label="Acute Fixed"),
+            ScoreTypeCount(count=0, points=20, label="Acute Closed"),
             ScoreTypeCount(count=1, points=100, label="High Fixed within one week"),
+            ScoreTypeCount(count=1, points=100, label="High Open"),
+            ScoreTypeCount(count=0, points=50, label="High Fixed"),
             ScoreTypeCount(count=1, points=10, label="High Closed"),
-            ScoreTypeCount(count=1, points=10, label="Medium Open"),
+            ScoreTypeCount(count=0, points=20, label="Medium Fixed within one week"),
             ScoreTypeCount(count=2, points=10, label="Medium Fixed"),
+            ScoreTypeCount(count=1, points=10, label="Medium Open"),
+            ScoreTypeCount(count=0, points=2, label="Medium Closed"),
+            ScoreTypeCount(count=0, points=10, label="Low Fixed within one week"),
+            ScoreTypeCount(count=0, points=5, label="Low Fixed"),
+            ScoreTypeCount(count=0, points=5, label="Low Open"),
+            ScoreTypeCount(count=0, points=1, label="Low Closed"),
+            ScoreTypeCount(count=0, points=50, label="Unprioritized Open"),
+            ScoreTypeCount(count=0, points=10, label="Unprioritized Fixed within one week"),
+            ScoreTypeCount(count=0, points=5, label="Unprioritized Fixed"),
+            ScoreTypeCount(count=0, points=1, label="Unprioritized Closed"),
         ]
         self.assertEqual(
             score_breakdown.quality_score_type_counts, expected_quality_score_type_counts

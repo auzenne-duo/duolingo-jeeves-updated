@@ -402,7 +402,9 @@ class JiraDocument(JeevesDocument):
             reporter=internal_json["reporter"],
             reporter_email=internal_json.get("reporter_email", ""),
             assignee=internal_json["assignee"],
-            comments=[cls._deserialize_comment(comment) for comment in internal_json["comments"]],
+            comments=[
+                cls._deserialize_comment(comment) for comment in internal_json.get("comments", [])
+            ],
             labels=internal_json["labels"],
             embeddings=internal_json.get("embeddings", {}),
             experiment_conditions=internal_json.get("experiment_conditions", {}),
