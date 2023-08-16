@@ -34,7 +34,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
   useDocumentTitle(`${area} Quality Report`);
 
   const { data } = useQuery(["quality-report", area], () =>
-    getQualityReportForArea(),
+    getQualityReportForArea(area),
   );
 
   const report = React.useMemo(
@@ -113,6 +113,16 @@ const QualityReportForArea = ({ area, team }: Props) => {
           onClick={handleClick}
           selectedId={id}
           tickets={report.max_priority_issues}
+        />
+      ) : (
+        <span>No issues have been found.</span>
+      )}
+      <h2>Top design issues</h2>
+      {report.visual_polish_issues.length ? (
+        <TicketList
+          onClick={handleClick}
+          selectedId={id}
+          tickets={report.visual_polish_issues}
         />
       ) : (
         <span>No issues have been found.</span>

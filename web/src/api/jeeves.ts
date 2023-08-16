@@ -2,7 +2,6 @@ import { format, formatISO, parseISO } from "date-fns";
 
 import { convertTimeZone } from "../util";
 import { get, patch, post } from "api/client";
-import { QUALITY_REPORT, QUALITY_REPORT_FOR_AREA } from "api/demo";
 import { transformQuery } from "opensearch";
 
 /** Converts a date and time to a format that the API supports. */
@@ -40,11 +39,16 @@ export const getInfo = async (
   };
 };
 
-// TODO (renspoesse): use backend.
-export const getQualityReport = () => QUALITY_REPORT;
+export const getQualityReport = () =>
+  get<JSONAPI.QualityReport>("/3/quality_report");
 
-// TODO (renspoesse): use backend.
-export const getQualityReportForArea = () => QUALITY_REPORT_FOR_AREA;
+export const getQualityReportForArea = (area: string) => {
+  const params = new URLSearchParams();
+  params.set("area", area);
+  return get<JSONAPI.DetailedAreaQualityReport>(
+    `/3/quality_report_area?${params.toString()}`,
+  );
+};
 
 export const getSpikeCategories = async (): Promise<
   JSONAPI.SpikeCategoryData[]

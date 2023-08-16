@@ -67,7 +67,7 @@ const Sidebar = ({ onItemClick }: Props) => {
         Sentiment Search (beta)
       </LinkItem>
       <LinkItem onClick={onItemClick} to={`/${lang}/quality-report`}>
-        Quality Report (mock data)
+        Quality Report
       </LinkItem>
       <LinkItem
         onClick={onItemClick}

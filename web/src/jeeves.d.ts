@@ -20,6 +20,7 @@ declare namespace JSONAPI {
     features: string[];
     max_dupes_issues: Ticket[];
     max_priority_issues: Ticket[];
+    visual_polish_issues: Ticket[];
     open_bugs_count: number;
     open_bugs_url: string;
     overall_score: number;
