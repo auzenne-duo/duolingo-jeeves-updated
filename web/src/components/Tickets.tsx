@@ -245,7 +245,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
               total: data?.total_records,
             })}
           </div>
-          <Button onClick={() => downloadAsCsv(tickets)} variant="stroke">
+          <Button onClick={() => downloadAsCsv(tickets, lang)} variant="stroke">
             Download data
           </Button>
         </>

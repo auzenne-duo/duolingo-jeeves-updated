@@ -18,7 +18,10 @@ const download = (blob: Blob, name: string) => {
   link.click();
 };
 
-export const downloadAsCsv = (tickets: JSONAPI.Ticket[]) => {
+export const downloadAsCsv = (
+  tickets: JSONAPI.Ticket[],
+  lang: JSONAPI.LanguageId,
+) => {
   const separator = ",";
 
   const keys: (keyof typeof tickets[0])[] = [];
@@ -29,28 +32,31 @@ export const downloadAsCsv = (tickets: JSONAPI.Ticket[]) => {
     }
   }
 
-  const csvHeader = keys.join(separator);
+  const csvHeader = ["jeeves_link"].concat(keys).join(separator);
   const csvRows = tickets
-    .map(ticket =>
-      keys
-        .map(key => {
-          let cell = ticket[key] ?? "";
+    .map(ticket => {
+      const jeevesUrl = `https://jeeves.duolingo.com/${lang}/discovery?id=${ticket.jeeves_uid}`;
+      return [jeevesUrl]
+        .concat(
+          keys.map(key => {
+            let cell = ticket[key] ?? "";
 
-          // Avoid calling toString on objects that result in [object Object]
-          cell =
-            cell instanceof Date
-              ? cell.toLocaleString()
-              : typeof cell === "object"
-              ? ""
-              : cell.toString().replace(/"/g, '""');
+            // Avoid calling toString on objects that result in [object Object]
+            cell =
+              cell instanceof Date
+                ? cell.toLocaleString()
+                : typeof cell === "object"
+                ? ""
+                : cell.toString().replace(/"/g, '""');
 
-          if (cell.search(/("|,|\n)/g) >= 0) {
-            cell = `"${cell}"`;
-          }
-          return cell;
-        })
-        .join(separator),
-    )
+            if (cell.search(/("|,|\n)/g) >= 0) {
+              cell = `"${cell}"`;
+            }
+            return cell;
+          }),
+        )
+        .join(separator);
+    })
     .join("\n");
   const csvContent = `${csvHeader}\n${csvRows}`;
 
