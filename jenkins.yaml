@@ -5,7 +5,7 @@ jobs:
     description: |
       Jenkins Job for Continuous Deployment
     push: true
-    timeout: 60
+    timeout: 90
     command: bash -ex jenkins-build.sh prod
     slack:
       notify_success: true
