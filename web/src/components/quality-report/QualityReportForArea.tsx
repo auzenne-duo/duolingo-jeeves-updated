@@ -33,7 +33,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
 
   useDocumentTitle(`${area} Quality Report`);
 
-  const { data } = useQuery(["quality-report", area], () =>
+  const { data, isLoading } = useQuery(["quality-report", area], () =>
     getQualityReportForArea(area),
   );
 
@@ -219,7 +219,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
           )
         : null}
     </>
-  ) : (
+  ) : isLoading ? null : (
     <span>There&apos;s no report data available for the selected filters.</span>
   );
 };
