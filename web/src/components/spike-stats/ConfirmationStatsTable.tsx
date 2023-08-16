@@ -12,8 +12,8 @@ const ConfirmationStatsTable = ({ spikeStats }: Props) => (
     <thead>
       <tr>
         <th>Month</th>
-        <th>Num spikes</th>
-        <th>Num confirmed</th>
+        <th># spikes</th>
+        <th># confirmed</th>
         <th>Percent confirmed</th>
       </tr>
     </thead>

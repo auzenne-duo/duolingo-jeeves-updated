@@ -15,7 +15,7 @@ const SpikeWordStatsTable = ({ language, linkFilter, spikeStats }: Props) => {
   const confirmedColumn: Column<JSONAPI.SpikeWordStats> = {
     getCell: m => m.num_confirmed,
     getValue: m => m.num_confirmed,
-    header: "Number confirmed",
+    header: "# confirmed",
   };
 
   const datesColumn: Column<JSONAPI.SpikeWordStats> = {
