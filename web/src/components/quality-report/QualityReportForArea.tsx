@@ -125,14 +125,18 @@ const QualityReportForArea = ({ area, team }: Props) => {
         layout="grid"
         name="Appendix"
       >
-        <span>
-          This report was compiled using issues with the following features:
-        </span>
-        <div className={styles.features}>
-          {report.features?.map(f => (
-            <Tag key={f} text={f} value={f} />
-          ))}
-        </div>
+        {report.features.length ? (
+          <>
+            <span>
+              This report was compiled using issues with the following features:
+            </span>
+            <div className={styles.features}>
+              {report.features.map(f => (
+                <Tag key={f} text={f} value={f} />
+              ))}
+            </div>
+          </>
+        ) : null}
         <Table className={styles.table}>
           <thead>
             <tr>
