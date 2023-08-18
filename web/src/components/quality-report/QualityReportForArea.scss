@@ -1,25 +1,5 @@
 @use "styles/constants" as *;
 
-.appendix {
-  border: $juicy-border;
-  border-radius: 14px;
-  display: grid;
-  gap: var(--margin);
-  padding: 16px;
-  width: 100%;
-}
-
-.caret {
-  height: 9px;
-  transition: transform $duration-slide;
-  width: 15px;
-}
-
-.caret-up {
-  composes: caret;
-  transform: rotate(-180deg);
-}
-
 .features {
   display: flex;
   flex-wrap: wrap;
@@ -35,6 +15,10 @@
   align-items: center;
   display: flex;
   flex-direction: column;
+  width: 100%;
+}
+
+.section {
   width: 100%;
 }
 
@@ -58,13 +42,4 @@
 
 .title {
   margin-bottom: $juicy-length;
-}
-
-.toggle {
-  --web-ui_button-filter-hover: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
-  width: 100%;
 }

@@ -62,6 +62,7 @@ const TagFilterOrTag = ({
   );
 
 interface Props {
+  bordered?: boolean;
   onClick?: (ticket: JSONAPI.Ticket) => void;
   selectedId?: string;
   supportsTicketQuery?: boolean;
@@ -69,6 +70,7 @@ interface Props {
 }
 
 const TicketList = ({
+  bordered = true,
   onClick,
   selectedId: id,
   supportsTicketQuery = false,
@@ -100,7 +102,10 @@ const TicketList = ({
   }, [id, tickets]);
 
   return (
-    <ul className={styles.list}>
+    <ul className={bordered ? styles["list-bordered"] : styles.list}>
+      {tickets.length ? null : (
+        <li className={styles.empty}>No issues have been found.</li>
+      )}
       {tickets.map((t, i) => {
         const date = t.date_time ? new Date(t.date_time) : undefined;
         return (

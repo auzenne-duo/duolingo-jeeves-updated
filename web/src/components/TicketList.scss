@@ -11,6 +11,13 @@ $item-padding-x: 16px;
   white-space: nowrap;
 }
 
+.empty {
+  align-items: center;
+  display: flex;
+  height: $item-height;
+  padding: 0 $item-padding-x;
+}
+
 .icon {
   height: 16px;
   width: 16px;
@@ -52,13 +59,17 @@ $item-padding-x: 16px;
 }
 
 .list {
-  border: $juicy-border;
-  border-radius: 14px;
   list-style: none;
   margin: 0;
-  overflow: hidden;
   padding: 0;
   width: 100%;
+}
+
+.list-bordered {
+  composes: list;
+  border: $juicy-border;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .tag-ipad {

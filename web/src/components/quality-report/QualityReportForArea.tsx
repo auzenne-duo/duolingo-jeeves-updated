@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
-import { Button } from "web-ui";
 
 import { formatReadableDate } from "../../util";
 import { getQualityReportForArea } from "api/jeeves";
+import NamedSection from "components/NamedSection";
 import Table from "components/Table";
 import TabsNav from "components/TabsNav";
 import Tag from "components/Tag";
@@ -18,7 +18,6 @@ import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";
 import useTicketSelection from "components/useTicketSelection";
 import AppStateContext from "contexts/AppStateContext";
-import imageCaret from "images/caret.svg";
 
 interface Props {
   area: string;
@@ -29,7 +28,6 @@ const QualityReportForArea = ({ area, team }: Props) => {
   const location = useLocation();
 
   const [, dispatch] = React.useContext(AppStateContext);
-  const [isAppendixOpen, setIsAppendixOpen] = React.useState(false);
 
   useDocumentTitle(`${area} Quality Report`);
 
@@ -97,115 +95,101 @@ const QualityReportForArea = ({ area, team }: Props) => {
         scores={report.scores}
         title="Quality scores over time"
       />
-      <h2>Most reported issues</h2>
-      {report.max_dupes_issues.length ? (
+      <NamedSection className={styles.section} name="Most reported issues">
         <TicketList
+          bordered={false}
           onClick={handleClick}
           selectedId={id}
           tickets={report.max_dupes_issues}
         />
-      ) : (
-        <span>No issues have been found.</span>
-      )}
-      <h2>Highest priority issues</h2>
-      {report.max_priority_issues.length ? (
+      </NamedSection>
+      <NamedSection className={styles.section} name="Highest priority issues">
         <TicketList
+          bordered={false}
           onClick={handleClick}
           selectedId={id}
           tickets={report.max_priority_issues}
         />
-      ) : (
-        <span>No issues have been found.</span>
-      )}
-      <h2>Top design issues</h2>
-      {report.visual_polish_issues.length ? (
+      </NamedSection>
+      <NamedSection className={styles.section} name="Top design issues">
         <TicketList
+          bordered={false}
           onClick={handleClick}
           selectedId={id}
           tickets={report.visual_polish_issues}
         />
-      ) : (
-        <span>No issues have been found.</span>
-      )}
-      <Button
-        className={styles.toggle}
-        onClick={() => setIsAppendixOpen(value => !value)}
+      </NamedSection>
+      <NamedSection
+        className={styles.section}
+        collapsible={true}
+        layout="grid"
+        name="Appendix"
       >
-        <h2>Appendix</h2>
-        <img
-          alt={isAppendixOpen ? "Hide appendix" : "Show appendix"}
-          className={isAppendixOpen ? styles["caret-up"] : styles.caret}
-          src={imageCaret}
-        />
-      </Button>
-      {isAppendixOpen ? (
-        <div className={styles.appendix}>
-          <span>
-            This report was compiled using issues with the following features:
-          </span>
-          <div className={styles.features}>
-            {report.features?.map(f => (
-              <Tag key={f} text={f} value={f} />
-            ))}
-          </div>
-          <Table className={styles.table}>
-            <thead>
-              <tr>
-                <th colSpan={report.score_breakdowns.length + 1}>
-                  Score breakdown
-                </th>
-              </tr>
-              <tr>
-                <th />
-                {report.score_breakdowns.map((b, i) => (
-                  <th key={i}>{formatReadableDate(new Date(b.date))}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className={styles.strong}>Closed points</td>
-                {report.score_breakdowns.map((b, i) => (
-                  <td className={styles.strong} key={i}>
-                    {b.closed_points}
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <td className={styles.strong}>Open points</td>
-                {report.score_breakdowns.map((b, i) => (
-                  <td className={styles.strong} key={i}>
-                    {b.open_points}
-                  </td>
-                ))}
-              </tr>
-              {report.score_breakdowns[0].quality_score_type_counts.map(
-                (q, i) => (
-                  <tr key={i}>
-                    <td>{q.label}</td>
-                    {report.score_breakdowns.map((b, j) => (
-                      <td key={j}>
-                        {b.quality_score_type_counts[i].points} (
-                        {b.quality_score_type_counts[i].count})
-                      </td>
-                    ))}
-                  </tr>
-                ),
-              )}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td className={styles.strong}>Score (# issues)</td>
-                {report.score_breakdowns.map((b, i) => (
-                  <td className={styles.strong} key={i}>
-                    {b.overall_score} ({b.num_issues})
-                  </td>
-                ))}
-              </tr>
-            </tfoot>
-          </Table>
+        <span>
+          This report was compiled using issues with the following features:
+        </span>
+        <div className={styles.features}>
+          {report.features?.map(f => (
+            <Tag key={f} text={f} value={f} />
+          ))}
         </div>
-      ) : null}
+        <Table className={styles.table}>
+          <thead>
+            <tr>
+              <th colSpan={report.score_breakdowns.length + 1}>
+                Score breakdown
+              </th>
+            </tr>
+            <tr>
+              <th />
+              {report.score_breakdowns.map((b, i) => (
+                <th key={i}>{formatReadableDate(new Date(b.date))}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className={styles.strong}>Closed points</td>
+              {report.score_breakdowns.map((b, i) => (
+                <td className={styles.strong} key={i}>
+                  {b.closed_points}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className={styles.strong}>Open points</td>
+              {report.score_breakdowns.map((b, i) => (
+                <td className={styles.strong} key={i}>
+                  {b.open_points}
+                </td>
+              ))}
+            </tr>
+            {report.score_breakdowns[0].quality_score_type_counts.map(
+              (q, i) => (
+                <tr key={i}>
+                  <td>{q.label}</td>
+                  {report.score_breakdowns.map((b, j) => (
+                    <td key={j}>
+                      {b.quality_score_type_counts[i].points} (
+                      {b.quality_score_type_counts[i].count})
+                    </td>
+                  ))}
+                </tr>
+              ),
+            )}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td className={styles.strong}>Score (# issues)</td>
+              {report.score_breakdowns.map((b, i) => (
+                <td className={styles.strong} key={i}>
+                  {b.overall_score} ({b.num_issues})
+                </td>
+              ))}
+            </tr>
+          </tfoot>
+        </Table>
+      </NamedSection>
       {selected
         ? createPortal(
             <Ticket

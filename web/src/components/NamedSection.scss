@@ -1,0 +1,48 @@
+@use "styles/constants" as *;
+
+.caret {
+  height: 9px;
+  transition: transform $duration-slide;
+  width: 15px;
+}
+
+.caret-up {
+  composes: caret;
+  transform: rotate(-180deg);
+}
+
+.grid {
+  display: grid;
+  gap: var(--margin);
+  padding: 16px;
+}
+
+.name {
+  align-items: center;
+  background: web-ui-color("polar");
+  display: flex;
+  font-weight: 700;
+  padding: 11.5px 16px;
+
+  &:not(:last-child) {
+    border-bottom: $juicy-border;
+  }
+}
+
+.toggle {
+  composes: name;
+  --web-ui_button-filter-hover: none;
+  color: web-ui-color("eel");
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  line-height: 25px;
+  width: 100%;
+}
+
+.wrap {
+  border: $juicy-border;
+  border-radius: 12px;
+  overflow: hidden;
+}

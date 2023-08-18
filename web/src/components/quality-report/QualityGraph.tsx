@@ -35,7 +35,7 @@ interface Props {
   disableHover?: boolean;
   overallOnly?: boolean;
   scores: JSONAPI.QualityReport["areas"][number]["scores"];
-  title: string;
+  title?: string;
 }
 
 const QualityGraph = ({
@@ -88,16 +88,19 @@ const QualityGraph = ({
           b: overallOnly ? 20 : 0,
           l: 25,
           r: 0,
-          t: 40,
+          t: title === undefined ? 0 : 40,
         },
         showlegend: !overallOnly,
-        title: {
-          font: {
-            // Matches the <h2> element style.
-            size: 19,
-          },
-          text: `<b>${title}</b>`,
-        },
+        title:
+          title === undefined
+            ? undefined
+            : {
+                font: {
+                  // Matches the <h2> element style.
+                  size: 19,
+                },
+                text: `<b>${title}</b>`,
+              },
         xaxis: {
           fixedrange: true,
           gridcolor: JUICY_SWAN,
