@@ -268,6 +268,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
               // Don't reuse the component for different tickets as it's stateful.
               key={selected.jeeves_uid}
               onRequestClose={() => setId(undefined)}
+              supportsTicketQuery={true}
               ticket={selected}
             />,
             document.getElementById("aside") as HTMLElement,

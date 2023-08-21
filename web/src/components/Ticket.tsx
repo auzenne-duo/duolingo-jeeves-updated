@@ -21,7 +21,7 @@ import JiraIssues from "components/JiraIssues";
 import PlatformIcon from "components/PlatformIcon";
 import ShakeToReportForm from "components/ShakeToReportForm";
 import Tag from "components/Tag";
-import TagFilter from "components/TagFilter";
+import TagFilterOrTag from "components/TagFilterOrTag";
 import styles from "components/Ticket.scss";
 import AppStateContext from "contexts/AppStateContext";
 import imageBug from "images/ant.svg";
@@ -40,11 +40,18 @@ interface Props {
   className?: string;
   highlight?: Range[];
   onRequestClose?: () => void;
+  supportsTicketQuery?: boolean;
   ticket: JSONAPI.Ticket;
 }
 
 // eslint-disable-next-line complexity
-const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
+const Ticket = ({
+  className,
+  highlight,
+  onRequestClose,
+  supportsTicketQuery = false,
+  ticket,
+}: Props) => {
   const location = useLocation();
 
   const [state, dispatch] = React.useContext(AppStateContext);
@@ -121,9 +128,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>App version</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="app_version"
+              useFilter={supportsTicketQuery}
               value={ticket.app_version}
             />
           </div>
@@ -167,10 +175,11 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
           <span className={styles.label}>Components</span>
           <div>
             {ticket.components?.map(c => (
-              <TagFilter
+              <TagFilterOrTag
                 className={styles.tag}
                 field="components"
                 key={c}
+                useFilter={supportsTicketQuery}
                 value={c}
               />
             ))}
@@ -181,10 +190,11 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>Course</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="course"
               text={formatCourseId(ticket.course)}
+              useFilter={supportsTicketQuery}
               value={ticket.course}
             />
           </div>
@@ -194,9 +204,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>Feature</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="feature.keyword"
+              useFilter={supportsTicketQuery}
               value={ticket.feature}
             />
           </div>
@@ -228,9 +239,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>OS version</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="os_version"
+              useFilter={supportsTicketQuery}
               value={ticket.os_version}
             />
           </div>
@@ -287,12 +299,13 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>Priority</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="priority"
               isPriority={["high", "highest", "urgent"].includes(
                 ticket.priority.toLowerCase(),
               )}
+              useFilter={supportsTicketQuery}
               value={ticket.priority}
             />
           </div>
@@ -308,10 +321,11 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>Screen</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="screen_content"
               text={formatScreen(ticket.screen_content)}
+              useFilter={supportsTicketQuery}
               value={ticket.screen_content}
             />
           </div>
@@ -321,9 +335,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>Screen dimensions</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="screen_size"
+              useFilter={supportsTicketQuery}
               value={ticket.screen_size}
             />
           </div>
@@ -336,9 +351,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
             <>
               {ticket.author ? (
                 <>
-                  <TagFilter
+                  <TagFilterOrTag
                     className={styles.tag}
                     field="author"
+                    useFilter={supportsTicketQuery}
                     value={ticket.author}
                   />
                   {" via "}
@@ -348,9 +364,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
               {ticket.store ? (
                 <>
                   ,{" "}
-                  <TagFilter
+                  <TagFilterOrTag
                     className={styles.tag}
                     field="store"
+                    useFilter={supportsTicketQuery}
                     value={ticket.store}
                   />
                 </>
@@ -370,9 +387,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
             <>
               {ticket.author ? (
                 <>
-                  <TagFilter
+                  <TagFilterOrTag
                     className={styles.tag}
                     field="author"
+                    useFilter={supportsTicketQuery}
                     value={ticket.author}
                   />
                   {" via "}
@@ -411,10 +429,11 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
           <span className={styles.label}>Tags</span>
           <div className={styles.tags}>
             {ticket.tags?.map(tag => (
-              <TagFilter
+              <TagFilterOrTag
                 className={styles.tag}
                 field="tags"
                 key={tag}
+                useFilter={supportsTicketQuery}
                 value={tag}
               />
             ))}
@@ -425,9 +444,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>UI language</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="ui_language"
+              useFilter={supportsTicketQuery}
               value={ticket.ui_language}
             />
           </div>
@@ -437,9 +457,10 @@ const Ticket = ({ className, highlight, onRequestClose, ticket }: Props) => {
         <section className={styles.section}>
           <span className={styles.label}>User</span>
           <div>
-            <TagFilter
+            <TagFilterOrTag
               className={styles.tag}
               field="username"
+              useFilter={supportsTicketQuery}
               value={ticket.username}
             />
           </div>

@@ -14,8 +14,7 @@ import {
 import JiraStatus from "components/JiraStatus";
 import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
-import TagFilter from "components/TagFilter";
-import type { Props as TagFilterProps } from "components/TagFilter";
+import TagFilterOrTag from "components/TagFilterOrTag";
 import styles from "components/TicketList.scss";
 
 const formatDate = (date: Date) => {
@@ -45,20 +44,6 @@ const LinkOrSpan = ({
     </Link>
   ) : (
     <span className={className}>{children}</span>
-  );
-
-const TagFilterOrTag = ({
-  className,
-  useFilter,
-  value,
-  ...rest
-}: TagFilterProps & {
-  useFilter: boolean;
-}) =>
-  useFilter ? (
-    <TagFilter className={className} value={value} {...rest} />
-  ) : (
-    <Tag className={className} value={value} />
   );
 
 interface Props {
