@@ -3,7 +3,7 @@ import * as excess from "web-excess";
 import { getLoggedInUserId } from "api/user";
 
 excess.init();
-excess.setDebug(process.env.NODE_ENV === "development");
+excess.setDebug(process.env.REACT_APP_EXCESS_MODE === "debug");
 
 try {
   excess.identify(`${getLoggedInUserId()}`);

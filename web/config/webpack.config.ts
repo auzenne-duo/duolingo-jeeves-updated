@@ -10,7 +10,10 @@ interface Configuration extends WebpackConfiguration {
 }
 
 const webpackConfig = (
-  env: { api?: string },
+  env: {
+    api?: string;
+    excess_mode?: "debug" | "production";
+  },
   argv: { mode: "development" | "production" },
 ): Configuration => ({
   context: path.resolve(__dirname, "../src"),
@@ -81,6 +84,10 @@ const webpackConfig = (
         argv.mode === "development"
           ? JSON.stringify(process.env.DUOLINGO_JWT)
           : undefined,
+      "process.env.REACT_APP_EXCESS_MODE": JSON.stringify(
+        env.excess_mode ??
+          (argv.mode === "production" ? "production" : "debug"),
+      ),
     }),
     new HtmlWebpackPlugin({ template: "index.html" }),
   ],
