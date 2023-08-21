@@ -15,8 +15,8 @@ from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.lib.send_issue_fixed_emails import IssueFixedEmailSender
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
+from jeeves.manager.gpt_search_manager import GPTSearchManager
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
-from jeeves.manager.nlp_search_manager import NLPSearchManager
 from jeeves.manager.quality_report_manager import QualityReportManager
 from jeeves.manager.query_helper import QueryHelper
 from jeeves.manager.sentiment_search_manager import SentimentSearchManager
@@ -690,8 +690,9 @@ def get_spike_categories():
     )
 
 
+@blueprint_api.route("/api/3/gpt_search", methods=["POST"])
 @blueprint_api.route("/api/3/nlp_search", methods=["POST"])
-def nlp_search():
+def gpt_search():
     query = request.args.get("q")
     if not query:
         abort(make_response("Please provide a query text parameter `q`.", 400))
@@ -699,7 +700,7 @@ def nlp_search():
     num_results = int(request.args.get("num_results", "5"))
     max_search_depth = int(request.args.get("max_search_depth", "50"))
 
-    result = app_registry(NLPSearchManager).nlp_search(query, num_results, max_search_depth)
+    result = app_registry(GPTSearchManager).gpt_search(query, num_results, max_search_depth)
     return json.jsonify(result)
 
 

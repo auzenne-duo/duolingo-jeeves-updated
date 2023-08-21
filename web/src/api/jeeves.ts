@@ -209,7 +209,7 @@ export const gptSearch = async (query: string) => {
   const params = new URLSearchParams();
   params.set("q", query);
 
-  return post<JSONAPI.GPTSearchResponse>(`/3/nlp_search?${params.toString()}`);
+  return post<JSONAPI.GPTSearchResponse>(`/3/gpt_search?${params.toString()}`);
 };
 
 export const sentimentSearch = async (

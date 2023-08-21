@@ -1,5 +1,5 @@
 """
-A manager for the Jeeves NLP search functionality.
+A manager for the Jeeves GPT Search functionality.
 """
 from __future__ import annotations
 
@@ -185,7 +185,7 @@ class LanguageContent(DocumentContent):
 
 
 @dataclass
-class NLPSearchResult:
+class GPTSearchResult:
     """
     A JSON of a JeevesDocument that GPT suggested as supporting evidence for the answer it gave to the user
     with the translated text and cosine similarity
@@ -199,7 +199,7 @@ class NLPSearchResult:
     @classmethod
     def from_jeeves_document(
         cls, doc: JeevesDocument, match: GPTResponseDocument, score: float
-    ) -> NLPSearchResult:
+    ) -> GPTSearchResult:
 
         translated_text = None
         if match.translation_body_bolded is not None:
@@ -218,9 +218,9 @@ class NLPSearchResult:
 
 
 @dataclass
-class NLPSearchResults(SearchResults):
+class GPTSearchResults(SearchResults):
     """
-    The object we will return to the user from /api/3/nlp_search
+    The object we will return to the user from /api/3/gpt_search
     """
 
     answer: str
@@ -240,9 +240,9 @@ def format_for_user_prompt(md: MatchingDocument) -> str:
     return f"{REQ_ID}: {doc.jeeves_uid}\n{REQ_TITLE}: {title}\n{REQ_BODY}: {body}"
 
 
-class NLPSearchManager:
+class GPTSearchManager:
     def __init__(self) -> None:
-        LOG.debug("Initializing NLPSearchManager...")
+        LOG.debug("Initializing GPTSearchManager...")
         self.opensearch = app_registry(OpenSearchDAL)
         self.tokenizer = tiktoken.encoding_for_model("gpt-4")
         return
@@ -280,7 +280,7 @@ class NLPSearchManager:
         LOG.debug(f"Number of docs being sent to GPT: {len(final_docs)}")
         return final_docs
 
-    def nlp_search(self, query: str, num_results: int, max_search_depth: int) -> NLPSearchResults:
+    def gpt_search(self, query: str, num_results: int, max_search_depth: int) -> GPTSearchResults:
         # TODO: Should we ask GPT to give us a slimmed-down version of the query without the filters?
         #   Does this help with the k-NN search accuracy?
         query_embedding = app_registry(AICompletionsDAL).request_embedding(query)
@@ -305,7 +305,7 @@ class NLPSearchManager:
         # TODO: If there are no hits BUT we have results when we remove the filters, give an error message
         #   with an button to reset the filters
         if not hits:
-            return NLPSearchResults(
+            return GPTSearchResults(
                 answer="No Jeeves documents found that match the query.",
                 lucene_query=[],
                 query=query,
@@ -333,7 +333,7 @@ class NLPSearchManager:
         )
         # TODO: Catch exceptions and give an appropriate response to the user
         if not gpt_resp:
-            return NLPSearchResults(
+            return GPTSearchResults(
                 answer="Could not answer the question.", lucene_query=[], query=query, results=[]
             )
 
@@ -347,7 +347,7 @@ class NLPSearchManager:
             gpt_matches = gpt_response.matches
         except JSONDecodeError as decode_error:
             LOG.error("Could not deserialize response from GPT", exc_info=decode_error)
-            return NLPSearchResults(
+            return GPTSearchResults(
                 answer="Could not parse the response from GPT.",
                 lucene_query=[],
                 query=query,
@@ -371,7 +371,7 @@ class NLPSearchManager:
 
         print(f"Number of tokens in answer: {self.token_len(answer)}", flush=True)
 
-        supporting_docs: List[NLPSearchResult] = []
+        supporting_docs: List[GPTSearchResult] = []
         for gpt_match in gpt_matches:
             _id = gpt_match.id
             _id = _id.strip()
@@ -380,10 +380,10 @@ class NLPSearchManager:
                 continue
 
             hit = hits[_id]
-            result = NLPSearchResult.from_jeeves_document(hit.doc, gpt_match, hit.score)
+            result = GPTSearchResult.from_jeeves_document(hit.doc, gpt_match, hit.score)
             supporting_docs.append(result)
 
-        results = NLPSearchResults(
+        results = GPTSearchResults(
             answer=answer, lucene_query=lucene_query, query=query, results=supporting_docs
         )
         response_str = json.dumps(results.to_dict(), indent=2, default=str).encode(

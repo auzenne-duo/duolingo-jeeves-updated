@@ -1,5 +1,5 @@
 """
-Models for the results of nlp search or sentiment search
+Models for the results of GPT Search or Sentiment Search
 """
 
 from dataclasses import asdict, dataclass
@@ -12,7 +12,7 @@ from jeeves.model.zendesk_document import ZendeskDocument
 @dataclass
 class DocumentContent:
     """
-    The localalized content of a JeevesDocument to display in a table cell in the frontend
+    The localized content of a JeevesDocument to display in a table cell in the frontend
     """
 
     body: str
@@ -31,7 +31,7 @@ class SearchResult:
     datetime: str
     origin: str
     original_text: DocumentContent
-    score: float  # Cosine similarity score for nlp search, sentiment score for sentiment search
+    score: float  # Cosine similarity score for GPT Search or sentiment score for Sentiment Search
     uid: str
     url: Optional[str]  # TODO: Add a link to all Jeeves documents so they can be made clickable
 
