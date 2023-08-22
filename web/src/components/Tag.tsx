@@ -13,7 +13,15 @@ interface Props {
 
 const Tag = ({ className, isPriority, text, value }: Props) => (
   <span
-    className={cn(styles[`tag${isPriority ? "-priority" : ""}`], className)}
+    className={cn(styles.tag, className, {
+      [styles["priority-high"]]:
+        isPriority &&
+        ["high", "highest", "urgent"].includes(value.toLowerCase()),
+      [styles["priority-low"]]:
+        isPriority && ["low", "lowest"].includes(value.toLowerCase()),
+      [styles["priority-medium"]]:
+        isPriority && ["medium", "normal"].includes(value.toLowerCase()),
+    })}
     title={value}
   >
     <span className={styles.value}>{text ?? value}</span>

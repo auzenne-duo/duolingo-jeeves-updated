@@ -140,6 +140,14 @@ declare namespace JSONAPI {
 
   type Platform = "Android" | "iOS" | "Web";
 
+  type Priority =
+    | "Highest"
+    | "High"
+    | "Medium"
+    | "Low"
+    | "Lowest"
+    | ZendeskPriority;
+
   interface QualityReport {
     areas: {
       scores: QualityScores;
@@ -265,6 +273,8 @@ declare namespace JSONAPI {
     author?: string;
     /** Main content of the ticket. This is what we search against and perform spike detection on. */
     body_text?: string;
+    /** If this is a parent bug, this contains a list of child issues. */
+    child_issues?: string[];
     /** Jira components. */
     components?: string[];
     /** Currently only available for Jira tickets. */
@@ -291,8 +301,7 @@ declare namespace JSONAPI {
     jeeves_uid: string;
     /** URLs we compute on the backend to direct the user to the original ticket/submitter. */
     links?: string[];
-    /** Field assigned by Zendesk. */
-    priority?: string;
+    priority?: Priority;
     /** ID assigned to the user on Zendesk that submitted the ticket. */
     requester_id?: number;
     shake_to_report_category: ShakeToReportCategory;
@@ -342,6 +351,8 @@ declare namespace JSONAPI {
     address: string;
     name?: string;
   }
+
+  type ZendeskPriority = "urgent" | "high" | "normal" | "low";
 
   interface ZendeskTwitterAccount {
     name?: string;

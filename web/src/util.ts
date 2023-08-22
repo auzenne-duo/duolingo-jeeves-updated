@@ -102,6 +102,22 @@ export const formatCourseId = (courseId: string) => {
   return courseId;
 };
 
+export const formatPriority = (priority: JSONAPI.Priority) => {
+  switch (priority) {
+    // Zendesk priorities are lowercase.
+    case "high":
+      return "High";
+    case "low":
+      return "Low";
+    case "normal":
+      return "Normal";
+    case "urgent":
+      return "Urgent";
+    default:
+      return priority;
+  }
+};
+
 export const formatReadableDate = (date: Date) =>
   format(date, "eee, d MMM yyyy");
 
@@ -181,3 +197,9 @@ export const spikeToStrCategory = (
       return undefined;
   }
 };
+
+/**
+ * Compile time assert that the given value should be of type never. This is
+ * useful for guaranteeing all cases are handled in a switch statement.
+ */
+export const staticAssertNever = (value: never) => value;

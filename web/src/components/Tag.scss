@@ -1,21 +1,30 @@
 @use "styles/constants" as *;
 
+.priority-high {
+  --tag-background: #{web-ui-color("walking-fish")};
+  --tag-color: #{web-ui-color("fire-ant")};
+}
+
+.priority-low {
+  --tag-background: #{web-ui-color("sea-sponge")};
+  --tag-color: #{web-ui-color("tree-frog")};
+}
+
+.priority-medium {
+  --tag-background: #{web-ui-color("canary")};
+  --tag-color: #{web-ui-color("guinea-pig")};
+}
+
 .tag {
-  background: web-ui-color("polar");
+  background: var(--tag-background, #{web-ui-color("polar")});
   border-radius: 12px;
-  color: web-ui-color("eel");
+  color: var(--tag-color, #{web-ui-color("eel")});
   display: inline-flex;
   font-size: 13px;
   // Tags wrapped in <a> shouldn't be bold.
   font-weight: 500;
   line-height: 23px;
   padding: 0 9px;
-}
-
-.tag-priority {
-  composes: tag;
-  background: web-ui-color("cardinal");
-  color: web-ui-color("snow");
 }
 
 .value {

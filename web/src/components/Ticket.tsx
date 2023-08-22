@@ -8,6 +8,7 @@ import { highlightText } from "web-ui/util/highlight";
 import {
   formatAttachment,
   formatCourseId,
+  formatPriority,
   formatReadableDateTime,
   formatScreen,
   getFilterLink,
@@ -302,9 +303,8 @@ const Ticket = ({
             <TagFilterOrTag
               className={styles.tag}
               field="priority"
-              isPriority={["high", "highest", "urgent"].includes(
-                ticket.priority.toLowerCase(),
-              )}
+              isPriority={true}
+              text={formatPriority(ticket.priority)}
               useFilter={supportsTicketQuery}
               value={ticket.priority}
             />
