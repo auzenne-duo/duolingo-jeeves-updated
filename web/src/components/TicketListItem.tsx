@@ -24,6 +24,7 @@ export type RenderableTag =
   | "child_issues"
   | "course"
   | "date"
+  | "duplicates"
   | "issue_key"
   | "platform"
   | "priority"
@@ -81,18 +82,20 @@ const TicketListItem = (
   const location = useLocation();
 
   const date = t.date_time ? new Date(t.date_time) : undefined;
-  const isParentBug = t.child_issues?.length;
+  const duplicates = t.linked_duplicate_keys?.length ?? 0;
+  const isParentBug = !!t.child_issues?.length;
 
   const showTags: RenderableTag[] =
     _showTags ??
     (isParentBug
-      ? ["child_issues", "platform", "date"]
+      ? ["issue_key", "child_issues", "status", "platform", "date"]
       : isTablet
       ? [
           "issue_key",
           "course",
           "screen_content",
           "app_version",
+          "duplicates",
           "status",
           "platform",
           "date",
@@ -125,7 +128,9 @@ const TicketListItem = (
                 />
               ) : null;
             case "child_issues":
-              return <Tag value={`${t.child_issues?.length ?? 0} reports`} />;
+              return t.child_issues?.length ? (
+                <Tag value={`${t.child_issues?.length} reports`} />
+              ) : null;
             case "course":
               return t.course ? (
                 <TagFilterOrTag
@@ -143,6 +148,14 @@ const TicketListItem = (
                 >
                   {formatDate(date)}
                 </span>
+              ) : null;
+            case "duplicates":
+              return duplicates ? (
+                <Tag
+                  value={`${duplicates} ${
+                    duplicates === 1 ? "duplicate" : "duplicates"
+                  }`}
+                />
               ) : null;
             case "issue_key":
               return t.issue_key ? (
@@ -186,7 +199,7 @@ const TicketListItem = (
                 </LinkOrSpan>
               ) : null;
             case "priority":
-              return t.priority ? (
+              return t.priority && t.priority !== "Unprioritized" ? (
                 <TagFilterOrTag
                   field="priority"
                   isPriority={true}

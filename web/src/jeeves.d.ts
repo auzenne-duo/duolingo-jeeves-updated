@@ -146,6 +146,7 @@ declare namespace JSONAPI {
     | "Medium"
     | "Low"
     | "Lowest"
+    | "Unprioritized"
     | ZendeskPriority;
 
   interface QualityReport {
@@ -299,6 +300,8 @@ declare namespace JSONAPI {
     issue_links?: JiraIssueLink[];
     /** A globally unique identifier for the ticket. */
     jeeves_uid: string;
+    /** Issue keys of linked Jira issues. */
+    linked_duplicate_keys?: string[];
     /** URLs we compute on the backend to direct the user to the original ticket/submitter. */
     links?: string[];
     priority?: Priority;
