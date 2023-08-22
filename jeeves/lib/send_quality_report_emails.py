@@ -8,6 +8,7 @@ import logging
 from typing import Dict, List, Tuple
 
 import requests
+from duolingo_base.config import Config
 from duolingo_notify.api import RequestBuilder
 from jinja2 import Environment, FileSystemLoader
 
@@ -15,9 +16,12 @@ from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.model.quality_report import QualityReport, QualityReportArea
 from jeeves.util.quality_report_util import TEMPLATE_DIRECTORY
 
+config = Config.load_config()
+
 LOG = logging.getLogger(__name__)
 
 _UNSUBSCRIBED = ["example@duolingo.com"]
+_IS_PRODUCTION_ENV = config.get_nested(["environment"]) == "prod"
 
 _AREA = "AREA"
 _RECEIVE_ALL = "RECEIVE_ALL"
@@ -217,6 +221,10 @@ def get_email_body_html(report: QualityReport) -> str:
 
 
 def send_email(report: QualityReport):
+    # Only production environment should sent emails
+    if not _IS_PRODUCTION_ENV:
+        return
+
     dict_to_track = {
         "email_type": f"quality_report_{report.title}",
         "ui_language": "en",
@@ -249,7 +257,7 @@ def send_email(report: QualityReport):
             [email],
             f"{report.title} Quality Score {report.score_breakdown.overall_score}",
             body_html=get_email_body_html(report),
-            from_field='"Quality Report" <caleb.noble@duolingo.com>',
+            from_field='"Quality Report" <quality-reports@duolingo.com>',
             track={"email send": dict_to_track, "email open": dict_to_track},
         )
         rb.send_medium_priority()

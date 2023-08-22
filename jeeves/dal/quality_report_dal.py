@@ -109,9 +109,7 @@ class QualityReportDAL:
         """
         try:
             serialized_datasets = json.loads(
-                download_from_jeeves_s3(
-                    self._get_quality_issue_datasets_filepath(title) + f"_{title}"
-                )
+                download_from_jeeves_s3(self._get_quality_issue_datasets_filepath(title))
             )
             quality_report_datasets = []
             for dataset in serialized_datasets:

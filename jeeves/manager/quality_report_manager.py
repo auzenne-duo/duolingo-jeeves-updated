@@ -23,7 +23,7 @@ from jeeves.model.quality_report import (
 from jeeves.util.quality_report_util import QUALITY_REPORT_OVERALL_KEY, QUALITY_REPORT_WINDOW_DAYS
 
 _AREAS_TO_EXCLUDE = ["Learning Scaling", "Many", "None"]
-_TEAMS_TO_EXCLUDE = ["None", "China"]
+_TEAMS_TO_EXCLUDE = ["None"]
 
 
 @dataclass
@@ -206,7 +206,5 @@ class QualityReportManager:
             # quality score history will be used to generate plots
             self.quality_report_dal.upload_quality_scores_to_s3(quality_report)
 
-            # only send area report emails on the first Monday of the month
-            if isinstance(quality_report, QualityReportArea) and end_date.day > 7:
-                continue
+            # send area and team report emails
             send_email(quality_report)

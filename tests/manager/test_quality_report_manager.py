@@ -26,9 +26,5 @@ class TestQualityReportManager(unittest.TestCase):
         area_report = QualityReportArea.__new__(QualityReportArea)
         non_area_report = MagicMock()
         mock_reports = [non_area_report, area_report]
-        quality_report_manager.save_report_data(mock_reports, datetime(2022, 3, 15))
-        mock_send_email.assert_called_once_with(non_area_report)
-        mock_send_email.reset_mock()
-
         quality_report_manager.save_report_data(mock_reports, datetime(2022, 3, 6))
         mock_send_email.assert_has_calls([call(non_area_report), call(area_report)])

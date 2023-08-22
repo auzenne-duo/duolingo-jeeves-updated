@@ -40,5 +40,4 @@ class TestQualityReportPlot(unittest.TestCase):
         report.end_date = datetime(2023, 1, 1)
         result = get_plot_date_range(report, "monthly")
         expected = (datetime(2022, 9, 26), datetime(2023, 1, 31))
-        print("result", result)
         self.assertEqual(result, expected)

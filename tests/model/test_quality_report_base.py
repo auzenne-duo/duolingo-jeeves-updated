@@ -1,7 +1,7 @@
 import unittest
 from datetime import date, datetime
 
-from jeeves.model.quality_report_base import _QUOTE_ESCAPE_CHAR, QualityReportBase, ScoreTypeCount
+from jeeves.model.quality_report_base import QualityReportBase, ScoreTypeCount
 
 # from jeeves.model.quality_score_params import QualityScoreParams
 from tests.testutil.test_util_quality_report import (
@@ -69,17 +69,7 @@ class TestQualityReportBase(unittest.TestCase):
         self.report.features = None
         self.report.project = None
         result = self.report.create_open_issues_link()
-        expected = "https://duolingo.atlassian.net/issues/?jql=resolution = Unresolved AND issueType = Bug AND updated >= 2021-10-01 ORDER BY updated DESC"
-        self.assertEqual(result, expected)
-
-        self.report.project = "DLAA"
-        result = self.report.create_open_issues_link()
-        expected = "https://duolingo.atlassian.net/issues/?jql=resolution = Unresolved AND issueType = Bug AND updated >= 2021-10-01 AND project=DLAA ORDER BY updated DESC"
-        self.assertEqual(result, expected)
-
-        self.report.features = {"WeChat"}
-        result = self.report.create_open_issues_link()
-        expected = f"https://duolingo.atlassian.net/issues/?jql=resolution = Unresolved AND issueType = Bug AND updated >= 2021-10-01 AND project=DLAA AND Feature[Dropdown] in ({_QUOTE_ESCAPE_CHAR}WeChat{_QUOTE_ESCAPE_CHAR}) ORDER BY updated DESC"
+        expected = "https://duolingo.atlassian.net/issues/?jql=Key in (DLAI-2003%2C%20DLAI-2001)"
         self.assertEqual(result, expected)
 
     def test_calculate_monthly_scores(self):

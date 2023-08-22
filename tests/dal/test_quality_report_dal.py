@@ -3,6 +3,8 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
+import pytz
+
 from jeeves.dal.quality_report_dal import QualityReportDAL
 from jeeves.model.quality_report import QualityReportIssueDataset
 from tests.testutil.test_util_quality_report import REPORT_ISSUE_1, REPORT_ISSUE_11, REPORT_ISSUE_12
@@ -24,7 +26,7 @@ class TestQualityReport(unittest.TestCase):
         result = quality_report_dal.get_past_quality_issue_datasets("test")
         expected = [
             QualityReportIssueDataset(
-                date=datetime(2021, 9, 9),
+                date=datetime(2021, 9, 9, tzinfo=pytz.utc),
                 title=title,
                 issues=[],
                 max_dupes_issue_keys=[],

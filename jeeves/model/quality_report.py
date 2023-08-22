@@ -93,7 +93,7 @@ class QualityReportIssueDataset:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> QualityReportIssueDataset:
         return QualityReportIssueDataset(
-            date=datetime.fromisoformat(data["date"]),
+            date=parse_external_datetime(data["date"]),
             title=data["title"],
             issues=[JiraDocument.deserialize_from_internal_json(issue) for issue in data["issues"]],
             max_priority_issue_keys=data.get("max_priority_issue_keys", []),

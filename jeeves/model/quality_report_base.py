@@ -1,16 +1,15 @@
+import urllib.parse
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
-from jeeves.config.config import JIRA_ISSUE_TYPE_BUG
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.quality_score_params import PRIORITY_SORTING_ORDER, QualityScoreParams
-from jeeves.util.date_util import date_to_str, str_to_date
+from jeeves.util.date_util import str_to_date
 
 # The maximum number of issues shown per "worst issues" category
 _MAX_NUMBER_WORST_ISSUES = 5
-_QUOTE_ESCAPE_CHAR = "%22"
 
 
 @dataclass
@@ -126,21 +125,7 @@ class QualityReportBase:
 
     def create_open_issues_link(self) -> None:
         """Initialize a Jira link for open tickets"""
-
-        open_issues_link = f"https://duolingo.atlassian.net/issues/?jql=resolution = Unresolved AND issueType = {JIRA_ISSUE_TYPE_BUG}"
-        open_issues_link += f" AND updated >= {date_to_str(self.start_date)}"
-        if self.project:
-            open_issues_link += f" AND project={self.project}"
-        if self.features:
-            features_string = {
-                ", ".join(
-                    f"{_QUOTE_ESCAPE_CHAR}{feature}{_QUOTE_ESCAPE_CHAR}"
-                    for feature in self.features
-                )
-            }
-            open_issues_link += f' AND Feature[Dropdown] in ({", ".join(features_string)})'
-        open_issues_link += " ORDER BY updated DESC"
-        return open_issues_link
+        return f"https://duolingo.atlassian.net/issues/?jql=Key in ({urllib.parse.quote(', '.join([issue.issue_key for issue in self.open_issues]))})"
 
     def calculate_aggregate_scores(
         self, project_to_scores: Dict[str, List[Tuple[str, int]]], monthly: bool = True

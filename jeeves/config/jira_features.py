@@ -58,6 +58,7 @@ JIRA_FEATURES = {
             "Profile Completion": [],
             "User Search": [],
         },
+        "Growth Web": {},
         "Onboarding": {
             "Onboarding": ["new user", "on boarding", "funboarding"],
             "Placement Test": [],
