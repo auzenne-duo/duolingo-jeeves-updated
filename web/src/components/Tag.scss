@@ -1,5 +1,10 @@
 @use "styles/constants" as *;
 
+.icon {
+  height: 10px;
+  width: 10px;
+}
+
 .priority-high {
   --tag-background: #{web-ui-color("walking-fish")};
   --tag-color: #{web-ui-color("fire-ant")};
@@ -16,6 +21,7 @@
 }
 
 .tag {
+  align-items: center;
   background: var(--tag-background, #{web-ui-color("polar")});
   border-radius: 12px;
   color: var(--tag-color, #{web-ui-color("eel")});
@@ -23,6 +29,7 @@
   font-size: 13px;
   // Tags wrapped in <a> shouldn't be bold.
   font-weight: 500;
+  gap: 4px;
   line-height: 23px;
   padding: 0 9px;
 }

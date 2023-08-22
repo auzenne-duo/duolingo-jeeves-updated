@@ -2,16 +2,18 @@ import * as React from "react";
 
 import cn from "classnames";
 import styles from "components/Tag.scss";
+import imageLink from "images/link.svg";
 
 interface Props {
   className?: string;
   isPriority?: boolean;
+  showLinkIcon?: boolean;
   /** Optional display text to show instead of the value. */
   text?: string;
   value: string;
 }
 
-const Tag = ({ className, isPriority, text, value }: Props) => (
+const Tag = ({ className, isPriority, showLinkIcon, text, value }: Props) => (
   <span
     className={cn(styles.tag, className, {
       [styles["priority-high"]]:
@@ -25,6 +27,9 @@ const Tag = ({ className, isPriority, text, value }: Props) => (
     title={value}
   >
     <span className={styles.value}>{text ?? value}</span>
+    {showLinkIcon ? (
+      <img alt="" className={styles.icon} src={imageLink} />
+    ) : null}
   </span>
 );
 

@@ -168,7 +168,7 @@ const TicketListItem = (
                   rel="noreferrer"
                   target="_blank"
                 >
-                  <Tag value={t.issue_key} />
+                  <Tag showLinkIcon={true} value={t.issue_key} />
                 </a>
               ) : null;
             case "platform":
