@@ -59,7 +59,7 @@ class QualityReportBase:
         self.project = project
         self.title = title
 
-        self.score_breakdown = self.calculate_scores(self.issues)
+        self.score_breakdown = self.calculate_scores(self.end_date, self.issues)
         self.open_issues = [
             issue for issue in self.issues if not issue.quality_score_params.is_done
         ]
@@ -73,12 +73,13 @@ class QualityReportBase:
         self.num_closed = len(self.issues) - self.num_open
         self.open_issues_link = self.create_open_issues_link()
 
-    def calculate_scores(self, issues: List[JiraDocument]) -> ScoreBreakdown:
+    def calculate_scores(self, date: datetime, issues: List[JiraDocument]) -> ScoreBreakdown:
         """
         Calculates open and closed scores based on the priority score, resolution, and whether an issue was closed within
         one week
 
         Params:
+            date: the date of the snapshot being calculated
             issues: list of QualityReportIssue documents to be used in calculating the score
 
         Returns:
@@ -116,7 +117,7 @@ class QualityReportBase:
 
         return ScoreBreakdown(
             closed_points,
-            self.end_date,
+            date,
             quality_score_type_counts,
             len(issues),
             open_points,

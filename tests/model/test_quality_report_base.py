@@ -23,6 +23,7 @@ class TestQualityReportBase(unittest.TestCase):
         )
 
     def test_calculate_scores(self):
+        end_date = datetime(2023, 8, 1)
         # 1 open medium priority bugs, 1 open high priority bug, 1 closed high priority bug, 1 fixed within 1 week high priority bug, 1 fixed after 1 week medium priority bug
         self.report.issues = [
             REPORT_ISSUE_1,
@@ -32,7 +33,7 @@ class TestQualityReportBase(unittest.TestCase):
             REPORT_ISSUE_5,
             REPORT_ISSUE_6,
         ]
-        score_breakdown = self.report.calculate_scores(self.report.issues)
+        score_breakdown = self.report.calculate_scores(end_date, self.report.issues)
         self.assertEqual(score_breakdown.open_points, 110)  # Medium: 10 + High: 100
         self.assertEqual(
             score_breakdown.closed_points, 130
@@ -64,6 +65,7 @@ class TestQualityReportBase(unittest.TestCase):
         self.assertEqual(
             score_breakdown.quality_score_type_counts, expected_quality_score_type_counts
         )
+        self.assertEqual(score_breakdown.date, end_date)
 
     def test_create_open_issues_link(self):
         self.report.features = None

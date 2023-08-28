@@ -154,7 +154,7 @@ class QualityReportManager:
         """
         Fetches Jira issues from the past QUALITY_REPORT_WINDOW_DAYS and creates
         quality reports.  Serialized reports are uploaded to s3 daily. If save_snapshots
-        is set to true, ussue data and scores are saved to s3 and emails are sent out.
+        is set to true, issue data and scores are saved to s3 and emails are sent out.
         """
         end_date = datetime.now(tz=pytz.utc)
         start_date = end_date - timedelta(days=QUALITY_REPORT_WINDOW_DAYS)

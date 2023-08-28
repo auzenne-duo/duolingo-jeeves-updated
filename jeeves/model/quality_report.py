@@ -216,7 +216,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
 
         # Determine the past score breakdowns of recent weeks to create table of number of bugs by type by week
         self.past_score_breakdowns = [
-            self.calculate_scores(issue_dataset.issues)
+            self.calculate_scores(issue_dataset.date, issue_dataset.issues)
             for issue_dataset in self.issue_datasets[-_NUM_WEEKS_IN_PAST_SCORE_BREAKDOWN:]
         ]
 
@@ -240,7 +240,9 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         else:
             return RecentChanges([], [], [], 0, 0, 0, "No previous quality report found")
 
-        previous_score_breakdown = self.calculate_scores(previous_key_to_issue.values())
+        previous_score_breakdown = self.calculate_scores(
+            self.end_date, previous_key_to_issue.values()
+        )
         previous_closed_score = previous_score_breakdown.closed_points
         previous_open_score = previous_score_breakdown.open_points
         previous_overall_score = previous_score_breakdown.overall_score
