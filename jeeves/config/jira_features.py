@@ -95,9 +95,6 @@ JIRA_FEATURES = {
         },
     },
     "Learning R&D": {
-        "Experimental AI": {
-            "Snips": [],
-        },
         "Generated Sessions": {
             "Generated sessions": [],
             "Smart tips": ["smart tip"],
