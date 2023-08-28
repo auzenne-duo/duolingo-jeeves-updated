@@ -117,14 +117,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
           bordered={false}
           onClick={handleClick}
           selectedId={id}
-          showTags={[
-            "priority",
-            "issue_key",
-            "child_issues",
-            "status",
-            "platform",
-            "date",
-          ]}
+          showTags={["priority", "issue_key", "child_issues", "status", "date"]}
           tickets={report.visual_polish_issues}
         />
       </NamedSection>
