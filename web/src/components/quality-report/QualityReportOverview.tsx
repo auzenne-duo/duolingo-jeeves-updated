@@ -32,7 +32,6 @@ const QualityReportOverview = () => {
         >
           <QualityGraph
             className={styles.graph}
-            disableHover={true}
             overallOnly={true}
             scores={a.scores}
             title={a.title}
