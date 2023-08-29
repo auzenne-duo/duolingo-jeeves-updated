@@ -68,6 +68,7 @@ JIRA_FEATURES = {
             "Resurrected user experiences": ["surr", "resurrected", "reactivated"],
             "Registration": ["sign up"],
             "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
+            "Year in Review": [],
         },
         "Reengagement": {
             "Practice reminders / notifications": ["reminder", "notification"],
@@ -76,11 +77,11 @@ JIRA_FEATURES = {
         },
         "Retention": {
             "Achievements": ["achievement"],
-            "Early Bird / Night Owl Chests": ["early bird", "night owl"],
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
         },
         "Time Spent Learning": {
+            "Early Bird / Night Owl Chests": ["early bird", "night owl"],
             "Leaderboards": ["leaderboard", "tournament", "league", "context"],
             "Daily Quests": ["quests", "daily quest"],
             "Daily Goal": [],
@@ -88,10 +89,6 @@ JIRA_FEATURES = {
             "Monthly Goal": ["month"],
             "XP boost": ["double xp", "2x"],
             "Quests Tab": [],
-        },
-        "Virality": {
-            "In-app sharing": ["sharing", "share", "share card", "rewarded sharing"],
-            "Year in Review": [],
         },
     },
     "Learning R&D": {
@@ -364,7 +361,6 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Guidebook": "Bugs on a guidebook page",
     "Hard mode": "Problems with hard mode lessons specifically",
     "In-app purchases": "Problems with purchasing gems, row blaster, timer boosts, etc.",
-    "In-app sharing": "Bugs with the share button or share card.",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
@@ -385,7 +381,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Side Quests": "Issues with the 'Rapid Review' exercises",
     "Smart Tips": "Bugs with exercises that start with 'Here's a tip:'",
     "Streak": "Incorrect or buggy streak number or calendar",
-    "Streak freeze / repair": "Problems with using or posessing streak freeze or repair",
+    "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
     "Typography": "[iOS Only] Problems with text wrapping, font size, line height, etc.",
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
