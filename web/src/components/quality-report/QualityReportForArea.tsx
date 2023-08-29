@@ -139,6 +139,13 @@ const QualityReportForArea = ({ area, team }: Props) => {
             </div>
           </>
         ) : null}
+        <span>
+          The Quality Reports{" "}
+          <a href="https://duolingo.atlassian.net/wiki/spaces/DUO/pages/2492432385/Quality+Reports#Score-Formula">
+            Score Formula
+          </a>{" "}
+          is available on Confluence.
+        </span>
         <Table className={styles.table}>
           <thead>
             <tr>
