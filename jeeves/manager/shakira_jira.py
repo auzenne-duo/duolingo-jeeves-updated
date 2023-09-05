@@ -6,11 +6,13 @@ import json
 import os
 from typing import Dict, List, Optional, Union
 
+from duolingo_base.registry import inject
 from requests import get, post
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 from werkzeug.datastructures import FileStorage
 
+from jeeves.dal.employees import EmployeesDAL
 from jeeves.lib.profiling import traced_function
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.model.jira_priorities import JiraPriority
@@ -45,7 +47,13 @@ _DESCRIPTION_FOR_LITERACY_ISSUES_SENT_TO_SLACK = (
 _DESCRIPTION_FOR_ISSUES_WITH_RELATED_TICKET = "This issue is linked to another issue."
 
 
+@inject.bind(
+    employees_dal=inject.reference(EmployeesDAL),
+)
 class ShakiraJiraApiClient:
+    def __init__(self, employees_dal: EmployeesDAL) -> None:
+        self._employees_dal = employees_dal
+
     def issue_url(self, issue_key: str) -> str:
         """
         URL to issue in Jira.
@@ -194,17 +202,15 @@ class ShakiraJiraApiClient:
             return None
 
     def _get_id_for_user(self, email: str) -> Optional[str]:
-        url = f"{_API}/user/search"
-        params = {"query": email}
-        headers = {"Accept": "application/json"}
-        auth = self._get_jira_auth()
         try:
-            r = get(url, auth=auth, headers=headers, params=params)
-            r.raise_for_status()
-            response_json = json.loads(r.text)
-            return response_json[0]["accountId"] if len(response_json) > 0 else None
-        except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            employee = self._employees_dal.get_employee_by_email(email)
+            if employee is None:
+                return None
+            return employee.get("atlassianId")
+        except KeyError:
+            print_request_exception(
+                Exception("No Atlassian ID found for user"), rollbar_level="error"
+            )
             return None
 
     def _get_slack_channel_description(self, project: str):

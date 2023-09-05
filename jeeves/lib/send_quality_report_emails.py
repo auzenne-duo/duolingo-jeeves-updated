@@ -7,12 +7,13 @@ Add your @duolingo.com email address to the _UNSUBSCRIBED list in order to unsub
 import logging
 from typing import Dict, List, Tuple
 
-import requests
 from duolingo_base.config import Config
 from duolingo_notify.api import RequestBuilder
 from jinja2 import Environment, FileSystemLoader
 
+from jeeves import registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURES
+from jeeves.dal.employees import EmployeesDAL
 from jeeves.model.quality_report import QualityReport, QualityReportArea
 from jeeves.util.quality_report_util import TEMPLATE_DIRECTORY
 
@@ -167,9 +168,10 @@ def get_employees() -> Tuple[List[Dict], List[Dict]]:
     """
     Returns a list of employees data.
     """
-    employee_url = "https://static.internal.duolingo.com/internal-tools/employees.json"
-    response_json = requests.get(employee_url).json()
-    return response_json["employees"], response_json["teams"]
+    employees_dal = app_registry(EmployeesDAL)
+    employees = employees_dal.get_employees()
+    teams = employees_dal.get_teams()
+    return employees, teams
 
 
 def determine_team_leads():

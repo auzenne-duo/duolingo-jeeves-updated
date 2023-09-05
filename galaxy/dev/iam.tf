@@ -2,6 +2,9 @@ data "aws_s3_bucket" "duolingo-jeeves" {
   bucket = "duolingo-jeeves"
 }
 
+data "aws_s3_bucket" "internal-static-duolingo-com" {
+  bucket = "internal-static.duolingo.com"
+}
 
 data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
   statement {
@@ -26,7 +29,8 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
 
     resources = [
       "${data.aws_s3_bucket.duolingo-jeeves.arn}/*",
-      "${aws_s3_bucket.jeeves-document-cache-dev.arn}/*"
+      "${aws_s3_bucket.jeeves-document-cache-dev.arn}/*",
+      "${data.aws_s3_bucket.internal-static-duolingo-com.arn}/internal-tools/employees.json"
     ]
   }
 

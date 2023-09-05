@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from jeeves.dal.employees import EmployeesDAL
 from jeeves.manager.shakira import ShakiraManager
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
@@ -11,7 +12,8 @@ _JIRA_ISSUE_URL = "https://jira.com/issues/DLAA-1"
 
 
 def _get_mocked_managers():
-    shakira_jira_mock = ShakiraJiraApiClient()
+    employees_dal = EmployeesDAL()
+    shakira_jira_mock = ShakiraJiraApiClient(employees_dal=employees_dal)
     shakira_jira_mock.create_issue = MagicMock(return_value="DLAA-1")
     shakira_jira_mock.get_issue_details = MagicMock(return_value="None")
     shakira_jira_mock.link_issues = MagicMock()
