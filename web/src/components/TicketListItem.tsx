@@ -112,126 +112,136 @@ const TicketListItem = (
         <span className={styles.title}>{getUntruncatedTitle(t)}</span>
       </div>
       <div className={styles.tags}>
-        {showTags.map(tag => {
-          switch (tag) {
-            case "app_version":
-              return t.app_version ? (
-                <TagFilterOrTag
-                  field="app_version"
-                  text={
-                    t.platform === "Web"
-                      ? t.app_version.slice(0, 7)
-                      : t.app_version
-                  }
-                  useFilter={supportsTicketQuery}
-                  value={t.app_version}
-                />
-              ) : null;
-            case "child_issues":
-              return t.child_issues?.length ? (
-                <Tag value={`${t.child_issues?.length} reports`} />
-              ) : null;
-            case "course":
-              return t.course ? (
-                <TagFilterOrTag
-                  field="course"
-                  text={formatCourseId(t.course)}
-                  useFilter={supportsTicketQuery}
-                  value={t.course}
-                />
-              ) : null;
-            case "date":
-              return date ? (
-                <span
-                  className={styles.date}
-                  title={formatReadableDateTime(date)}
-                >
-                  {formatDate(date)}
-                </span>
-              ) : null;
-            case "duplicates":
-              return duplicates ? (
-                <Tag
-                  value={`${duplicates} ${
-                    duplicates === 1 ? "duplicate" : "duplicates"
-                  }`}
-                />
-              ) : null;
-            case "issue_key":
-              return t.issue_key ? (
-                <a
-                  className={styles["tag-link"]}
-                  href={`https://duolingo.atlassian.net/browse/${encodeURIComponent(
-                    t.issue_key,
-                  )}`}
-                  onClick={e => e.stopPropagation()}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <Tag showLinkIcon={true} value={t.issue_key} />
-                </a>
-              ) : null;
-            case "platform":
-              return t.platform ? (
-                <LinkOrSpan
-                  className={styles["tag-link"]}
-                  to={getFilterLink(location, "platform", t.platform)}
-                  useLink={supportsTicketQuery}
-                >
-                  <PlatformIcon className={styles.icon} platform={t.platform} />
-                </LinkOrSpan>
-              ) : t.data_source === "Reddit" ? (
-                <LinkOrSpan
-                  className={styles["tag-link"]}
-                  to={getFilterLink(location, "data_source", "Reddit")}
-                  useLink={supportsTicketQuery}
-                >
-                  <PlatformIcon className={styles.icon} platform="Reddit" />
-                </LinkOrSpan>
-              ) : t.data_source === "Zendesk" &&
-                t.via?.channel === "twitter" ? (
-                <LinkOrSpan
-                  className={styles["tag-link"]}
-                  to={getFilterLink(location, "via.channel", "twitter")}
-                  useLink={supportsTicketQuery}
-                >
-                  <PlatformIcon className={styles.icon} platform="Twitter" />
-                </LinkOrSpan>
-              ) : null;
-            case "priority":
-              return t.priority && t.priority !== "Unprioritized" ? (
-                <TagFilterOrTag
-                  field="priority"
-                  isPriority={true}
-                  text={formatPriority(t.priority)}
-                  useFilter={supportsTicketQuery}
-                  value={t.priority}
-                />
-              ) : null;
-            case "screen_content":
-              return t.screen_content ? (
-                <TagFilterOrTag
-                  field="screen_content"
-                  text={formatScreen(t.screen_content)}
-                  useFilter={supportsTicketQuery}
-                  value={t.screen_content}
-                />
-              ) : null;
-            case "status":
-              return t.data_source === "JIRA" && t.status ? (
-                <LinkOrSpan
-                  className={styles["tag-link"]}
-                  to={getFilterLink(location, "status", t.status)}
-                  useLink={supportsTicketQuery}
-                >
-                  <JiraStatus status={t.status} />
-                </LinkOrSpan>
-              ) : null;
-            default:
-              staticAssertNever(tag);
-              return null;
-          }
-        })}
+        {showTags.map(tag => (
+          <React.Fragment key={tag}>
+            {(() => {
+              switch (tag) {
+                case "app_version":
+                  return t.app_version ? (
+                    <TagFilterOrTag
+                      field="app_version"
+                      text={
+                        t.platform === "Web"
+                          ? t.app_version.slice(0, 7)
+                          : t.app_version
+                      }
+                      useFilter={supportsTicketQuery}
+                      value={t.app_version}
+                    />
+                  ) : null;
+                case "child_issues":
+                  return t.child_issues?.length ? (
+                    <Tag value={`${t.child_issues?.length} reports`} />
+                  ) : null;
+                case "course":
+                  return t.course ? (
+                    <TagFilterOrTag
+                      field="course"
+                      text={formatCourseId(t.course)}
+                      useFilter={supportsTicketQuery}
+                      value={t.course}
+                    />
+                  ) : null;
+                case "date":
+                  return date ? (
+                    <span
+                      className={styles.date}
+                      title={formatReadableDateTime(date)}
+                    >
+                      {formatDate(date)}
+                    </span>
+                  ) : null;
+                case "duplicates":
+                  return duplicates ? (
+                    <Tag
+                      value={`${duplicates} ${
+                        duplicates === 1 ? "duplicate" : "duplicates"
+                      }`}
+                    />
+                  ) : null;
+                case "issue_key":
+                  return t.issue_key ? (
+                    <a
+                      className={styles["tag-link"]}
+                      href={`https://duolingo.atlassian.net/browse/${encodeURIComponent(
+                        t.issue_key,
+                      )}`}
+                      onClick={e => e.stopPropagation()}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <Tag showLinkIcon={true} value={t.issue_key} />
+                    </a>
+                  ) : null;
+                case "platform":
+                  return t.platform ? (
+                    <LinkOrSpan
+                      className={styles["tag-link"]}
+                      to={getFilterLink(location, "platform", t.platform)}
+                      useLink={supportsTicketQuery}
+                    >
+                      <PlatformIcon
+                        className={styles.icon}
+                        platform={t.platform}
+                      />
+                    </LinkOrSpan>
+                  ) : t.data_source === "Reddit" ? (
+                    <LinkOrSpan
+                      className={styles["tag-link"]}
+                      to={getFilterLink(location, "data_source", "Reddit")}
+                      useLink={supportsTicketQuery}
+                    >
+                      <PlatformIcon className={styles.icon} platform="Reddit" />
+                    </LinkOrSpan>
+                  ) : t.data_source === "Zendesk" &&
+                    t.via?.channel === "twitter" ? (
+                    <LinkOrSpan
+                      className={styles["tag-link"]}
+                      to={getFilterLink(location, "via.channel", "twitter")}
+                      useLink={supportsTicketQuery}
+                    >
+                      <PlatformIcon
+                        className={styles.icon}
+                        platform="Twitter"
+                      />
+                    </LinkOrSpan>
+                  ) : null;
+                case "priority":
+                  return t.priority && t.priority !== "Unprioritized" ? (
+                    <TagFilterOrTag
+                      field="priority"
+                      isPriority={true}
+                      text={formatPriority(t.priority)}
+                      useFilter={supportsTicketQuery}
+                      value={t.priority}
+                    />
+                  ) : null;
+                case "screen_content":
+                  return t.screen_content ? (
+                    <TagFilterOrTag
+                      field="screen_content"
+                      text={formatScreen(t.screen_content)}
+                      useFilter={supportsTicketQuery}
+                      value={t.screen_content}
+                    />
+                  ) : null;
+                case "status":
+                  return t.data_source === "JIRA" && t.status ? (
+                    <LinkOrSpan
+                      className={styles["tag-link"]}
+                      to={getFilterLink(location, "status", t.status)}
+                      useLink={supportsTicketQuery}
+                    >
+                      <JiraStatus status={t.status} />
+                    </LinkOrSpan>
+                  ) : null;
+                default:
+                  staticAssertNever(tag);
+                  return null;
+              }
+            })()}
+          </React.Fragment>
+        ))}
       </div>
     </li>
   );
