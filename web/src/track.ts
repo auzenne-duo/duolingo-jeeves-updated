@@ -33,6 +33,11 @@ interface TrackingEvents {
     user_agent: string;
     utc_offset: number;
   };
+  quality_reports_view: {
+    quality_report_area?: string;
+    quality_report_team?: string;
+    utm_source?: string;
+  };
   shake_to_report_feedback: {
     feature?: string;
     number_suggested_features: number;
