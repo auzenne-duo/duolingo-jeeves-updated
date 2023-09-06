@@ -22,7 +22,9 @@ from jeeves.model.sentiment_analysis_classifier import NEGATIVE_CLASS, NEUTRAL_C
 
 LOG = logging.getLogger(__name__)
 
-MAX_SEARCH_RESULTS = 10000
+# TRI-3671: This was originally set to 10,000 -- but it may be causing memory issues and/or timeouts.
+#  Setting to 1000 for now to see if that helps the stability of Sentiment Search
+MAX_SEARCH_RESULTS = 1000
 MIN_DOC_PER_DAY = 1
 
 
@@ -132,8 +134,8 @@ class SentimentSearchManager:
         hits = self.opensearch_dal.perform_knn_search(
             dsl_response.dsl_query,
             topic_embedding,
-            num_results,
-            max_search_depth,
+            max_search_depth=max_search_depth,
+            num_results=num_results,
             threshold=0.5,
         )
         LOG.debug(f"Performed knn search... got {len(hits.values())} docs")

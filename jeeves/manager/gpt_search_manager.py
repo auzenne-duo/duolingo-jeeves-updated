@@ -298,8 +298,8 @@ class GPTSearchManager:
         hits = self.opensearch.perform_knn_search(
             dsl_response.dsl_query,
             query_embedding,
-            num_knn_results,
-            max_search_depth,
+            max_search_depth=max_search_depth,
+            num_results=num_knn_results,
             threshold=0.7,
         )
         # TODO: If there are no hits BUT we have results when we remove the filters, give an error message

@@ -36,6 +36,9 @@ The index contains a collection of documents with the following properties which
 If the user requests documents from the data source "twitter", search instead for documents with
 {{"data_source": "Zendesk"}} and {{"via.channel": "twitter"}} (no need to specify nested)
 
+If the user does not specify a date range in their request, assume that they want documents from the last month only
+and return a date filter for that in the response.
+
 Given the user's request, return a JSON object with the target topic that the document is interested in in the field
 "{RESP_TARGET_TOPIC}", and in the field "{RESP_QUERY}" put a JSON object that can be directly used as the "{RESP_QUERY}"
 in an OpenSearch Query in DSL syntax to retrieve relevant documents using ONLY the properties of the documents above.
