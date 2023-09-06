@@ -17,8 +17,12 @@ groups:
     comment: |
       ## Important reminders when modifying the feature list
 
+      If you're renaming a feature from the list, you need to:
+       - [File a ticket with a Jira admin](https://duolingo.atlassian.net/jira/core/projects/JIRA/form/3) to rename the feature **before** you merge this PR. Otherwise, a new feature will be created with the new name.
+       - After the PR is merged, run [this Jenkins Job](https://jenkins-ci.duolingo.com/job/duolingo-jeeves-refresh-tickets/) to refresh the name of the feature on existing Jira issues.
+
       If you're removing a feature from the list, you need to:
-       - Move all tickets with that feature in Jira to a new feature or close them
+       - Move all tickets with that feature in Jira to a new feature or close them.
        - [File a ticket with a Jira admin](https://duolingo.atlassian.net/jira/core/projects/JIRA/form/3) to remove the feature from the Jira dropdown too. Removing it from here will only remove it from shake-to-report.
 
       Also, please check if any Jira Automations, filters, or whatever JQLs relying on Jira Feature needs to be update.
