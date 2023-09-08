@@ -18,7 +18,9 @@ module "duolingo-jeeves-memcache" {
   owner           = var.owner
   service         = var.service
   subservice      = "memcache"
+  engine_family   = "memcached1.6"
+  engine_version  = "1.6.17"
   environment     = var.environment
-  node_type       = "cache.t2.small"
+  node_type       = "cache.t4g.medium"
   num_cache_nodes = 3
 }
