@@ -3,7 +3,7 @@ Models for the results of GPT Search or Sentiment Search
 """
 
 from dataclasses import asdict, dataclass
-from typing import Any, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.zendesk_document import ZendeskDocument
@@ -18,7 +18,7 @@ class DocumentContent:
     body: str
     title: str
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, str]:
         return asdict(self)
 
 
@@ -37,7 +37,7 @@ class SearchResult:
 
     @classmethod
     def get_origin(cls, document: JeevesDocument) -> str:
-        origin = document.data_source
+        origin: str = document.data_source
         if origin.lower() == "zendesk":
             zdoc = cast(ZendeskDocument, document)
             channel = zdoc.via["channel"]
@@ -45,7 +45,7 @@ class SearchResult:
                 origin = "Twitter (via Zendesk)"
         return origin
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
 
@@ -55,9 +55,8 @@ class SearchResults:
     A collection of search results that we will return to the frontend
     """
 
-    lucene_query: List[str]
-    query: str
+    lucene_filters: Dict[str, str]
     results: List[Any]
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

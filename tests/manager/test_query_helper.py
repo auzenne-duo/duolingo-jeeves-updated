@@ -33,11 +33,11 @@ def test_get_dsl_query_and_topics(
                 ]
             }
         },
-        "lucene_query": [
-            "data_source:Zendesk",
-            "via.channel:Twitter",
-            "date_time:[2023-05-01T00:00:00 TO 2023-05-31T23:59:59]",
-        ],
+        "lucene_filters": {
+            "data_source": "Zendesk",
+            "via.channel": "Twitter",
+            "date_time": "[2023-05-01T00:00:00 TO 2023-05-31T23:59:59]",
+        },
         "topic": "Leaderboards",
     }
     mock_ai_completions_dal.ask.return_value = json.dumps(resp_dict)
@@ -47,9 +47,9 @@ def test_get_dsl_query_and_topics(
         mock_ai_completions_dal, mock_opensearch_dal, mock_sentiment_classifier_dal
     )
     response: DSLQueryResponse = query_helper.get_dsl_query_and_topics(user_prompt)
-    assert response.lucene_query[0] == "data_source:Zendesk"
-    assert response.lucene_query[1] == "via.channel:Twitter"
-    assert response.lucene_query[2] == "date_time:[2023-05-01T00:00:00 TO 2023-05-31T23:59:59]"
+    assert response.lucene_filters["data_source"] == "Zendesk"
+    assert response.lucene_filters["via.channel"] == "Twitter"
+    assert response.lucene_filters["date_time"] == "[2023-05-01T00:00:00 TO 2023-05-31T23:59:59]"
     assert response.dsl_query["bool"]["must"][0]["match"]["data_source"] == "Zendesk"
     assert response.dsl_query["bool"]["must"][1]["match"]["via.channel"] == "Twitter"
     assert (

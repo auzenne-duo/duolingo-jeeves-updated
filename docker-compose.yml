@@ -1,8 +1,9 @@
 version: "3.8"
 
 networks:
-  opensearch-net:
   localstack-net:
+  memcached-net:
+  opensearch-net:
 
 services:
   api:
@@ -39,8 +40,17 @@ services:
       timeout: 5s
     networks:
       - localstack-net
+      - memcached-net
       - opensearch-net
     restart: on-failure
+
+  memcached:
+    container_name: memcached
+    image: memcached:1.6.21
+    networks:
+      - memcached-net
+    ports:
+      - "11211:11211"
 
   opensearch:
     container_name: opensearch

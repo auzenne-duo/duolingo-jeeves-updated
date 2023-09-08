@@ -208,8 +208,28 @@ export const getTimeSeries = async (
 export const gptSearch = async (query: string) => {
   const params = new URLSearchParams();
   params.set("q", query);
+  return post<JSONAPI.GPTFiltersResponse>(
+    `/3/gpt_search?${params.toString()}`,
+    false,
+  );
+};
 
-  return post<JSONAPI.GPTSearchResponse>(`/3/gpt_search?${params.toString()}`);
+export const gptSearchAnswer = async (requestId: string) => {
+  const params = new URLSearchParams();
+  params.set("request_id", requestId);
+  return get<JSONAPI.GPTAnswerResponse>(
+    `/3/gpt_search/answer/${requestId}`,
+    false,
+  );
+};
+
+export const gptSearchKnnResults = async (requestId: string) => {
+  const params = new URLSearchParams();
+  params.set("request_id", requestId);
+  return get<JSONAPI.GPTDocsResponse>(
+    `/3/gpt_search/knn_results/${requestId}`,
+    false,
+  );
 };
 
 export const sentimentSearch = async (
@@ -225,10 +245,9 @@ export const sentimentSearch = async (
   const positiveBucket = createBucketArray(data.positive_bucket);
   const negativeBucket = createBucketArray(data.negative_bucket);
   return {
-    lucene_query: data.lucene_query,
+    lucene_filters: data.lucene_filters,
     negative_bucket: negativeBucket,
     positive_bucket: positiveBucket,
-    query: data.query,
     results: data.results,
     topic: data.topic,
   };

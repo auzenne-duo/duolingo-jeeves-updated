@@ -1,7 +1,7 @@
 environment: local
 
 memcached:
-  host: duolingo-jeeves-dev.idjnxn.cfg.use1.cache.amazonaws.com
+  host: memcached
   port: 11211
 
 opensearch:

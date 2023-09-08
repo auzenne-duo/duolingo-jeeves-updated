@@ -1,8 +1,8 @@
 """
 A utility that offers date-related functions.
 """
-import datetime
-from typing import Iterator, Optional
+from datetime import date, datetime, timedelta
+from typing import Any, Iterator, Optional
 
 import pytz
 from dateutil.parser import parse
@@ -10,19 +10,25 @@ from dateutil.parser import parse
 _DATE_FORMAT = "%Y-%m-%d"
 _DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"  # ISO Format https://www.w3.org/TR/NOTE-datetime
 _OPENSEARCH_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
+_SYSTEM_PROMPT_PREFIX = "The current date and time is {}.\n"
 
 
-def get_eastern_today():
+def get_eastern_today() -> datetime:
     """Get datetime object representing right now in US/Eastern (Not UTC!)"""
-    time = datetime.datetime.utcnow()
+    time = datetime.utcnow()
     return convert_timezone(time)
 
 
-def get_utc_today():
-    return datetime.datetime.now(pytz.utc)
+def get_utc_today() -> datetime:
+    return datetime.now(pytz.utc)
 
 
-def convert_timezone(time, tz_from=None, tz_to=None):
+# Set types to Any because pytz package is not typed and it's not clean to work around it
+def convert_timezone(
+    time: datetime,
+    tz_from: Any = None,
+    tz_to: Any = None,
+) -> datetime:
     if tz_from is None:
         tz_from = pytz.timezone("UTC")
     if tz_to is None:
@@ -30,64 +36,64 @@ def convert_timezone(time, tz_from=None, tz_to=None):
     return time.replace(tzinfo=tz_from).astimezone(tz=tz_to)
 
 
-def get_n_days_ago(date_obj, n):
+def get_n_days_ago(date_obj: date, n: int) -> date:
     """
     Returns a date object that represents `n` days before the given date.
 
     Parameters:
-        date_obj: A datetime.date object.
-        n: An integer.
+        date_obj (date): The relative date
+        n (int): Number of days to go back
 
     Returns:
-        A datetime.date object.
+        A new date object that is `n` days in the past
     """
-    return date_obj - datetime.timedelta(days=n)
+    return date_obj - timedelta(days=n)
 
 
-def date_to_str(date_obj: datetime.date) -> str:
+def date_to_str(date_obj: date) -> str:
     """
     Converts a date object to string.
 
     Parameters:
-        date_obj: A datetime.date object.
+        date_obj (date): A date object.
 
     Returns:
         A date string (YYYY-MM-DD).
     """
-    assert isinstance(date_obj, datetime.date), f"invalid type: {type(date_obj)}"
+    assert isinstance(date_obj, date), f"invalid type: {type(date_obj)}"
     return date_obj.strftime(_DATE_FORMAT)
 
 
-def datetime_to_str(datetime_obj):
+def datetime_to_str(datetime_obj: datetime) -> str:
     """
-    Converts a date object to string.
+    Converts a datetime object to string.
 
     Parameters:
-        date_obj: A datetime object.
+        datetime_obj (datetime): A datetime object
 
     Returns:
         A date string (YYYY-MM-DD hh:mm:ss).
     """
-    assert isinstance(datetime_obj, datetime.date)
+    assert isinstance(datetime_obj, datetime)
     datetime_str = datetime_obj.strftime(_DATETIME_FORMAT)
     return datetime_str
 
 
-def str_to_date(date_str):
+def str_to_date(date_str: str) -> date:
     """
-    Converts a string date to object.
+    Converts an ISO date string to a date object.
 
     Parameters:
-        date_str: A date string (YYYY-MM-DD).
+        date_str: An ISO date string (YYYY-MM-DD).
 
     Returns:
-        A datetime.date object
+        A date object
     """
     _date_str = date_str.split("-")
-    return datetime.date(int(_date_str[0]), int(_date_str[1]), int(_date_str[2]))
+    return date(int(_date_str[0]), int(_date_str[1]), int(_date_str[2]))
 
 
-def time_series_str_to_datetime(date_str) -> Optional[datetime.datetime]:
+def time_series_str_to_datetime(date_str: str) -> Optional[datetime]:
     if date_str is None or date_str == "":
         return None
     else:
@@ -95,11 +101,11 @@ def time_series_str_to_datetime(date_str) -> Optional[datetime.datetime]:
             # Remove colon since python <3.6 can't parse it
             if date_str[-3] == ":":
                 date_str = date_str[:-3] + date_str[-2:]
-            return datetime.datetime.strptime(date_str, _OPENSEARCH_FORMAT)
-        return datetime.datetime.strptime(date_str, _DATE_FORMAT)
+            return datetime.strptime(date_str, _OPENSEARCH_FORMAT)
+        return datetime.strptime(date_str, _DATE_FORMAT)
 
 
-def parse_external_datetime(datetime_str: str) -> datetime.datetime:
+def parse_external_datetime(datetime_str: str) -> datetime:
     """
     Parse dates received from external APIs.
 
@@ -108,7 +114,7 @@ def parse_external_datetime(datetime_str: str) -> datetime.datetime:
                       from an external API.
 
     Returns:
-        datetime.datetime object corresponding to given string
+        datetime object corresponding to given string
 
     """
 
@@ -118,9 +124,7 @@ def parse_external_datetime(datetime_str: str) -> datetime.datetime:
     return parsed_datetime
 
 
-def yield_intermediate_dates(
-    start_date: datetime.date, end_date: datetime.date
-) -> Iterator[datetime.date]:
+def yield_intermediate_dates(start_date: date, end_date: date) -> Iterator[date]:
     """
     Given two dates that represent the endpoints of a range of dates, yield all
     dates between and including the two provided dates.
@@ -128,12 +132,11 @@ def yield_intermediate_dates(
     If start_date comes after end_date, a ValueError is raised.
 
     Parameters:
-        start_date: Start of date range, first value yielded
-        end_date: End of date range, last value yielded
+        start_date (date): Start of date range, first value yielded
+        end_date (date): End of date range, last value yielded
 
     Yields:
-        datetime.date objects representing dates between start_date and end_date
-        in chronological order.
+        date objects representing dates between start_date and end_date in chronological order.
     """
 
     if end_date < start_date:
@@ -145,3 +148,24 @@ def yield_intermediate_dates(
     while rover_date <= end_date:
         yield rover_date
         rover_date = get_n_days_ago(rover_date, -1)
+
+
+def get_date_prefix_for_system_prompt() -> str:
+    """
+    Returns a string that can be prepended to system prompts to give GPT information about the current date.
+    """
+    date_str = datetime_to_str(datetime.utcnow())
+    return _SYSTEM_PROMPT_PREFIX.format(date_str)
+
+
+def get_datetime_from_date(date_obj: date) -> datetime:
+    """
+    Converts a date object to a datetime object (using the time at UTC midnight).
+
+    Parameters:
+        date_obj (date): A date object.
+
+    Returns:
+        A datetime object at midnight UTC..
+    """
+    return datetime.combine(date_obj, datetime.min.time()).replace(tzinfo=pytz.utc)

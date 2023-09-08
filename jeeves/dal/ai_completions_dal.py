@@ -46,7 +46,13 @@ class AICompletionsDAL:
     def __init__(self, api_client: DuolingoApiClient):
         self.client = api_client
 
-    def ask(self, system_prompt: str, user_prompt: str, max_tokens: int = 512):
+    def ask(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int = 512,
+        raise_exceptions: bool = False,
+    ):
         body = {
             "messages": [
                 {"role": "system", "content": system_prompt},
@@ -70,9 +76,11 @@ class AICompletionsDAL:
             return response.json()["message"]["content"]
         except requests.exceptions.RequestException as e:
             print_request_exception(e, rollbar_level="warning")
+            if raise_exceptions:
+                raise e
             return None
 
-    def request_embedding(self, text: str) -> Optional[List[float]]:
+    def request_embedding(self, text: str, raise_exceptions: bool = False) -> Optional[List[float]]:
         try:
             response = self.client.put(
                 _EMBEDDING_REQUEST_ROUTE,
@@ -83,6 +91,8 @@ class AICompletionsDAL:
             return response.json()["embeddingVector"]
         except requests.exceptions.RequestException as e:
             print_request_exception(e, rollbar_level="warning")
+            if raise_exceptions:
+                raise e
             return None
 
     def batched_ask(

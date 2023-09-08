@@ -63,15 +63,31 @@ declare namespace JSONAPI {
     score: number;
   }
 
+  interface FiltersResponse {
+    lucene_filters: Record<string, string>;
+  }
+
   interface FixedResponse {
     fixed: boolean;
     fixed_user_id: number;
     num_emails: number;
   }
 
-  interface GPTSearchResponse extends SearchResponse {
+  interface GPTAnswerResponse extends GPTBaseResponse {
     answer: string;
-    results: GPTSearchResult[];
+    supporting_docs: GPTSearchResult[];
+  }
+
+  interface GPTBaseResponse {
+    error?: string;
+  }
+
+  interface GPTDocsResponse extends GPTBaseResponse {
+    docs: Ticket[];
+  }
+
+  interface GPTFiltersResponse extends FiltersResponse, GPTBaseResponse {
+    request_id: string;
   }
 
   interface GPTSearchResult {
@@ -79,6 +95,8 @@ declare namespace JSONAPI {
     doc: Ticket;
     translated_text?: LanguageContent;
   }
+
+  type GPTSearchStage = "filters" | "knn" | "answer";
 
   interface Info {
     /** The time that the current Jeeves instance was created. */
@@ -163,11 +181,6 @@ declare namespace JSONAPI {
     Overall: [date: string, score: number][];
   }
 
-  interface SearchResponse {
-    lucene_query: string[];
-    query: string;
-  }
-
   interface SearchResult {
     datetime: string;
     origin: string;
@@ -181,14 +194,14 @@ declare namespace JSONAPI {
     num_documents: number;
   }
 
-  interface SentimentSearchData extends SearchResponse {
+  interface SentimentSearchData extends FiltersResponse {
     negative_bucket: { date: Date; score: number; count: number }[];
     positive_bucket: { date: Date; score: number; count: number }[];
     results: SentimentSearchResult[];
     topic: string;
   }
 
-  interface SentimentSearchResponse extends SearchResponse {
+  interface SentimentSearchResponse extends FiltersResponse {
     negative_bucket: Record<string, SentimentBucket | undefined>;
     positive_bucket: Record<string, SentimentBucket | undefined>;
     results: SentimentSearchResult[];

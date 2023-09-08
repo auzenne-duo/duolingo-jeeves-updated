@@ -6,6 +6,8 @@
 #
 --index-url https://pypi.duolingo.com/simple/
 
+asgiref==3.7.2
+    # via flask
 async-timeout==4.0.2
     # via redis
 attrs==21.4.0
@@ -70,7 +72,7 @@ deprecation==2.1.0
     # via
     #   duolingo-base
     #   duolingo-nlp
-duolingo-base==1.10.2
+duolingo-base==1.11.1
     # via -r requirements.in
 duolingo-nlp==4.17.0
     # via -r requirements.in
@@ -87,7 +89,7 @@ filelock==3.9.0
     #   huggingface-hub
     #   torch
     #   transformers
-flask==2.3.2
+flask[async]==2.3.2
     # via
     #   -r requirements.in
     #   duolingo-base
@@ -366,7 +368,9 @@ pyjwt==2.7.0
     #   duolingo-base
     #   duolingo-nlp
 pymemcache==4.0.0
-    # via duolingo-base
+    # via
+    #   -r requirements.in
+    #   duolingo-base
 pynacl==1.5.0
     # via duolingo-base
 pyparsing==3.0.9
@@ -500,6 +504,7 @@ typing==3.7.4.3
     # via duolingo-nlp
 typing-extensions==4.6.3
     # via
+    #   asgiref
     #   duolingo-base
     #   huggingface-hub
     #   opentelemetry-sdk

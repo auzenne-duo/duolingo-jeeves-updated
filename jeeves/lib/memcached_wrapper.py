@@ -17,7 +17,7 @@ TODO: Replace the underlying manager with the implementation in python-duolingo-
 
 import zlib
 
-from jeeves.lib.memcached_client import get_client
+from jeeves.lib.memcached_client import get_memcached_client
 
 _CLIENT_NAME = "default"
 
@@ -38,7 +38,7 @@ class MemcacheCompressionWrapper:
         Parameters:
             cache_key (str): A cache key.
         """
-        M = get_client(_CLIENT_NAME)
+        M = get_memcached_client(_CLIENT_NAME)
         split_len = M.get(cls._get_key(cache_key))
         if not split_len:
             return None
@@ -64,7 +64,7 @@ class MemcacheCompressionWrapper:
                 memcached evictions do not always work as we expect. Learn more details at
                 https://github.com/memcached/memcached/wiki/Programming#expiration
         """
-        M = get_client(_CLIENT_NAME, expiration=ttl, jitter=0)
+        M = get_memcached_client(_CLIENT_NAME, expiration=ttl, jitter=0)
         compressed_value = zlib.compress(cache_value.encode("utf-8"))
         split_ids = range(int(len(compressed_value) / _CHUNK_SIZE) + 1)
         split_compressed_values = [
@@ -83,5 +83,5 @@ class MemcacheCompressionWrapper:
         Parameters:
             cache_key (str): A cache key.
         """
-        M = get_client(_CLIENT_NAME)
+        M = get_memcached_client(_CLIENT_NAME)
         M.delete(cache_key)

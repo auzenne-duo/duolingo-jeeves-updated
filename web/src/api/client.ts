@@ -2,32 +2,39 @@ import Cookies from "js-cookie";
 
 const BEARER = `Bearer ${process.env.DUOLINGO_JWT ?? Cookies.get("jwt_token")}`;
 
-export const get = async <T>(url: string): Promise<T> => {
+export const get = async <T>(url: string, throwError = true): Promise<T> => {
   const response = await fetch(resolveUrl(url), {
     credentials: "include",
     headers: [["Authorization", BEARER]],
   });
-  if (!response.ok) {
+  if (!response.ok && throwError) {
     throw Error(`Request failed with status ${response.status}.`);
   }
   return response.json();
 };
 
-export const getBlob = async (url: string): Promise<Blob> => {
+export const getBlob = async (
+  url: string,
+  throwError = true,
+): Promise<Blob> => {
   const response = await fetch(resolveUrl(url));
-  if (!response.ok) {
+  if (!response.ok && throwError) {
     throw Error(`Request failed with status ${response.status}.`);
   }
   return response.blob();
 };
 
-export const patch = async <T>(url: string, data = {}): Promise<T> =>
-  post(url, data, "PATCH");
+export const patch = async <T>(
+  url: string,
+  data = {},
+  throwError = true,
+): Promise<T> => post(url, data, "PATCH", throwError);
 
 export const post = async <T>(
   url: string,
   data = {},
   method = "POST",
+  throwError = true,
 ): Promise<T> => {
   const response = await fetch(resolveUrl(url), {
     body: data instanceof FormData ? data : JSON.stringify(data),
@@ -41,7 +48,7 @@ export const post = async <T>(
     ] as [string, string][],
     method,
   });
-  if (!response.ok) {
+  if (!response.ok && throwError) {
     throw Error(`Request failed with status ${response.status}.`);
   }
   return response.json();

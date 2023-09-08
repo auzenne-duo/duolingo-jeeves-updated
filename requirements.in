@@ -5,13 +5,13 @@ boto3==1.26.97
 blinker
 click
 cssselect2==0.4.1
-duolingo-base==1.10.2
+duolingo-base==1.11.1
 duolingo-notify
 duolingo-nlp==4.17.0
 filelock==3.9.0
 fonttools==4.27.1
 langid
-Flask
+Flask[async]
 flask-cors
 kiwisolver==1.3.1
 matplotlib==3.7.0
@@ -52,6 +52,7 @@ pydyf==0.6.0
 pyphen==0.11.0
 pystache
 pytz
+pymemcache==4.0.0
 pyyaml==6.0.1
 scipy==1.10.1
 scikit-learn==1.2.1

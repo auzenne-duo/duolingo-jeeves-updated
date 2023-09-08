@@ -17,6 +17,7 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.util.date_util import (
     date_to_str,
     datetime_to_str,
+    get_datetime_from_date,
     get_n_days_ago,
     get_utc_today,
     str_to_date,
@@ -169,7 +170,7 @@ def _crawl_documents_for_data_source(
         )
         print(message, flush=True)
         rollbar.report_message(message, "warning")
-        latest_timestamp = _THRESHOLD_DATE.timestamp()
+        latest_timestamp = get_datetime_from_date(_THRESHOLD_DATE).timestamp()
 
     print(
         f"Update starting for {data_source_identifier}",
@@ -177,7 +178,7 @@ def _crawl_documents_for_data_source(
     )
 
     updater = manager.update_s3_if_necessary
-    updater(s3_client, s3_bucket_name, _THRESHOLD_DATE.timestamp())
+    updater(s3_client, s3_bucket_name, get_datetime_from_date(_THRESHOLD_DATE).timestamp())
 
     print(
         f"Update complete for {data_source_identifier}",
@@ -236,7 +237,7 @@ def force_refresh_tickets() -> None:
     Refreshes tickets by getting all the tickets from s3 and adding them to sqs
     """
     s3_client, s3_bucket_name, sqs_client = get_s3_client_buckets_and_sqs()
-    start_date = _THRESHOLD_DATE.date()
+    start_date = _THRESHOLD_DATE
     end_date = get_utc_today().date()
     if _REFRESH_START_DATE is None or _REFRESH_START_DATE == "":
         raise Exception("Please provide a start date")

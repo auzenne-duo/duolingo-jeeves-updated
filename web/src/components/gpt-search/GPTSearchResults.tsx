@@ -3,7 +3,9 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import type { Range } from "web-ui/util/highlight";
 
-import { gptSearch } from "api/jeeves";
+import { gptSearch, gptSearchAnswer, gptSearchKnnResults } from "api/jeeves";
+import NamedSection from "components/NamedSection";
+import Table from "components/Table";
 import Ticket from "components/Ticket";
 import TicketList from "components/TicketList";
 import styles from "components/gpt-search/GPTSearchResults.scss";
@@ -15,6 +17,7 @@ import AppStateContext from "contexts/AppStateContext";
 
 const OPENING_TAG = "<b>";
 const CLOSING_TAG = "</b>";
+const TAG_PAIR_LENGTH = OPENING_TAG.length + CLOSING_TAG.length;
 
 const getHighlightIndices = (html: string): Range[] => {
   const indices: Range[] = [];
@@ -26,22 +29,14 @@ const getHighlightIndices = (html: string): Range[] => {
     );
     if (closing) {
       indices.push([
-        opening.index -
-          (OPENING_TAG.length + CLOSING_TAG.length) * indices.length,
-        opening.index +
-          closing.index -
-          1 -
-          (OPENING_TAG.length + CLOSING_TAG.length) * indices.length,
+        opening.index - TAG_PAIR_LENGTH * indices.length,
+        opening.index + closing.index - 1 - TAG_PAIR_LENGTH * indices.length,
       ]);
     } else {
       // No closing tag found; match until the end.
       indices.push([
-        opening.index -
-          (OPENING_TAG.length + CLOSING_TAG.length) * indices.length,
-        html.length -
-          1 -
-          (OPENING_TAG.length + CLOSING_TAG.length) * indices.length -
-          OPENING_TAG.length,
+        opening.index - TAG_PAIR_LENGTH * indices.length,
+        html.length - 1 - TAG_PAIR_LENGTH * indices.length - OPENING_TAG.length,
       ]);
     }
   }
@@ -52,19 +47,62 @@ const GPTSearchResults = () => {
   const search = useSearchParams();
 
   const [, dispatch] = React.useContext(AppStateContext);
+  const [stage, setStage] = React.useState<JSONAPI.GPTSearchStage>("filters");
 
   const query = search.get("q") ?? "";
 
-  const { data, error, isLoading } = useQuery(["gpt-search", query], () =>
-    gptSearch(query),
-  );
+  // When the user's query changes, reset the stage to "filters".
+  React.useEffect(() => {
+    setStage("filters");
+  }, [query]);
 
-  const answer = data?.answer;
-  const docs = data?.results;
-  const numResults = docs?.length ?? 0;
+  // Step 1: Extract filters from the user's query and initialize the search thread in the backend
+  const {
+    data: filterResp,
+    error: filterError,
+    isLoading: filtersAreLoading,
+  } = useQuery({
+    queryFn: () => gptSearch(query),
+    queryKey: ["gpt-search", { query }],
+    retry: 3,
+  });
+
+  const filters = filterResp?.lucene_filters;
+  const requestId = filterResp?.request_id;
+
+  // Step 2: Wait until the k-NN search has completed and return the results
+  const {
+    data: knnResp,
+    error: knnError,
+    isLoading: knnIsLoading,
+  } = useQuery({
+    enabled: stage === "knn",
+    queryFn: () => gptSearchKnnResults(`${requestId}`),
+    queryKey: ["gpt-search-knn-results", { requestId }],
+    retry: 3,
+  });
+
+  const allDocs = knnResp?.docs;
+  const numResults = allDocs?.length ?? 0;
+
+  // Step 3: Wait until the GPT chat completions request has completed and return the answer
+  const {
+    data: answerResp,
+    error: answerError,
+    isLoading: answerIsLoading,
+  } = useQuery({
+    enabled: stage === "answer",
+    queryFn: () => gptSearchAnswer(`${requestId}`),
+    queryKey: ["gpt-search-answer", { requestId }],
+    retry: 3,
+  });
+
+  const answer = answerResp?.answer;
+  const supportingDocs = answerResp?.supporting_docs;
+  const supportingDocsAsTickets = supportingDocs?.map(d => d.doc);
 
   React.useEffect(() => {
-    if (data) {
+    if (answerResp) {
       dispatch?.({
         answer,
         numResults,
@@ -72,26 +110,24 @@ const GPTSearchResults = () => {
         type: "SEARCH_END",
       });
     }
-  }, [answer, data, dispatch, numResults]);
-
-  const tickets = docs?.map(d => d.doc);
+  }, [answer, answerResp, dispatch, numResults]);
 
   // TODO (renspoesse): pass on pagination functions once implemented.
   // TODO (renspoesse): implement these hooks and the TicketList component
   //  for the new sentiment search views.
-  const [id, setId] = useTicketSelection(tickets);
+  const [id, setId] = useTicketSelection(allDocs);
   useTicketAside(id);
 
   const { data: selected } = useTicketQuery(id);
 
   const highlight = React.useMemo(() => {
-    const doc = docs?.find(
+    const doc = supportingDocs?.find(
       d => selected && d.doc.jeeves_uid === selected.jeeves_uid,
     );
     return doc?.doc?.body_text
       ? getHighlightIndices(doc.bolded_body)
       : undefined;
-  }, [docs, selected]);
+  }, [supportingDocs, selected]);
 
   const handleClick = (t: JSONAPI.Ticket) => {
     if (t.jeeves_uid === selected?.jeeves_uid) {
@@ -107,27 +143,144 @@ const GPTSearchResults = () => {
 
   // Scrolls the page to the top when fresh query data is loaded.
   React.useEffect(() => {
-    if (data) {
+    if (filterResp || knnResp || answerResp) {
       window.scrollTo(0, 0);
     }
-  }, [data]);
+  }, [filterResp, knnResp, answerResp]);
 
-  return isLoading ? (
-    <span>Loading results from GPT...</span>
-  ) : data && tickets ? (
-    <>
-      <span>{answer}</span>
-      {data.lucene_query && data.lucene_query.length > 0 && (
-        <div>
-          OpenSearch filters applied:
-          <ul>
-            {data.lucene_query.map((q, i) => (
-              <li key={i}>{q}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <TicketList onClick={handleClick} selectedId={id} tickets={tickets} />
+  // Set the stage to "knn" once the filter extraction has completed.
+  React.useEffect(() => {
+    if (filterResp && !filterError && !filtersAreLoading) {
+      setStage("knn");
+    }
+  }, [filterError, filtersAreLoading, filterResp]);
+
+  // Set the stage to "answer" once the k-NN search has completed.
+  React.useEffect(() => {
+    if (knnResp && !knnError && !knnIsLoading) {
+      setStage("answer");
+    }
+  }, [knnError, knnIsLoading, knnResp]);
+
+  // Set the stage back to "filters" if any of the requests failed.
+  React.useEffect(() => {
+    if (
+      (filterError && !filtersAreLoading) ||
+      (knnError && !knnIsLoading) ||
+      (answerError && !answerIsLoading)
+    ) {
+      setStage("filters");
+    }
+  }, [
+    answerError,
+    answerIsLoading,
+    filterError,
+    filtersAreLoading,
+    knnError,
+    knnIsLoading,
+  ]);
+
+  const renderAllDocs = (docs: JSONAPI.Ticket[]) => (
+    <NamedSection className={styles.section} name="Top matches">
+      <TicketList
+        bordered={false}
+        onClick={handleClick}
+        selectedId={id}
+        tickets={docs}
+      />
+    </NamedSection>
+  );
+
+  const renderAnswerResponse = (allKnnDocs: JSONAPI.Ticket[]) =>
+    answerIsLoading ? (
+      <>
+        <span>
+          The search returned {numResults} results. Asking GPT to answer your
+          query...
+        </span>
+        {renderAllDocs(allKnnDocs)}
+      </>
+    ) : answerResp?.error ? (
+      <>
+        <span className={styles.error}>{answerResp.error}</span>
+        {renderAllDocs(allKnnDocs)}
+      </>
+    ) : answerResp && answer ? (
+      <>
+        <span className={styles.answer}>{answer}</span>
+        {supportingDocsAsTickets?.length
+          ? renderSupportingDocs(supportingDocsAsTickets)
+          : null}
+        {renderAllDocs(allKnnDocs)}
+      </>
+    ) : (
+      <>
+        <span className={styles.error}>
+          The Jeeves API returned an error while retrieving the answer.
+        </span>
+        {renderAllDocs(allKnnDocs)}
+      </>
+    );
+
+  const renderFilterTable = (
+    luceneFilters: Record<string, string> | undefined,
+  ) =>
+    luceneFilters && Object.keys(luceneFilters).length ? (
+      <Table>
+        <thead>
+          <tr>
+            <th>Filter</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(luceneFilters).map((filter, i) => (
+            <tr key={i}>
+              <td>{filter[0]}</td>
+              <td>{filter[1]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    ) : null;
+
+  const renderKnnResponse = () =>
+    knnIsLoading ? (
+      filters && Object.keys(filters).length ? (
+        <>
+          <span>Searching with the following filters:</span>
+          {renderFilterTable(filters)}
+        </>
+      ) : (
+        <span>Searching (this may take a while)...</span>
+      )
+    ) : knnResp?.error ? (
+      <>
+        <span className={styles.error}>{knnResp.error}</span>
+        {renderFilterTable(filters)}
+      </>
+    ) : knnResp && allDocs?.length ? (
+      renderAnswerResponse(allDocs)
+    ) : (
+      <>
+        <span className={styles.error}>
+          Jeeves returned an error while retrieving the search results.
+        </span>
+        {renderFilterTable(filters)}
+      </>
+    );
+
+  const renderSupportingDocs = (docs: JSONAPI.Ticket[]) => (
+    <NamedSection
+      className={styles.section}
+      name={`Top ${docs.length} supporting matches according to GPT`}
+    >
+      <TicketList
+        bordered={false}
+        onClick={handleClick}
+        selectedId={id}
+        tickets={docs}
+      />
       {selected
         ? createPortal(
             <Ticket
@@ -141,14 +294,18 @@ const GPTSearchResults = () => {
             document.getElementById("aside") as HTMLElement,
           )
         : null}
-    </>
-  ) : error ? (
-    <span className={styles.error}>
-      Sorry, something went wrong. No data was fetched from GPT.
-    </span>
+    </NamedSection>
+  );
+
+  return filtersAreLoading ? (
+    <span>Extracting filters from your request...</span>
+  ) : filterResp?.error ? (
+    <span className={styles.error}>{filterResp.error}</span>
+  ) : filterResp ? (
+    renderKnnResponse()
   ) : (
     <span className={styles.error}>
-      Sorry, something went wrong. No data was returned from the Jeeves API.
+      Jeeves returned an error while extracting filters for the search.
     </span>
   );
 };

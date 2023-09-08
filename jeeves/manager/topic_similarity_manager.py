@@ -126,7 +126,7 @@ class TopicSimilarityManager:
         documents_list = [
             document
             for document in documents_list
-            if GPT_EMBEDDING_MODEL in document.doc.embeddings.keys()
+            if document.doc.embeddings and GPT_EMBEDDING_MODEL in document.doc.embeddings.keys()
         ]
         sorted_docs = self.sort_documents_using_cosine_similarity(documents_list)
 
@@ -248,10 +248,10 @@ class TopicSimilarityManager:
         relevant_docs = {SimilarityCategory.RELATED: [], SimilarityCategory.UNRELATED: []}
         user_prompt = f"{REQ_RESP_TOPIC}: {target_topic}\n{REQ_DOCUMENTS}: "
         LOG.debug(
-            f"Likely Potential Documents to send to GPT-4 {[f'Title: {doc.header_text} Description: {doc.body_text}' for doc in likely_related_docs]}"
+            f"Likely Potential Documents to send to GPT-4 {[doc.jeeves_uid for doc in likely_related_docs]}"
         )
         LOG.debug(
-            f"Unlikely Potential Documents to send to GPT-4 {[f'Title: {doc.header_text} Description: {doc.body_text}' for doc in likely_unrelated_docs]}"
+            f"Unlikely Potential Documents to send to GPT-4 {[doc.jeeves_uid for doc in likely_unrelated_docs]}"
         )
         # We want to send the documents that are most likely to be related/unrelated to GPT
         likely_unrelated_docs.reverse()
@@ -285,10 +285,10 @@ class TopicSimilarityManager:
                 if (doc.jeeves_uid in id_mapper and id_mapper[doc.jeeves_uid] in unrelated_id_set)
             ]
         LOG.debug(
-            f"GPT found these documents to be about {target_topic}: {[f'Title: {doc.header_text} Description: {doc.body_text}' for doc in relevant_docs[SimilarityCategory.RELATED]]}"
+            f"GPT found these documents to be about {target_topic}: {[doc.jeeves_uid for doc in relevant_docs[SimilarityCategory.RELATED]]}"
         )
         LOG.debug(
-            f"GPT found these documents to not be about {target_topic}: {[f'Title: {doc.header_text} Description: {doc.body_text}' for doc in relevant_docs[SimilarityCategory.UNRELATED]]}"
+            f"GPT found these documents to not be about {target_topic}: {[doc.jeeves_uid for doc in relevant_docs[SimilarityCategory.UNRELATED]]}"
         )
         return relevant_docs
 

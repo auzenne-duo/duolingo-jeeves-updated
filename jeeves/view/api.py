@@ -5,9 +5,10 @@ APIs.
 import logging
 import os
 from datetime import datetime
+from typing import Any, Dict
 
 from duolingo_base.view.auth import requires_auth
-from flask import Blueprint, abort, g, json, make_response, request, send_from_directory
+from flask import Blueprint, Response, abort, g, json, make_response, request, send_from_directory
 
 from jeeves import registry as app_registry
 from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
@@ -15,7 +16,11 @@ from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.lib.send_issue_fixed_emails import IssueFixedEmailSender
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
-from jeeves.manager.gpt_search_manager import GPTSearchManager
+from jeeves.manager.gpt_search_manager import (
+    GPTSearchManager,
+    GPTSearchStartedResponse,
+    KNNSearchResponse,
+)
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.quality_report_manager import QualityReportManager
 from jeeves.manager.query_helper import QueryHelper
@@ -692,16 +697,82 @@ def get_spike_categories():
 
 @blueprint_api.route("/api/3/gpt_search", methods=["POST"])
 @blueprint_api.route("/api/3/nlp_search", methods=["POST"])
-def gpt_search():
+async def gpt_search() -> Response:
+    """
+    Entrypoint for GPT Search. Sends to GPT the top results from the OpenSearch index that match the user's query and
+      asks it to answer the user's question using this as context (or summarize the results if no question is provided).
+
+    Accepts a POST request with a JSON body containing the following fields:
+    - `q` (str): The user's query typed into the search box
+    - `max_search_depth` (int): The maximum number of search results to consider in the k-NN search. Defaults to 50.
+    - `num_results` (int): The number of results to return. Defaults to 5.
+    """
+
     query = request.args.get("q")
     if not query:
-        abort(make_response("Please provide a query text parameter `q`.", 400))
+        error_response = GPTSearchStartedResponse(
+            {}, "", "Please provide a query text parameter `q`."
+        )
+        abort(make_response(json.jsonify(error_response), 400))
 
-    num_results = int(request.args.get("num_results", "5"))
     max_search_depth = int(request.args.get("max_search_depth", "50"))
+    num_results = int(request.args.get("num_results", "5"))
 
-    result = app_registry(GPTSearchManager).gpt_search(query, num_results, max_search_depth)
+    result = await app_registry(GPTSearchManager).gpt_search(query, max_search_depth, num_results)
+    if result.error:
+        abort(make_response(json.jsonify(result), 500))
+
     return json.jsonify(result)
+
+
+@blueprint_api.route("/api/3/gpt_search/knn_results/<request_id>", methods=["GET"])
+def gpt_search_get_knn_results(request_id: str) -> Dict[str, Any]:
+    """
+    The second request sent by the browser to the Jeeves API in the course of a GPT Search. Polls the memcached table
+      until the results of the k-NN search are set (IDs only), and then returns the full results from the OpenSearch
+      index with a multi-get request.
+
+    Accepts a GET request with the following path parameter:
+    - `request_id` (str): The hash returned by /gpt_search used to track the user's request
+
+    Returns a JSON response with the following fields:
+    - `error` (Optional[str]): A description of the error to display to the user.
+    - `docs` (list[JeevesDocument]): The results of the k-NN search
+    """
+    if not request_id:
+        error_response = KNNSearchResponse([], "Please provide a path parameter `request_id`.")
+        abort(make_response(json.jsonify(error_response), 400))
+
+    result = app_registry(GPTSearchManager).wait_for_knn_results(request_id)
+    if result.error:
+        abort(make_response(json.jsonify(result), 500))
+
+    return result.to_json()
+
+
+@blueprint_api.route("/api/3/gpt_search/answer/<request_id>", methods=["GET"])
+def gpt_search_get_answer(request_id: str) -> Dict[str, Any]:
+    """
+    The third request sent by the browser to the Jeeves API in the course of a GPT Search. Polls the memcached table
+      until the results of the OpenAI /chat/completions call is set, parses the results and returns them to the browser.
+
+    Accepts a GET request with the following path parameter:
+    - `request_id` (str): The hash returned by /gpt_search used to track the user's request
+
+    Returns a JSON response with the following fields:
+    - `error` (Optional[str]): A description of the error to display to the user.
+    - `answer` (str): The answer to the user's question per the OpenAI /chat/completions response.
+    - `supporting_docs` (list[GPTSearchResult]): The documents that best support the answer according to GPT.
+    """
+    if not request_id:
+        error_response = KNNSearchResponse([], "Please provide a path parameter `request_id`.")
+        abort(make_response(json.jsonify(error_response), 400))
+
+    result = app_registry(GPTSearchManager).wait_for_gpt_answer(request_id)
+    if result.error:
+        abort(make_response(json.jsonify(result), 500))
+
+    return result.to_dict()
 
 
 @blueprint_api.route("/api/3/sentiment_time_series", methods=["GET"])

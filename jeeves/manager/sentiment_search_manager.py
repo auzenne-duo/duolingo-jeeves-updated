@@ -132,8 +132,8 @@ class SentimentSearchManager:
         LOG.debug("Got topic embedding...")
 
         hits = self.opensearch_dal.perform_knn_search(
-            dsl_response.dsl_query,
-            topic_embedding,
+            filters=dsl_response.dsl_query,
+            query_embedding=topic_embedding,
             max_search_depth=max_search_depth,
             num_results=num_results,
             threshold=0.5,
@@ -160,8 +160,7 @@ class SentimentSearchManager:
         LOG.debug(f"Bucketed sentiment data from {len(results)} docs... Search complete!")
 
         return SentimentSearchResults(
-            lucene_query=dsl_response.lucene_query,
-            query=query,
+            lucene_filters=dsl_response.lucene_filters,
             positive_bucket=buckets[POSITIVE_CLASS],
             negative_bucket=buckets[NEGATIVE_CLASS],
             results=results,

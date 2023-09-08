@@ -1,4 +1,21 @@
 {
+    "eslint.options": {
+        "configFile": "./.eslintrc.js"
+    },
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact"
+    ],
+    "eslint.workingDirectories": [
+        { "mode": "auto" }
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/node_modules": true
+    },
     "python.testing.unittestArgs": [
         "-v",
         "-s",

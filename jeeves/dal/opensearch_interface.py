@@ -1,4 +1,6 @@
+import itertools
 import json
+import logging
 import re
 import sys
 import time
@@ -41,6 +43,8 @@ from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 from jeeves.util.sleep_check import sleep_check
 
 _config = Config.load_config()
+
+LOG = logging.getLogger(__name__)
 
 # Default limit of 1000 must be increased to provide enough space for ~500 experiment conditions
 _MAX_FIELDS_LIMIT = 3000
@@ -1294,6 +1298,7 @@ class OpenSearchDAL:
         self,
         filters: Dict[str, Any],
         query_embedding: List[float],
+        ids_only: bool = False,
         max_search_depth: int = 50,
         num_results: int = 5,
         request_timeout: int = 30,
@@ -1306,6 +1311,8 @@ class OpenSearchDAL:
         Parameters:
             filters (Dict[str, Any]): A set of Query DSL filters extracted by GPT
             query_embedding (List[float]): The embeddings vector to search against
+            ids_only (bool): Whether to return only the OpenSearch document IDs (True)
+                             or, by default, the documents in their entirety (False)
             max_search_depth (int): Optional. Maximum number of documents to search through
                                     in order to find num_results hits (default 50).
             num_results (int): Optional. Number of results to display to user (default 5)
@@ -1331,10 +1338,21 @@ class OpenSearchDAL:
                 }
             },
         }
+        if ids_only:
+            query_body["_source"] = ["_id"]
 
         response = self._es.search(  # pylint: disable=unexpected-keyword-arg
             index=self._indexname, body=query_body, request_timeout=request_timeout
         )
+
+        if ids_only:
+            hits = {
+                hit["_id"]: MatchingDocument(None, hit["_score"])
+                for hit in response["hits"]["hits"]
+                if hit["_score"] >= threshold
+            }
+            return dict(itertools.islice(hits.items(), num_results))
+
         result_docs = {
             hit["_source"]["jeeves_uid"]: MatchingDocument.from_response_hit(hit)
             for hit in response["hits"]["hits"]
@@ -1343,6 +1361,65 @@ class OpenSearchDAL:
 
         # Get first num_results items from result_docs dict
         return {k: result_docs[k] for k in list(result_docs.keys())[:num_results]}
+
+    def multi_get(self, ids: List[str], request_timeout: int = 30) -> Dict[str, JeevesDocument]:
+        """
+        Perform a multi-get query on the OpenSearch index using a list of document IDs.
+
+        Parameters:
+            ids (List[str]): A list of document IDs to retrieve with mget
+            request_timeout (int): Optional. Number of seconds to wait for a response from OpenSearch (default 30)
+
+        Returns:
+            A map of OpenSearch internal document IDs to the JeevesDocument returned by OpenSearch
+        """
+        body = {
+            "docs": [
+                {"_id": doc_id, "_source": {"includes": "*", "excludes": "embeddings"}}
+                for doc_id in ids
+            ]
+        }
+        resp = self._es.mget(  # pylint: disable=unexpected-keyword-arg
+            body=body, index=self._indexname, request_timeout=request_timeout
+        )
+        if not resp["docs"]:
+            return {}
+
+        final_docs = {}
+        missing = []
+        for doc in resp["docs"]:
+            internal_id = doc["_id"]
+            if not doc["found"]:
+                missing.append(internal_id)
+                continue
+
+            final_docs[internal_id] = (
+                IDManagerMap.get_manager_for_identifier(doc["_source"]["data_source"])
+                .get_managed_document_type()
+                .deserialize_from_internal_json(doc["_source"])
+            )
+
+        if missing:
+            LOG.warning(f"Could not find documents with IDs: {missing}")
+
+        return final_docs
+
+    def multi_get_with_score(
+        self, id_to_score: Dict[str, float], request_timeout: int = 30
+    ) -> List[MatchingDocument]:
+        """
+        Perform a multi-get query on the OpenSearch index using a dictionary of document IDs mapping to their
+            cosine similarity scores.
+
+        Parameters:
+            id_to_score (Dict[str, float]): A dictionary mapping document IDs to their cosine similarity scores
+            request_timeout (int): Optional. Number of seconds to wait for a response from OpenSearch (default 30)
+        """
+        jeeves_docs = self.multi_get(list(id_to_score.keys()), request_timeout=request_timeout)
+        return [
+            MatchingDocument(doc, id_to_score[internal_id])
+            for (internal_id, doc) in jeeves_docs.items()
+        ]
 
     def get_parent_for_jira(self, target_doc: JeevesDocument) -> Optional[JeevesDocument]:
         """

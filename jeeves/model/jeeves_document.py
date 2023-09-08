@@ -174,7 +174,7 @@ class JeevesDocument(ABC):
         to prevent this duplication.
 
         Parameters:
-            document: The document for which we want to generate an identifer.
+            document: The document for which we want to generate an identifier.
 
         Returns:
             A string to be used as an identifier that can be leveraged for
