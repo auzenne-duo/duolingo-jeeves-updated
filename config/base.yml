@@ -1,5 +1,5 @@
 rollbar:
-  access_token: d706122c96ae40a79f2542e0e0cab6bb
+  access_token: 9dbf3ebbc6824576aa085ffe831d303e
   enabled: False
 
 blueprints:
