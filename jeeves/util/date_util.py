@@ -166,6 +166,6 @@ def get_datetime_from_date(date_obj: date) -> datetime:
         date_obj (date): A date object.
 
     Returns:
-        A datetime object at midnight UTC..
+        A datetime object at midnight UTC.
     """
     return datetime.combine(date_obj, datetime.min.time()).replace(tzinfo=pytz.utc)

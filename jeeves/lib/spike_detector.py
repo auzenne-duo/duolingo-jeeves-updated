@@ -163,11 +163,12 @@ def run_spike_detector_for_batch(
     filtered_word_to_date_to_count = {
         word: date_to_count
         for word, date_to_count in word_to_date_to_count.items()
+        # pylint: disable-next=unsupported-membership-test
         if word not in app_registry(SPIKE_EXCLUDE_WORDS_REGISTRY_KEY)
     }
-    for target_dt in new_ticket_dates:
+    for target_date in new_ticket_dates:
         spikes, prompts = _find_spiked_words(
-            lang, filtered_word_to_date_to_count, target_dt, spike_group
+            lang, filtered_word_to_date_to_count, target_date, spike_group
         )
         batch_spike_list += spikes
         batch_prompt_list += prompts
@@ -202,7 +203,7 @@ def _get_word_to_date_to_count(
     lang: str,
     spike_category: SpikeCategory,
     new_ticket_ids: List[str],
-    min_target_date: datetime.date,
+    min_target_date: date,
 ) -> Dict[str, Dict[str, int]]:
     """
     Compute a data structure that represents how many times a word appeared
@@ -246,7 +247,7 @@ def _get_word_to_date_to_count(
 def _find_spiked_words(
     lang: str,
     word_to_date_to_count: Dict[str, Dict[str, int]],
-    target_dt: datetime.date,
+    target_date: date,
     spike_group: SpikeCategory,
 ) -> Tuple[List[SpikeWord], List[str]]:
     """
@@ -256,7 +257,8 @@ def _find_spiked_words(
         lang (str): Language to restrict search to
         word_to_date_to_count: See _get_word_to_date_to_count, this should be
                                the direct output of that function.
-        target_dt (datetime.date): The date to perform spike calculation on.
+        target_date (date): The date to perform spike calculation on.
+        spike_group (SpikeCategory): The SpikeCategory to calculate
 
     Returns:
         A list of spikes, where each spike consists of:
@@ -267,19 +269,19 @@ def _find_spiked_words(
 
         A list of prompt strings which are concatenated body text of tickets
     """
-    target_date_str = date_to_str(target_dt)
+    target_date_str = date_to_str(target_date)
 
     min_max_datetimes = app_registry(OpenSearchDAL).get_min_and_max_document_dates(
         lang, spike_group
     )
     window_start_date = max(
         str_to_date(min_max_datetimes["min"]),
-        get_n_days_ago(target_dt, HISTORY_WINDOW_SIZE),
+        get_n_days_ago(target_date, HISTORY_WINDOW_SIZE),
     )
-    data_window_size = (target_dt - window_start_date).days
+    data_window_size = (target_date - window_start_date).days
 
     num_tickets_by_day = app_registry(OpenSearchDAL).get_num_tickets_by_day(
-        target_dt, spike_group, lang
+        target_date, spike_group, lang
     )
     average_num_tickets = np.mean(list(num_tickets_by_day.values()))
 
@@ -290,7 +292,7 @@ def _find_spiked_words(
         (
             _calculate_spike_score(
                 date_to_count,
-                target_dt,
+                target_date,
                 data_window_size,
                 word,
                 average_num_tickets,
@@ -312,7 +314,7 @@ def _find_spiked_words(
     prompts = []
     for score, word in score_word_pairs:
         if not np.isnan(score) and not np.isinf(score) and score > SPIKE_THRESHOLD:
-            target_datetime = datetime(target_dt.year, target_dt.month, target_dt.day)
+            target_datetime = datetime(target_date.year, target_date.month, target_date.day)
             search_result = app_registry(OpenSearchDAL).get_recent_paginated_tickets(
                 lang,
                 word,
@@ -368,7 +370,7 @@ def _get_num_unique_users(docs: List[JeevesDocument]) -> int:
 
 def _calculate_spike_score(
     date_to_count: Dict[str, int],
-    target_datetime: datetime.date,
+    target_datetime: date,
     data_window_size: int,
     word: str,
     average_num_tickets: int,

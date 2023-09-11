@@ -37,7 +37,12 @@ from jeeves.model.jira_document import JiraDocument
 from jeeves.model.matching_document import MatchingDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
 from jeeves.model.spike_categories import SpikeCategory
-from jeeves.util.date_util import date_to_str, datetime_to_str, parse_external_datetime
+from jeeves.util.date_util import (
+    date_to_str,
+    datetime_to_str,
+    get_datetime_from_date,
+    parse_external_datetime,
+)
 from jeeves.util.error_util import SearchUnsuccessfulException
 from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 from jeeves.util.sleep_check import sleep_check
@@ -621,29 +626,32 @@ class OpenSearchDAL:
 
     def get_num_tickets_by_day(
         self,
-        end_date: datetime,
+        end_date: date,
         spike_category: SpikeCategory,
         lang: str,
-        start_date: Optional[datetime] = None,
+        start_date: Optional[date] = None,
     ) -> List[Dict[str, int]]:
         """
         Calculates the number of tickets by day up to HISTORY_WINDOW_SIZE days in the past
 
         Parameters:
-            end_date (datetime): Retrieves data up until and including end_date
+            end_date (date): Retrieves data up until and including end_date (UTC midnight of the following day)
             spike_category: The spike category whose documents we should search within.
             lang (str): Filter ticket search to only this language.
+            start_date (Optional[date]): The beginning of the date range to search for tickets (at UTC midnight).
+                                         Defaults to 60 days before end_date.
 
         Returns:
             (dict date (str): count (int)) mapping of date strings to count of documents for that date
         """
+        # Add one, because searching at UTC midnight would exclude this date
         end_date = end_date + timedelta(days=1)
         if start_date:
-            start_date_str = datetime_to_str(start_date)
+            start_date_str = datetime_to_str(get_datetime_from_date(start_date))
         else:
             range_start = end_date - timedelta(days=HISTORY_WINDOW_SIZE)
-            start_date_str = datetime_to_str(range_start)
-        end_date_str = datetime_to_str(end_date)
+            start_date_str = datetime_to_str(get_datetime_from_date(range_start))
+        end_date_str = datetime_to_str(get_datetime_from_date(end_date))
 
         s = Search(using=self._es, index=self._indexname).filter("term", language=lang)
         s = s.filter("range", date_time={"gte": start_date_str, "lte": end_date_str})
