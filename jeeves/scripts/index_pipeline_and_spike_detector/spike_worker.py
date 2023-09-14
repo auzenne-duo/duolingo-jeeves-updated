@@ -157,7 +157,7 @@ def run_spike_worker(dry_run: bool) -> None:
             detect_spikes(target_date=inter_date, dry_run=dry_run)
     finally:
         # Release the lock.
-        # We use a finaly clause for this in case we ctrl-c or otherwise kill
+        # We use a `finally` clause for this in case we ctrl-c or otherwise kill
         # the process out of order.
         if not dry_run:
             print("Releasing lock")

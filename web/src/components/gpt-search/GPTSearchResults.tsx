@@ -180,8 +180,49 @@ const GPTSearchResults = () => {
     knnIsLoading,
   ]);
 
-  const renderAllDocs = (docs: JSONAPI.Ticket[]) => (
-    <NamedSection className={styles.section} name="Top matches">
+  const renderAnswerResponse = (allKnnDocs: JSONAPI.Ticket[]) => (
+    <>
+      {answerIsLoading ? (
+        <span>
+          The search returned {numResults} results. Asking GPT to answer your
+          query...
+        </span>
+      ) : answerResp?.error ? (
+        <span className={styles.error}>{answerResp.error}</span>
+      ) : answerResp && answer ? (
+        <>
+          <span className={styles.answer}>{answer}</span>
+          {supportingDocsAsTickets?.length
+            ? renderSupportingDocs(supportingDocsAsTickets)
+            : null}
+        </>
+      ) : (
+        <span className={styles.error}>
+          The Jeeves API returned an error while retrieving the answer.
+        </span>
+      )}
+      {renderDocs(allKnnDocs, "Top matches")}
+      {renderAside()}
+    </>
+  );
+
+  const renderAside = () =>
+    selected
+      ? createPortal(
+          <Ticket
+            className={styles.ticket}
+            highlight={highlight}
+            // Don't reuse the component for different tickets as it's stateful.
+            key={selected.jeeves_uid}
+            onRequestClose={() => setId(undefined)}
+            ticket={selected}
+          />,
+          document.getElementById("aside") as HTMLElement,
+        )
+      : null;
+
+  const renderDocs = (docs: JSONAPI.Ticket[], name: string) => (
+    <NamedSection className={styles.section} name={name}>
       <TicketList
         bordered={false}
         onClick={handleClick}
@@ -190,37 +231,6 @@ const GPTSearchResults = () => {
       />
     </NamedSection>
   );
-
-  const renderAnswerResponse = (allKnnDocs: JSONAPI.Ticket[]) =>
-    answerIsLoading ? (
-      <>
-        <span>
-          The search returned {numResults} results. Asking GPT to answer your
-          query...
-        </span>
-        {renderAllDocs(allKnnDocs)}
-      </>
-    ) : answerResp?.error ? (
-      <>
-        <span className={styles.error}>{answerResp.error}</span>
-        {renderAllDocs(allKnnDocs)}
-      </>
-    ) : answerResp && answer ? (
-      <>
-        <span className={styles.answer}>{answer}</span>
-        {supportingDocsAsTickets?.length
-          ? renderSupportingDocs(supportingDocsAsTickets)
-          : null}
-        {renderAllDocs(allKnnDocs)}
-      </>
-    ) : (
-      <>
-        <span className={styles.error}>
-          The Jeeves API returned an error while retrieving the answer.
-        </span>
-        {renderAllDocs(allKnnDocs)}
-      </>
-    );
 
   const renderFilterTable = (
     luceneFilters: Record<string, string> | undefined,
@@ -281,19 +291,6 @@ const GPTSearchResults = () => {
         selectedId={id}
         tickets={docs}
       />
-      {selected
-        ? createPortal(
-            <Ticket
-              className={styles.ticket}
-              highlight={highlight}
-              // Don't reuse the component for different tickets as it's stateful.
-              key={selected.jeeves_uid}
-              onRequestClose={() => setId(undefined)}
-              ticket={selected}
-            />,
-            document.getElementById("aside") as HTMLElement,
-          )
-        : null}
     </NamedSection>
   );
 
