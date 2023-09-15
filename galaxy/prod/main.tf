@@ -229,7 +229,7 @@ module "duolingo-jeeves-sqs-worker-1" {
   subservice                  = "sqs-worker-1"
   cpu                         = 4096 # 1024 equals one core
   memory                      = 2048 # in MB
-  min_count                   = 4    # Minimum number of tasks to run in autoscaling group
+  min_count                   = 6    # Minimum number of tasks to run in autoscaling group
   max_count                   = 40   # Maximum number of tasks to run in autoscaling group
   product                     = var.product
   owner                       = var.owner       # The name of the owner for this service
