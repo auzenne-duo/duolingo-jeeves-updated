@@ -22,7 +22,7 @@ from jeeves.model.quality_report import (
 )
 from jeeves.util.quality_report_util import QUALITY_REPORT_OVERALL_KEY, QUALITY_REPORT_WINDOW_DAYS
 
-_AREAS_TO_EXCLUDE = ["Learning Scaling", "Many", "New Initiatives", "None"]
+_AREAS_TO_EXCLUDE = ["Many", "New Initiatives", "None"]
 _TEAMS_TO_EXCLUDE = ["None"]
 
 

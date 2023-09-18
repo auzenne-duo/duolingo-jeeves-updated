@@ -96,17 +96,6 @@ JIRA_FEATURES = {
             "Generated sessions": [],
             "Smart tips": ["smart tip"],
         },
-        "Grading": {
-            "Grading issue": [
-                "grading",
-                "Did not earn XP",
-                "Didn't receive XP",
-                "Did not receive XP",
-            ],
-        },
-        "Advanced Monolingual English Experience": {
-            "AMEE": ["monolingual"],
-        },
         "New Writing Systems": {
             "Character Bingo": [
                 "drawing",
@@ -115,26 +104,6 @@ JIRA_FEATURES = {
                 "*session type*: alphabet_lesson",
             ],
             "Transliteration": [],
-        },
-        "Speech Lab": {
-            "World character voice": [
-                "voice",
-                "tts voice",
-                "junior voice",
-                "zari voice",
-                "lin voice",
-                "bea voice",
-                "oscar voice",
-                "lily voice",
-                "character voice",
-            ],
-            "Mouth animation": [
-                "mouth animations",
-                "visemes",
-                "lip synch",
-                "lip synching",
-                "synchronization",
-            ],
         },
         "Path": {
             "Path": [
@@ -159,7 +128,39 @@ JIRA_FEATURES = {
             "DuoRadio": [],
         },
     },
-    "Learning Scaling": {},  # Lesson content and TTS issues go to Slack, not Jira
+    "Learning Scaling": {
+        "Learning Infrastructure": {
+            "World character voice": [
+                "voice",
+                "tts voice",
+                "junior voice",
+                "zari voice",
+                "lin voice",
+                "bea voice",
+                "oscar voice",
+                "lily voice",
+                "character voice",
+            ],
+            "Visemes / Mouth animations": [
+                "mouth animations",
+                "visemes",
+                "lip synch",
+                "lip synching",
+                "synchronization",
+            ],
+        },
+        "Generated Content": {
+            "Grading issue": [
+                "grading",
+                "Did not earn XP",
+                "Didn't receive XP",
+                "Did not receive XP",
+            ],
+        },
+        "Advanced Monolingual English Experience": {
+            "AMEE": ["monolingual"],
+        },
+    },
     "Monetization": {
         "Subscription Packaging": {
             "Ads / rewarded ads": ["ads"],
@@ -366,7 +367,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Goal": "Bugs with monthly quest",
-    "Mouth animation": "Problems with mouth visemes (lip synching)",
+    "Visemes / Mouth animations": "Problems with mouth visemes (lip synching)",
     "Other": "Please try to use a specific feature if possible.",
     "Path": "Problems with the main path page, such as tiles not completing properly. Callouts on path fall under this feature.",
     "Path Sections": "Bugs with the section header, section cards, etc.",
