@@ -68,7 +68,6 @@ def test_get_features_v1():
             "TTS: mispronunciation",
             "TTS: missing",
             "Feature request / feedback",
-            "Visemes / Mouth movements",
         ],
         actual_result,
     )
@@ -288,7 +287,6 @@ def test_feature_filtering():
             "TTS: mispronunciation",
             "TTS: missing",
             "Feature request / feedback",
-            "Visemes / Mouth movements",
         ],
         actual_result_features,
     )

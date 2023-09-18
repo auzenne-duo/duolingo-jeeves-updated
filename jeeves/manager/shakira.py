@@ -25,7 +25,6 @@ _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "TTS: mispronunciation": SlackChannel.FEEDBACK_TTS,
     "TTS: missing": SlackChannel.PROJ_MISSING_TTS,
     "Feature request / feedback": SlackChannel.FEEDBACK_PRODUCT,
-    "Visemes / Mouth movements": SlackChannel.FEEDBACK_VISEMES,
 }
 
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
@@ -34,7 +33,6 @@ _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "TTS is missing": SlackChannel.PROJ_MISSING_TTS,
     "Visual polish": SlackChannel.VISUAL_POLISH,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
-    "Visemes/Mouth movements": SlackChannel.FEEDBACK_VISEMES,
 }
 
 _SLACK_CHANNELS_TO_JIRA_LABELS = {
