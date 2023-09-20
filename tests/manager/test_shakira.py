@@ -118,12 +118,10 @@ class Test(unittest.TestCase):
             related_issue_exists=True,
         )
 
-        shakira_jira_mock.get_issue_details.assert_called_once_with(
-            project="DLAA", issue_key="DEL-1733"
-        )
+        shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
 
         shakira_jira_mock.link_issues.assert_called_once_with(
-            project="DLAA", outward_issue_key="DEL-1733", inward_issue_key="DLAA-1"
+            outward_issue_key="DEL-1733", inward_issue_key="DLAA-1"
         )
 
         shakira_slack_mock.post_issue.assert_called_once_with(
@@ -169,9 +167,7 @@ class Test(unittest.TestCase):
             related_issue_exists=False,
         )
 
-        shakira_jira_mock.get_issue_details.assert_called_once_with(
-            project="DLAA", issue_key="DEL-1733"
-        )
+        shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
         assert not shakira_jira_mock.link_issues.called
         assert not shakira_slack_mock.post_issue.called
 

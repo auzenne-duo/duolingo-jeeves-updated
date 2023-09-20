@@ -184,9 +184,7 @@ class ShakiraManager:
 
         post_to_slack_only = channel is not None and jira_label_from_channel is None
         if related_issue_key and not post_to_slack_only:
-            related_issue_details = self._jira_client.get_issue_details(
-                project=project, issue_key=related_issue_key
-            )
+            related_issue_details = self._jira_client.get_issue_details(issue_key=related_issue_key)
             related_issue_exists = (
                 related_issue_details is not None and related_issue_details.get("id") is not None
             )
@@ -227,7 +225,6 @@ class ShakiraManager:
 
                 if related_issue_exists:
                     self._jira_client.link_issues(
-                        project=project,
                         outward_issue_key=related_issue_key,
                         inward_issue_key=issue_key,
                     )

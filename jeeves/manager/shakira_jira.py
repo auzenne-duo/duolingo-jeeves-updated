@@ -31,6 +31,8 @@ _USERNAME_LITERACY = os.environ.get("SHAKIRA_JIRA_USERNAME_LITERACY")
 _API_TOKEN_LITERACY = os.environ.get("SHAKIRA_JIRA_API_TOKEN_LITERACY")
 _USERNAME_DET = os.environ.get("JIRA_USERNAME")
 _API_TOKEN_DET = os.environ.get("JIRA_API_TOKEN")
+_USERNMAE_ALL_PROJECTS = os.environ.get("JIRA_USERNAME")
+_API_TOKEN_ALL_PROJECTS = os.environ.get("JIRA_API_TOKEN")
 
 _ISSUE_TYPE_BUG = "Bug"
 _ISSUE_TYPE_STORY = "Story"
@@ -91,6 +93,19 @@ class ShakiraJiraApiClient:
             return HTTPBasicAuth(_USERNAME_WEB, _API_TOKEN_WEB)
         else:
             return HTTPBasicAuth(_USERNAME_IOS, _API_TOKEN_IOS)
+
+    def _get_full_access_jira_auth(self) -> HTTPBasicAuth:
+        """
+        Returns a Jira account with access to all projects.
+
+        The individual Shake To Report credentials are desired because they make
+        the reporting user align with people's expectations better, and for legacy reasons.
+        In the future, we may like to consolidate accounts, but for now, the individual
+        project accounts can run into issues when we try to link issues because they do not
+        have access to all Jira projects. Thus, we provide an account with full access for
+        making read-only or "link issues" backend requests.
+        """
+        return HTTPBasicAuth(_USERNMAE_ALL_PROJECTS, _API_TOKEN_ALL_PROJECTS)
 
     def _get_metadata_url_and_params(
         self, projects: Union[str, List[str]], issue_types: Union[str, List[str]]
@@ -326,7 +341,7 @@ class ShakiraJiraApiClient:
             print_request_exception(e, rollbar_level="error")
             return None
 
-    def get_issue_details(self, project: str, issue_key: str) -> Optional[Dict]:
+    def get_issue_details(self, issue_key: str) -> Optional[Dict]:
         """
         Get details for JIRA issue with key issue_key
         For reference: https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get
@@ -337,7 +352,7 @@ class ShakiraJiraApiClient:
         """
         url = f"{_HOST}/rest/api/3/issue/{issue_key}"
         headers = {"Accept": "application/json"}  # header required by JIRA API
-        auth = self._get_jira_auth(project)
+        auth = self._get_full_access_jira_auth()
 
         try:
             r = get(url, auth=auth, headers=headers)
@@ -350,7 +365,6 @@ class ShakiraJiraApiClient:
 
     def link_issues(
         self,
-        project: str,
         outward_issue_key: str,
         inward_issue_key: str,
         link_type: str = "Relates",
@@ -362,12 +376,11 @@ class ShakiraJiraApiClient:
         parameters:
             outward_issue_key: JIRA issue to create link from e.g. DLAA-5690
             inward_issue_key: JIRA issue to create link to e.g. DLAA-5691
-
         """
 
         url = f"{_HOST}/rest/api/3/issueLink"
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
-        auth = self._get_jira_auth(project)
+        auth = self._get_full_access_jira_auth()
         data = {
             "outwardIssue": {"key": outward_issue_key},
             "inwardIssue": {"key": inward_issue_key},
