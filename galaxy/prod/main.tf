@@ -47,7 +47,7 @@ module "duolingo-jeeves" {
   service                              = var.service
   subservice                           = "api"
   health_check_path                    = "/health"
-  min_count                            = 1    # Minimum number of tasks to run in autoscaling group
+  min_count                            = 2    # Minimum number of tasks to run in autoscaling group
   max_count                            = 5    # Maximum number of tasks to run in autoscaling group
   scale_out_cpu                        = 80   # Scale out at this cpu usage (percent)
   memory                               = 8192 # Maximum memory (default: 128MB)
