@@ -57,6 +57,9 @@ const QualityGraph = ({
         mode: p === "Overall" ? "lines+markers" : "lines",
         name: LEGEND_MAP[p],
         type: "scatter",
+        // Hide all traces except overall scores, unless they're
+        // manually enabled by clicking them in the legend.
+        visible: p === "Overall" ? true : "legendonly",
         // Scores are actually computed on EST date grouping, but
         // for simplicity we pretend that they are local date groups
         // in the UI.

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Toggle } from "web-ui";
+import { Toggle } from "web-ui/juicy";
 
 import cn from "classnames";
 import styles from "components/LabelledToggle.scss";
