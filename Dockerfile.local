@@ -56,4 +56,4 @@ COPY --from=web-builder /code/dist ./web/dist
 
 EXPOSE 8080
 
-CMD ["uwsgi", "uwsgi_local.ini"]
+CMD ["uwsgi", "uwsgi.ini", "--http-socket", ":8080"]

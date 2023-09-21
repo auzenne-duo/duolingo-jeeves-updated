@@ -42,4 +42,4 @@ RUN pip3 install -r "$REQUIREMENTS" --src /usr/local/src
 
 COPY . .
 
-CMD ["python", "uwsgi_dev.ini"]
+CMD ["python", "uwsgi.ini"]

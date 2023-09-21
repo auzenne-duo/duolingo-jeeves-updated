@@ -2,7 +2,36 @@
 
 set -eu -o pipefail
 
-export DUOLINGO_CONFIG=local.yml
+aws_env="localstack"
+
+for arg in "$@"; do
+  case $arg in
+    --aws_env=*)
+      input_aws_env="${arg#*=}"
+      if [[ $input_aws_env == "prod" || $input_aws_env == "dev" ]]; then
+        aws_env="$input_aws_env"
+        shift
+      else
+        echo "Invalid value for --aws_env. Allowed values: {prod, dev}"
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+if [ "$aws_env" == "localstack" ]; then
+  export AWS_ACCESS_KEY_ID=foo
+  export AWS_DEFAULT_REGION=us-east-1
+  export AWS_SECRET_ACCESS_KEY=bar
+  export DUOLINGO_CONFIG="local.yml"
+  export USER_AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+  export USER_AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+else
+  export COMPOSE_FILE=docker-compose.api-only.yml
+  export DUOLINGO_CONFIG="${aws_env}.yml:local.api-only.yml"
+fi
+
+echo "Using ${aws_env} environment for AWS services along with local API."
 
 CONFIG_DIR=config
 DUOLINGO_CONFIG_BASE=base.yml
@@ -10,7 +39,14 @@ CONFIG_FILE=${CONFIG_DIR}/${DUOLINGO_CONFIG}
 CONFIG_FILE_BASE=${CONFIG_DIR}/${DUOLINGO_CONFIG_BASE}
 
 get_config_value() {
-  result=$(yq -er "$1" ${CONFIG_FILE} 2> /dev/null) || result=$(yq -er "$1" ${CONFIG_FILE_BASE} 2> /dev/null)
+  # Get the value requested in $1 from the yaml file(s) stored in DUOLINGO_CONFIG as well as the base yaml file
+  IFS=":" read -ra config_files <<< "${CONFIG_FILE}"
+
+  # Read from the end first, since the config files are loaded from the environment variable left to right
+  config_files+=("${CONFIG_FILE_BASE}")
+  for ((i = ${#config_files[@]} - 1; i >= 0; i--)); do
+    result=$(yq -er "$1" "${config_files[i]}" 2> /dev/null) && break
+  done
 }
 
 # Check for JIRA_USERNAME and JIRA_API_TOKEN environment variables
@@ -50,17 +86,10 @@ fi
 
 get_config_value ".opensearch.data_version_identifier"
 if [ -z "${result}" ]; then
-  echo "Error: Could not get the value of 'data_version_identifier' from either ${CONFIG_FILE} or ${CONFIG_FILE_BASE}."
+  echo "Error: Could not get the value of 'data_version_identifier' from either ${DUOLINGO_CONFIG} or ${DUOLINGO_CONFIG_BASE}."
   exit 1
 fi
 export DATA_VERSION_IDENTIFIER=${result}
 echo "Using DATA_VERSION_IDENTIFIER v${DATA_VERSION_IDENTIFIER}"
-
-export USER_AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-export USER_AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-
-export AWS_ACCESS_KEY_ID=foo
-export AWS_DEFAULT_REGION=us-east-1
-export AWS_SECRET_ACCESS_KEY=bar
 
 make web

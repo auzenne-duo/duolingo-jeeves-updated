@@ -33,7 +33,9 @@ You can run unit tests with `pytest`. These are also run as part of the pre-comm
 To run the microservice locally:
 
 - [Install Docker](https://docs.docker.com/docker-for-mac/install/) and increase the memory limit to 8GB if you haven't already.
-- Run `./run_local.sh` to run most of the Jeeves stack locally with `docker compose`. (If you're not running this from Pittsburgh HQ, be sure to have the VPN on.)
+- Run `./run_local.sh [--aws_env={dev|prod}]` to run Jeeves locally with `docker compose`. (If you're not running this from Pittsburgh HQ, be sure to have the VPN on.)
+  - If you **exclude** the argument `--aws_env`, this will set up a `localstack` instance for S3 and SQS. This will run some of the ECS workers locally, such as `s3-worker`, `sqs-worker-1`, `sqs-worker-2`, and `spike-worker`, so that you may debug the full Jeeves pipeline. It also runs full versions of OpenSearch and Memcached locally using their official Docker base images.
+  - If you _only_ need to run the API or the front end code, you may add `--aws_env=dev` or `--aws_env=prod` point the API to the `dev` or `prod` versions of S3 and OpenSearch using your personal S3 credentials. _Be **very careful** to not overwrite any data in the `dev` or `prod` environment when running in this mode!_ (Note: this will also run a local instance of `memcached` because this is a dependency of the API.)
 - Open [`http://localhost:8080/`](http://localhost:8080/).
 
 The following are required when you update any requirements files.

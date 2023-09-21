@@ -50,4 +50,4 @@ RUN aws s3 sync "$DUPLICATE_DETECTOR_REMOTE_PATH" $DUPLICATE_DETECTOR_MODEL
 
 COPY . .
 
-CMD ["python", "uwsgi_dev.ini"]
+CMD ["python", "uwsgi.ini"]
