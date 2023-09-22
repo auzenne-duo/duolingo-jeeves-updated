@@ -149,14 +149,14 @@ const Topbar = () => {
     applyFilters(params);
   };
 
-  const handleUseLemmasChange = () => {
+  const handleUseLemmasClick = () => {
     const params = new URLSearchParams(location.search);
     params.delete("page");
     params.set("use-lemmas", (!useLemmas).toString());
     applyFilters(params);
   };
 
-  const handleOnlyBugsChange = () => {
+  const handleOnlyBugsClick = () => {
     const params = new URLSearchParams(location.search);
     params.set("only-bugs", (!onlyBugs).toString());
     params.delete("page");
@@ -267,7 +267,7 @@ const Topbar = () => {
           <LabelledToggle
             checked={useLemmas}
             className={styles["hide-on-mobile"]}
-            onChange={handleUseLemmasChange}
+            onClick={handleUseLemmasClick}
             title="Use lemmas: "
           />
         ) : null}
@@ -275,7 +275,7 @@ const Topbar = () => {
           <LabelledToggle
             checked={onlyBugs}
             className={styles["hide-on-mobile"]}
-            onChange={handleOnlyBugsChange}
+            onClick={handleOnlyBugsClick}
             title="Only bugs: "
           />
         ) : null}

@@ -7,14 +7,14 @@ import styles from "components/LabelledToggle.scss";
 export interface Props {
   checked: boolean;
   className?: string;
-  onChange?: () => void;
+  onClick?: () => void;
   title: string;
 }
 
-const LabelledToggle = ({ checked, className, onChange, title }: Props) => (
+const LabelledToggle = ({ checked, className, onClick, title }: Props) => (
   <div className={cn(styles.wrap, className)}>
     <span className={styles.label}>{title}</span>
-    <Toggle checked={checked} className={styles.toggle} onChange={onChange} />
+    <Toggle checked={checked} className={styles.toggle} onClick={onClick} />
   </div>
 );
 
