@@ -113,7 +113,7 @@ def _send_s3_doc_to_sqs(
     Parameters:
         s3_client: Duolingo base library S3 DAL object. Expected to have
                    read/write access to a bucket with name bucket_name.
-        bucket_name: The name of the S3 bucket we should read documents from.
+        s3_bucket_name: The name of the S3 bucket we should read documents from.
         sqs_client: Duolingo base library SQS DAL object. Downstream consumers
                     of the represented queue are responsible for verifying
                     documents and indexing them into OpenSearch.
@@ -148,7 +148,7 @@ def _crawl_documents_for_data_source(
     Parameters:
         s3_client: Duolingo base library S3 DAL object. Expected to have
                    read/write access to a bucket with name bucket_name.
-        bucket_name: The name of the S3 bucket we should store documents to.
+        s3_bucket_name: The name of the S3 bucket we should store documents to.
         sqs_client: Duolingo base library SQS DAL object. Downstream consumers
                     of the represented queue are responsible for verifying
                     documents and indexing them into OpenSearch.

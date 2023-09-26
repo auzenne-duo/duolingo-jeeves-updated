@@ -46,7 +46,7 @@ class ZendeskDocument(JeevesDocument):
     metadata: JSON = attr.ib()
 
     @staticmethod
-    def get_data_source_identifier():
+    def get_data_source_identifier() -> str:
         """
         Please see parent class for documentation
         """

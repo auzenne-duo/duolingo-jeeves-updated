@@ -6,7 +6,7 @@ Manager for Reddit documents.
 import json
 import os
 from datetime import datetime
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Type
 
 import pytz
 import requests
@@ -36,7 +36,7 @@ _HEADERS = {"User-Agent": "MyBot/0.0.1"}
 
 class RedditManager(JeevesManager):
     @staticmethod
-    def get_managed_document_type():
+    def get_managed_document_type() -> Type[JeevesDocument]:
         """
         Please see parent class for documentation
         """

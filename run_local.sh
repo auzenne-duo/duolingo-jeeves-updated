@@ -20,12 +20,7 @@ for arg in "$@"; do
 done
 
 if [ "$aws_env" == "localstack" ]; then
-  export AWS_ACCESS_KEY_ID=foo
-  export AWS_DEFAULT_REGION=us-east-1
-  export AWS_SECRET_ACCESS_KEY=bar
   export DUOLINGO_CONFIG="local.yml"
-  export USER_AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-  export USER_AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 else
   export COMPOSE_FILE=docker-compose.api-only.yml
   export DUOLINGO_CONFIG="${aws_env}.yml:local.api-only.yml"
@@ -91,5 +86,14 @@ if [ -z "${result}" ]; then
 fi
 export DATA_VERSION_IDENTIFIER=${result}
 echo "Using DATA_VERSION_IDENTIFIER v${DATA_VERSION_IDENTIFIER}"
+
+if [ "$aws_env" == "localstack" ]; then
+  export USER_AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+  export USER_AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+
+  export AWS_ACCESS_KEY_ID=foo
+  export AWS_DEFAULT_REGION=us-east-1
+  export AWS_SECRET_ACCESS_KEY=bar
+fi
 
 make web

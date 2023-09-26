@@ -6,7 +6,7 @@ import logging
 import re
 import sys
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Type
 
 import rollbar
 from duolingo_base.dal.s3 import S3Client, S3Exception
@@ -74,7 +74,7 @@ class JiraManager(JeevesManager):
         return JiraDocument.get_feature_field_key()
 
     @staticmethod
-    def get_managed_document_type():
+    def get_managed_document_type() -> Type[JeevesDocument]:
         """
         Please see parent class for documentation
         """

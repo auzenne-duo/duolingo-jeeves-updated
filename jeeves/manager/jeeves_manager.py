@@ -34,7 +34,7 @@ class JeevesManager(ABC):
 
     @staticmethod
     @abstractmethod
-    def get_managed_document_type() -> JeevesDocument:
+    def get_managed_document_type() -> Type[JeevesDocument]:
         """
         Return the class corresponding to the type of documents managed by this class
 
