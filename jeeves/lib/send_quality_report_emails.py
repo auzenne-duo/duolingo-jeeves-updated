@@ -52,8 +52,21 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("haina@duolingo.com", 491886719),
             ("bruce@duolingo.com", 502313000),
         ],
-        "Connections": [("nico@duolingo.com", 614168902), ("hideki@duolingo.com", 1076)],
-        "Onboarding": [],
+        "Connections": [
+            ("nico@duolingo.com", 614168902),
+            ("hideki@duolingo.com", 1076),
+            ("maha@duolingo.com", 20528629),
+            ("amia@duolingo.com", 48361939),
+            ("renee@duolingo.com", 339403062),
+            ("jackdu@duolingo.com", 552001465),
+            ("chenglai@duolingo.com", 686445822),
+            ("martina@duolingo.com", 698342914),
+            ("jason.xia@duolingo.com", 862420155),
+            ("xinyi@duolingo.com", 445372985),
+            ("maggie.huang@duolingo.com", 49022092),
+            ("bill.guo@duolingo.com", 800409886),
+        ],
+        "Onboarding": [("sarahtracy@duolingo.com", 100396129), ("mike@duolingo.com", 32080913)],
         "Resurrection": [("kevinyang@duolingo.com", 3057357), ("tao@duolingo.com", 515653291)],
         "Reengagement": [("osman@duolingo.com", 555374397), ("stephanie@duolingo.com", 350148009)],
         "Retention": [
@@ -69,7 +82,10 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("elriczhong@duolingo.com", 338612774),
             ("jasminezhang@duolingo.com", 139586770),
         ],
-        "Growth Web": [],
+        "Growth Web": [
+            ("christopher@duolingo.com", 12670686),
+            ("deanna@duolingo.com", 95819324),
+        ],
     },
     "Learning R&D": {
         _AREA: [
