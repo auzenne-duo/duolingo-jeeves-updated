@@ -92,7 +92,7 @@ JIRA_FEATURES = {
         },
     },
     "Learning R&D": {
-        "Generated Sessions": {
+        "Personalized Sessions": {
             "Generated sessions": [],
             "Smart tips": ["smart tip"],
         },

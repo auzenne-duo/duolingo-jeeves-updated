@@ -119,9 +119,9 @@ class TestQualityReport(unittest.TestCase):
             past_issue_datasets=[],
             project_to_scores=mock_score_history,
             start_date=datetime(2022, 1, 1, tzinfo=pytz.utc),
-            team="Generated Sessions",
+            team="Personalized Sessions",
             area="Learning R&D",
         )
         result = test_report.jeeves_link
-        expected = "https://jeeves.duolingo.com/en/quality-report?area=Learning%20R%26D&team=Generated%20Sessions"
+        expected = "https://jeeves.duolingo.com/en/quality-report?area=Learning%20R%26D&team=Personalized%20Sessions"
         self.assertEqual(result, expected)

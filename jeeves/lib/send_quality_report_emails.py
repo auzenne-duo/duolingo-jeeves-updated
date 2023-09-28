@@ -104,9 +104,10 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("will.haines@duolingo.com", 13834416),
             ("path-team@duolingo.com", None),
         ],
-        "Generated Sessions": [
+        "Personalized Sessions": [
             ("anton@duolingo.com", 358717862),
             ("sanil@duolingo.com", 800086825),
+            ("yash@duolingo.com", 59192169),
         ],
         "New Writing Systems": [("chris@duolingo.com", 15316126)],
         "Media Learning": [
