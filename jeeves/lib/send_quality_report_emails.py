@@ -100,7 +100,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         _RECEIVE_ALL: [],
         "Path": [
             ("rsalvador@duolingo.com", 591913431),
-            ("ananya@duolingo.com", 361463477),
             ("leen@duolingo.com", 243742888),
             ("will.haines@duolingo.com", 13834416),
             ("path-team@duolingo.com", None),
@@ -143,7 +142,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("haifa@duolingo.com", 558570393),
         ],
         "Max": [
-            ("bill@duolingo.com", 130866006),
             ("megan.bednarczyk@duolingo.com", 111864136),
             ("edwin@duolingo.com", 201732115),
         ],
