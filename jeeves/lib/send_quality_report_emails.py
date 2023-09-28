@@ -150,9 +150,17 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
     "New Subjects": {_AREA: [], _RECEIVE_ALL: [("tianyu@duolingo.com", 919037599)]},
     "Product Quality": {
         _AREA: [("peter@duolingo", 97197056)],
-        "Delight": [
+        "Engineering Studio": [
+            ("ramya@duolingo.com", 550324696),
+            ("becky@duolingo.com", 614576367),
+        ],
+        "Design Systems": [
+            ("ash@duolingo.com", 1252195),
             ("shawn.buessing@duolingo.com", 18288193),
-            ("rachael@duolingo.com", 44041393),
+        ],
+        "Stability and Performance": [
+            ("leon@duolingo.com", 233506),
+            ("caesar@duolingo.com", 197953187),
         ],
     },
 }
