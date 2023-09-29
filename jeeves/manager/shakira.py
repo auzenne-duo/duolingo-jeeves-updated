@@ -22,15 +22,12 @@ _VIA_JEEVES_MARKER = "[via Jeeves]"
 _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "Visual polish": SlackChannel.VISUAL_POLISH,
     "Lesson content / accepted translations": SlackChannel.FEEDBACK_LANGUAGE,
-    "TTS: mispronunciation": SlackChannel.FEEDBACK_TTS,
-    "TTS: missing": SlackChannel.PROJ_MISSING_TTS,
     "Feature request / feedback": SlackChannel.FEEDBACK_PRODUCT,
 }
 
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "Lesson content issue": SlackChannel.FEEDBACK_LANGUAGE,
-    "TTS is mispronounced": SlackChannel.FEEDBACK_TTS,
-    "TTS is missing": SlackChannel.PROJ_MISSING_TTS,
+    "Text-to-Speech / Visemes / Mouth animations": SlackChannel.FEEDBACK_TTS,
     "Visual polish": SlackChannel.VISUAL_POLISH,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
 }

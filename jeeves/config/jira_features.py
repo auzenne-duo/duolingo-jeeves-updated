@@ -129,26 +129,7 @@ JIRA_FEATURES = {
         },
     },
     "Learning Scaling": {
-        "Learning Infrastructure": {
-            "World character voice": [
-                "voice",
-                "tts voice",
-                "junior voice",
-                "zari voice",
-                "lin voice",
-                "bea voice",
-                "oscar voice",
-                "lily voice",
-                "character voice",
-            ],
-            "Visemes / Mouth animations": [
-                "mouth animations",
-                "visemes",
-                "lip synch",
-                "lip synching",
-                "synchronization",
-            ],
-        },
+        "Learning Infrastructure": {},
         "Generated Content": {
             "Grading issue": [
                 "grading",
@@ -369,7 +350,6 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Goal": "Bugs with monthly quest",
-    "Visemes / Mouth animations": "Problems with mouth visemes (lip synching)",
     "Other": "Please try to use a specific feature if possible.",
     "Path": "Problems with the main path page, such as tiles not completing properly. Callouts on path fall under this feature.",
     "Path Sections": "Bugs with the section header, section cards, etc.",
