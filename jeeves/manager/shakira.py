@@ -27,7 +27,7 @@ _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
 
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "Lesson content issue": SlackChannel.FEEDBACK_LANGUAGE,
-    "Text-to-Speech / Visemes / Mouth animations": SlackChannel.FEEDBACK_TTS,
+    "TTS / Visemes / Mouth animations": SlackChannel.FEEDBACK_TTS,
     "Visual polish": SlackChannel.VISUAL_POLISH,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
 }
