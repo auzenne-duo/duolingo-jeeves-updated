@@ -127,6 +127,9 @@ JIRA_FEATURES = {
             "Pronunciation Bingo": [],
             "DuoRadio": [],
         },
+        "Experimental AI": {
+            "Facetime": [],
+        },
     },
     "Learning Scaling": {
         "Learning Infrastructure": {},
