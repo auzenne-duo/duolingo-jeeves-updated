@@ -162,24 +162,22 @@ JIRA_FEATURES = {
             "Hard mode": [],
             "Match madness": [],
             "Shop items": [],
+            "Side Quests": ["side quest"],
         },
-        "Coach": {
+        "Max Coach": {
             "Explain my Answer": ["EMA", "explanation"],
             "Lesson Coach": ["Coach"],
             "On-call tips": ["OCT"],
-        },
-        "Immersion": {
-            "Role Play": ["roleplay", "role-play"],
-        },
-        "Max Engine": {"Max Backend": []},
-        "Super Features": {
-            "Side Quests": ["side quest"],
             "Mistakes inbox": [],
             "Practice Hub": [],
             "Family plan": [],
             "Words List": ["Word list"],
             "Legendary": ["Legendarize"],
         },
+        "Max Immersion": {
+            "Role Play": ["roleplay", "role-play"],
+        },
+        "Max Engine": {"Max Backend": []},
     },
     "New Initiatives": {
         "Schools": {
