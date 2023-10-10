@@ -52,7 +52,7 @@ _config = Config.load_config()
 LOG = logging.getLogger(__name__)
 
 # Default limit of 1000 must be increased to provide enough space for ~500 experiment conditions
-_MAX_FIELDS_LIMIT = 3000
+_MAX_FIELDS_LIMIT = 4000
 # If we ever change the duplicate detection model, make sure this value is
 # updated appropriately
 _SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
