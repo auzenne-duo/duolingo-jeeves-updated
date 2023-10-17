@@ -5,7 +5,7 @@ Add your @duolingo.com email address to the _UNSUBSCRIBED list in order to unsub
 """
 
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from duolingo_base.config import Config
 from duolingo_notify.api import RequestBuilder
@@ -254,9 +254,27 @@ def get_email_body_html(report: QualityReport) -> str:
     return template.render(report=report)
 
 
-def send_email(report: QualityReport):
+def _get_recipients(report: QualityReport) -> List[Tuple[str, Optional[int]]]:
+    """
+    Returns a list of recipients for each area or team.
+    """
+    recipients: List[Tuple[str, Optional[int]]] = []
+    if isinstance(report, QualityReportArea):
+        recipients = RECIPIENT_GROUPS[report.area][_AREA]
+        recipients.extend(RECEIVE_ALL_AREA_REPORTS)
+    else:
+        if not report.title in RECIPIENT_GROUPS[report.area]:
+            LOG.info(f"missing recipients for team: {report.title}")
+            return []
+        recipients = RECIPIENT_GROUPS[report.area][report.title]
+    recipients.extend(RECIPIENT_GROUPS[report.area].get(_RECEIVE_ALL, []))
+    recipients.extend(RECEIVE_ALL_REPORTS)
+    return recipients
+
+
+def send_email(report: QualityReport, recipient_override: Optional[str] = None):
     # Only production environment should sent emails
-    if not _IS_PRODUCTION_ENV:
+    if not _IS_PRODUCTION_ENV and recipient_override is None:
         return
 
     dict_to_track = {
@@ -268,17 +286,10 @@ def send_email(report: QualityReport):
         LOG.info(f"missing recipients for area: {report.area}")
         return
 
-    recipients = []
-    if isinstance(report, QualityReportArea):
-        recipients = RECIPIENT_GROUPS[report.area][_AREA]
-        recipients.extend(RECEIVE_ALL_AREA_REPORTS)
+    if recipient_override is not None:
+        recipients: List[Tuple[str, Optional[int]]] = [(recipient_override, None)]
     else:
-        if not report.title in RECIPIENT_GROUPS[report.area]:
-            LOG.info(f"missing recipients for team: {report.title}")
-            return
-        recipients = RECIPIENT_GROUPS[report.area][report.title]
-    recipients.extend(RECIPIENT_GROUPS[report.area].get(_RECEIVE_ALL, []))
-    recipients.extend(RECEIVE_ALL_REPORTS)
+        recipients = _get_recipients(report)
 
     for email, user_id in recipients:
         if email in _UNSUBSCRIBED:
@@ -295,3 +306,4 @@ def send_email(report: QualityReport):
             track={"email send": dict_to_track, "email open": dict_to_track},
         )
         rb.send_medium_priority()
+        LOG.info(f"sent quality report email with title {report.title} to {email}")

@@ -1,8 +1,9 @@
+import logging
 import os
 import shutil
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import pytz
 from duolingo_base.util import registry
@@ -24,6 +25,7 @@ from jeeves.util.quality_report_util import QUALITY_REPORT_OVERALL_KEY, QUALITY_
 
 _AREAS_TO_EXCLUDE = ["Many", "New Initiatives", "None"]
 _TEAMS_TO_EXCLUDE = ["None"]
+LOG = logging.getLogger(__name__)
 
 
 @dataclass
@@ -41,10 +43,7 @@ class QualityReportOverview:
     quality_report_dal=registry.reference(QualityReportDAL),
 )
 class QualityReportManager:
-    def __init__(
-        self,
-        quality_report_dal: QualityReportDAL,
-    ) -> None:
+    def __init__(self, quality_report_dal: QualityReportDAL) -> None:
         self.quality_report_dal = quality_report_dal
 
     def get_area_quality_overviews(self) -> List[QualityReportOverview]:
@@ -150,14 +149,34 @@ class QualityReportManager:
         """
         return self.quality_report_dal.get_latest_serialized_quality_report(title)
 
-    def generate_reports(self, save_snapshots=False) -> None:
+    def generate_reports(
+        self,
+        save_snapshots: bool = False,
+        is_dry_run: bool = False,
+        dry_run_recipient: Optional[str] = None,
+        window_size: int = QUALITY_REPORT_WINDOW_DAYS,
+    ) -> None:
         """
-        Fetches Jira issues from the past QUALITY_REPORT_WINDOW_DAYS and creates
-        quality reports.  Serialized reports are uploaded to s3 daily. If save_snapshots
-        is set to true, issue data and scores are saved to s3 and emails are sent out.
+        Fetches Jira issues from the past `window_size` days and creates
+        quality reports. Serialized reports are uploaded to s3 daily.
+
+        Params:
+            save_snapshots: if true, quality report data is saved to s3 and emails are sent out.
+            is_dry_run: if true, perform all tasks, but do not send emails to the normal recipient list, and do not upload results.
+            dry_run_recipient: if set, send emails to this recipient instead of the normal recipient list during a dry run.
+            window_size: number of days to look back for issues.
         """
+        if dry_run_recipient is not None and not is_dry_run:
+            raise ValueError("dry_run_recipient should only be set with is_dry_run=True")
+        if is_dry_run:
+            LOG.warning("Running in dry run mode. Reports will not be uploaded.")
+            if dry_run_recipient is not None:
+                LOG.warning(
+                    f"Sending emails to {dry_run_recipient} instead of the normal recipient list."
+                )
+
         end_date = datetime.now(tz=pytz.utc)
-        start_date = end_date - timedelta(days=QUALITY_REPORT_WINDOW_DAYS)
+        start_date = end_date - timedelta(days=window_size)
         # Ensure directory for graphs exists
         if not os.path.exists(QUALITY_REPORT_PLOTS_DIRECTORY):
             os.mkdir(QUALITY_REPORT_PLOTS_DIRECTORY)
@@ -177,7 +196,8 @@ class QualityReportManager:
                 )
                 # upload latest quality report data
                 quality_report_data = quality_report.serialize()
-                self.quality_report_dal.upload_serialized_quality_report(quality_report)
+                if not is_dry_run:
+                    self.quality_report_dal.upload_serialized_quality_report(quality_report)
                 team_data.append(quality_report_data)
                 quality_reports.append(quality_report)
 
@@ -185,10 +205,17 @@ class QualityReportManager:
                 area, end_date, jira_docs, start_date, team_data
             )
             quality_reports.append(area_quality_report)
-            self.quality_report_dal.upload_serialized_quality_report(area_quality_report)
+            if not is_dry_run:
+                self.quality_report_dal.upload_serialized_quality_report(area_quality_report)
         # if it's the right day of the week, we will send emails and save report data
-        if save_snapshots:
+        if save_snapshots and not is_dry_run:
             self.save_report_data(quality_reports, end_date)
+        elif is_dry_run and dry_run_recipient is not None:
+            LOG.warning(f"Dry run report assembly complete. Sending email to {dry_run_recipient}.")
+            for quality_report in quality_reports:
+                send_email(quality_report, dry_run_recipient)
+        else:
+            LOG.warning("Dry run report assembly complete. No emails sent.")
         # clean up plots directory
         shutil.rmtree(QUALITY_REPORT_PLOTS_DIRECTORY)
 
