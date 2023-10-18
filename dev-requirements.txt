@@ -77,7 +77,9 @@ contourpy==1.1.0
     #   -r requirements.txt
     #   matplotlib
 coverage[toml]==7.2.7
-    # via pytest-cov
+    # via
+    #   coverage
+    #   pytest-cov
 cssselect2==0.4.1
     # via
     #   -r requirements.txt
@@ -128,12 +130,14 @@ flask[async]==2.3.2
     # via
     #   -r requirements.txt
     #   duolingo-base
+    #   flask
     #   flask-cors
 flask-cors==3.0.10
     # via -r requirements.txt
 fonttools[woff]==4.27.1
     # via
     #   -r requirements.txt
+    #   fonttools
     #   matplotlib
     #   weasyprint
 fsspec==2023.6.0
@@ -422,7 +426,7 @@ pandas==2.0.1
     # via
     #   -r requirements.txt
     #   seaborn
-pillow==9.5.0
+pillow==10.1.0
     # via
     #   -r requirements.txt
     #   matplotlib
