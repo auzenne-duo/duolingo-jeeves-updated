@@ -5,7 +5,12 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
 from jeeves.model.jira_document import JiraDocument
-from jeeves.model.quality_score_params import PRIORITY_SORTING_ORDER, QualityScoreParams
+from jeeves.model.quality_score_params import (
+    PRIORITY_SORTING_ORDER,
+    PriorityValue,
+    QualityScoreParams,
+    Resolution,
+)
 from jeeves.util.date_util import str_to_date
 
 # The maximum number of issues shown per "worst issues" category
@@ -17,6 +22,8 @@ class ScoreTypeCount:
     count: int
     points: int
     label: str
+
+    duplicate_bonus_points: Optional[int] = None
 
 
 @dataclass
@@ -85,13 +92,23 @@ class QualityReportBase:
         Returns:
             score_breakdown: a ScoreBreakdown object containing the score breakdown stats
         """
-        quality_score_params_count: Dict[QualityScoreParams, int] = Counter()
+        quality_score_params_count: Dict[Tuple[PriorityValue, Resolution], int] = Counter(
+            [
+                (issue.quality_score_params.group, issue.quality_score_params.resolution)
+                for issue in issues
+            ]
+        )
+        quality_score_duplicate_bonuses: Dict[Tuple[PriorityValue, Resolution], int] = defaultdict(
+            int
+        )
 
         open_points, closed_points = 0, 0
         for issue in issues:
-            quality_score_params_count[issue.quality_score_params] += 1
             if issue.quality_score_params.is_done:
                 closed_points += issue.quality_score_params.score
+                quality_score_duplicate_bonuses[
+                    (issue.quality_score_params.group, issue.quality_score_params.resolution)
+                ] += (issue.quality_score_params.duplicates or 0)
             else:
                 open_points += issue.quality_score_params.score
 
@@ -110,7 +127,13 @@ class QualityReportBase:
         )
         quality_score_type_counts = [
             ScoreTypeCount(
-                quality_score_params_count[score_params], score_params.score, score_params.text
+                quality_score_params_count[(score_params.group, score_params.resolution)],
+                score_params.score,
+                score_params.text,
+                quality_score_duplicate_bonuses[(score_params.group, score_params.resolution)]
+                if quality_score_duplicate_bonuses[(score_params.group, score_params.resolution)]
+                > 0
+                else None,
             )
             for score_params in score_params_types
         ]

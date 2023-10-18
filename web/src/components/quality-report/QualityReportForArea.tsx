@@ -185,6 +185,9 @@ const QualityReportForArea = ({ area, team }: Props) => {
                     <td key={j}>
                       {b.quality_score_type_counts[i].points} (
                       {b.quality_score_type_counts[i].count})
+                      {b.quality_score_type_counts[i].duplicate_bonus_points
+                        ? ` + ${b.quality_score_type_counts[i].duplicate_bonus_points} duplicate bonus`
+                        : null}
                     </td>
                   ))}
                 </tr>

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
@@ -44,7 +44,7 @@ priority_map = {
     "Unprioritized": PriorityValue.UNPRIORITIZED,
 }
 
-score_map = {
+score_map: Dict[PriorityValue, Dict[Resolution, int]] = {
     PriorityValue.ACUTE: {
         Resolution.FIXED_WITHIN_ONE_WEEK: 200,
         Resolution.FIXED: 100,
@@ -86,17 +86,23 @@ class QualityScoreParams:
     score: int
     text: str
 
+    duplicates: Optional[int] = field(default=None, compare=False, hash=False)
+
     @classmethod
     def init_from_group_and_resolution(
-        cls, group: PriorityValue, resolution: Resolution
+        cls,
+        group: PriorityValue,
+        resolution: Resolution,
+        duplicates: Optional[int] = None,
     ) -> QualityScoreParams:
         """
         Initialize a score params object from the priority group and resolution
+        (with duplicate information, if available).
         """
         is_done = not resolution is Resolution.OPEN
-        score = cls.get_score(group, resolution)
-        text = cls.get_text(group, resolution)
-        return QualityScoreParams(is_done, group, resolution, score, text)
+        score = cls.get_score(group, resolution, duplicates or 0)
+        text = cls.get_text(group, resolution, duplicates)
+        return QualityScoreParams(is_done, group, resolution, score, text, duplicates=duplicates)
 
     @classmethod
     def init_from_jira_data(
@@ -104,6 +110,7 @@ class QualityScoreParams:
         creation_date: datetime,
         priority: str,
         resolution_date: Optional[datetime],
+        duplicates: int,
         labels: Optional[List[str]] = None,
         resolution_str: str = "",
     ) -> QualityScoreParams:
@@ -127,17 +134,26 @@ class QualityScoreParams:
         else:
             resolution = Resolution.OPEN if not is_done else Resolution.CLOSED_UNFIXED
 
-        score = cls.get_score(group, resolution)
-        text = cls.get_text(group, resolution)
-        return QualityScoreParams(is_done, group, resolution, score, text)
+        score = cls.get_score(group, resolution, duplicates)
+        text = cls.get_text(group, resolution, duplicates)
+        return QualityScoreParams(is_done, group, resolution, score, text, duplicates=duplicates)
 
     @classmethod
-    def get_score(cls, group, resolution) -> int:
-        return score_map[group][resolution]
+    def get_score(cls, group: PriorityValue, resolution: Resolution, duplicates: int) -> int:
+        duplicate_bonus = duplicates if resolution != Resolution.OPEN else 0
+        return score_map[group][resolution] + duplicate_bonus
 
     @classmethod
-    def get_text(cls, group, resolution) -> str:
-        return f"{group.value} {resolution.value}"
+    def get_text(
+        cls, group: PriorityValue, resolution: Resolution, duplicates: Optional[int]
+    ) -> str:
+        if duplicates is None:
+            duplicates_suffix = ""
+        else:
+            string_plural_suffix = "" if duplicates == 1 else "s"
+            duplicates_suffix = f" ({duplicates} duplicate{string_plural_suffix})"
+
+        return f"{group.value} {resolution.value}{duplicates_suffix}"
 
     @classmethod
     def get_all_possible_score_params(cls) -> List[QualityScoreParams]:

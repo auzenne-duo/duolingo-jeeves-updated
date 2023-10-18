@@ -24,7 +24,7 @@ class TestQualityReportBase(unittest.TestCase):
 
     def test_calculate_scores(self):
         end_date = datetime(2023, 8, 1)
-        # 1 open medium priority bugs, 1 open high priority bug, 1 closed high priority bug, 1 fixed within 1 week high priority bug, 1 fixed after 1 week medium priority bug
+        # 1 open medium priority bugs, 1 open high priority bug, 1 closed high priority bug (with 1 duplicate), 1 fixed within 1 week high priority bug, 1 fixed after 1 week medium priority bug
         self.report.issues = [
             REPORT_ISSUE_1,
             REPORT_ISSUE_2,
@@ -36,8 +36,8 @@ class TestQualityReportBase(unittest.TestCase):
         score_breakdown = self.report.calculate_scores(end_date, self.report.issues)
         self.assertEqual(score_breakdown.open_points, 110)  # Medium: 10 + High: 100
         self.assertEqual(
-            score_breakdown.closed_points, 130
-        )  # Medium fixed: 10*2 + High fixed within one week: 100 + high close: 10
+            score_breakdown.closed_points, 131
+        )  # Medium fixed: 10*2 + High fixed within one week: 100 + high close (with duplicate): 10 (+1=11)
         self.assertEqual(score_breakdown.overall_score, int(100 * 130 / 240))
 
         expected_quality_score_type_counts = [
@@ -48,7 +48,7 @@ class TestQualityReportBase(unittest.TestCase):
             ScoreTypeCount(count=1, points=100, label="High Fixed within one week"),
             ScoreTypeCount(count=1, points=100, label="High Open"),
             ScoreTypeCount(count=0, points=50, label="High Fixed"),
-            ScoreTypeCount(count=1, points=10, label="High Closed"),
+            ScoreTypeCount(count=1, points=10, duplicate_bonus_points=1, label="High Closed"),
             ScoreTypeCount(count=0, points=20, label="Medium Fixed within one week"),
             ScoreTypeCount(count=2, points=10, label="Medium Fixed"),
             ScoreTypeCount(count=1, points=10, label="Medium Open"),

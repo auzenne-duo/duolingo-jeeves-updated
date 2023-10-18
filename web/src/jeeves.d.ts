@@ -34,6 +34,7 @@ declare namespace JSONAPI {
         count: number;
         label: string;
         points: number;
+        duplicate_bonus_points?: number;
       }[];
     }[];
     scores: QualityScores;

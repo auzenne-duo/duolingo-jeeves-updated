@@ -2,6 +2,7 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
+import pytest
 import pytz
 
 from jeeves.model.quality_report import QualityReportIssueDataset, QualityReportTeam, RecentChanges
@@ -44,20 +45,20 @@ class TestQualityReport(unittest.TestCase):
 
     def test_find_recent_changes(self):
         """
-        old: 1 High open, 1 Low open
+        old: 1 High (1 duplicate) open, 1 Low open
         old score: (0/105) = 0
 
-        Resolved: 1 High open to 1 High closed
-        score with newly resolved issue: (10/(15)) = 0.6666666666666666
-        change in score due to newly resolved issues: 0.6666666666666666 - 0 = 0.6666666666666666
+        Resolved: 1 High open to 1 High closed (+1 duplicate)
+        score with newly resolved issue: (11/(16)) = 0.6875
+        change in score due to newly resolved issues: 0.6875 - 0 = 0.6875
 
         Added: 1 Medium open
-        score with newly included issue: (10/25) = 0.4
-        change in score due to newly included issues: 0.4 - 0.666666 = -0.2666666666666667
+        score with newly included issue: (11/26) = 0.4230769230769231
+        change in score due to newly included issues: 0.4230769230769231 - 0.6875 = -0.2644230769230769
 
         Removed: 1 Low open
-        score with newly removed issue: (10/20) = 0.5
-        change in score due to newly removed issues: 0.5 - 0.4 = 0.1
+        score with newly removed issue: (11/21) = 0.5238095238095238
+        change in score due to newly removed issues: 0.5238095238095238 - 0.4230769230769231 = 0.10073260073260076
         """
 
         issue_data = [
@@ -71,9 +72,9 @@ class TestQualityReport(unittest.TestCase):
         ]
         result = self.report.find_recent_changes(issue_data)
         expected = RecentChanges(
-            change_due_to_included_issues=-26.66666666666667,
-            change_due_to_removed_issues=10.0,
-            change_due_to_resolved_issues=66.66666666666667,
+            change_due_to_included_issues=pytest.approx(-26.442307692307693),
+            change_due_to_removed_issues=pytest.approx(10.073260073260073),
+            change_due_to_resolved_issues=pytest.approx(68.75),
             newly_included_issues={"DLAI-2001"},
             newly_removed_issues={"DLAI-2010"},
             newly_resolved_issues={"DLAI-2002"},
@@ -83,12 +84,12 @@ class TestQualityReport(unittest.TestCase):
 
     def test_find_recent_changes_new_included_issue(self):
         """
-        old: 1 High closed
-        old score: (10/10) = 1
+        old: 1 High closed (1 duplicate)
+        old score: (11/11) = 1
 
         Added: 1 Medium open
-        score with newly included issue: (10/20) = 0.5
-        change in score due to newly included issues: 0.5 - 1 = -0.5
+        score with newly included issue: (11/21) = 0.5238095238095238
+        change in score due to newly included issues: 0.5238095238095238 - 1 = -0.47619047619047616
         """
         issue_data = [
             QualityReportIssueDataset(
@@ -97,9 +98,9 @@ class TestQualityReport(unittest.TestCase):
         ]
         result = self.report.find_recent_changes(issue_data)
         expected = RecentChanges(
-            change_due_to_included_issues=-50.0,
-            change_due_to_removed_issues=0.0,
-            change_due_to_resolved_issues=0.0,
+            change_due_to_included_issues=pytest.approx(-47.61904761904762),
+            change_due_to_removed_issues=pytest.approx(0.0),
+            change_due_to_resolved_issues=pytest.approx(0.0),
             newly_included_issues={"DLAI-2001"},
             newly_removed_issues=set(),
             newly_resolved_issues=set(),

@@ -266,6 +266,11 @@ class QualityReportDAL:
         """
         for doc in jira_docs:
             doc.quality_score_params = QualityScoreParams.init_from_jira_data(
-                doc.creation_date, doc.priority, doc.resolution_date, doc.labels, doc.resolution
+                creation_date=doc.creation_date,
+                priority=doc.priority,
+                resolution_date=doc.resolution_date,
+                duplicates=len(doc.linked_duplicate_keys),
+                labels=doc.labels,
+                resolution_str=doc.resolution,
             )
             doc.client = PROJECT_TO_CLIENT.get(doc.project)
