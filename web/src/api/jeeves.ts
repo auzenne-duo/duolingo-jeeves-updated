@@ -1,6 +1,5 @@
 import { format, formatISO, parseISO } from "date-fns";
 
-import { convertTimeZone } from "../util";
 import { get, patch, post } from "api/client";
 import { transformQuery } from "opensearch";
 
@@ -17,10 +16,8 @@ const createBucketArray = (
 ) =>
   Object.entries(bucketData).map(([date, value]) => ({
     count: value?.num_documents ?? 0,
-    date: convertTimeZone(
-      parseISO(`${date}T00:00:00`),
-      Intl.DateTimeFormat().resolvedOptions().timeZone,
-    ),
+    // Tickets are grouped by their UTC date.
+    date: parseISO(`${date}T00:00:00`),
     score: value?.average_sentiment_score ?? 0,
   }));
 
@@ -200,7 +197,8 @@ export const getTimeSeries = async (
     await get<JSONAPI.TimeSeries>(`/1/${lang}/time_series?${params.toString()}`)
   ).values;
   return Object.entries(data).map(([date, value]) => ({
-    date: convertTimeZone(parseISO(`${date}T00:00:00`), "America/New_York"),
+    // Tickets are grouped by their EST date.
+    date: parseISO(`${date}T00:00:00`),
     value: value ?? 0,
   }));
 };

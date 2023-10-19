@@ -3,13 +3,6 @@ import type { Location } from "history";
 
 import { escapeTerm } from "opensearch";
 
-export const convertTimeZone = (date: Date, tz: string) =>
-  new Date(
-    date.toLocaleString("en-US", {
-      timeZone: tz,
-    }),
-  );
-
 const download = (blob: Blob, name: string) => {
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
