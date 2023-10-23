@@ -10,7 +10,7 @@ from jeeves.manager.quality_report_manager import QualityReportManager
 
 _SAVE_SNAPSHOTS = os.environ.get("SAVE_SNAPSHOTS", "false").lower() == "true"
 _IS_DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
-_DRY_RUN_RECIPIENT = os.environ.get("DRY_RUN_RECIPIENT")
+_DRY_RUN_RECIPIENT = recipient if (recipient := os.environ.get("DRY_RUN_RECIPIENT")) else None
 
 
 config = Config.load_config()
