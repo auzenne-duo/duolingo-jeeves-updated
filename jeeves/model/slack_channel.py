@@ -1,10 +1,15 @@
 from collections import namedtuple
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 
 class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
-    VISUAL_POLISH = "#visual-polish", "C01867ZCY7J"
+    DESIGN_QUALITY = "#design-quality", "C01867ZCY7J"
+    DESIGN_QUALITY_MONETIZATION = "#area-monetization-design-quality", "C062U3TE1K4"
+    DESIGN_QUALITY_GROWTH = "#area-growth-design-quality", "C0636NYT4MP"
+    DESIGN_QUALITY_LEARNING = "#area-learning-design-quality", "C062U48RJEN"
+    DESIGN_QUALITY_NEW_SUBJECTS = "#area-new-subjects-design-quality", "C063H47D140"
     FEEDBACK_LANGUAGE = "#feedback-language", "C0KHQRPDZ"
     FEEDBACK_PRODUCT = "#feedback-product", "C013VGDCU5R"
     FEEDBACK_TTS = "#feedback-tts", "C01FWHDCLP4"
@@ -25,3 +30,20 @@ class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
 
     def url(self):
         return f"https://duolingo.slack.com/archives/{self.channel_id}"
+
+
+@dataclass
+class ForwardedSlackChannel:
+    """Contains a primary slack channel with secondary forwarded channels."""
+
+    primary: SlackChannel
+    forwarded: List[SlackChannel] = field(default_factory=list)
+
+
+def area_design_quality_channel(area: str) -> Optional[SlackChannel]:
+    normalized_area = area.lower().replace(" ", "-")
+    for channel in SlackChannel:
+        if normalized_area in channel.name and "design-quality" in channel.name:
+            return channel
+
+    return None

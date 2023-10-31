@@ -6,10 +6,15 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from duolingo_base.util import registry
 
+from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
-from jeeves.model.slack_channel import SlackChannel
+from jeeves.model.slack_channel import (
+    ForwardedSlackChannel,
+    SlackChannel,
+    area_design_quality_channel,
+)
 from jeeves.util.priority_estimator import PriorityEstimator
 from jeeves.util.shakira import (
     JIRA_PROJ_TO_PLATFORM,
@@ -20,7 +25,7 @@ from jeeves.util.shakira import (
 _VIA_JEEVES_MARKER = "[via Jeeves]"
 
 _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
-    "Visual polish": SlackChannel.VISUAL_POLISH,
+    "Design quality": SlackChannel.DESIGN_QUALITY,
     "Lesson content / accepted translations": SlackChannel.FEEDBACK_LANGUAGE,
     "Feature request / feedback": SlackChannel.FEEDBACK_PRODUCT,
 }
@@ -28,12 +33,16 @@ _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "Lesson content issue": SlackChannel.FEEDBACK_LANGUAGE,
     "TTS / Visemes / Mouth animations": SlackChannel.FEEDBACK_TTS,
-    "Visual polish": SlackChannel.VISUAL_POLISH,
+    "Design quality": SlackChannel.DESIGN_QUALITY,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
 }
 
 _SLACK_CHANNELS_TO_JIRA_LABELS = {
-    SlackChannel.VISUAL_POLISH: "visual-polish",
+    SlackChannel.DESIGN_QUALITY: "design-quality",
+    SlackChannel.DESIGN_QUALITY_MONETIZATION: "design-quality",
+    SlackChannel.DESIGN_QUALITY_GROWTH: "design-quality",
+    SlackChannel.DESIGN_QUALITY_LEARNING: "design-quality",
+    SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS: "design-quality",
     SlackChannel.LITERACY_TESTING: "shakira",
 }
 
@@ -98,6 +107,51 @@ class ShakiraManager:
             for channel_name, channel in _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL.items()
         ]
 
+    def _get_slack_channels(
+        self,
+        client_specified_channel: Optional[SlackChannel],
+        slack_report_type: Optional[str],
+        feature: Optional[str],
+    ) -> Optional[ForwardedSlackChannel]:
+        """
+        Get the Slack channel(s) to post to based on user input.
+
+        parameters:
+            client_specified_channel: e.g. SlackChannel.DESIGN_QUALITY
+            slack_report_type: e.g. "Lesson content / accepted translations" or "Design Quality".
+            feature: e.g. Achievements
+
+        returns: A `ForwardedSlackChannel`, which contains all the channels we should post to.
+        """
+        # If the client gave us a proper channel, just use it
+        if client_specified_channel is not None:
+            return ForwardedSlackChannel(primary=client_specified_channel)
+
+        # Next check the slack_report_type
+        slack_channel_from_slack_report_type = (
+            SlackChannel.LITERACY_TESTING
+            if slack_report_type == "literacy"
+            else _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL.get(slack_report_type)
+        )
+
+        slack_channel_from_feature = _SHAKIRA_FEATURES_TO_SLACK_CHANNEL.get(feature)
+        channel = slack_channel_from_slack_report_type or slack_channel_from_feature
+        channels = ForwardedSlackChannel(primary=channel) if channel else None
+
+        team = JIRA_FEATURE_TO_TEAM.get(feature)
+        area = JIRA_TEAM_TO_AREA.get(team)
+
+        # Add forwarding to Design Quality area channel if applicable
+        if (
+            channels is not None
+            and channels.primary == SlackChannel.DESIGN_QUALITY
+            and area is not None
+            and (area_channel := area_design_quality_channel(area)) is not None
+        ):
+            channels.forwarded.append(area_channel)
+
+        return channels
+
     @traced_function()
     def report_issue(
         self,
@@ -120,8 +174,8 @@ class ShakiraManager:
         parameters:
             project: e.g. DLAA, DLAI, DLAW, LIT, DETBUG
             feature: e.g. Achievements
-            slack_report_type: e.g. "Lesson content / accepted translations" or "Visual polish".
-            client_specified_slack_channel_name: e.g. #visual-polish. If this is set, override the other parameters and post in this channel.
+            slack_report_type: e.g. "Lesson content / accepted translations" or "Design Quality".
+            client_specified_slack_channel_name: e.g. #design-quality. If this is set, override the other parameters and post in this channel.
             related_issue_key: e.g. "DEL-1773". If this is set the related issue will be linked to the new issue.
             summary: Roughly one-sentence summary of issue.
             description: Longer issue description.
@@ -161,25 +215,21 @@ class ShakiraManager:
                     400,
                 )
             }
-        slack_channel_from_slack_report_type = (
-            SlackChannel.LITERACY_TESTING
-            if slack_report_type == "literacy"
-            else _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL.get(slack_report_type)
-        )
-        slack_channel_from_feature = _SHAKIRA_FEATURES_TO_SLACK_CHANNEL.get(feature)
-        channel = (
-            client_specified_slack_channel
-            or slack_channel_from_slack_report_type
-            or slack_channel_from_feature
-        )
 
-        jira_label_from_channel = _SLACK_CHANNELS_TO_JIRA_LABELS.get(channel)
+        channels = self._get_slack_channels(
+            client_specified_channel=client_specified_slack_channel,
+            slack_report_type=slack_report_type,
+            feature=feature,
+        )
+        jira_label_from_channel = (
+            _SLACK_CHANNELS_TO_JIRA_LABELS.get(channels.primary) if channels else None
+        )
         jeeves_label = JIRA_VIA_JEEVES_LABEL if summary.startswith(_VIA_JEEVES_MARKER) else None
         rc_blocker_label = JIRA_RELEASE_BLOCKER_LABEL if release_blocker else None
 
         screenshot = files.get("screenshot")
 
-        post_to_slack_only = channel is not None and jira_label_from_channel is None
+        post_to_slack_only = channels is not None and jira_label_from_channel is None
         if related_issue_key and not post_to_slack_only:
             related_issue_details = self._jira_client.get_issue_details(issue_key=related_issue_key)
             related_issue_exists = (
@@ -193,7 +243,7 @@ class ShakiraManager:
         priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email)
 
         should_post_to_slack = (
-            channel is not None and not related_issue_invalid
+            channels is not None and not related_issue_invalid
         ) or post_to_slack_only
         should_post_to_jira = jira_label_from_channel is not None or not should_post_to_slack
         issue_key = None
@@ -237,38 +287,50 @@ class ShakiraManager:
                     else {"error": ("There was an issue posting to Jira.", 500)}
                 )
 
-        if should_post_to_slack:
+        # We technically know that `channels` is not `None`, but we add this for mypy
+        if should_post_to_slack and channels is not None:
             post_info_in_reply = (
                 issue_url is None and (description or generated_description) is not None
             )
-            post_id = self._slack_client.post_issue(
-                project=project,
-                slack_channel=channel,
-                summary=summary,
-                reporter_email=reporter_email,
-                jira_issue_url=issue_url,
-                post_info_in_reply=post_info_in_reply,
-                screenshot=screenshot,
-            )
+            # Keep track of the posts that succeeded
+            post_ids = {}
 
-            if post_info_in_reply and post_id:
-                self._slack_client.post_info_in_reply(
+            for channel in [channels.primary, *channels.forwarded]:
+                post_id = self._slack_client.post_issue(
+                    project=project,
                     slack_channel=channel,
-                    original_post_id=post_id,
                     summary=summary,
-                    description=description,
-                    generated_description=generated_description,
+                    reporter_email=reporter_email,
+                    jira_issue_url=issue_url,
+                    post_info_in_reply=post_info_in_reply,
+                    screenshot=screenshot,
                 )
+                post_ids[channel] = post_id
 
-            optional_channel_url = channel.url() if post_id else None
+                if post_info_in_reply and post_id:
+                    self._slack_client.post_info_in_reply(
+                        slack_channel=channel,
+                        original_post_id=post_id,
+                        summary=summary,
+                        description=description,
+                        generated_description=generated_description,
+                    )
+
+            optional_channel_url = (
+                channels.primary.url() if post_ids.get(channels.primary) else None
+            )
+            primary_post_id = post_ids.get(channels.primary)
             return (
                 {
-                    "slackChannel": channel.name if post_id else None,
+                    "slackChannel": channels.primary.name if primary_post_id else None,
+                    "forwardedSlackChannels": [
+                        channel.name for channel in channels.forwarded if post_ids.get(channel)
+                    ],
                     "url": issue_url or optional_channel_url,
                     "issueKey": issue_key,
                     "slackUrl": optional_channel_url,
                     "jiraUrl": issue_url,
                 }
-                if post_id or issue_key
+                if primary_post_id is not None or issue_key is not None
                 else {"error": ("There was a problem reporting the issue.", 500)}
             )

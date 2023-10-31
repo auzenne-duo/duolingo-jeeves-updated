@@ -64,7 +64,7 @@ To proxy API requests to https://jeeves.duolingo.com, run `make web-proxy`.
 
 ### Reporting bugs to Slack
 
-Note that Slack Reporting feature in Jeeves (`slack_channel.py`) is used for reports like visual polish or TTS which
+Note that Slack Reporting feature in Jeeves (`slack_channel.py`) is used for reports like design quality or TTS which
 usually do not create Jira issues. In particular, this was code used to support an older version of shake-to-report.
 It still works, but we normally recommend using [Jira Automation](https://duolingo.atlassian.net/wiki/spaces/DUO/pages/2585821214/Create+Jira+Automation+to+post+issues+with+Feature+to+Slack+Channel) instead.
 That's what posts to channels like #bugs or #proj-friends-quest.

@@ -21,7 +21,10 @@ _JIRA_FIELDS_TO_FILTER = ["embeddings", "experiment_conditions", "comments"]
 _NUM_WEEKS_IN_PAST_SCORE_BREAKDOWN = 4
 _QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY_PREFIX = "https://public-static.duolingo.com/"
 _SCORE_CUTTOFF_DAYS = 90
-_VISUAL_POLISH_LABEL = "visual-polish"
+_DESIGN_QUALITY_LABEL = "design-quality"
+
+# Handle the Visual Polish -> Design Quality label change
+_DESIGN_QUALITY_DEPRECATED_LABEL = "visual-polish"
 
 QualityScoreHistory = List[Tuple[str, int]]
 
@@ -61,7 +64,7 @@ class SerializedQualityReportData:
     end_date: str
     max_priority_issues: List[JSON]
     max_dupes_issues: List[JSON]
-    visual_polish_issues: List[JSON]
+    design_quality_issues: List[JSON]
     title: str
 
 
@@ -195,11 +198,14 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         with open(self.overall_plot_filename, "rb") as f:
             upload_to_public_static(self.external_overall_plot_filename, f.read())
 
-        visual_polish_issues = [
-            issue for issue in self.open_issues if _VISUAL_POLISH_LABEL in issue.labels
+        design_quality_issues = [
+            issue
+            for issue in self.open_issues
+            if _DESIGN_QUALITY_LABEL in issue.labels
+            or _DESIGN_QUALITY_DEPRECATED_LABEL in issue.labels
         ]
-        self.max_dupes_visual_polish_issues = self.calculate_max_dupes_issues(
-            visual_polish_issues, min_dupes=0
+        self.max_dupes_design_quality_issues = self.calculate_max_dupes_issues(
+            design_quality_issues, min_dupes=0
         )
 
         self.issues_with_closed_parents = self.find_issues_with_closed_parents()
@@ -360,9 +366,9 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             JiraDocument.serialize_to_json(issue, _JIRA_FIELDS_TO_FILTER)
             for issue in self.max_dupes_issues
         ]
-        visual_polish_issues_json = [
+        design_quality_issues_json = [
             JiraDocument.serialize_to_json(issue, _JIRA_FIELDS_TO_FILTER)
-            for issue in self.max_dupes_visual_polish_issues
+            for issue in self.max_dupes_design_quality_issues
         ]
         return SerializedQualityReportData(
             end_date=date_to_str(self.end_date),
@@ -376,7 +382,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             start_date=date_to_str(self.start_date),
             max_priority_issues=max_priority_issues_json,
             max_dupes_issues=max_dupes_issues_json,
-            visual_polish_issues=visual_polish_issues_json,
+            design_quality_issues=design_quality_issues_json,
             title=self.title,
         )
 

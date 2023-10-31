@@ -40,8 +40,8 @@ example:
     "description" optional: Longer user-provided description.
     "generatedDescription" optional: Generated information such as app version, fullstory url, session type, etc. It's a valid option to not
     set this and include this information in the "description" field.
-    "feature" optional: Feature affected by the issue; e.g. Achievements, Stories, Leaderboards. Must be a value sent by the shakira/features endpoint. This is required for Shakira clients, and is used to determine whether to post to Slack, Jira or both. For example, if the value is "Visual polish", we create a Jira and post to the #visual-polish slack channel.
-    "slackChannel" optional: e.g. #visual-polish. If this is set, override the feature and post in this channel. This should not be included by Shakira clients, and is intended for posting Jeeves issues to slack from the Jeeves web interface.
+    "feature" optional: Feature affected by the issue; e.g. Achievements, Stories, Leaderboards. Must be a value sent by the shakira/features endpoint. This is required for Shakira clients, and is used to determine whether to post to Slack, Jira or both. For example, if the value is "Design quality", we create a Jira and post to the #design-quality slack channel.
+    "slackChannel" optional: e.g. #design-quality. If this is set, override the feature and post in this channel. This should not be included by Shakira clients, and is intended for posting Jeeves issues to slack from the Jeeves web interface.
     "relatedJiraTicket" optional: e.g. "DEL-1773". If this is set and the given ticket is valid, the issues will be linked. If linked successfully Jira Automation will not post this bug to slack.
     "preRelease" optional: Boolean; Should be true if reporting from TestFlight or Android pre-release build. Default value is false.
     "releaseBlocker" optional: Boolean; If set to true, adds the "rc-blocker" label. Default value is false
@@ -61,7 +61,7 @@ _Include any other files you want to attach in this form as well_
 ```
 {
     "issueKey": key of the created issue; e.g. "DLAI-5467"
-    "slackChannel": Channel the screenshot and info was posted in; e.g. #visual-polish
+    "slackChannel": Channel the screenshot and info was posted in; e.g. #design-quality
     "url": DEPRECATED; use "slackUrl" and "jiraUrl" instead, as it is undefined whether this URL points to Jira Slack. URL to view the created issue in Jira or Slack.
     "slackUrl": URL to the Slack channel to view the reported issue.
     "jiraUrl": URL to the created issue in Jira.
@@ -81,7 +81,7 @@ example:
 ```
 [
     {
-        "name": "Visual polish",
+        "name": "Design quality",
         "alsoPostsToJira": true,
     },
     {

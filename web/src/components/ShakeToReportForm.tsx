@@ -337,7 +337,7 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
         value={slackChannel?.name ?? ""}
       />
       <span className={styles.small}>
-        If your report belongs in #visual-polish, #feedback-language,
+        If your report belongs in #design-quality, #feedback-language,
         #feedback-tts, or #feedback-product on Slack, choose one.
       </span>
     </>,
