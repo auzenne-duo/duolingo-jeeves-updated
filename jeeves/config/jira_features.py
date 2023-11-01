@@ -230,6 +230,7 @@ JIRA_FEATURES = {
         },
         "Animation Accelerator": {
             "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
+            "Adventures": [],
             "World characters": [
                 "world character",
                 "character animation",
