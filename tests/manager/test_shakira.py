@@ -194,6 +194,68 @@ class Test(unittest.TestCase):
 
         assert shakira_slack_mock.post_issue.call_count == 2
 
+    def test_design_quality_forwarding_with_combined_area_channel(self):
+        """Verify that the forwarding works for the combined learning (R&D and Scaling) channel."""
+        shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        shakira_jira_mock.get_issue_details = MagicMock(return_value={"id": 1})
+
+        shakira_manager.report_issue(
+            project="DLAA",
+            feature="Path",
+            slack_report_type="Design quality",
+            client_specified_slack_channel_name=None,
+            related_issue_key="DEL-1733",
+            summary="summary",
+            description=None,
+            generated_description=None,
+            reporter_email=None,
+            pre_release=False,
+            release_blocker=False,
+            files={},
+        )
+
+        shakira_jira_mock.create_issue.assert_called_once_with(
+            project="DLAA",
+            feature="Path",
+            labels=["design-quality"],
+            summary="summary",
+            description=None,
+            generated_description=None,
+            reporter_email=None,
+            pre_release=False,
+            will_post_to_slack=True,
+            priority="Medium",
+            related_issue_exists=True,
+        )
+
+        shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
+
+        shakira_jira_mock.link_issues.assert_called_once_with(
+            outward_issue_key="DEL-1733", inward_issue_key="DLAA-1"
+        )
+
+        shakira_slack_mock.post_issue.assert_any_call(
+            project="DLAA",
+            slack_channel=SlackChannel.DESIGN_QUALITY,
+            summary="summary",
+            reporter_email=None,
+            jira_issue_url=_JIRA_ISSUE_URL,
+            post_info_in_reply=False,
+            screenshot=None,
+        )
+
+        shakira_slack_mock.post_issue.assert_any_call(
+            project="DLAA",
+            slack_channel=SlackChannel.DESIGN_QUALITY_LEARNING,
+            summary="summary",
+            reporter_email=None,
+            jira_issue_url=_JIRA_ISSUE_URL,
+            post_info_in_reply=False,
+            screenshot=None,
+        )
+
+        assert shakira_slack_mock.post_issue.call_count == 2
+
     def test_report_issue_with_invalid_related_jira_ticket(self):
         shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_jira_mock.get_issue_details = MagicMock(return_value={})

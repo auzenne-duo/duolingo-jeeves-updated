@@ -32,6 +32,15 @@ class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
         return f"https://duolingo.slack.com/archives/{self.channel_id}"
 
 
+AREA_NAME_TO_SLACK_CHANNEL = {
+    "Monetization": SlackChannel.DESIGN_QUALITY_MONETIZATION,
+    "Growth": SlackChannel.DESIGN_QUALITY_GROWTH,
+    "Learning R&D": SlackChannel.DESIGN_QUALITY_LEARNING,
+    "Learning Scaling": SlackChannel.DESIGN_QUALITY_LEARNING,
+    "New Subjects": SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS,
+}
+
+
 @dataclass
 class ForwardedSlackChannel:
     """Contains a primary slack channel with secondary forwarded channels."""
@@ -41,9 +50,4 @@ class ForwardedSlackChannel:
 
 
 def area_design_quality_channel(area: str) -> Optional[SlackChannel]:
-    normalized_area = area.lower().replace(" ", "-")
-    for channel in SlackChannel:
-        if normalized_area in channel.name and "design-quality" in channel.name:
-            return channel
-
-    return None
+    return AREA_NAME_TO_SLACK_CHANNEL.get(area)
