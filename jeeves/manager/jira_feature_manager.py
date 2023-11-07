@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Union
 from duolingo_base.util import registry
 
 from jeeves.config.jira_features import (
+    DEBUG_TYPE_TO_FEATURES_REGISTRY_KEY,
     JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY,
     JIRA_FEATURES_REGISTRY_KEY,
     SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY,
@@ -49,6 +50,7 @@ _MEGA_FEATURES = ["Mega", "Music", "Math"]
     features_config=registry.reference(JIRA_FEATURES_REGISTRY_KEY),
     descriptions_config=registry.reference(JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY),
     session_end_screen_to_feature=registry.reference(SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY),
+    debug_type_to_features=registry.reference(DEBUG_TYPE_TO_FEATURES_REGISTRY_KEY),
 )
 class JiraFeatureManager:
     def __init__(
@@ -57,6 +59,7 @@ class JiraFeatureManager:
         features_config: Dict[str, Dict[str, Dict[str, List[str]]]],
         descriptions_config: Dict[str, str],
         session_end_screen_to_feature: Dict[str, str],
+        debug_type_to_features: Dict[str, List[str]],
     ):
         """
         Note: the features and synonyms provided in features_config are assumed to be unique, ie
@@ -81,6 +84,7 @@ class JiraFeatureManager:
         self._feature_to_synonyms = self._get_feature_to_synonyms_mapping()
         self._uppercase_term_to_feature = self._get_uppercase_term_to_feature_mapping()
         self._feature_to_description = descriptions_config
+        self._debug_type_to_features = debug_type_to_features
         self._session_end_screen_to_feature = session_end_screen_to_feature
 
     def _get_feature_to_synonyms_mapping(self) -> Dict[str, List[str]]:
@@ -250,5 +254,6 @@ class JiraFeatureManager:
         return {
             "suggested_features": suggested_features,
             "other_features": other_features,
+            "debug_type_to_features": self._debug_type_to_features,
             "feature_to_description": self._feature_to_description,
         }

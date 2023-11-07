@@ -49,9 +49,13 @@ mock_session_end_screen_to_feature = {
     "sessionComplete": "Lesson complete session end",
 }
 
+mock_debug_type_to_features = {"Max features": []}
+
 
 def test_get_features_v1():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {})
+    feature_manager = JiraFeatureManager(
+        mock_jira_client, mock_jira_features, {}, {}, mock_debug_type_to_features
+    )
     actual_result = feature_manager.get_features_v1(["DLAA", "DLAI", "DLAW"])
 
     case = unittest.TestCase()
@@ -72,7 +76,9 @@ def test_get_features_v1():
 
 
 def test_get_features_by_team_and_area():
-    feature_manager = JiraFeatureManager(mock_jira_client, mock_jira_features, {}, {})
+    feature_manager = JiraFeatureManager(
+        mock_jira_client, mock_jira_features, {}, {}, mock_debug_type_to_features
+    )
     actual_result = feature_manager.get_features_by_team_and_area()
 
     assert actual_result == [
@@ -238,6 +244,7 @@ def test_get_suggested_features(
         mock_jira_features,
         mock_jira_features_descriptions,
         mock_session_end_screen_to_feature,
+        mock_debug_type_to_features,
     )
     actual_result = feature_manager.get_suggested_features(
         ["DLAA", "DLAI", "DLAW"], summary, description, generated_description
@@ -269,7 +276,7 @@ def test_feature_filtering():
     }
 
     feature_manager = JiraFeatureManager(
-        mock_filtered_jira_client, mock_filtered_jira_features, {}, {}
+        mock_filtered_jira_client, mock_filtered_jira_features, {}, {}, mock_debug_type_to_features
     )
     case = unittest.TestCase()
 

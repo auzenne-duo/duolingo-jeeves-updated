@@ -422,3 +422,14 @@ TEAM_TO_FEATURES = {
     for teams in JIRA_FEATURES.values()
     for team, features in teams.items()
 }
+
+
+DEBUG_TYPE_TO_FEATURES = {
+    "Max features": [
+        "Explain my Answer",
+        "Lesson Coach",
+        "On-call tips",
+        "Role Play",
+    ]
+}
+DEBUG_TYPE_TO_FEATURES_REGISTRY_KEY = "debug_type_to_features"

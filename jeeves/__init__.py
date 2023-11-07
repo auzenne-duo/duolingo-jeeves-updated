@@ -6,6 +6,8 @@ from duolingo_base.util import registry as base_registry
 from flask import Flask
 
 from jeeves.config.jira_features import (
+    DEBUG_TYPE_TO_FEATURES,
+    DEBUG_TYPE_TO_FEATURES_REGISTRY_KEY,
     JIRA_FEATURES,
     JIRA_FEATURES_DESCRIPTIONS,
     JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY,
@@ -32,6 +34,7 @@ def apply_registry():
     service_registry[JIRA_FEATURES_REGISTRY_KEY] = JIRA_FEATURES
     service_registry[JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY] = JIRA_FEATURES_DESCRIPTIONS
     service_registry[SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY] = SESSION_END_SCREEN_TO_FEATURE
+    service_registry[DEBUG_TYPE_TO_FEATURES_REGISTRY_KEY] = DEBUG_TYPE_TO_FEATURES
 
 
 def close_registry():
