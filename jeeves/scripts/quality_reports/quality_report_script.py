@@ -30,7 +30,8 @@ if __name__ == "__main__":
         print("=" * 100)
         print(f"Quality Reports done in {(time.time() - start):.3f} sec.")
         print("=" * 100)
-    except:
+    except Exception as exc:
         rollbar.report_exc_info(sys.exc_info())
+        raise exc
     finally:
         close_registry()

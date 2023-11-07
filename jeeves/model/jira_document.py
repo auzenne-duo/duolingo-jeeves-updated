@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime
 import sys
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import attr
 
@@ -215,7 +215,7 @@ class JiraDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
-        external_fields = external_json["fields"]
+        external_fields: Dict[str, Any] = external_json["fields"]
 
         body_text = (
             cls._compress_rich_text(external_fields["description"])
@@ -232,17 +232,21 @@ class JiraDocument(JeevesDocument):
 
         std_metadata = MetaStdizer.get_standardized_metadata(duolingo_metadata)
 
-        # Determine team and area based on team field or feature if team field is not defined
-        feature = (
-            external_fields[cls._feature_field_key]["value"]
+        # Determine feature, area, and team based on the Jira fields
+        feature_field: Optional[Dict[str, Any]] = (
+            external_fields.get(cls._feature_field_key)
             if cls._feature_field_key is not None
-            and external_fields[cls._feature_field_key] is not None
-            else ""
+            else None
         )
+        team_field: Optional[Dict[str, Any]] = (
+            external_fields.get(cls._team_field_key) if cls._team_field_key is not None else None
+        )
+
+        # If the feature field is not set, we have no fallback and simply use an empty string
+        feature = feature_field["value"] if feature_field is not None else ""
+        # If the team field is not set, we can fall back to inferring the team from the feature
         team = (
-            external_fields[cls._team_field_key]["name"]
-            if cls._team_field_key is not None and external_fields[cls._team_field_key] is not None
-            else JIRA_FEATURE_TO_TEAM.get(feature, "")
+            team_field["name"] if team_field is not None else JIRA_FEATURE_TO_TEAM.get(feature, "")
         )
         area = JIRA_TEAM_TO_AREA.get(team, "")
 
