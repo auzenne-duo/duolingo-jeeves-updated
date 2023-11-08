@@ -79,6 +79,7 @@ JIRA_FEATURES = {
             "Achievements": ["achievement"],
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
+            "Haptic Feedback": ["haptics", "vibrations", "buzz"],
         },
         "Time Spent Learning": {
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
@@ -343,6 +344,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Grading issue": "Issues with answers not being accepted, wrong grading results",
     "Grading Ribbon": "Issues with the grading ribbon that appears at the bottom of an exercise, specifically layout/formatting",
     "Guidebook": "Bugs on a guidebook page",
+    "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
     "Hard mode": "Problems with hard mode lessons specifically",
     "In-app purchases": "Problems with purchasing gems, row blaster, timer boosts, etc.",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
