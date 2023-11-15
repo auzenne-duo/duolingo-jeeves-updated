@@ -16,11 +16,11 @@ declare namespace JSONAPI {
   }
 
   interface DetailedQualityReport {
+    design_quality_issues: Ticket[];
     end_date: string;
     features: string[];
     max_dupes_issues: Ticket[];
     max_priority_issues: Ticket[];
-    design_quality_issues: Ticket[];
     open_bugs_count: number;
     open_bugs_url: string;
     overall_score: number;
@@ -32,9 +32,9 @@ declare namespace JSONAPI {
       overall_score: number;
       quality_score_type_counts: {
         count: number;
+        duplicate_bonus_points?: number;
         label: string;
         points: number;
-        duplicate_bonus_points?: number;
       }[];
     }[];
     scores: QualityScores;

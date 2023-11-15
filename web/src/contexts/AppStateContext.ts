@@ -79,6 +79,8 @@ export const initialState: State = {
 };
 
 export const reducer: React.Reducer<State, Action> = (state, action) => {
+  // eslint-disable-next-line no-console
+  console.log(action);
   switch (action.type) {
     case "ESCAPE":
       return state.lightboxUrl

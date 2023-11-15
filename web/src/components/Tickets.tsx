@@ -199,10 +199,6 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const handleRangeChangeRef = React.useRef(handleRangeChange);
   handleRangeChangeRef.current = handleRangeChange;
 
-  React.useEffect(() => {
-    dispatch?.({ type: "HIDE_ASIDE" });
-  }, [dispatch, filter, query]);
-
   // This has a dependency on both `isPreviousData` and `offset` so
   // that the page is scrolled to the top when either cached or
   // fresh query data is loaded.

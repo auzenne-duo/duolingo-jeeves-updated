@@ -137,10 +137,6 @@ const GPTSearchResults = () => {
     }
   };
 
-  React.useEffect(() => {
-    dispatch?.({ type: "HIDE_ASIDE" });
-  }, [dispatch, query]);
-
   // Scrolls the page to the top when fresh query data is loaded.
   React.useEffect(() => {
     if (filterResp || knnResp || answerResp) {
