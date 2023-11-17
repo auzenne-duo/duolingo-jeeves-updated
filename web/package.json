@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@rollbar/react": "0.11.2",
     "@tanstack/react-query": "4.29.19",
     "@tanstack/react-query-devtools": "4.29.19",
     "classnames": "2.2.6",
@@ -17,6 +18,7 @@
     "react-plotly.js": "2.6.0",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
+    "rollbar": "2.26.2",
     "uuid": "9.0.0",
     "web-excess": "https://s3.amazonaws.com/duolingo-packages/npm/excess/web-excess-3.4.0.tgz",
     "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.72.0.tgz",
