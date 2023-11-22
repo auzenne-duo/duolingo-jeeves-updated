@@ -169,7 +169,8 @@ if __name__ == "__main__":
         apply_registry()
         dry_run = sys.argv[1] == "True" if len(sys.argv) > 1 else True
         run_spike_worker(dry_run)
-    except:
+    except Exception as e:
+        print(f"Exception occurred while running spike worker: {e}", flush=True)
         rollbar.report_exc_info(sys.exc_info())
     finally:
         close_registry()

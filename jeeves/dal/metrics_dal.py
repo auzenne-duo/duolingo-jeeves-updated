@@ -13,6 +13,7 @@ TOP_SHARED_CONDITIONS = 5
 SHARED_CONDITIONS_ROUTE = "api/1/find_shared_conditions"
 STANDARD_DEVIATION_THRESHOLD = 3
 MIN_SHARED_USERS = 3
+TIMEOUT = 30  # in seconds
 
 if os.environ.get("DUOLINGO_JWT"):
     credentials = {"jwt": os.environ.get("DUOLINGO_JWT")}
@@ -67,9 +68,10 @@ class MetricsDAL:
         params = {"user_ids": ",".join((str(id) for id in user_ids))}
         total_users = len(user_ids)
         try:
-            response = self.client.get(SHARED_CONDITIONS_ROUTE, params=params)
+            response = self.client.get(SHARED_CONDITIONS_ROUTE, params=params, timeout=TIMEOUT)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
+            print(f"Request to /{SHARED_CONDITIONS_ROUTE} failed with exception: {e}", flush=True)
             print_request_exception(e, rollbar_level="warning")
             return {}
 
@@ -110,9 +112,10 @@ class MetricsDAL:
             List[Dict]: List of experiments
         """
         try:
-            response = self.client.get(EXPERIMENTS_ROUTE)
+            response = self.client.get(EXPERIMENTS_ROUTE, timeout=TIMEOUT)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
+            print(f"Request to /{EXPERIMENTS_ROUTE} failed with exception: {e}", flush=True)
             print_request_exception(e, rollbar_level="warning")
             return []
         return response.json()
