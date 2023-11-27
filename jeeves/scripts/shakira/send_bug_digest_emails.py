@@ -26,6 +26,7 @@ _config.apply_rollbar()
 
 _UNSUBSCRIBED = [
     "jake@duolingo.com",
+    "ming@duolingo.com",
 ]
 
 _TEMPLATE_DIR = "templates/bug_digest/email/"
