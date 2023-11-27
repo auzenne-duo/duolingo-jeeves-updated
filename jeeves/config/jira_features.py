@@ -93,6 +93,16 @@ JIRA_FEATURES = {
     },
     "Learning R&D": {
         "Personalized Sessions": {
+            "Challenge layout issues": [
+                "exercise",
+                "question",
+                "problem",
+                "speech bubble",
+                "speaking bubble",
+                "tap token",
+                "token",
+                "word bank",
+            ],
             "Generated sessions": [],
             "Smart tips": ["smart tip"],
         },
@@ -276,16 +286,6 @@ JIRA_FEATURES = {
                 "incorrect bottom sheet",
                 "correct bottom sheet",
                 "grading drawer",
-            ],
-            "Challenge layout issues": [
-                "exercise",
-                "question",
-                "problem",
-                "speech bubble",
-                "speaking bubble",
-                "tap token",
-                "token",
-                "word bank",
             ],
             "Drawers / home messages": ["drawer", "home message"],
         },
