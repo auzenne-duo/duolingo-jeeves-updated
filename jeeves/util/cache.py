@@ -2,7 +2,7 @@ import functools
 from abc import ABCMeta, abstractmethod
 
 
-class AbstractCacheHandler(object, metaclass=ABCMeta):
+class AbstractCacheHandler(metaclass=ABCMeta):
     """Abstract Cache Handler to manage cache use"""
 
     def __init__(self):

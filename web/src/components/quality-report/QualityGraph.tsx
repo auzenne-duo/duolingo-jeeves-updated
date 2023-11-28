@@ -12,7 +12,7 @@ const JUICY_OWL = "#58cc02";
 const JUICY_MACAW = "#1cb0f6";
 const JUICY_SWAN = "#e5e5e5";
 
-type Project = typeof PROJECTS[number];
+type Project = (typeof PROJECTS)[number];
 
 const COLOR_MAP: Record<Project, string> = {
   DLAA: JUICY_FOX,

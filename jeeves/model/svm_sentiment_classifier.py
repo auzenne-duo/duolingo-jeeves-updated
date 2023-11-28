@@ -21,7 +21,6 @@ from jeeves.model.sentiment_analysis_classifier import (
 
 @attr.s(kw_only=True)
 class SVMSentimentClassifier(SentimentAnalysisClassifier):
-
     label_to_num: Dict = attr.ib()
     num_to_label: Dict = attr.ib()
     model: SVC = attr.ib()

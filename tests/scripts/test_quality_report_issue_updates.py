@@ -49,7 +49,6 @@ class TestQualityReportUtil(unittest.TestCase):
         "jeeves.scripts.quality_reports.quality_report_issue_updates.JiraDocument", mockJiraDocument
     )
     def test_check_issue_updates(self, mockJiraDAL):
-
         mockJiraDAL.paginate_search_issues.return_value = [
             JIRA_EXTERNAL_JSON_1,
             JIRA_EXTERNAL_JSON_2,

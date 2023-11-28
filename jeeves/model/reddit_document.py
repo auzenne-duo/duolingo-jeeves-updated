@@ -98,5 +98,4 @@ class RedditDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
-
         return super().check_should_index_document(document)

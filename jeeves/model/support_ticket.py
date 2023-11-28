@@ -25,7 +25,6 @@ _TICKET_FIELDS = (
 
 
 class SupportTicket(JeevesObject, namedtuple("ST", " ".join(_TICKET_FIELDS))):
-
     __slots__ = ()
 
     def __new__(

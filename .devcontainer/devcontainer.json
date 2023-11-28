@@ -1,5 +1,14 @@
 {
   "customizations": {
+    "codespaces": {
+      "repositories": {
+        "duolingo/cli": {
+          "permissions": {
+            "contents": "read"
+          }
+        }
+      }
+    },
     "vscode": {
       "extensions": [
         "GitHub.copilot"

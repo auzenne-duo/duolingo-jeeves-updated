@@ -19,12 +19,12 @@ const PlatformIcon = ({ className, platform }: Props) => (
       platform === "Android"
         ? imagePlatformAndroid
         : platform === "iOS"
-        ? imagePlatformApple
-        : platform === "Reddit"
-        ? imageReddit
-        : platform === "Twitter"
-        ? imageTwitter
-        : imagePlatformWeb
+          ? imagePlatformApple
+          : platform === "Reddit"
+            ? imageReddit
+            : platform === "Twitter"
+              ? imageTwitter
+              : imagePlatformWeb
     }
     title={platform}
   />

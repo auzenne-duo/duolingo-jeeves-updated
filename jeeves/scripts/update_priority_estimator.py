@@ -103,7 +103,7 @@ def get_updated_jira_priorities(
         + f"AND created >= {_PRIORITY_ESTIMATOR_START_DATE} "
         + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
         + 'AND text ~ "shake-to-report"'
-        + f"ORDER BY updated desc"
+        + "ORDER BY updated desc"
     )
 
     url_params = {
@@ -130,7 +130,7 @@ def get_updated_jira_priorities(
                         break
                     if history["author"]["displayName"] in _AUTOMATION_DISPLAY_NAMES:
                         break
-                    if not item["toString"] in JIRA_PRIORITY_STR_TO_INT:
+                    if item["toString"] not in JIRA_PRIORITY_STR_TO_INT:
                         print(f"issue {issue_key} has priority {item['toString']}")
                         break
                     jira_doc = JiraDocument.deserialize_from_external_json(issue)
@@ -181,7 +181,6 @@ def update_priority_model(overridden_priorities) -> Dict[str, OverriddenPriority
     Returns mapping of Jira key to all overridden priorities including those already stored and those newly seen.
     The most recent override of a Jira issue takes precedence.
     """
-
     # train model
     training_priorities = get_training_priorities(overridden_priorities)
     print(f"updating priority estimator with {len(training_priorities)} overridden priorities")
@@ -251,7 +250,7 @@ def calculate_manual_override_score(
         + f"AND created <= {date_to_str(end_date)} "
         + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
         + 'AND text ~ "shake-to-report"'
-        + f"ORDER BY updated desc"
+        + "ORDER BY updated desc"
     )
 
     url_params = {
@@ -279,7 +278,7 @@ def calculate_manual_override_score(
                         first_priority_change = item
                         break
 
-        if not first_priority_change is None:
+        if first_priority_change is not None:
             new_priority = JIRA_PRIORITY_STR_TO_INT.get(last_priority_change["toString"])
             old_priority = JIRA_PRIORITY_STR_TO_INT.get(first_priority_change["fromString"])
             if (new_priority is not None) and (old_priority is not None):

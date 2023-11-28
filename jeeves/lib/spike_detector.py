@@ -34,7 +34,7 @@ from jeeves.util.error_util import SpikeDetectorException
 SPIKE_EXCLUDE_WORDS_REGISTRY_KEY = "spike_exclude_words"
 SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
 STR_SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
-SPIKE_SUMMARIZER_SYSTEM_PROMPT = f"""
+SPIKE_SUMMARIZER_SYSTEM_PROMPT = """
 Duolingo users can report bugs and feature requests as issues.
 Each issue has a title which summarizes the issue and a description with more detail.
 When given a list of issues, you will summarize the most common topic
@@ -93,7 +93,7 @@ def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
             count += len(paginated_info["data"])
             if count >= paginated_info["total_records"]:
                 break
-            if not "sort_id" in paginated_info:
+            if "sort_id" not in paginated_info:
                 break
             sort_id = paginated_info["sort_id"]
 
@@ -185,7 +185,7 @@ def run_spike_detector_for_batch(
             batch_spike_list[i].summary = response.split("\n")[0].split("SUMMARY:")[1].strip()
             batch_spike_list[i].is_bug = (response.split("IS_BUG:")[1].strip()) == "True"
     except TimeoutError:
-        rollbar.report_message(f"Batch summary request timed out", "warning")
+        rollbar.report_message("Batch summary request timed out", "warning")
 
     if batch_spike_list:
         if not dry_run:

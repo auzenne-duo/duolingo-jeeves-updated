@@ -19,7 +19,6 @@ SVM_WEIGHT = 0.7
 
 @attr.s(kw_only=True)
 class AppFiguresSentimentClassifier(SentimentAnalysisClassifier):
-
     svm_classifier: SVMSentimentClassifier = attr.ib()
     star_weight: float = attr.ib(default=STAR_WEIGHT)
     svm_weight: float = attr.ib(default=SVM_WEIGHT)

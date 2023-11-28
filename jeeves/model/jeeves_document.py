@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Optional
 
 import attr
 
@@ -16,7 +16,6 @@ from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
 @attr.s(kw_only=True)
 class JeevesDocument(ABC):
-
     data_source: str = attr.ib()
     document_id: str = attr.ib()
     jeeves_uid: str = attr.ib()
@@ -25,11 +24,11 @@ class JeevesDocument(ABC):
     body_text: str = attr.ib()
     is_bug: bool = attr.ib(default=True)
     language: str = attr.ib()
-    lemmatized_terms: List[str] = attr.ib(default=[])
-    links: List[str] = attr.ib(default=[])
+    lemmatized_terms: list[str] = attr.ib(default=[])
+    links: list[str] = attr.ib(default=[])
     shake_to_report_category: ShakeToReportCategory = attr.ib()
-    attachments: List[str] = attr.ib()
-    duolingo_metadata: Dict[str, JSON] = attr.ib()
+    attachments: list[str] = attr.ib()
+    duolingo_metadata: dict[str, JSON] = attr.ib()
     app_version: str = attr.ib()
     challenge_id: str = attr.ib(default="")
     challenge_prompt_text: str = attr.ib(default="")
@@ -51,8 +50,8 @@ class JeevesDocument(ABC):
     skill_tree_id: str = attr.ib(default="")
     ui_language: str = attr.ib()
     username: str = attr.ib()
-    embeddings: Dict[str, List[float]] = attr.ib(default={})
-    experiment_conditions: Dict[str, str] = attr.ib()
+    embeddings: dict[str, list[float]] = attr.ib(default={})
+    experiment_conditions: dict[str, str] = attr.ib()
     user_id: str = attr.ib(default="")
 
     # It is VERY IMPORTANT, when you add attributes to a subclass of this class,
@@ -108,7 +107,7 @@ class JeevesDocument(ABC):
 
     @classmethod
     def serialize_to_json(
-        cls, document: JeevesDocument, subserial_filter: Optional[List[str]] = None
+        cls, document: JeevesDocument, subserial_filter: Optional[list[str]] = None
     ) -> JSON:
         """
         Convert a document object into JSON. May be overridden as needed.
@@ -123,7 +122,6 @@ class JeevesDocument(ABC):
         Returns:
             A JSON representation of the provided object.
         """
-
         retval = {}
 
         if subserial_filter:

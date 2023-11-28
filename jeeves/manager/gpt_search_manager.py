@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from json import JSONDecodeError
 from threading import Thread
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 import tiktoken
 from opensearchpy import OpenSearchException
@@ -169,7 +169,7 @@ class GPTResponseDocument:
     translation_title: Optional[str]
 
     @classmethod
-    def from_dict(cls, d: Dict[str, str]) -> GPTResponseDocument:
+    def from_dict(cls, d: dict[str, str]) -> GPTResponseDocument:
         return cls(
             id=d[RESP_ID],
             doc_body_bolded=d[RESP_DOC_BODY_BOLDED],
@@ -187,7 +187,7 @@ class GPTResponse:
     """
 
     answer: str
-    matches: List[GPTResponseDocument]
+    matches: list[GPTResponseDocument]
 
     @classmethod
     def from_json(cls, json_str: str) -> GPTResponse:
@@ -222,13 +222,12 @@ class GPTSearchResult:
     bolded_body: str
     translated_text: Optional[LanguageContent]
     score: float
-    doc: Dict[str, Any]
+    doc: dict[str, Any]
 
     @classmethod
     def from_jeeves_document(
         cls, doc: JeevesDocument, match: GPTResponseDocument, score: float
     ) -> GPTSearchResult:
-
         translated_text = None
         if match.translation_body_bolded is not None:
             translated_text = LanguageContent(
@@ -252,7 +251,7 @@ class GPTSearchStartedResponse:
     OpenSearch filters parsed from the request string.
     """
 
-    lucene_filters: Dict[str, str]
+    lucene_filters: dict[str, str]
     request_id: str
     error: Optional[str] = None
 
@@ -264,10 +263,10 @@ class GPTSearchResults:
     """
 
     answer: str
-    supporting_docs: List[GPTSearchResult]
+    supporting_docs: list[GPTSearchResult]
     error: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -277,13 +276,13 @@ class KNNSearchResponse:
     Our internal API response for /api/3/gpt_search_get_knn_results, containing the matching documents and any errors.
     """
 
-    docs: List[JeevesDocument]
+    docs: list[JeevesDocument]
     error: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
-    def to_json(self) -> Dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         response_dict = self.to_dict()
         docs_json = [JeevesDocument.serialize_to_json(d) for d in self.docs]
         response_dict["docs"] = docs_json
@@ -296,7 +295,7 @@ class KNNSearchResult:
     The result of a k-NN search, containing the document IDs and the scores for each (and the error if there was one)
     """
 
-    id_to_score: Dict[str, float]
+    id_to_score: dict[str, float]
     error: Optional[str] = None
 
 
@@ -320,7 +319,7 @@ def format_for_user_prompt(md: MatchingDocument) -> str:
 
 def get_embedding(
     query: str,
-) -> List[float]:
+) -> list[float]:
     """
     Request a text embedding vector from OpenAI for the user's query.
     """
@@ -343,7 +342,6 @@ def get_dsl_query(
     """
     Extract an OpenSearch DSL query and a matching lucene query from GPT
     """
-
     try:
         dsl_response = app_registry(QueryHelper).get_dsl_query_and_topics(
             query, raise_exceptions=True
@@ -368,9 +366,9 @@ def get_dsl_query(
 
 
 def extract_supporting_docs(
-    gpt_matches: List[GPTResponseDocument],
-    hits: List[MatchingDocument],
-) -> List[GPTSearchResult]:
+    gpt_matches: list[GPTResponseDocument],
+    hits: list[MatchingDocument],
+) -> list[GPTSearchResult]:
     """
     Given a list of documents selected by GPT, return a list of GPTSearchResult objects to return to the user.
 
@@ -381,11 +379,10 @@ def extract_supporting_docs(
     Returns:
         A list of GPTSearchResult objects to return to the user
     """
-
     # Construct a map of ID to MatchingDocument for the documents that GPT selected
-    id_to_doc: Dict[str, MatchingDocument] = {doc.doc.jeeves_uid: doc for doc in hits}
+    id_to_doc: dict[str, MatchingDocument] = {doc.doc.jeeves_uid: doc for doc in hits}
 
-    supporting_docs: List[GPTSearchResult] = []
+    supporting_docs: list[GPTSearchResult] = []
     for gpt_match in gpt_matches:
         _id = gpt_match.id
         _id = _id.strip()
@@ -421,8 +418,8 @@ class GPTSearchManager:
         return len(self.tokenizer.encode(text))
 
     def get_max_docs_under_content_length_limit(
-        self, docs: List[MatchingDocument], max_response_tokens: int, prompts: List[str]
-    ) -> List[str]:
+        self, docs: list[MatchingDocument], max_response_tokens: int, prompts: list[str]
+    ) -> list[str]:
         """
         Given the CONTEXT_LENGTH for our GPT model, return as many documents as possible
         while still staying under the total token limit (tokens in request + response combined).
@@ -454,7 +451,7 @@ class GPTSearchManager:
         self,
         hash_key: str,
         query: str,
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Return the text embedding vector for the user's query, either from the cache or by requesting it from OpenAI.
 
@@ -465,7 +462,7 @@ class GPTSearchManager:
         Returns:
             The text embedding vector from OpenAI
         """
-        cached_embedding: List[float] = self.emb_cache.get(hash_key)
+        cached_embedding: list[float] = self.emb_cache.get(hash_key)
         if cached_embedding and len(cached_embedding) > 0:
             LOG.debug(
                 f"Found cached text embedding vector for query '{query}', reusing cached embedding."
@@ -498,7 +495,6 @@ class GPTSearchManager:
         Returns:
             The DSLQueryResponse object containing the DSL query and the lucene filters
         """
-
         cached_dsl_response: DSLQueryResponse = self.dsl_cache.get(hash_key)
         if cached_dsl_response and cached_dsl_response.dsl_query:
             LOG.debug(f"Found cached DSL Query for query '{query}', reusing cached response.")
@@ -514,9 +510,9 @@ class GPTSearchManager:
 
     def knn_search(
         self,
-        filters: Dict[str, Any],
+        filters: dict[str, Any],
         max_search_depth: int,
-        query_embedding: List[float],
+        query_embedding: list[float],
     ) -> KNNSearchResult:
         """
         Given a set of OpenSearch filters and a text embedding, perform a k-NN search against our Jeeves document index
@@ -570,11 +566,11 @@ class GPTSearchManager:
 
     def knn_search_cached(
         self,
-        filters: Dict[str, Any],
+        filters: dict[str, Any],
         hash_key: str,
         max_search_depth: int,
         query: str,
-        query_embedding: List[float],
+        query_embedding: list[float],
     ) -> KNNSearchResult:
         """
         Given a set of OpenSearch filters and a text embedding, perform a k-NN search against our Jeeves document
@@ -609,7 +605,7 @@ class GPTSearchManager:
         self.knn_cache.set(hash_key, result)
         return result
 
-    def run_mget(self, id_to_score: Dict[str, float]) -> List[MatchingDocument]:
+    def run_mget(self, id_to_score: dict[str, float]) -> list[MatchingDocument]:
         # Measure the time it takes to perform the search
         start_time = datetime.now()
         try:
@@ -629,7 +625,7 @@ class GPTSearchManager:
 
     def gpt_chat_completion(
         self,
-        hits: List[MatchingDocument],
+        hits: list[MatchingDocument],
         num_results: int,
         query: str,
     ) -> GPTSearchResults:
@@ -711,7 +707,7 @@ class GPTSearchManager:
     def gpt_chat_completion_cached(
         self,
         hash_key: str,
-        hits: List[MatchingDocument],
+        hits: list[MatchingDocument],
         num_results: int,
         query: str,
     ) -> None:
@@ -747,14 +743,13 @@ class GPTSearchManager:
 
     def init_search(
         self,
-        filters: Dict[str, Any],
+        filters: dict[str, Any],
         hash_key: str,
         max_search_depth: int,
         num_results: int,
         query: str,
-        query_embedding: List[float],
+        query_embedding: list[float],
     ) -> None:
-
         knn_result = self.knn_search_cached(
             filters, hash_key, max_search_depth, query, query_embedding
         )
@@ -763,7 +758,7 @@ class GPTSearchManager:
             return
 
         # Get the full documents from OpenSearch using these IDs
-        hits: List[MatchingDocument] = []
+        hits: list[MatchingDocument] = []
         try:
             hits = self.run_mget(knn_result.id_to_score)
         except JeevesException as e:
@@ -816,7 +811,7 @@ class GPTSearchManager:
                 raise embedding_response
             if not isinstance(embedding_response, List):
                 raise JeevesException(None, "Could not parse the embeddings response.")
-            query_embedding: List[float] = embedding_response
+            query_embedding: list[float] = embedding_response
 
             if isinstance(dsl_response, Exception):
                 raise dsl_response
@@ -895,7 +890,6 @@ class GPTSearchManager:
             hash_key (str): The request ID of the browser's initial request to the server
             timeout (int): The number of seconds to wait for the results before timing out
         """
-
         gpt_result: Optional[GPTSearchResults] = None
         start_time = datetime.now()
         # While the timeout is not reached, check the cache for the results, sleep for 1 second, and try again

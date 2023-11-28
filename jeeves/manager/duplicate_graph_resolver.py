@@ -80,7 +80,7 @@ class DuplicateGraphResolver:
             else:
                 target_key = unvisited.pop()
             # download issues in bulk as needed
-            if not target_key in key_to_doc:
+            if target_key not in key_to_doc:
                 docs = self._jira_manager.download_bulk_issues_with_features(list(docs_to_fetch))
                 key_to_doc.update({doc.issue_key: doc for doc in docs})
                 not_fetched = [
@@ -195,7 +195,7 @@ class DuplicateGraphResolver:
         # The set existing_links should now contain all existing links
         all_possible_links = set()
         keys_list = sorted(list(duplicate_graph.issue_keys_to_documents.keys()))
-        for i in range(0, len(keys_list) - 1):
+        for i in range(len(keys_list) - 1):
             for j in range(i + 1, len(keys_list)):
                 all_possible_links.add((keys_list[i], keys_list[j]))
 
@@ -208,7 +208,7 @@ class DuplicateGraphResolver:
         future = asyncio.ensure_future(self._jira_dal.mark_duplicates_async(remaining_links))
         results = loop.run_until_complete(future)
 
-        for (outward_end, inward_end, link_created) in results:
+        for outward_end, inward_end, link_created in results:
             # We don't need to edit our documents here because the changes will
             # get pulled in from Jira later anyway.
             if link_created:
@@ -280,7 +280,6 @@ class DuplicateGraphResolver:
         Returns:
             The issue key of the new parent issue, as returned by Jira.
         """
-
         category_names = JiraDocument.get_parent_category_mappings().values()
         body_json = generate_parent_body_text_from_data(
             "", {category: {} for category in category_names}
@@ -409,14 +408,13 @@ class DuplicateGraphResolver:
 
         Assigns parent issue and child_issue attributes for jira documents
         """
-
         # Fetch all directly linked duplicates in batch and compile a mapping from issue key to issue
         key_to_issue = {issue.issue_key: issue for issue in jira_issues}
         issues_to_fetch = {
             key
             for issue in jira_issues
             for key in issue.linked_duplicate_keys
-            if not key in key_to_issue
+            if key not in key_to_issue
         }
 
         downloaded_issues = self._jira_manager.download_bulk_issues_with_features(

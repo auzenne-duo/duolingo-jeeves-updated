@@ -41,7 +41,6 @@ class Test(unittest.TestCase):
         self.assertEqual(output_dict, expected_dict)
 
     def test_get_standardized_metadata(self):
-
         real_metadata_1 = {
             "session_information": {
                 "url": "https://www.duolingo.com/skill/ko/Onomatopoeia/1",

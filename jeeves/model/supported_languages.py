@@ -45,7 +45,6 @@ class SUPPORTED_LANGUAGES(Enum):
             The provided value of `lang` if that value is a supported language,
             otherwise the name of the "other" language category.
         """
-
         if lang in cls.__members__:
             return lang
         return cls.get_misc_language_name()

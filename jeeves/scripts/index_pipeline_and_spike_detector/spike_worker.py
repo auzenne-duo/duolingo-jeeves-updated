@@ -47,7 +47,6 @@ def run_spike_worker(dry_run: bool) -> None:
     perform this forceful refresh and exit. If not necessary, perform spike
     detection incrementally.
     """
-
     s3_client, s3_bucket_name = get_s3_client_and_bucket()
 
     # Check if the lock file exists. If not, create it in an unlocked state.

@@ -239,7 +239,6 @@ class SpikeIndexDAL:
 
         # filter for unique dates by detecting clusters of consecutive dates
         for word, data in word_to_dates.items():
-
             dates = data["dates"]
             dates.sort(key=lambda x: x[0])
 
@@ -281,7 +280,6 @@ class SpikeIndexDAL:
         This is just the same method as get_min_and_max_document_dates, but for
         spikes instead of documents.
         """
-
         s = Search(using=self._es, index=self._spikename)
         s.aggs.metric("min_date", "min", field="date", format="yyyy-MM-dd")
         s.aggs.metric("max_date", "max", field="date", format="yyyy-MM-dd")

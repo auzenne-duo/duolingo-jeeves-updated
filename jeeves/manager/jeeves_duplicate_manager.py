@@ -23,7 +23,7 @@ class JeevesDuplicateManager:
             # even if the individual fields are different. But, in that case,
             # we're still getting all of the relevant information in one way or another.
             doc_key = f'{doc.via["source"]["from"]["address"]} {doc.header_text} {doc.body_text}'
-            if not doc_key in deduped_documents.keys():
+            if doc_key not in deduped_documents.keys():
                 deduped_documents[doc_key] = doc
 
         return documents_to_skip_dedup + list(deduped_documents.values())

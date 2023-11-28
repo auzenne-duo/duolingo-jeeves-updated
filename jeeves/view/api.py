@@ -325,7 +325,6 @@ def get_shake_to_report_tokens():
     Returns:
         A dictionary of API tokens for Jira and Slack.
     """
-
     project = request.args.get("project")
 
     token_dict = app_registry(ShakiraManager).get_shake_to_report_tokens(project)
@@ -396,7 +395,6 @@ def perform_duplicate_jira_detection():
     Returns:
         A list of suspected duplicate issues.
     """
-
     issue_key = request.args.get("issue_key")
     if not issue_key:
         abort(make_response("Please provide `issue_key` parameter.", 400))
@@ -509,7 +507,6 @@ def fully_connect_duplicates():
                     duplicates of these issues, as well as any duplicates of
                     those duplicates, and so on.
     """
-
     data = request.get_json()
     if (data is None) or ("issue_keys" not in data) or (not data["issue_keys"]):
         abort(make_response("Please provide a list of issue_keys to interconnect.", 400))
@@ -658,12 +655,12 @@ def update_priority_estimator():
     """
     issue_key = request.form.get("issue_key")
     if not issue_key:
-        abort(make_response(f"Please provide the issue key.", 400))
+        abort(make_response("Please provide the issue key.", 400))
     summary = request.form.get("summary")
     feature = request.form.get("feature", "")
     reporter_email = request.form.get("reporter_email", "")
     priority = request.form.get("priority")
-    if not priority in JIRA_PRIORITY_STR_TO_INT:
+    if priority not in JIRA_PRIORITY_STR_TO_INT:
         abort(make_response(f"Invalid `priority` parameter: {priority}.", 400))
 
     overridden_priorities = get_s3_overridden_priorities()
@@ -707,7 +704,6 @@ async def gpt_search() -> Response:
     - `max_search_depth` (int): The maximum number of search results to consider in the k-NN search. Defaults to 50.
     - `num_results` (int): The number of results to return. Defaults to 5.
     """
-
     query = request.args.get("q")
     if not query:
         error_response = GPTSearchStartedResponse(
@@ -790,7 +786,6 @@ def quality_report():
     """
     Returns high level quality report data for all areas for the quality report landing page
     """
-
     return json.jsonify({"areas": app_registry(QualityReportManager).get_area_quality_overviews()})
 
 

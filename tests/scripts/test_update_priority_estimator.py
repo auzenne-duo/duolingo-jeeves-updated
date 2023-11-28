@@ -172,7 +172,7 @@ class TestUpdatePriorityEstimator(unittest.TestCase):
         calculate_manual_override_score(datetime(2022, 9, 22), datetime(2022, 9, 20))
         mockS3.upload.assert_called_with(
             "s3_bucket",
-            f"priority_estimator_scores/score_2022-09-20_2022-09-22",
+            "priority_estimator_scores/score_2022-09-20_2022-09-22",
             json.dumps(
                 {
                     "score": 1.0,

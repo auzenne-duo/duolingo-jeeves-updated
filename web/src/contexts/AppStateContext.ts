@@ -86,8 +86,8 @@ export const reducer: React.Reducer<State, Action> = (state, action) => {
       return state.lightboxUrl
         ? { ...state, lightboxUrl: undefined }
         : state.showMenu && !canFitMenuAndContent()
-        ? { ...state, showMenu: false }
-        : { ...state, showAside: false };
+          ? { ...state, showMenu: false }
+          : { ...state, showAside: false };
     case "HIDE_ASIDE":
       return { ...state, showAside: false };
     case "HIDE_MENU":

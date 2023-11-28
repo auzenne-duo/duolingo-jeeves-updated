@@ -49,7 +49,6 @@ class Test(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_extract_common_zendesk_headers(self):
-
         empty_test_input = ""
         empty_test_expected = ("", {})
         empty_test_result = extract_common_zendesk_headers(empty_test_input)

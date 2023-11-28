@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Optional
 
 FIXED_RESOLUTIONS = ["Fixed", "Done"]
 UNRESOLVED_RESOLUTIONS = ["Unresolved", ""]
@@ -17,7 +17,7 @@ class PriorityValue(Enum):
     ACUTE = "Acute"
 
 
-PRIORITY_SORTING_ORDER: Dict[PriorityValue, int] = {
+PRIORITY_SORTING_ORDER: dict[PriorityValue, int] = {
     PriorityValue.ACUTE: 0,
     PriorityValue.HIGH_HIGHEST: 1,
     PriorityValue.MEDIUM: 2,
@@ -44,7 +44,7 @@ priority_map = {
     "Unprioritized": PriorityValue.UNPRIORITIZED,
 }
 
-score_map: Dict[PriorityValue, Dict[Resolution, int]] = {
+score_map: dict[PriorityValue, dict[Resolution, int]] = {
     PriorityValue.ACUTE: {
         Resolution.FIXED_WITHIN_ONE_WEEK: 200,
         Resolution.FIXED: 100,
@@ -99,7 +99,7 @@ class QualityScoreParams:
         Initialize a score params object from the priority group and resolution
         (with duplicate information, if available).
         """
-        is_done = not resolution is Resolution.OPEN
+        is_done = resolution is not Resolution.OPEN
         score = cls.get_score(group, resolution, duplicates or 0)
         text = cls.get_text(group, resolution, duplicates)
         return QualityScoreParams(is_done, group, resolution, score, text, duplicates=duplicates)
@@ -111,7 +111,7 @@ class QualityScoreParams:
         priority: str,
         resolution_date: Optional[datetime],
         duplicates: int,
-        labels: Optional[List[str]] = None,
+        labels: Optional[list[str]] = None,
         resolution_str: str = "",
     ) -> QualityScoreParams:
         """
@@ -156,7 +156,7 @@ class QualityScoreParams:
         return f"{group.value} {resolution.value}{duplicates_suffix}"
 
     @classmethod
-    def get_all_possible_score_params(cls) -> List[QualityScoreParams]:
+    def get_all_possible_score_params(cls) -> list[QualityScoreParams]:
         return [
             QualityScoreParams.init_from_group_and_resolution(group, resolution)
             for group in PriorityValue

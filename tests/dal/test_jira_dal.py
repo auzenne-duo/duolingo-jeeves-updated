@@ -94,7 +94,7 @@ class TestJiraApiDAL(unittest.TestCase):
             screen_content="",
             ui_language="",
             username="",
-            issue_key=f"DLAA-1",
+            issue_key="DLAA-1",
             issue_links=[],
             issue_type="Bug",
             project="DLAA",

@@ -36,7 +36,7 @@ class PublishManager:
         """
         if not self._initialized:
             rollbar.report_message(
-                f"SNS topic is not configured for this environment",
+                "SNS topic is not configured for this environment",
                 "warning",
             )
             return

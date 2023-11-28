@@ -60,12 +60,12 @@ class MetricsDAL:
         if not self.experiments_metadata:
             return {}
 
-        user_ids = {id for id in user_ids if not id in [None, ""]}
+        user_ids = {id for id in user_ids if id not in [None, ""]}
         if len(user_ids) < MIN_SHARED_USERS:
             return {}
 
         # Search for user
-        params = {"user_ids": ",".join((str(id) for id in user_ids))}
+        params = {"user_ids": ",".join(str(id) for id in user_ids)}
         total_users = len(user_ids)
         try:
             response = self.client.get(SHARED_CONDITIONS_ROUTE, params=params, timeout=TIMEOUT)
@@ -82,7 +82,7 @@ class MetricsDAL:
                 continue
             if experiment["num_shared"] < MIN_SHARED_USERS:
                 continue
-            if not experiment["experiment"] in self.experiments_metadata:
+            if experiment["experiment"] not in self.experiments_metadata:
                 continue
 
             # Calculate the standard deviation of the binomial distribution

@@ -20,7 +20,6 @@ NEGATIVE_TARGET_STRING = "negative"
 
 @attr.s(kw_only=True)
 class ZeroShotClassifier(SentimentAnalysisClassifier):
-
     positive_target_embedding: List[float] = attr.ib(
         default=app_registry(AICompletionsDAL).request_embedding(POSITIVE_TARGET_STRING)
     )

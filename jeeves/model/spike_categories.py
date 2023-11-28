@@ -77,7 +77,6 @@ class SpikeCategory(Enum):
         Returns:
             a dict specifying an OpenSearch query that filters JeevesDocuments.
         """
-
         shake_to_report_categories = cls._get_shake_to_report_categories_for_spike_category(
             group_category
         )
@@ -114,7 +113,6 @@ class SpikeCategory(Enum):
 
             Note that returned parameter values are NOT escaped.
         """
-
         # TODO: I'm pretty sure this can mostly be removed because now the /tickets route uses the spike category to filter so this is unnecessary
         shake_to_report_categories = cls._get_shake_to_report_categories_for_spike_category(
             group_category

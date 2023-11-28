@@ -11,10 +11,10 @@ const useDateRangeFilter = ({
   const from = search.get("from")
     ? new Date(search.get("from") as string)
     : daysAgo
-    ? startOfDay(subDays(new Date(), daysAgo))
-    : monthsAgo
-    ? startOfDay(subMonths(new Date(), monthsAgo))
-    : undefined;
+      ? startOfDay(subDays(new Date(), daysAgo))
+      : monthsAgo
+        ? startOfDay(subMonths(new Date(), monthsAgo))
+        : undefined;
 
   const to = search.get("to")
     ? new Date(search.get("to") as string)

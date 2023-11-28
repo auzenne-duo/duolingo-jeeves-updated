@@ -76,7 +76,6 @@ def _compile_common_zendesk_header_re() -> Pattern:
         Compiled regular expression corresponding to a sequence of common
         metadata headers
     """
-
     # Add a colon, capturing group, and end-of-line check to each header
     prepared_lines = [f"{header}: (.*?)$" for header in _COMMON_ZENDESK_META_HEADER_LIST]
 
@@ -109,7 +108,6 @@ def clean_and_parse_description(desc):
     Returns:
         (str, dict) -- Tuple of cleaned description and metadata dictionary
     """
-
     # first parse and cut out metadata, then cleanup rest of description for
     cutDesc, mdict = parse_metadata(desc + "\n")
     return _EMPTY_STRING_PATTERN.sub("", _CLEANUP_PATTERN.sub("", cutDesc.strip())), mdict
@@ -128,7 +126,6 @@ def check_for_hyphen_line(body_text: str) -> bool:
     Returns:
         True if the input contains a line of just hyphens, otherwise False.
     """
-
     body_lines = [line.strip() for line in body_text.split("\n")]
     return any([bool(_HYPHEN_LINE_PATTERN.match(line)) for line in body_lines])
 
@@ -147,7 +144,6 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
         occurs during parsing, instead return the body text untouched and an
         empty tuple.
     """
-
     extracted_metadata = {}
 
     single_value_headers = ["Report method:", "View Controller Name:"]
@@ -281,7 +277,6 @@ def extract_common_zendesk_headers(body_text: str) -> Tuple[str, JSON]:
         cannot be parsed, instead the first element will be the unmodified body
         text and the second element will be an empty dictionary.
     """
-
     m = _COMMON_ZENDESK_META_PATTERN.search(body_text)
 
     if not m:

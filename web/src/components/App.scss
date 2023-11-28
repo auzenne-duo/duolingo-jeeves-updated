@@ -33,7 +33,9 @@ $transform-shifted: translateX(
   display: grid;
   grid-gap: var(--margin);
   justify-items: start;
-  transition: padding-right $duration-slide, transform $duration-slide;
+  transition:
+    padding-right $duration-slide,
+    transform $duration-slide;
 
   @media (prefers-reduced-motion) {
     transition: none;

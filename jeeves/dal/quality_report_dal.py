@@ -250,7 +250,7 @@ class QualityReportDAL:
         Jira documents are updated to have the quality_score_params field set
         """
         jira_docs = JiraManager.get_jira_issues_since(date_to_str(start_date))
-        LOG.debug(f"resolving duplicate graphs")
+        LOG.debug("resolving duplicate graphs")
         jira_docs, key_to_issue_map = self.duplicate_graph_resolver.resolve_duplicate_graphs(
             jira_docs
         )

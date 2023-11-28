@@ -14,7 +14,6 @@ from jeeves.model.sentiment_analysis_classifier import SentimentAnalysisClassifi
 
 @attr.s(kw_only=True)
 class TransformerClassifier(SentimentAnalysisClassifier):
-
     classifier = attr.ib(default=pipeline(model="distilbert-base-uncased-finetuned-sst-2-english"))
     label_mapper = attr.ib(init=False)
 

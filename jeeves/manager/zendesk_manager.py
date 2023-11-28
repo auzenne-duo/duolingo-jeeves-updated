@@ -44,7 +44,6 @@ class ZendeskManager(JeevesManager):
         """
         Please see parent class for documentation
         """
-
         _CHECKPOINT_FILE = ZendeskManager.get_checkpoint_file_name()
         if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
             new_checkpoint_string = str(int(default_start_timestamp))
@@ -120,7 +119,6 @@ class ZendeskManager(JeevesManager):
             bucket_name: Name of the bucket we want to store the document to.
             doc: JSON representation of a document we wish to store.
         """
-
         identifier_directory = (
             ZendeskManager.get_managed_document_type().get_data_source_identifier()
         )
@@ -144,7 +142,6 @@ class ZendeskManager(JeevesManager):
         """
         Please see parent class for documentation.
         """
-
         test_doc = ZendeskDocument.deserialize_from_external_json(doc_json)
         if ZendeskDocument.check_should_index_document(test_doc):
             return test_doc

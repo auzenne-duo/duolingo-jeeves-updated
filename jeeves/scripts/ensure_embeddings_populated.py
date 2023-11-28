@@ -17,7 +17,7 @@ if __name__ == "__main__":
         query = {"size": 1000, "query": {"range": {"date_time": {"gte": "now-6M"}}}}
         document_list = []
         for i, doc in enumerate(app_registry(OpenSearchDAL).scroll_arbitrary_query(query)):
-            if not GPT_EMBEDDING_MODEL in doc["_source"].get("embeddings"):
+            if GPT_EMBEDDING_MODEL not in doc["_source"].get("embeddings"):
                 document_list.append(
                     IDManagerMap.get_manager_for_identifier(doc["_source"]["data_source"])
                     .get_managed_document_type()

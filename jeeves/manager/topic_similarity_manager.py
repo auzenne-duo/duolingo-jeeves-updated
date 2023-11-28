@@ -119,7 +119,6 @@ class TopicSimilarityManager:
         A subset of the related and not related documents will be labeled by gpt and included in the training data as well.
         Construct a SVM model and use it to predict which documents are related to the target topic.
         """
-
         LOG.debug(f"Filtering out documents unrelated to {target_topic}")
 
         # Remove documents that don't have an embedding
@@ -162,7 +161,6 @@ class TopicSimilarityManager:
         """
         Construct a dataset for training a SVM model to filter documents based on similarity to a target topic. Then fit a SVM model to the dataset.
         """
-
         related_embedding = self.ai_completions_dal.request_embedding(target_topic)
         unrelated_embedding = self.ai_completions_dal.request_embedding(
             SimilarityCategory.UNRELATED.value

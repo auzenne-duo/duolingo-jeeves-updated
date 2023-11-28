@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime
 import sys
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import attr
 
@@ -35,16 +35,16 @@ class JiraDocument(JeevesDocument):
     _duplicate_detector = None
 
     issue_key: str = attr.ib()
-    issue_links: List[Dict] = attr.ib()
+    issue_links: list[dict] = attr.ib()
     issue_type: str = attr.ib()
     project: str = attr.ib()
-    linked_duplicate_keys: List[str] = attr.ib()
+    linked_duplicate_keys: list[str] = attr.ib()
     creation_date: datetime.datetime = attr.ib()
     updated_date: datetime.datetime = attr.ib()
     resolution_date: Optional[datetime.datetime] = attr.ib()
     status: str = attr.ib()
     resolution: str = attr.ib()
-    components: List[str] = attr.ib()
+    components: list[str] = attr.ib()
     feature_url: str = attr.ib()
     feature: str = attr.ib()
     priority: str = attr.ib()
@@ -54,11 +54,11 @@ class JiraDocument(JeevesDocument):
     # Comments is a list of dicts, each dict representing one comment
     # A comment dict contains these keys with corresponding types:
     # author: str, body: str, created: datetime, id: str, updated: datetime
-    comments: List[Dict[str, Union[str, datetime.datetime]]] = attr.ib()
-    labels: List[str] = attr.ib()
-    jira_attachments: List[Dict[str, str]] = attr.ib()
+    comments: list[dict[str, Union[str, datetime.datetime]]] = attr.ib()
+    labels: list[str] = attr.ib()
+    jira_attachments: list[dict[str, str]] = attr.ib()
     parent_issue: Optional[str] = attr.ib()
-    child_issues: List[str] = attr.ib()
+    child_issues: list[str] = attr.ib()
     is_dev_related: bool = attr.ib()
     area: Optional[str] = attr.ib()
     team: Optional[str] = attr.ib()
@@ -95,7 +95,6 @@ class JiraDocument(JeevesDocument):
         Returns:
             A string that should serve as a 'close-enough' representation of the input
         """
-
         # Rich Text Type, so I can save on typing
         rtt = rich_text["type"]
 
@@ -145,7 +144,7 @@ class JiraDocument(JeevesDocument):
         return f"<UNIMPLEMENTED TYPE: {rtt}>"
 
     @classmethod
-    def _deserialize_comment(cls, comment_json: JSON) -> Dict[str, Union[str, datetime.datetime]]:
+    def _deserialize_comment(cls, comment_json: JSON) -> dict[str, Union[str, datetime.datetime]]:
         """
         Helper function for external deserialization.
 
@@ -155,7 +154,6 @@ class JiraDocument(JeevesDocument):
         Returns:
             A dictionary with string keys that we can insert directly into our ticket model.
         """
-
         return {
             "author": comment_json["author"],
             "body": comment_json["body"]
@@ -171,7 +169,7 @@ class JiraDocument(JeevesDocument):
         }
 
     @classmethod
-    def get_duplicate_keys_from_issue_links(cls, issue_links: JSON) -> List[str]:
+    def get_duplicate_keys_from_issue_links(cls, issue_links: JSON) -> list[str]:
         """
         Given a JSON data structure from Jira representing issue links, extract
         the issue keys of issues that are considered duplicate issues according
@@ -184,7 +182,6 @@ class JiraDocument(JeevesDocument):
             A list of strings, where each string is the issue key of a duplicate
             issue according to the input link structure.
         """
-
         known_duplicates = []
         for link in issue_links:
             if "Duplicate" in link["type"]["name"]:
@@ -215,7 +212,7 @@ class JiraDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
-        external_fields: Dict[str, Any] = external_json["fields"]
+        external_fields: dict[str, Any] = external_json["fields"]
 
         body_text = (
             cls._compress_rich_text(external_fields["description"])
@@ -233,12 +230,12 @@ class JiraDocument(JeevesDocument):
         std_metadata = MetaStdizer.get_standardized_metadata(duolingo_metadata)
 
         # Determine feature, area, and team based on the Jira fields
-        feature_field: Optional[Dict[str, Any]] = (
+        feature_field: Optional[dict[str, Any]] = (
             external_fields.get(cls._feature_field_key)
             if cls._feature_field_key is not None
             else None
         )
-        team_field: Optional[Dict[str, Any]] = (
+        team_field: Optional[dict[str, Any]] = (
             external_fields.get(cls._team_field_key) if cls._team_field_key is not None else None
         )
 
@@ -429,7 +426,7 @@ class JiraDocument(JeevesDocument):
         return document.issue_type == "Bug" and super().check_should_index_document(document)
 
     @classmethod
-    def get_parent_category_mappings(cls) -> Dict[str, str]:
+    def get_parent_category_mappings(cls) -> dict[str, str]:
         """
         Returns a mapping of category names used in parent documents, and which
         field names those category names represent.
@@ -459,7 +456,6 @@ class JiraDocument(JeevesDocument):
         Returns:
             True if the input should be considered a parent issue, else False.
         """
-
         # First we need to check that the generic JeevesDocument is for Jira.
         # Using an isinstance test here is annoying because we're inside the
         # class we're testing for, so we check the data_source instead.
@@ -469,7 +465,7 @@ class JiraDocument(JeevesDocument):
         return "parent_bug" in target.labels
 
     @classmethod
-    def calculate_embedding(cls, target: "JiraDocument") -> List[float]:
+    def calculate_embedding(cls, target: JiraDocument) -> list[float]:
         """
         Given a JeevesDocument object, calculates the SentenceTransformer embedding vector
 

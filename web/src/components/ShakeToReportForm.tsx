@@ -79,10 +79,10 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
     ticket.platform === "Android"
       ? "DLAA"
       : ticket.platform === "iOS"
-      ? "DLAI"
-      : ticket.platform === "Web"
-      ? "DLAW"
-      : undefined,
+        ? "DLAI"
+        : ticket.platform === "Web"
+          ? "DLAW"
+          : undefined,
   );
   const [slackChannel, setSlackChannel] =
     React.useState<shakiraApi.SlackReportType>();
@@ -424,12 +424,12 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
     step === "report" || (step === "features" && !canShowFeatures)
       ? renderReportStep()
       : step === "features"
-      ? renderFeaturesStep()
-      : step === "duplicates"
-      ? renderSubmittedStep()
-      : step === "submitted"
-      ? renderSubmittedStep()
-      : [];
+        ? renderFeaturesStep()
+        : step === "duplicates"
+          ? renderSubmittedStep()
+          : step === "submitted"
+            ? renderSubmittedStep()
+            : [];
 
   return (
     <>

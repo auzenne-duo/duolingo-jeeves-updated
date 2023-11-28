@@ -5,7 +5,6 @@ from jeeves.model.zendesk_document import ZendeskDocument
 
 class Test(unittest.TestCase):
     def test_generate_opensearch_internal_id(self):
-
         real_json = {
             "data_source": "Zendesk",
             "document_id": "2605487",

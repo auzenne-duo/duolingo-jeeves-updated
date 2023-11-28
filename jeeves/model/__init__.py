@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class JeevesObject(object, metaclass=ABCMeta):
+class JeevesObject(metaclass=ABCMeta):
     """Base object for all custom data structures in Jeeves"""
 
     @abstractmethod

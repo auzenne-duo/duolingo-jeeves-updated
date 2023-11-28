@@ -32,10 +32,10 @@ const getZendeskChannel = (ticket: JSONAPI.Ticket) =>
   ticket.via?.channel === "email"
     ? "Email"
     : ticket.via?.channel === "mobile_sdk"
-    ? "Zendesk mobile"
-    : ticket.via?.channel === "twitter"
-    ? "Twitter"
-    : "Zendesk";
+      ? "Zendesk mobile"
+      : ticket.via?.channel === "twitter"
+        ? "Twitter"
+        : "Zendesk";
 
 interface Props {
   className?: string;

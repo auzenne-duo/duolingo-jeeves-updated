@@ -13,7 +13,7 @@ def parse(parseFormat):
             }
         )
         if pField["optional"]:
-            line = r"(?:{})?".format(line)
+            line = rf"(?:{line})?"
         return line
 
     return parseInner

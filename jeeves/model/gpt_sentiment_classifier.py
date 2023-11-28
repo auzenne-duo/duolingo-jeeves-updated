@@ -29,7 +29,7 @@ class GPTSentimentClassifier(SentimentAnalysisClassifier):
         self.negative_class = NEGATIVE_CLASS
 
     def classify(self, document: JeevesDocument) -> Tuple[str, float]:
-        user_prompt_prefix = f"""Your job is to determine whether a document is "positive" or "negative".
+        user_prompt_prefix = """Your job is to determine whether a document is "positive" or "negative".
 
         Return "positive" for a positive document and "negative" for a negative document.
         Return a number on a scale of -5 to 5 to determine how positive or negative a document is.

@@ -117,7 +117,6 @@ def parse_external_datetime(datetime_str: str) -> datetime:
         datetime object corresponding to given string
 
     """
-
     parsed_datetime = parse(datetime_str)
     if parsed_datetime.tzinfo is None:
         parsed_datetime = parsed_datetime.replace(tzinfo=pytz.utc)
@@ -138,7 +137,6 @@ def yield_intermediate_dates(start_date: date, end_date: date) -> Iterator[date]
     Yields:
         date objects representing dates between start_date and end_date in chronological order.
     """
-
     if end_date < start_date:
         raise ValueError(
             f"Inappropriate dates, start_date given as {start_date}, end_date given as {end_date}."

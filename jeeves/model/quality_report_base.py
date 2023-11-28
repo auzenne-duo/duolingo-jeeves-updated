@@ -108,7 +108,7 @@ class QualityReportBase:
                 closed_points += issue.quality_score_params.score
                 quality_score_duplicate_bonuses[
                     (issue.quality_score_params.group, issue.quality_score_params.resolution)
-                ] += (issue.quality_score_params.duplicates or 0)
+                ] += issue.quality_score_params.duplicates or 0
             else:
                 open_points += issue.quality_score_params.score
 

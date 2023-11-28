@@ -51,7 +51,7 @@ def deserialize_labeled_data_to_json(file_name: str) -> List[AnnotatedDocument]:
     Retrieve list of AnnotatedDocuments from a JSON file
     """
     labeled_data = []
-    with open(file_name, "r") as f:
+    with open(file_name) as f:
         json_labeled_data = json.load(f)
 
     for document_dict in json_labeled_data.values():
@@ -80,7 +80,7 @@ def fetch_unannotated_dataset(
     source_term = (
         f'{{"term": {{"data_source": "{data_source}"}}}},' if data_source.lower() != "all" else ""
     )
-    query_string = f'{{"query": {{ "function_score": {{ "query": {{"bool": {{"filter": [{source_term} {{"term": {{"language": "{document_language}"}}}}]}}}}, "functions": [{{"random_score": {{"seed": "{seed}"}}}}]}}}}, "size": {str(dataset_size)}}}'
+    query_string = f'{{"query": {{ "function_score": {{ "query": {{"bool": {{"filter": [{source_term} {{"term": {{"language": "{document_language}"}}}}]}}}}, "functions": [{{"random_score": {{"seed": "{seed}"}}}}]}}}}, "size": {dataset_size!s}}}'
     query_jsn = json.loads(query_string)
     return app_registry(OpenSearchDAL).execute_arbitrary_query(query_jsn)
 
@@ -148,7 +148,6 @@ def annotate_dataset(data_list: List[JeevesDocument], shuffle=False) -> List[Ann
 )
 @click.option("--summarize", help="Summarize dataset as tsv", is_flag=True, default=False)
 def main(size: int, seed: str, language: str, source: str, summarize: bool):
-
     try:
         data_source_mapper = {
             "all": "All",

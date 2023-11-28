@@ -13,4 +13,4 @@ def is_jira_issue_resolved(resolution: str) -> bool:
     """
     Returns True if the Jira issue has been marked as resolved
     """
-    return not resolution in ["Unresolved", ""]
+    return resolution not in ["Unresolved", ""]

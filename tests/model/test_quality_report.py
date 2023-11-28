@@ -60,7 +60,6 @@ class TestQualityReport(unittest.TestCase):
         score with newly removed issue: (11/21) = 0.5238095238095238
         change in score due to newly removed issues: 0.5238095238095238 - 0.4230769230769231 = 0.10073260073260076
         """
-
         issue_data = [
             QualityReportIssueDataset(
                 datetime(2021, 1, 1, tzinfo=pytz.utc),

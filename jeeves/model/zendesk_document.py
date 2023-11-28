@@ -34,7 +34,6 @@ _PASSWORD = os.environ.get("ZENDESK_REPORTS_PASSWORD")
 
 @attr.s(kw_only=True)
 class ZendeskDocument(JeevesDocument):
-
     email: str = attr.ib()
     product: str = attr.ib()
     priority: str = attr.ib()
@@ -57,7 +56,6 @@ class ZendeskDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
-
         # If these seem like magic, they pretty much are. I talked to Ramya
         # and was told that these are the values we should filter on for
         # release candidate feedback.
@@ -308,7 +306,6 @@ class ZendeskDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
-
         # Using an insecure hash like SHA-1 is acceptable because this context
         # is not security critical
         hash_generator = sha1()
@@ -335,7 +332,6 @@ class ZendeskDocument(JeevesDocument):
         Returns:
             The Response object returned by Session.get().
         """
-
         r = s.get(request_url)
 
         if r.status_code == 429:

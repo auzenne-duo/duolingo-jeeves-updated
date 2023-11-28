@@ -13,7 +13,6 @@ _NLP_URL = "https://nlp.duolingo.com/v1/udep"
 
 class Tokenizer:
     def tokenize(self, text, lang):
-
         if not text:
             return []
 

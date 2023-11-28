@@ -15,9 +15,8 @@ class AbstractCategoryAnnotationDAL:
 
 
 class SpreadSheetCategoryAnnotationDAL:
-
     _KEY = "AKfycbx6JvPzdYwV8Brd-aoxPuwDT8iItlA41fLRLWb4HRwvSMeh4Lg"
-    _API_URL = "https://script.google.com/macros/s/{project_key}/exec".format(project_key=_KEY)
+    _API_URL = f"https://script.google.com/macros/s/{_KEY}/exec"
 
     def __init__(self):
         self._cache = None

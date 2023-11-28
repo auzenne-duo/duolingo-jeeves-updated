@@ -377,7 +377,6 @@ class ShakiraJiraApiClient:
             outward_issue_key: JIRA issue to create link from e.g. DLAA-5690
             inward_issue_key: JIRA issue to create link to e.g. DLAA-5691
         """
-
         url = f"{_HOST}/rest/api/3/issueLink"
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
         auth = self._get_full_access_jira_auth()

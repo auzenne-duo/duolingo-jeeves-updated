@@ -155,7 +155,6 @@ def _crawl_documents_for_data_source(
         manager: A subclass of JeevesManager responsible for managing a given
                  subclass of JeevesDocuments.
     """
-
     data_source_identifier = manager.get_managed_document_type().get_data_source_identifier()
     print(f"Finding latest indexed timestamp for data source {data_source_identifier}", flush=True)
     latest_timestamp = app_registry(OpenSearchDAL).get_most_recent_timestamp(

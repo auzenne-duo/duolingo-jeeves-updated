@@ -17,8 +17,8 @@ export const downloadAsCsv = (
 ) => {
   const separator = ",";
 
-  const keys: (keyof typeof tickets[0])[] = [];
-  let k: keyof typeof tickets[0];
+  const keys: (keyof (typeof tickets)[0])[] = [];
+  let k: keyof (typeof tickets)[0];
   for (k in tickets[0]) {
     if (Object.prototype.hasOwnProperty.call(tickets[0], k)) {
       keys.push(k);
@@ -39,8 +39,8 @@ export const downloadAsCsv = (
               cell instanceof Date
                 ? cell.toLocaleString()
                 : typeof cell === "object"
-                ? ""
-                : cell.toString().replace(/"/g, '""');
+                  ? ""
+                  : cell.toString().replace(/"/g, '""');
 
             if (cell.search(/("|,|\n)/g) >= 0) {
               cell = `"${cell}"`;

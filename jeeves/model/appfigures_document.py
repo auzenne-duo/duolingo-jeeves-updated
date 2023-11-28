@@ -13,7 +13,6 @@ from jeeves.util.date_util import parse_external_datetime
 
 @attr.s(kw_only=True)
 class AppfiguresDocument(JeevesDocument):
-
     author: str = attr.ib()
     stars: float = attr.ib()
     iso: str = attr.ib()
@@ -119,5 +118,4 @@ class AppfiguresDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
-
         return super().check_should_index_document(document)

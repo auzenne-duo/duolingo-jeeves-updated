@@ -8,7 +8,6 @@ from jeeves.util.language_code_mapping import LangCodeMap
 
 class MetadataStandardizer:
     def __init__(self):
-
         # We're going to be using these regular expressions a lot so for the
         # sake of speed we pre-compile them once and then use them for every
         # document.
@@ -80,7 +79,6 @@ class MetadataStandardizer:
             including elements inside nested objects at arbitrary depths,
             with all nesting removed.
         """
-
         layer_dict = {}
         for field in metadata_layer:
             if isinstance(metadata_layer[field], dict):
@@ -180,7 +178,6 @@ class MetadataStandardizer:
             input metadata is empty, no fields will be set in the defaultdict
             before it is returned.
         """
-
         # Using a defaultdict instead of a dictionary is very nice because
         # we can treat the empty string as the value for "no entry",
         # so we only need to set entries that have values

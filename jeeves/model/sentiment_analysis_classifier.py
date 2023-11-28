@@ -50,7 +50,6 @@ class SentimentClassifierResults:
 
 @attr.s(kw_only=True)
 class SentimentAnalysisClassifier(ABC):
-
     positive_class: str = attr.ib(default=POSITIVE_CLASS)
     negative_class: str = attr.ib(default=NEGATIVE_CLASS)
     neutral_class: str = attr.ib(default=NEUTRAL_CLASS)
@@ -76,7 +75,6 @@ class SentimentAnalysisClassifier(ABC):
         Utility function to evaluate a sentiment analysis model. Returns the accuracy for the model
         and the precision, recall, and f1 score for each label
         """
-
         gt = []
         predicted = []
         results = {}

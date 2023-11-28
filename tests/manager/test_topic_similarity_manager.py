@@ -109,7 +109,7 @@ verify_topic_using_gpt_test_cases = [
         mock_leaderboards_document_list,
         mock_swahili_document_list,
         LEADERBOARDS,
-        f'{{"related ids": ["2","4","0","3"],"unrelated ids": ["1"]}}',
+        '{"related ids": ["2","4","0","3"],"unrelated ids": ["1"]}',
         {
             SimilarityCategory.RELATED: [
                 mock_document_list[2],
@@ -124,7 +124,7 @@ verify_topic_using_gpt_test_cases = [
         mock_swahili_document_list,
         mock_leaderboards_document_list,
         SWAHILI,
-        f'{{"unrelated ids": ["2","4","0","3"],"related ids": ["1"]}}',
+        '{"unrelated ids": ["2","4","0","3"],"related ids": ["1"]}',
         {
             SimilarityCategory.UNRELATED: [
                 mock_document_list[2],
@@ -139,7 +139,7 @@ verify_topic_using_gpt_test_cases = [
         [],
         mock_document_list,
         STREAK,
-        f'{{"unrelated ids": ["2","4","0","3","1"],"related ids": []}}',
+        '{"unrelated ids": ["2","4","0","3","1"],"related ids": []}',
         {
             SimilarityCategory.UNRELATED: [
                 mock_document_list[2],
@@ -170,7 +170,6 @@ def test_filter_documents_using_topic(
     """
     Tests that documents irrelevant to the target topic will be filtered out
     """
-
     topic_similarity_manager = TopicSimilarityManager(
         ai_completions_dal=mock_ai_completions_dal,
     )
@@ -208,7 +207,6 @@ def test_sort_documents_using_cosine_similarity(
     """
     Tests that documents are correctly bucketed using cosine similarity
     """
-
     topic_similarity_manager = TopicSimilarityManager(mock_ai_completions_dal)
     sorted_dict = topic_similarity_manager.sort_documents_using_cosine_similarity(document_list)
 
@@ -238,7 +236,6 @@ def test_verify_topic_using_gpt(
     """
     Tests that verify_topic_using_gpt correctly processes the output from ai_completions_backend
     """
-
     topic_similarity_manger = TopicSimilarityManager(mock_ai_completions_dal)
     mock_ai_completions_dal.ask.return_value = ai_completions_response
 

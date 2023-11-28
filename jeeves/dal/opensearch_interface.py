@@ -81,7 +81,6 @@ class OpenSearchDAL:
         Should only be called once, during server startup
         """
         if not self._es.indices.exists(index=self._indexname):
-
             print(f"Creating index {self._indexname}...", flush=True)
 
             # We need to explicitly set these types because OpenSearch will
@@ -145,7 +144,6 @@ class OpenSearchDAL:
         Returns:
             The results of the input search as a list of JeevesDocument objects.
         """
-
         response = s.execute()
         return self._parse_response_to_docs(response)
 
@@ -211,7 +209,6 @@ class OpenSearchDAL:
             proper return value is likely not possible. This also lets us
             communicate with the user about the nature of the error.
         """
-
         if e.args[1] == "search_phase_execution_exception":
             # Splitting this conditional from the outer one is cleaner in case
             # we want to add more cases later
@@ -290,7 +287,6 @@ class OpenSearchDAL:
             - sort_id (str): sort_id of the last doc in the batch
             - prev_sort_id (str): sort_id of the first doc in the batch
         """
-
         s = Search(using=self._es, index=self._indexname)
 
         if jeeves_id:
@@ -385,7 +381,6 @@ class OpenSearchDAL:
             date and an int representing a count of how many times the input
             term appeared on that date.
         """
-
         s = (
             Search(using=self._es, index=self._indexname)
             .filter("term", language=lang)
@@ -921,7 +916,6 @@ class OpenSearchDAL:
             if a term appears more than once (in the same document or across
             different documents), it is only counted once.
         """
-
         terms = set()
         # Do the term collection in chunks to avoid massive network packets
         slice_size = 20
@@ -945,7 +939,6 @@ class OpenSearchDAL:
             lang: Language to search tickets in.
             spike_category: The spike category whose documents we should search within.
         """
-
         s = Search(using=self._es, index=self._indexname)
         if lang:
             s = s.filter("term", language=lang)
@@ -981,7 +974,6 @@ class OpenSearchDAL:
             JeevesDocument objects that represent records matching the
             specified criteria. Results are unordered due to the use of scan().
         """
-
         s = Search(using=self._es, index=self._indexname)
 
         for field, value in field_value_pairs.items():
@@ -1011,7 +1003,6 @@ class OpenSearchDAL:
         Returns:
             A count of how many records match the specified criteria.
         """
-
         s = Search(using=self._es, index=self._indexname)
 
         for field, value in field_value_pairs.items():
@@ -1029,7 +1020,6 @@ class OpenSearchDAL:
         Returns:
             True if a duplicate is found, False otherwise.
         """
-
         s = Search(using=self._es, index=self._indexname)
         s = s.filter("term", via__channel="twitter")
         # Restrict results to have the same twitter_id as the base document.
@@ -1083,7 +1073,6 @@ class OpenSearchDAL:
             A list of documents similar to the input document, in the context
             of duplicate issue detection, as determined by MLT.
         """
-
         if base_document.data_source != "JIRA":
             raise Exception("Duplicate detection is currently only supported for JIRA issues!")
 
@@ -1153,7 +1142,6 @@ class OpenSearchDAL:
             A JeevesDocument object representing the requested document as it
             exists in OpenSearch, or None if we can't find the document.
         """
-
         # First, determine if we already have the requested document.
         # We could do a call to count_by_arbitrary_keywords here but if we have
         # the document then we'll need to call this anyway.
@@ -1229,7 +1217,6 @@ class OpenSearchDAL:
         Returns:
             A list of suspected duplicate issues.
         """
-
         target_doc: JiraDocument = self._ensure_specific_jira_issue(issue_key)
 
         if not target_doc:
@@ -1327,7 +1314,6 @@ class OpenSearchDAL:
             request_timeout (int): Optional. Number of seconds to wait for a response from OpenSearch (default 30)
             threshold (float): Optional. Minimum score for a result to be returned (default 0.8)
         """
-
         query_body = {
             "size": max_search_depth,
             "query": {
@@ -1441,7 +1427,6 @@ class OpenSearchDAL:
             A JeevesDocument representing the parent issue of the input if it
             was found, otherwise None.
         """
-
         # This seems very roundabout but if we ever change the Jira identifier
         # then we'll remember to change this line because it will start erroring
         if (

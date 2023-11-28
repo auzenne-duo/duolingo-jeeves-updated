@@ -250,7 +250,6 @@ def get_latest_recipient_groups():
 
 
 def get_email_body_html(report: QualityReport) -> str:
-
     environment = Environment(loader=FileSystemLoader(TEMPLATE_DIRECTORY))
     if isinstance(report, QualityReportArea):
         template = environment.get_template("area_email.html")
@@ -268,7 +267,7 @@ def _get_recipients(report: QualityReport) -> List[Tuple[str, Optional[int]]]:
         recipients = RECIPIENT_GROUPS[report.area][_AREA]
         recipients.extend(RECEIVE_ALL_AREA_REPORTS)
     else:
-        if not report.title in RECIPIENT_GROUPS[report.area]:
+        if report.title not in RECIPIENT_GROUPS[report.area]:
             LOG.info(f"missing recipients for team: {report.title}")
             return []
         recipients = RECIPIENT_GROUPS[report.area][report.title]
@@ -287,7 +286,7 @@ def send_email(report: QualityReport, recipient_override: Optional[str] = None):
         "ui_language": "en",
     }
 
-    if not report.area in RECIPIENT_GROUPS:
+    if report.area not in RECIPIENT_GROUPS:
         LOG.info(f"missing recipients for area: {report.area}")
         return
 

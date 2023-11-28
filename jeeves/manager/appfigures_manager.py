@@ -71,7 +71,6 @@ class AppfiguresManager(JeevesManager):
         Returns:
             The new checkpoint date, which may have just been updated in S3.
         """
-
         # Upload document to S3
         appfigures_dir = AppfiguresManager.get_managed_document_type().get_data_source_identifier()
         doc_id = doc["id"]
@@ -96,7 +95,6 @@ class AppfiguresManager(JeevesManager):
         """
         Please see parent class for documentation.
         """
-
         _CHECKPOINT_FILE = AppfiguresManager.get_checkpoint_file_name()
         if not list(s3_client.yield_filenames(bucket_name, path_prefix=_CHECKPOINT_FILE)):
             # Create checkpoint file using default timestamp
@@ -119,7 +117,6 @@ class AppfiguresManager(JeevesManager):
     def update_s3_for_date(
         s3_client: S3Client, bucket_name: str, checkpoint_date: date, date_to_fetch: date
     ) -> date:
-
         appfigures_dir = AppfiguresManager.get_managed_document_type().get_data_source_identifier()
         # Get count of documents stored on s3
         num_stored_files = len(

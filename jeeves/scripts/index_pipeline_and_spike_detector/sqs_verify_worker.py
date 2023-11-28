@@ -43,7 +43,6 @@ def _check_for_data_source(messages: List[sqs.SQSMessage]) -> bool:
         True if all messages in the batch have a message attribute with name
         'data_source' and the batch is non-empty, otherwise False
     """
-
     for m in messages:
         if not m.message_attributes:
             return False

@@ -108,7 +108,6 @@ class AICompletionsDAL:
         and sends them to ai-completions-backend. Returns a list of
         strings where each string is gpt's response to an inputted user_prompt.
         """
-
         requests_array = []
         for user_prompt in user_prompts:
             request_object = {

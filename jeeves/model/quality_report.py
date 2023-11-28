@@ -4,7 +4,7 @@ import abc
 import urllib.parse
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, List, Optional, Tuple
 
 from jeeves.config.config import JIRA_PROJECTS
 from jeeves.config.jira_features import AREA_TO_FEATURES, TEAM_TO_FEATURES
@@ -41,9 +41,9 @@ class RecentChanges:
     change_due_to_included_issues: float
     change_due_to_removed_issues: float
     change_due_to_resolved_issues: float
-    newly_included_issues: List[str]
-    newly_removed_issues: List[str]
-    newly_resolved_issues: List[str]
+    newly_included_issues: list[str]
+    newly_removed_issues: list[str]
+    newly_resolved_issues: list[str]
     previous_report_date_string: str
 
 
@@ -53,18 +53,18 @@ class SerializedQualityReportData:
     A class to store main properties of a quality report for api responses
     """
 
-    features: List[str]
+    features: list[str]
     open_bugs_url: str
     open_bugs_count: int
     overall_score: int
     previous_overall_score: Optional[int]
-    score_breakdowns: List[ScoreBreakdown]
-    scores: Dict[str, QualityScoreHistory]
+    score_breakdowns: list[ScoreBreakdown]
+    scores: dict[str, QualityScoreHistory]
     start_date: str
     end_date: str
-    max_priority_issues: List[JSON]
-    max_dupes_issues: List[JSON]
-    design_quality_issues: List[JSON]
+    max_priority_issues: list[JSON]
+    max_dupes_issues: list[JSON]
+    design_quality_issues: list[JSON]
     title: str
 
 
@@ -78,7 +78,7 @@ class SerializedQualityReportDataArea(SerializedQualityReportData):
     def from_instance(cls, instance):
         return cls(**asdict(instance))
 
-    teams: Optional[List[SerializedQualityReportData]] = None
+    teams: Optional[list[SerializedQualityReportData]] = None
 
 
 @dataclass
@@ -89,12 +89,12 @@ class QualityReportIssueDataset:
 
     date: datetime
     title: str
-    issues: List[JiraDocument]
-    max_priority_issue_keys: List[str]
-    max_dupes_issue_keys: List[str]
+    issues: list[JiraDocument]
+    max_priority_issue_keys: list[str]
+    max_dupes_issue_keys: list[str]
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> QualityReportIssueDataset:
+    def from_dict(cls, data: dict[str, Any]) -> QualityReportIssueDataset:
         return QualityReportIssueDataset(
             date=parse_external_datetime(data["date"]),
             title=data["title"],
@@ -103,7 +103,7 @@ class QualityReportIssueDataset:
             max_dupes_issue_keys=data.get("max_dupes_issue_keys", []),
         )
 
-    def serialize(self) -> Dict[str, Any]:
+    def serialize(self) -> dict[str, Any]:
         """
         Serializes QualityReportIssueDataset
 
@@ -125,10 +125,10 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
     def __init__(
         self,
         end_date: datetime,
-        features: Optional[Set[str]],
-        issues: List[JiraDocument],
-        past_issue_datasets: List[QualityReportIssueDataset],
-        project_to_scores: Dict[str, QualityScoreHistory],
+        features: Optional[set[str]],
+        issues: list[JiraDocument],
+        past_issue_datasets: list[QualityReportIssueDataset],
+        project_to_scores: dict[str, QualityScoreHistory],
         start_date: datetime,
         title: str,
         area: str,
@@ -226,7 +226,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             for issue_dataset in self.issue_datasets[-_NUM_WEEKS_IN_PAST_SCORE_BREAKDOWN:]
         ]
 
-    def find_recent_changes(self, issue_datasets: List[QualityReportIssueDataset]) -> RecentChanges:
+    def find_recent_changes(self, issue_datasets: list[QualityReportIssueDataset]) -> RecentChanges:
         """
         Finds issues that have been resolved or opened/updated since the last quality report
         This function simulates add/removing/resolving issues since the last quality report in order to
@@ -336,7 +336,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             previous_report_date_string,
         )
 
-    def find_issues_with_closed_parents(self) -> List[JiraDocument]:
+    def find_issues_with_closed_parents(self) -> list[JiraDocument]:
         """
         Returns a list of jira issues that have a closed parent
         """
@@ -391,9 +391,9 @@ class QualityReportTeam(QualityReport):
     def __init__(
         self,
         end_date: datetime,
-        issues: List[JiraDocument],
-        past_issue_datasets: List[QualityReportIssueDataset],
-        project_to_scores: Dict[str, QualityScoreHistory],
+        issues: list[JiraDocument],
+        past_issue_datasets: list[QualityReportIssueDataset],
+        project_to_scores: dict[str, QualityScoreHistory],
         start_date: datetime,
         team: str,
         area: str,
@@ -420,12 +420,12 @@ class QualityReportArea(QualityReport):
     def __init__(
         self,
         end_date: datetime,
-        issues: List[JiraDocument],
-        past_issue_datasets: List[QualityReportIssueDataset],
-        project_to_scores: Dict[str, QualityScoreHistory],
+        issues: list[JiraDocument],
+        past_issue_datasets: list[QualityReportIssueDataset],
+        project_to_scores: dict[str, QualityScoreHistory],
         start_date: datetime,
         area: str,
-        team_data: List[SerializedQualityReportData],
+        team_data: list[SerializedQualityReportData],
     ) -> None:
         """
         See parent class

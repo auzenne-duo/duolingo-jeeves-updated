@@ -72,7 +72,6 @@ class RedditManager(JeevesManager):
         Returns:
             String representing the last stored message to be used for checkpointing.
         """
-
         # Upload document to S3
         document_datetime = datetime.fromtimestamp(doc["created_utc"], tz=pytz.utc)
         date_str = date_to_str(document_datetime)
@@ -132,7 +131,6 @@ class RedditManager(JeevesManager):
         """
         Please see parent class for documentation.
         """
-
         # send our request for an OAuth token
         try:
             res = requests.post(

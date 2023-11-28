@@ -90,17 +90,17 @@ const TicketListItem = (
     (isParentBug
       ? ["issue_key", "child_issues", "status", "platform", "date"]
       : isTablet
-      ? [
-          "issue_key",
-          "course",
-          "screen_content",
-          "app_version",
-          "duplicates",
-          "status",
-          "platform",
-          "date",
-        ]
-      : ["status", "platform", "date"]);
+        ? [
+            "issue_key",
+            "course",
+            "screen_content",
+            "app_version",
+            "duplicates",
+            "status",
+            "platform",
+            "date",
+          ]
+        : ["status", "platform", "date"]);
 
   return (
     <li

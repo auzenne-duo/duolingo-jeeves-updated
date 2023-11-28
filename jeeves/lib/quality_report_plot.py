@@ -154,7 +154,6 @@ def create_plot(
 
     returns: internal and external (s3) filepaths as a strings
     """
-
     # set the color of lines to be slightly transparent for all but Overall
     for title, color in _TITLE_TO_COLOR.items():
         rgb = matplotlib.colors.to_rgb(color)

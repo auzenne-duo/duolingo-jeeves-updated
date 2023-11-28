@@ -119,7 +119,7 @@ class JiraManager(JeevesManager):
             + f"AND updated > {start_timestamp_millis} "
             + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
             + f"AND labels != {JIRA_VIA_JEEVES_LABEL} "
-            + f"ORDER BY updated asc"
+            + "ORDER BY updated asc"
         )
 
         url_params = {
@@ -227,7 +227,7 @@ class JiraManager(JeevesManager):
             f"project IN ({','.join(JIRA_PROJECTS)}) "
             + f"AND updated >= {start_datetime_string} "
             + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
-            + f"ORDER BY updated asc"
+            + "ORDER BY updated asc"
         )
 
         url_params = {

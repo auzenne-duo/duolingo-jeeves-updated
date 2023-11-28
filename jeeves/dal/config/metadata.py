@@ -6,7 +6,7 @@ from jeeves import package_directory
 
 _METADATA_CONFIG_PATH = os.path.join(package_directory, "config", "feedback_metadata_grammar.yml")
 
-with open(_METADATA_CONFIG_PATH, "r") as f:
+with open(_METADATA_CONFIG_PATH) as f:
     Config = yaml.safe_load(f)
 
 STATS_FIELD_TITLES = [f["field"] for f in Config["fields"] if not f["unique"]]

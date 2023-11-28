@@ -3,7 +3,8 @@
   font-family: "din-round";
   font-style: normal;
   font-weight: 700;
-  src: url("../../web/node_modules/web-ui/dist/esm/src/fonts/DINNextRoundedLTPro-Regular.woff2")
+  src:
+    url("../../web/node_modules/web-ui/dist/esm/src/fonts/DINNextRoundedLTPro-Regular.woff2")
       format("woff2"),
     url("../../web/node_modules/web-ui/dist/esm/src/fonts/DINNextRoundedLTPro-Regular.woff")
       format("woff");
@@ -14,7 +15,8 @@
   font-family: "din-bold";
   font-style: normal;
   font-weight: 700;
-  src: url("../../web/node_modules/web-ui/dist/esm/src/fonts/DINNextRoundedLTPro-Bold.woff2")
+  src:
+    url("../../web/node_modules/web-ui/dist/esm/src/fonts/DINNextRoundedLTPro-Bold.woff2")
       format("woff2"),
     url("../../web/node_modules/web-ui/dist/esm/src/fonts/DINNextRoundedLTPro-Bold.woff")
       format("woff");

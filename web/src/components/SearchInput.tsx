@@ -48,7 +48,7 @@ type SearchSuggestionsSelectEvent = Parameters<
 
 interface SubQuery {
   end: number;
-  field: typeof FIELDS[number];
+  field: (typeof FIELDS)[number];
   isQuoted: boolean;
   start: number;
   term: string;
@@ -114,7 +114,7 @@ const SearchInput = (
       setMatches(
         [...value.matchAll(new RegExp(PATTERN, "g"))].map<SubQuery>(match => {
           const prefix = match[1];
-          const field = match[2] as typeof FIELDS[number];
+          const field = match[2] as (typeof FIELDS)[number];
           const isQuoted = match[3].startsWith('"');
           const term = isQuoted ? match[3].slice(1) : match[3];
           const start =
@@ -209,8 +209,8 @@ const SearchInput = (
         subQuery === undefined
           ? value
           : subQuery.isQuoted
-          ? subQuery.term
-          : unescapeSpaces(subQuery.term)
+            ? subQuery.term
+            : unescapeSpaces(subQuery.term)
       }
       ref={searchRef}
       value={value}

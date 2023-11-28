@@ -14,7 +14,6 @@ def print_request_exception(e: RequestException, rollbar_level: Optional[str] = 
         rollbar_level: "critical", "error", "warning", "info", "debug", or None. If None,
             the error will not be reported to rollbar.
     """
-
     method = e.request.method if e.request is not None else None
     url = e.request.url if e.request is not None else None
     status_code = e.response.status_code if e.response is not None else None

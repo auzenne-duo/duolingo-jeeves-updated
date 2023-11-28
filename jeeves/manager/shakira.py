@@ -66,7 +66,6 @@ class ShakiraManager:
         Returns:
             Dictionary of API tokens for Jira and Slack.
         """
-
         jira_token = self._jira_client.get_jira_api_token(project)
         slack_token = self._slack_client.get_slack_api_token()
 
