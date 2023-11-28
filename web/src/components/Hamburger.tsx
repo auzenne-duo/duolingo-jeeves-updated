@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button } from "web-ui";
+import { LegacyButton } from "web-ui/legacy";
 
 import styles from "components/Hamburger.scss";
 
@@ -9,7 +9,7 @@ interface Props {
 }
 
 const Hamburger = ({ isOpen, onClick }: Props) => (
-  <Button
+  <LegacyButton
     className={styles[`hamburger${isOpen ? "-open" : ""}`]}
     onClick={onClick}
     onMouseUp={e => {
@@ -20,7 +20,7 @@ const Hamburger = ({ isOpen, onClick }: Props) => (
     <span className={styles.bar} />
     <span className={styles.bar} />
     <span className={styles.bar} />
-  </Button>
+  </LegacyButton>
 );
 
 export default Hamburger;

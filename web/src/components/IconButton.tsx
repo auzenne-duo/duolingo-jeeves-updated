@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button } from "web-ui";
+import { LegacyButton } from "web-ui/legacy";
 
 import cn from "classnames";
 import styles from "components/IconButton.scss";
@@ -12,13 +12,13 @@ interface Props {
 }
 
 const IconButton = ({ className, icon, onClick, title }: Props) => (
-  <Button
+  <LegacyButton
     className={cn(styles.button, className)}
     onClick={onClick}
     title={title}
   >
     <img className={styles.icon} src={icon} />
-  </Button>
+  </LegacyButton>
 );
 
 export default IconButton;

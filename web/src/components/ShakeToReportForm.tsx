@@ -1,13 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import {
-  Button,
-  Input,
-  List,
-  Select,
-  TextArea,
-  getButtonClassName,
-} from "web-ui";
+import { List, Select, TextArea } from "web-ui";
+import { TextInput } from "web-ui/juicy";
+import { LegacyButton, getButtonClassName } from "web-ui/legacy";
 
 import { formatAttachment, getUntruncatedTitle, isImage } from "../util";
 import { getBlob } from "api/client";
@@ -225,9 +220,9 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
 
   const renderFeaturesStep = () => [
     <div className={styles.header} key="header">
-      <Button disabled={isLoading} onClick={() => setStep("report")}>
+      <LegacyButton disabled={isLoading} onClick={() => setStep("report")}>
         <img className={styles.icon} src={imageArrowLeft} />
-      </Button>
+      </LegacyButton>
       <h2>Choose a feature</h2>
     </div>,
     <>
@@ -281,7 +276,7 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
         </>
       ) : null}
     </>,
-    <Button
+    <LegacyButton
       color="owl"
       disabled={!feature || feature === NONE_APPLY}
       key="footer"
@@ -290,7 +285,7 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
       variant="solid"
     >
       Create Jira ticket
-    </Button>,
+    </LegacyButton>,
   ];
 
   const renderReportStep = () => [
@@ -298,19 +293,19 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
       <h2>Internal bug report</h2>
     </div>,
     <>
-      <Input
-        disabled={isLoading}
+      <TextInput
         onChange={e => setSummary(e.target.value)}
         placeholder="Short description"
         required={true}
+        state={isLoading ? "disabled" : "enabled"}
         type="text"
         value={summary}
       />
       <TextArea
-        disabled={isLoading}
         onChange={e => setDescription(e.target.value)}
         placeholder="What went wrong in more detail?"
         rows={5}
+        state={isLoading ? "disabled" : "enabled"}
         value={description}
       />
       <Select
@@ -341,7 +336,7 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
         #feedback-tts, or #feedback-product on Slack, choose one.
       </span>
     </>,
-    <Button
+    <LegacyButton
       color={
         slackChannel === undefined || slackChannel.alsoPostsToJira
           ? undefined
@@ -360,7 +355,7 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
       {slackChannel === undefined || slackChannel.alsoPostsToJira
         ? "Next"
         : "Post to Slack"}
-    </Button>,
+    </LegacyButton>,
   ];
 
   const renderSubmittedStep = () => [
@@ -415,9 +410,9 @@ const ShakeToReportForm = ({ onReported, onRequestClose, ticket }: Props) => {
         />
       ) : null}
     </>,
-    <Button color="owl" key="footer" type="submit" variant="solid">
+    <LegacyButton color="owl" key="footer" type="submit" variant="solid">
       Done
-    </Button>,
+    </LegacyButton>,
   ];
 
   const [header, content, footer] =

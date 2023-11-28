@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button } from "web-ui";
+import { LegacyButton } from "web-ui/legacy";
 
 import cn from "classnames";
 import styles from "components/NamedSection.scss";
@@ -24,7 +24,7 @@ const NamedSection = ({
   return (
     <section className={cn(styles.wrap, className)}>
       {collapsible ? (
-        <Button
+        <LegacyButton
           className={styles.toggle}
           onClick={() => setIsOpen(value => !value)}
         >
@@ -34,7 +34,7 @@ const NamedSection = ({
             className={isOpen ? styles["caret-up"] : styles.caret}
             src={imageCaret}
           />
-        </Button>
+        </LegacyButton>
       ) : (
         <div className={styles.name}>{name}</div>
       )}

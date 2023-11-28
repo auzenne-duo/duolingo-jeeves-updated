@@ -21,7 +21,7 @@
     "rollbar": "2.26.2",
     "uuid": "9.0.0",
     "web-excess": "https://s3.amazonaws.com/duolingo-packages/npm/excess/web-excess-3.4.0.tgz",
-    "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.72.0.tgz",
+    "web-ui": "https://s3.amazonaws.com/duolingo-packages/npm/web-ui/web-ui-1.78.0.tgz",
     "whatwg-fetch": "3.6.2"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { Button } from "web-ui";
+import { LegacyButton } from "web-ui/legacy";
 
 import { getUser } from "api/user";
 import EmailBetaModal from "components/spike-detector/EmailBetaModal";
@@ -35,14 +35,14 @@ const EmailBetaButton = ({ spike }: Props) => {
           Email sent on {spike.email_sent_date} by {username}
         </div>
       ) : (
-        <Button
+        <LegacyButton
           color="owl"
           disabled={spike.status !== "FIXED"}
           onClick={() => setIsOpen(true)}
           variant="solid"
         >
           Send email
-        </Button>
+        </LegacyButton>
       )}
       <EmailBetaModal
         closeModal={closeModal}

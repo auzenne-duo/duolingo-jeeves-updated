@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import Modal from "react-modal";
-import { Button, TextArea } from "web-ui";
+import { TextArea } from "web-ui";
+import { LegacyButton } from "web-ui/legacy";
 
 import { sendBetaEmails } from "api/jeeves";
 import IconButton from "components/IconButton";
@@ -85,7 +86,6 @@ const EmailBetaModal = ({ closeModal, isOpen, spike }: Props) => {
         onSubmit={handleSubmit}
       >
         <TextArea
-          disabled={submitting}
           maxLength={250}
           onChange={e => {
             setDescription(e.target.value);
@@ -94,6 +94,7 @@ const EmailBetaModal = ({ closeModal, isOpen, spike }: Props) => {
           placeholder="Longer description of issue and what has been fixed (500 char max.)"
           required={true}
           rows={5}
+          state={submitting ? "disabled" : "enabled"}
           value={description}
         />
         {maxCharacters - characterCount <= remainingCharactersThreshold && (
@@ -101,8 +102,7 @@ const EmailBetaModal = ({ closeModal, isOpen, spike }: Props) => {
             {maxCharacters - characterCount} characters remaining
           </div>
         )}
-
-        <Button
+        <LegacyButton
           color="owl"
           disabled={
             !description.trim() || description.trim() === descriptionPlaceholder
@@ -112,7 +112,7 @@ const EmailBetaModal = ({ closeModal, isOpen, spike }: Props) => {
           variant="solid"
         >
           Submit
-        </Button>
+        </LegacyButton>
       </form>
     </Modal>
   );

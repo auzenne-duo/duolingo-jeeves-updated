@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { useHistory, useLocation } from "react-router-dom";
-import { Button } from "web-ui";
+import { Button } from "web-ui/juicy";
 import { escapeRegExp } from "web-ui/util";
 import { getIndices } from "web-ui/util/highlight";
 
@@ -241,7 +241,10 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
               total: data?.total_records,
             })}
           </div>
-          <Button onClick={() => downloadAsCsv(tickets, lang)} variant="stroke">
+          <Button
+            onClick={() => downloadAsCsv(tickets, lang)}
+            variant="outline"
+          >
             Download data
           </Button>
         </>

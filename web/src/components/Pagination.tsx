@@ -1,9 +1,8 @@
 import type { LocationDescriptor } from "history";
 import * as React from "react";
-import { Link } from "react-router-dom";
-import { Button, getButtonClassName } from "web-ui";
+import { Button } from "web-ui/juicy";
 
-import cn from "classnames";
+import LinkButton from "components/LinkButton";
 import styles from "components/Pagination.scss";
 
 interface Props {
@@ -15,30 +14,24 @@ const Pagination = ({ nextLink, prevLink }: Props) => (
   <nav className={styles.wrap}>
     {prevLink ? (
       typeof prevLink === "function" ? (
-        <Button onClick={prevLink} variant="stroke">
+        <Button onClick={prevLink} variant="outline">
           Previous
         </Button>
       ) : (
-        <Link
-          className={getButtonClassName({ variant: "stroke" })}
-          to={prevLink}
-        >
+        <LinkButton to={prevLink} variant="outline">
           Previous
-        </Link>
+        </LinkButton>
       )
     ) : null}
     {nextLink ? (
       typeof nextLink === "function" ? (
-        <Button className={styles.next} onClick={nextLink} variant="stroke">
+        <Button className={styles.next} onClick={nextLink} variant="outline">
           Next
         </Button>
       ) : (
-        <Link
-          className={cn(getButtonClassName({ variant: "stroke" }), styles.next)}
-          to={nextLink}
-        >
+        <LinkButton className={styles.next} to={nextLink} variant="outline">
           Next
-        </Link>
+        </LinkButton>
       )
     ) : null}
   </nav>

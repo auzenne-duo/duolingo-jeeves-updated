@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { getButtonClassName } from "web-ui";
+import { getButtonClassName } from "web-ui/legacy";
 
 import { getQualityReport } from "api/jeeves";
 import cn from "classnames";

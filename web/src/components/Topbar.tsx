@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { endOfDay } from "date-fns";
 import * as React from "react";
 import { NavLink, useHistory, useLocation } from "react-router-dom";
-import { Input, LoadingDots, Select, SelectList } from "web-ui";
+import { LoadingDots, Select, SelectList } from "web-ui";
+import { TextInput } from "web-ui/juicy";
 
 import { encodeURLSearchParams } from "../util";
 import { getSpikeCategories } from "api/jeeves";
@@ -238,7 +239,7 @@ const Topbar = () => {
           Page.SentimentSearch,
         ].includes(page) ? (
           <>
-            <Input
+            <TextInput
               className={styles["search-mobile"]}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleSearchInputKeyDown}
