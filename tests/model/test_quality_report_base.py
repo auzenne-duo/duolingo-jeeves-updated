@@ -1,5 +1,6 @@
 import unittest
 from datetime import date, datetime
+from unittest import mock
 
 from jeeves.model.quality_report_base import QualityReportBase, ScoreTypeCount
 
@@ -73,6 +74,14 @@ class TestQualityReportBase(unittest.TestCase):
         result = self.report.create_open_issues_link()
         expected = "https://duolingo.atlassian.net/issues/?jql=Key in (DLAI-2003%2C%20DLAI-2001)"
         self.assertEqual(result, expected)
+
+    def test_create_open_issues_link_with_too_many_issues(self):
+        self.report.features = None
+        self.report.project = None
+        with mock.patch("jeeves.model.quality_report_base._MAX_NUMBER_URL_ISSUES", 1):
+            result = self.report.create_open_issues_link()
+            expected = "https://duolingo.atlassian.net/issues/?jql=Key in (DLAI-2003)"
+            self.assertEqual(result, expected)
 
     def test_calculate_monthly_scores(self):
         project_to_scores = {

@@ -19,6 +19,8 @@ import useTicketQuery from "components/useTicketQuery";
 import useTicketSelection from "components/useTicketSelection";
 import AppStateContext from "contexts/AppStateContext";
 
+const MAX_LINKED_ISSUES = 200;
+
 interface Props {
   area: string;
   team?: string;
@@ -84,6 +86,9 @@ const QualityReportForArea = ({ area, team }: Props) => {
         <strong>Overall score: {report.overall_score}</strong>
         <a href={report.open_bugs_url}>
           {report.open_bugs_count} open bug reports
+          {report.open_bugs_count > MAX_LINKED_ISSUES
+            ? ` (truncated to ${MAX_LINKED_ISSUES} links due to URL constraints)`
+            : null}
         </a>
         <span>
           {formatReadableDate(new Date(report.start_date))} to{" "}

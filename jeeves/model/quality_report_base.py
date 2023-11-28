@@ -16,6 +16,9 @@ from jeeves.util.date_util import str_to_date
 # The maximum number of issues shown per "worst issues" category
 _MAX_NUMBER_WORST_ISSUES = 5
 
+# The maximum number of issues we can query for using JQL at once
+_MAX_NUMBER_URL_ISSUES = 200
+
 
 @dataclass
 class ScoreTypeCount:
@@ -149,7 +152,8 @@ class QualityReportBase:
 
     def create_open_issues_link(self) -> None:
         """Initialize a Jira link for open tickets"""
-        return f"https://duolingo.atlassian.net/issues/?jql=Key in ({urllib.parse.quote(', '.join([issue.issue_key for issue in self.open_issues]))})"
+        issue_keys = [issue.issue_key for issue in self.open_issues[:_MAX_NUMBER_URL_ISSUES]]
+        return f"https://duolingo.atlassian.net/issues/?jql=Key in ({urllib.parse.quote(', '.join(issue_keys))})"
 
     def calculate_aggregate_scores(
         self, project_to_scores: Dict[str, List[Tuple[str, int]]], monthly: bool = True
