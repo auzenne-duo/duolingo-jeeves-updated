@@ -25,7 +25,7 @@ const LEGEND_MAP: Record<Project, string> = {
   DLAA: "Android",
   DLAI: "iOS",
   DLAW: "Web",
-  Overall: "Overall",
+  Overall: "Overall: All platforms",
 };
 
 const PROJECTS = ["DLAA", "DLAI", "DLAW", "Overall"] as const;
