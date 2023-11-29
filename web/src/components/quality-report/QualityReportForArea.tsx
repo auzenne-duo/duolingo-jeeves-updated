@@ -87,7 +87,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
         <a href={report.open_bugs_url}>
           {report.open_bugs_count} open bug reports
           {report.open_bugs_count > MAX_LINKED_ISSUES
-            ? ` (truncated to ${MAX_LINKED_ISSUES} links due to URL constraints)`
+            ? ` (link shows first ${MAX_LINKED_ISSUES})`
             : null}
         </a>
         <span>
