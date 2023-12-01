@@ -96,8 +96,9 @@ class ZendeskDocument(JeevesDocument):
             duolingo_metadata, aux_platform_information
         )
 
+        channel = external_json["via"]["channel"]
         email = None
-        if external_json["via"]["channel"] == "web":
+        if channel == "web" or channel == "api":
             with Session() as s:
                 s.auth = (_USER, _PASSWORD)
                 user_url = f"https://duolingotest.zendesk.com/api/v2/users/{external_json['requester_id']}.json"
@@ -106,7 +107,7 @@ class ZendeskDocument(JeevesDocument):
                 if "error" in j:
                     raise Exception("Error returned from Zendesk")
                 email = j["user"]["email"]
-        elif external_json["via"]["channel"] == "email":
+        elif channel == "email":
             email = external_json["via"]["source"]["from"].get("address")
         user_id = None
         if email:
