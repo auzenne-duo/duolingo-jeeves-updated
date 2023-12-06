@@ -96,6 +96,7 @@ def _jira_document(header="I am a header", body="I am body text"):
         is_dev_related=False,
         area="",
         team="",
+        codebase="",
     )
     return doc
 

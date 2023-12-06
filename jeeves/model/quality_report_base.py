@@ -14,7 +14,7 @@ from jeeves.model.quality_score_params import (
 from jeeves.util.date_util import str_to_date
 
 # The maximum number of issues shown per "worst issues" category
-_MAX_NUMBER_WORST_ISSUES = 5
+_MAX_NUMBER_WORST_ISSUES = 20
 
 # The maximum number of issues we can query for using JQL at once
 _MAX_NUMBER_URL_ISSUES = 200
@@ -56,7 +56,6 @@ class QualityReportBase:
             end_date: datetime for the end of the range of bugs (inclusive)
             features: list of Jira features used for the quality report or None
             issues: list of Quality Report issues to be used in making the report
-            key_to_issue: mapping of issue key to QualityReportIssue for all of issues
             project: string for project such as "DLAA" or None
             start_date: datetime for the start of the range of bugs (inclusive)
             title: string for team/area such as "China"

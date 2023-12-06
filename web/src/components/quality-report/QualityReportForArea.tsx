@@ -45,7 +45,13 @@ const QualityReportForArea = ({ area, team }: Props) => {
   const teams = React.useMemo(() => data?.teams.map(t => t.title), [data]);
   const tickets = React.useMemo(
     () =>
-      report ? [...report.max_dupes_issues, ...report.max_priority_issues] : [],
+      report
+        ? [
+            ...report.max_dupes_issues.slice(0, 5),
+            ...report.max_priority_issues.slice(0, 5),
+            ...report.design_quality_issues.slice(0, 5),
+          ]
+        : [],
     [report],
   );
 
@@ -105,7 +111,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
           bordered={false}
           onClick={handleClick}
           selectedId={id}
-          tickets={report.max_dupes_issues}
+          tickets={report.max_dupes_issues.slice(0, 5)}
         />
       </NamedSection>
       <NamedSection className={styles.section} name="Highest priority issues">
@@ -114,7 +120,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
           onClick={handleClick}
           selectedId={id}
           showTags={["priority", "issue_key", "status", "date"]}
-          tickets={report.max_priority_issues}
+          tickets={report.max_priority_issues.slice(0, 5)}
         />
       </NamedSection>
       <NamedSection className={styles.section} name="Top design issues">
@@ -123,7 +129,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
           onClick={handleClick}
           selectedId={id}
           showTags={["priority", "issue_key", "child_issues", "status", "date"]}
-          tickets={report.design_quality_issues}
+          tickets={report.design_quality_issues.slice(0, 5)}
         />
       </NamedSection>
       <NamedSection

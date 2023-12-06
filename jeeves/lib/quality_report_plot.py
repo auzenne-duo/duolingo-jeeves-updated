@@ -15,7 +15,7 @@ from jeeves.config.config import (
 )
 from jeeves.model.quality_report_base import QualityReportBase
 from jeeves.util.date_util import date_to_str
-from jeeves.util.quality_report_util import PROJECT_TO_CLIENT, QUALITY_REPORT_OVERALL_KEY
+from jeeves.util.quality_report_util import PROJECT_TO_PLATFORM, QUALITY_REPORT_OVERALL_KEY
 
 # day of the month to start the monthly plots. 26 provides a buffer since the
 # data is plotted on the 1st of the month
@@ -221,7 +221,7 @@ def create_plot(
             linestyle="-",
             linewidth=3,
             marker=marker,
-            label=PROJECT_TO_CLIENT.get(title, title),
+            label=PROJECT_TO_PLATFORM.get(title, title),
             color=_TITLE_TO_COLOR.get(title, _COLOR_LIST[index]),
         )
     if legend:

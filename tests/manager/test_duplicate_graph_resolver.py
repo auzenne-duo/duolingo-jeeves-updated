@@ -78,6 +78,7 @@ def _jira_document(
         is_dev_related=False,
         area="",
         team="",
+        codebase="",
     )
     issue_number += 1
     return doc

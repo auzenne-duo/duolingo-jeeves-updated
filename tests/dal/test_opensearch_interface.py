@@ -77,6 +77,7 @@ jira_doc_templ = JiraDocument(
     is_dev_related=False,
     area="",
     team="",
+    codebase="",
 )
 
 

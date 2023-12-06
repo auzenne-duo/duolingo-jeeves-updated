@@ -21,6 +21,7 @@ from jeeves.util.classify import detect_language
 from jeeves.util.cleanup import extract_duolingo_metadata
 from jeeves.util.date_util import parse_external_datetime
 from jeeves.util.metadata_standardizer import MetaStdizer
+from jeeves.util.quality_report_util import CODEBASE_TO_PLATFORM, PROJECT_TO_PLATFORM
 
 _SHAKE_TO_REPORT_MARKER = "Reported with shake-to-report"
 _BIRDS_EYE_MARKER = "Reported via Bird's Eye, shake-to-report"
@@ -62,6 +63,7 @@ class JiraDocument(JeevesDocument):
     is_dev_related: bool = attr.ib()
     area: Optional[str] = attr.ib()
     team: Optional[str] = attr.ib()
+    codebase: Optional[str] = attr.ib()
 
     # non-indexed fields
     quality_score_params: Optional[QualityScoreParams] = None
@@ -192,6 +194,14 @@ class JiraDocument(JeevesDocument):
         return known_duplicates
 
     @classmethod
+    def set_codebase_field_key(cls, codebase_field_key: str):
+        cls._codebase_field_key = codebase_field_key
+
+    @classmethod
+    def get_codebase_field_key(cls) -> str:
+        return cls._codebase_field_key
+
+    @classmethod
     def set_feature_field_key(cls, feature_field_key: str):
         cls._feature_field_key = feature_field_key
 
@@ -206,6 +216,25 @@ class JiraDocument(JeevesDocument):
     @classmethod
     def get_team_field_key(cls) -> str:
         return cls._team_field_key
+
+    @staticmethod
+    def guess_platform(external_fields: dict[str, Any], codebase: str, body_text: str) -> str:
+        project = external_fields["project"]["key"]
+        if project in PROJECT_TO_PLATFORM:
+            return PROJECT_TO_PLATFORM[project]
+
+        if codebase in CODEBASE_TO_PLATFORM:
+            return CODEBASE_TO_PLATFORM[codebase]
+
+        body_tokens_rough = body_text.lower().split(" ")
+        if "ios" in body_tokens_rough:
+            return "iOS"
+        if "android" in body_tokens_rough:
+            return "Android"
+        if "web" in body_tokens_rough:
+            return "Web"
+
+        return ""
 
     @classmethod
     def deserialize_from_external_json(cls, external_json: JSON) -> JiraDocument:
@@ -230,6 +259,11 @@ class JiraDocument(JeevesDocument):
         std_metadata = MetaStdizer.get_standardized_metadata(duolingo_metadata)
 
         # Determine feature, area, and team based on the Jira fields
+        codebase_field: Optional[dict[str, Any]] = (
+            external_fields.get(cls._codebase_field_key)
+            if cls._codebase_field_key is not None
+            else None
+        )
         feature_field: Optional[dict[str, Any]] = (
             external_fields.get(cls._feature_field_key)
             if cls._feature_field_key is not None
@@ -239,6 +273,8 @@ class JiraDocument(JeevesDocument):
             external_fields.get(cls._team_field_key) if cls._team_field_key is not None else None
         )
 
+        # If the codebase field is not set, we have no fallback and simply use an empty string
+        codebase = codebase_field["value"] if codebase_field is not None else ""
         # If the feature field is not set, we have no fallback and simply use an empty string
         feature = feature_field["value"] if feature_field is not None else ""
         # If the team field is not set, we can fall back to inferring the team from the feature
@@ -246,6 +282,10 @@ class JiraDocument(JeevesDocument):
             team_field["name"] if team_field is not None else JIRA_FEATURE_TO_TEAM.get(feature, "")
         )
         area = JIRA_TEAM_TO_AREA.get(team, "")
+
+        platform = std_metadata["platform"] or cls.guess_platform(
+            external_fields, codebase, body_text
+        )
 
         return cls(
             data_source=cls.get_data_source_identifier(),
@@ -269,12 +309,13 @@ class JiraDocument(JeevesDocument):
             challenge_prompt_text=std_metadata["challenge_prompt_text"],
             challenge_type=std_metadata["challenge_type"],
             challenge_generator_specific_type=std_metadata["challenge_generator_specific_type"],
+            codebase=codebase,
             course=std_metadata["course"],
             fullstory_url=std_metadata["fullstory_url"],
             lesson_number=std_metadata["lesson_number"],
             level_number=std_metadata["level_number"],
             os_version=std_metadata["os_version"],
-            platform=std_metadata["platform"],
+            platform=platform,
             screen_size=std_metadata["screen_size"],
             screen_content=std_metadata["screen_content"],
             session_bundle_id=std_metadata["session_bundle_id"],
@@ -363,6 +404,7 @@ class JiraDocument(JeevesDocument):
             challenge_generator_specific_type=internal_json.get(
                 "challenge_generator_specific_type", ""
             ),
+            codebase=internal_json.get("codebase"),
             course=internal_json["course"],
             fullstory_url=internal_json["fullstory_url"],
             lemmatized_terms=internal_json.get("lemmatized_terms", []),

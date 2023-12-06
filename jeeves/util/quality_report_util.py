@@ -1,8 +1,13 @@
 TEMPLATE_DIRECTORY = "templates/quality_report/"
-PROJECT_TO_CLIENT = {
+PROJECT_TO_PLATFORM = {
     "DLAA": "Android",
     "DLAI": "iOS",
     "DLAW": "Web",
+}
+CODEBASE_TO_PLATFORM = {
+    "duolingo-android": "Android",
+    "duolingo-ios": "iOS",
+    "duolingo-web": "Web",
 }
 QUALITY_REPORT_OVERALL_KEY = "Overall"
 

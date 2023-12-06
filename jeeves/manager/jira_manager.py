@@ -32,8 +32,16 @@ class JiraManager(JeevesManager):
             return True
         try:
             issuetypes = JiraDAL.get_issuetype_metadata(JIRA_PROJECTS, JIRA_ISSUE_TYPE_BUG)
+            codebase_field_keys = {issuetype.codebase_field_key() for issuetype in issuetypes}
             feature_field_keys = {issuetype.feature_field_key() for issuetype in issuetypes}
             team_field_keys = {issuetype.team_field_key() for issuetype in issuetypes}
+            if len(codebase_field_keys) == 1:
+                JiraDocument.set_codebase_field_key(codebase_field_keys.pop())
+            else:
+                rollbar.report_message(
+                    f"Expected one unique codebase field key, got {len(codebase_field_keys)}",
+                    "warning",
+                )
             if len(team_field_keys) == 1:
                 JiraDocument.set_team_field_key(team_field_keys.pop())
             else:

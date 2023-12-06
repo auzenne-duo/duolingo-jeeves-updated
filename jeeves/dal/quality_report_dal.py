@@ -20,7 +20,7 @@ from jeeves.model.quality_report import (
 from jeeves.model.quality_score_params import QualityScoreParams
 from jeeves.util.date_util import date_to_str
 from jeeves.util.json_encoder import JeevesJSONEncoder
-from jeeves.util.quality_report_util import PROJECT_TO_CLIENT, QUALITY_REPORT_OVERALL_KEY
+from jeeves.util.quality_report_util import PROJECT_TO_PLATFORM, QUALITY_REPORT_OVERALL_KEY
 from jeeves.util.s3_client_and_bucket import download_from_jeeves_s3, upload_to_jeeves_s3
 
 LOG = logging.getLogger(__name__)
@@ -273,4 +273,4 @@ class QualityReportDAL:
                 labels=doc.labels,
                 resolution_str=doc.resolution,
             )
-            doc.client = PROJECT_TO_CLIENT.get(doc.project)
+            doc.client = PROJECT_TO_PLATFORM.get(doc.project)

@@ -49,15 +49,27 @@ class JiraIssueTypeMetaData:
     id: str = attr.ib()
     name: str = attr.ib()  # e.g: Story, Bug
     fields: List[JiraIssueFieldMetaData] = attr.ib()
+    codebase_field: Optional[JiraIssueFieldMetaData] = attr.ib(init=False, default=None)
     feature_field: Optional[JiraIssueFieldMetaData] = attr.ib(init=False, default=None)
     team_field: Optional[JiraIssueFieldMetaData] = attr.ib(init=False, default=None)
 
     def __attrs_post_init__(self):
         for field in self.fields:
+            if field.name == "Codebase":
+                self.codebase_field = field
             if field.name == "Feature":
                 self.feature_field = field
             if field.name == "Team":
                 self.team_field = field
+
+    def codebase_field_key(self) -> Optional[str]:
+        """
+        Returns the key of our custom 'Codebase' field.
+        """
+        if self.codebase_field:
+            return self.codebase_field.key
+        else:
+            return None
 
     def feature_field_key(self) -> Optional[str]:
         """

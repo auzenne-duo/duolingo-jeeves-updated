@@ -81,6 +81,7 @@ def create_jira_doc(
         is_dev_related=False,
         area=area,
         team=team,
+        codebase="duolingo-ios",
     )
     return doc
 
