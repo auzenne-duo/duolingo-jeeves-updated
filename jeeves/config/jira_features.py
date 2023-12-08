@@ -351,7 +351,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
-    "Monthly Challenge": "Bugs with monthly quest",
+    "Monthly Challenge": "Bugs with the monthly challenge",
     "Other": "Please try to use a specific feature if possible.",
     "Path": "Problems with the main path page, such as tiles not completing properly. Callouts on path fall under this feature.",
     "Path Sections": "Bugs with the section header, section cards, etc.",
