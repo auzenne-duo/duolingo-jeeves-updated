@@ -4,6 +4,7 @@ jobs:
   - name: duolingo-jeeves
     description: |
       Jenkins Job for Continuous Deployment
+    node: ec2-jenkins-deployment-2023
     push: true
     timeout: 90
     command: bash -ex jenkins-build.sh prod
@@ -42,6 +43,7 @@ jobs:
       ${ghprbActualCommitAuthorEmail}
   - name: duolingo-jeeves-quick-deploy
     description: ""
+    node: ec2-jenkins-deployment-2023
     log_rotator:
       days_to_keep: 60
       num_to_keep: -1
@@ -166,6 +168,7 @@ jobs:
       Manually trigger this job to deploy to the `dev` Galaxy environment.
       <br>
       https://duolingo.atlassian.net/browse/OPS-15408
+    node: ec2-jenkins-deployment-2023
     log_rotator:
       days_to_keep: 60
       num_to_keep: -1
