@@ -1,3 +1,36 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .graph {
   aspect-ratio: 1 / 0.7;
+}
+
+.label {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.label-checked {
+  composes: label;
+
+  button {
+    background: var(--checkbox-color-override) !important;
+    border-color: var(--checkbox-color-override) !important;
+
+    img {
+      // TODO (renspoesse): fix this in web-ui.
+      pointer-events: none;
+    }
+  }
+}
+
+.legend {
+  column-gap: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 8px;
 }

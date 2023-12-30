@@ -14,7 +14,6 @@ import {
 } from "react-router-dom";
 
 import App from "components/App";
-
 import "images/favicon.ico";
 import "styles/index.scss";
 

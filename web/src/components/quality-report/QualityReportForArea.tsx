@@ -21,6 +21,12 @@ import AppStateContext from "contexts/AppStateContext";
 
 const MAX_LINKED_ISSUES = 200;
 
+const PLATFORM_MAP: Record<JSONAPI.Platform, string> = {
+  Android: "DLAA",
+  Web: "DLAW",
+  iOS: "DLAI",
+};
+
 interface Props {
   area: string;
   team?: string;
@@ -30,6 +36,9 @@ const QualityReportForArea = ({ area, team }: Props) => {
   const location = useLocation();
 
   const [, dispatch] = React.useContext(AppStateContext);
+  const [visibleTraces, setVisibleTraces] = React.useState<string[]>([
+    "Overall",
+  ]);
 
   useDocumentTitle(`${area} Quality Report`);
 
@@ -42,18 +51,33 @@ const QualityReportForArea = ({ area, team }: Props) => {
     [data, team],
   );
 
+  const showTicketsFrom = visibleTraces.includes("Overall")
+    ? []
+    : [...visibleTraces].sort();
+
+  const ticketFilter = (t: JSONAPI.Ticket) =>
+    !showTicketsFrom.length ||
+    (t.platform !== undefined &&
+      showTicketsFrom.includes(PLATFORM_MAP[t.platform]));
+
+  const mostReported = report?.max_dupes_issues
+    .filter(ticketFilter)
+    .slice(0, 5);
+
+  const highestPriority = report?.max_priority_issues
+    .filter(ticketFilter)
+    .slice(0, 5);
+
+  const topDesign = report?.design_quality_issues
+    .filter(ticketFilter)
+    .slice(0, 5);
+
   const teams = React.useMemo(() => data?.teams.map(t => t.title), [data]);
-  const tickets = React.useMemo(
-    () =>
-      report
-        ? [
-            ...report.max_dupes_issues.slice(0, 5),
-            ...report.max_priority_issues.slice(0, 5),
-            ...report.design_quality_issues.slice(0, 5),
-          ]
-        : [],
-    [report],
-  );
+  const tickets = [
+    ...(mostReported ?? []),
+    ...(highestPriority ?? []),
+    ...(topDesign ?? []),
+  ];
 
   const [id, setId] = useTicketSelection(tickets);
   useTicketAside(id);
@@ -103,33 +127,56 @@ const QualityReportForArea = ({ area, team }: Props) => {
       </div>
       <QualityGraph
         className={styles.graph}
+        onLegendClick={trace =>
+          setVisibleTraces(
+            visibleTraces.includes(trace)
+              ? visibleTraces.filter(t => t !== trace)
+              : visibleTraces.concat(trace),
+          )
+        }
         scores={report.scores}
         title="Quality scores over time"
+        visibleTraces={visibleTraces}
       />
-      <NamedSection className={styles.section} name="Most reported issues">
+      <NamedSection
+        className={styles.section}
+        name={`Most reported issues${
+          showTicketsFrom.length ? ` in ${showTicketsFrom.join(" and ")}` : ""
+        }`}
+      >
         <TicketList
           bordered={false}
           onClick={handleClick}
           selectedId={id}
-          tickets={report.max_dupes_issues.slice(0, 5)}
+          tickets={mostReported ?? []}
         />
       </NamedSection>
-      <NamedSection className={styles.section} name="Highest priority issues">
+      <NamedSection
+        className={styles.section}
+        name={`Highest priority issues${
+          showTicketsFrom.length ? ` in ${showTicketsFrom.join(" and ")}` : ""
+        }`}
+      >
         <TicketList
           bordered={false}
           onClick={handleClick}
           selectedId={id}
           showTags={["priority", "issue_key", "status", "date"]}
-          tickets={report.max_priority_issues.slice(0, 5)}
+          tickets={highestPriority ?? []}
         />
       </NamedSection>
-      <NamedSection className={styles.section} name="Top design issues">
+      <NamedSection
+        className={styles.section}
+        name={`Top design issues${
+          showTicketsFrom.length ? ` in ${showTicketsFrom.join(" and ")}` : ""
+        }`}
+      >
         <TicketList
           bordered={false}
           onClick={handleClick}
           selectedId={id}
           showTags={["priority", "issue_key", "child_issues", "status", "date"]}
-          tickets={report.design_quality_issues.slice(0, 5)}
+          tickets={topDesign ?? []}
         />
       </NamedSection>
       <NamedSection

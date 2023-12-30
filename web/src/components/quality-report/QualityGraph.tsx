@@ -1,5 +1,6 @@
 import { parseISO } from "date-fns";
 import * as React from "react";
+import { Checkbox } from "web-ui/juicy";
 
 import cn from "classnames";
 import ResizableGraph, { usePlotState } from "components/ResizableGraph";
@@ -33,23 +34,25 @@ const PROJECTS = ["DLAA", "DLAI", "DLAW", "Overall"] as const;
 interface Props {
   className?: string;
   disableHover?: boolean;
-  overallOnly?: boolean;
+  onLegendClick?: (trace: string) => void;
   scores: JSONAPI.QualityReport["areas"][number]["scores"];
   title?: string;
+  visibleTraces: string[];
 }
 
 const QualityGraph = ({
   className,
   disableHover,
-  overallOnly,
+  onLegendClick,
   scores,
   title,
+  visibleTraces,
 }: Props) => {
   const [plotState, setPlotState] = usePlotState();
 
   const data = React.useMemo(
     () =>
-      PROJECTS.filter(p => !overallOnly || p === "Overall").map(p => ({
+      PROJECTS.map(p => ({
         line: {
           color: COLOR_MAP[p],
           dash: p === "Overall" ? "solid" : "dashdot",
@@ -57,16 +60,14 @@ const QualityGraph = ({
         mode: p === "Overall" ? "lines+markers" : "lines",
         name: LEGEND_MAP[p],
         type: "scatter",
-        // Hide all traces except overall scores, unless they're
-        // manually enabled by clicking them in the legend.
-        visible: p === "Overall" ? true : "legendonly",
+        visible: visibleTraces.includes(p),
         // Scores are actually computed on EST date grouping, but
         // for simplicity we pretend that they are local date groups
         // in the UI.
         x: scores[p].map(([date]) => parseISO(`${date}T00:00:00`)),
         y: scores[p].map(([, value]) => value),
       })),
-    [overallOnly, scores],
+    [scores, visibleTraces],
   );
 
   React.useEffect(() => {
@@ -88,12 +89,12 @@ const QualityGraph = ({
           orientation: "h",
         },
         margin: {
-          b: overallOnly ? 20 : 0,
+          b: 0,
           l: 25,
           r: 0,
           t: title === undefined ? 0 : 40,
         },
-        showlegend: !overallOnly,
+        showlegend: false,
         title:
           title === undefined
             ? undefined
@@ -116,14 +117,39 @@ const QualityGraph = ({
         },
       },
     });
-  }, [data, disableHover, overallOnly, setPlotState, title]);
+  }, [data, disableHover, setPlotState, title]);
 
   return (
-    <ResizableGraph
-      className={cn(styles.graph, className)}
-      onChange={setPlotState}
-      state={plotState}
-    />
+    <div className={cn(styles.container, className)}>
+      <ResizableGraph
+        className={styles.graph}
+        onChange={setPlotState}
+        state={plotState}
+      />
+      {onLegendClick ? (
+        <div className={styles.legend}>
+          {PROJECTS.map(p => (
+            <label
+              className={
+                visibleTraces.includes(p)
+                  ? styles["label-checked"]
+                  : styles.label
+              }
+              key={p}
+              style={{
+                ["--checkbox-color-override" as string]: COLOR_MAP[p],
+              }}
+            >
+              <Checkbox
+                checked={visibleTraces.includes(p)}
+                onClick={() => onLegendClick(p)}
+              />
+              <span>{LEGEND_MAP[p]}</span>
+            </label>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 };
 

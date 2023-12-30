@@ -32,9 +32,9 @@ const QualityReportOverview = () => {
         >
           <QualityGraph
             className={styles.graph}
-            overallOnly={true}
             scores={a.scores}
             title={a.title}
+            visibleTraces={["Overall"]}
           />
         </Link>
       ))}
