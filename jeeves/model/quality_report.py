@@ -34,7 +34,7 @@ class RecentChanges:
     """
     This class helps organize the data collected when checking for what has changed since the last quality report.
 
-    We store the numeric change that occured to the quality score based on issues that were included/removed/resolved
+    We store the numeric change that occurred to the quality score based on issues that were included/removed/resolved
     We also store a list of the Jira keys for issues that were included/removed/resolved
     """
 
@@ -54,6 +54,7 @@ class SerializedQualityReportData:
     """
 
     features: list[str]
+    jeeves_link: Optional[str]
     open_bugs_url: str
     open_bugs_count: int
     overall_score: int
@@ -373,6 +374,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         return SerializedQualityReportData(
             end_date=date_to_str(self.end_date),
             features=list(self.features),
+            jeeves_link=self.jeeves_link,
             open_bugs_url=self.open_issues_link,
             open_bugs_count=len(self.open_issues),
             overall_score=self.score_breakdown.overall_score,

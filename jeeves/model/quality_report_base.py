@@ -64,6 +64,7 @@ class QualityReportBase:
         self.start_date = start_date
         self.features = features
         self.issues = issues
+        self.jeeves_link: Optional[str] = None
         self.key_to_issue = {issue.issue_key: issue for issue in issues}
         self.project = project
         self.title = title
