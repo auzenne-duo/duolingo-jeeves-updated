@@ -23,7 +23,7 @@ class JeevesDuplicateManager:
             # even if the individual fields are different. But, in that case,
             # we're still getting all of the relevant information in one way or another.
             doc_key = f'{doc.via["source"]["from"]["address"]} {doc.header_text} {doc.body_text}'
-            if doc_key not in deduped_documents.keys():
+            if doc_key not in deduped_documents:
                 deduped_documents[doc_key] = doc
 
         return documents_to_skip_dedup + list(deduped_documents.values())
@@ -39,26 +39,27 @@ class JeevesDuplicateManager:
         return False
 
     def recent_duplicate_email_exists(self, doc: JeevesDocument) -> bool:
-        def _clean_up_query_string(query_string):
-            query_string.replace('"', " ")
+        def _clean_up_query_string(query_string: str) -> str:
+            return query_string.replace('"', " ")
 
         # See details on query syntax here
         # https://opensearch.org/docs/latest/query-dsl/full-text/query-string/
         # Note that this searches for documents whose fields CONTAIN their respective search terms.
-        query = (
-            f'header_text: "{_clean_up_query_string(doc.header_text)}"'
-            + f' AND body_text: "{_clean_up_query_string(doc.body_text)}"'
-            + f' AND via.source.from.address: "{doc.via["source"]["from"]["address"]}"'
-            + f' AND NOT jeeves_uid: "{doc.jeeves_uid}"'
+        query_parts = {
+            "header_text": _clean_up_query_string(doc.header_text),
+            "body_text": _clean_up_query_string(doc.body_text),
+            "via.source.from.address": doc.via["source"]["from"]["address"],
+            "NOT jeeves_uid": doc.jeeves_uid,
+        }
+        query = " AND ".join([f'{k}: "{v}"' for k, v in query_parts.items() if v])
+        results = self._esd.get_recent_paginated_tickets(
+            lang=doc.language,
+            word=query,
+            limit=1,
+            start_time=doc.date_time - timedelta(hours=24),
         )
-        return (
-            len(
-                self._esd.get_recent_paginated_tickets(
-                    lang=doc.language,
-                    word=query,
-                    limit=1,
-                    start_time=doc.date_time - timedelta(hours=24),
-                )
-            )
-            > 0
-        )
+        num_hits = results.get("total_records", 0)
+        try:
+            return int(num_hits) > 0
+        except ValueError:
+            return False
