@@ -170,6 +170,7 @@ JIRA_FEATURES = {
             "Ramp-up challenge": ["ramp up", "ramp-up"],
             "Gems / Lingots": ["gem", "lingot"],
             "Hard mode": [],
+            "Magic Chests": ["chest game", "treasure chests", "pick a chest"],
             "Match madness": [],
             "Shop items": [],
             "Side Quests": ["side quest"],
