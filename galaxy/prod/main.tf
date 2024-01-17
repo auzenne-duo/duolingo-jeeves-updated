@@ -118,6 +118,14 @@ module "duolingo-jeeves" {
     {
       name  = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
       value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_literacy"]
+    },
+    {
+      name  = "SENTRY_DSN"
+      value = data.sentry_key.sentry_dsn.dsn_public
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
     }
   ]
 
@@ -193,6 +201,14 @@ module "duolingo-jeeves-s3-worker" {
       name  = "REDDIT_USERNAME"
       value = "reddit-jeeves"
     },
+    {
+      name  = "SENTRY_DSN"
+      value = data.sentry_key.sentry_dsn.dsn_public
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
+    }
   ]
 
   release_version = var.release_version
@@ -259,6 +275,14 @@ module "duolingo-jeeves-sqs-worker-1" {
       name  = "ZENDESK_REPORTS_PASSWORD"
       value = data.aws_kms_secrets.secrets.plaintext["zendesk_reports_password"]
     },
+    {
+      name  = "SENTRY_DSN"
+      value = data.sentry_key.sentry_dsn.dsn_public
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
+    }
   ]
 
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-download-verify.id
@@ -289,6 +313,14 @@ module "duolingo-jeeves-sqs-worker-2" {
       name  = "PYTHONPATH"
       value = "/code"
     },
+    {
+      name  = "SENTRY_DSN"
+      value = data.sentry_key.sentry_dsn.dsn_public
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
+    }
   ]
 
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-verify-index.id
@@ -337,6 +369,17 @@ module "duolingo-jeeves-spike-worker" {
     {
       name  = "DUOLINGO_PASSWORD"
       value = "DUOLINGO_PASSWORD/000000"
+    }
+  ]
+
+  environment_vars = [
+    {
+      name  = "SENTRY_DSN"
+      value = data.sentry_key.sentry_dsn.dsn_public
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
     }
   ]
 }
@@ -392,6 +435,14 @@ module "duolingo-jeeves-priority-estimator-updater" {
       name  = "JIRA_API_TOKEN"
       value = data.aws_kms_secrets.secrets.plaintext["priority_estimator_updater_jira_api_token"]
     },
+    {
+      name  = "SENTRY_DSN"
+      value = data.sentry_key.sentry_dsn.dsn_public
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
+    }
   ]
 }
 
@@ -415,6 +466,14 @@ module "duolingo-jeeves-ensure-embeddings-worker" {
       name  = "PYTHONPATH"
       value = "/code"
     },
+    {
+      name  = "SENTRY_DSN"
+      value = data.sentry_key.sentry_dsn.dsn_public
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
+    }
   ]
 
   secrets = [
