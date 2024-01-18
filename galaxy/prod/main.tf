@@ -348,7 +348,7 @@ module "duolingo-jeeves-spike-worker" {
   service              = var.service
   subservice           = "spike-worker"
   cpu                  = 1024 # 1024 equals one core
-  memory               = 4096 # in MB
+  memory               = 8192 # in MB
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
   max_count            = 1    # Maximum number of tasks to run in autoscaling group
   product              = var.product
