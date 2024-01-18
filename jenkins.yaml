@@ -4,7 +4,7 @@ jobs:
   - name: duolingo-jeeves
     description: |
       Jenkins Job for Continuous Deployment
-    node: ec2-jenkins-deployment-2023
+    node: ec2-jenkins-deployment-ml-2023
     push: true
     timeout: 90
     command: bash -ex jenkins-build.sh prod
