@@ -2,7 +2,6 @@
 A script for finding spikes of word occurrences in Zendesk tickets.
 Candidate words are from Zendesk tickets on a target date.
 """
-import time
 import timeit
 from collections import defaultdict
 from datetime import date, datetime, time
@@ -148,7 +147,7 @@ def run_spike_detector_for_batch(
     ]
     if any(different_languages):
         raise SpikeDetectorException(
-            f"Batch of {lang} tickets contains a tickets in {different_languages}"
+            f"Batch of {lang} tickets contains ticket(s) in {different_languages}"
         )
 
     new_ticket_dates = {ticket.date_time.date() for ticket in new_ticket_batch}
@@ -173,19 +172,27 @@ def run_spike_detector_for_batch(
         batch_spike_list += spikes
         batch_prompt_list += prompts
 
-    # Bulk generate spike summaries
-    try:
-        responses = app_registry(AICompletionsDAL).batched_ask(
-            system_prompt=SPIKE_SUMMARIZER_SYSTEM_PROMPT,
-            user_prompts=batch_prompt_list[:MAX_SPIKE_SUMMARIES],
-            max_tokens=1024,
-            topP=0.8,
-        )
-        for i, response in enumerate(responses):
+    # 2024-01-18: Changed from bulk chat completion request to synchronous,
+    # because ai-completions-backend has been at capacity recently.
+    # The Max Engine team gave us the go-ahead to do this.
+    top_spikes = batch_prompt_list[:MAX_SPIKE_SUMMARIES]
+    if top_spikes:
+        print(f"Asking GPT to summarize {len(top_spikes)} spikes...", flush=True)
+
+    for i, prompt in enumerate(top_spikes):
+        try:
+            response = app_registry(AICompletionsDAL).ask(
+                system_prompt=SPIKE_SUMMARIZER_SYSTEM_PROMPT,
+                user_prompt=prompt,
+                max_tokens=1024,
+                top_p=0.8,
+            )
             batch_spike_list[i].summary = response.split("\n")[0].split("SUMMARY:")[1].strip()
             batch_spike_list[i].is_bug = (response.split("IS_BUG:")[1].strip()) == "True"
-    except TimeoutError:
-        rollbar.report_message("Batch summary request timed out", "warning")
+        except TimeoutError as e:
+            rollbar.report_message(f"Spike summary request timed out: {e}", "warning")
+        except Exception as e:
+            rollbar.report_message(f"Spike summary request failed: {e}", "warning")
 
     if batch_spike_list:
         if not dry_run:
@@ -237,7 +244,7 @@ def _get_word_to_date_to_count(
         for val in [_bucket_to_value(b) for b in buckets]:
             word_date_count[t].update(val)
     print(
-        f"getting word_date_count took {timeit.default_timer() - start_time} for {len(terms)} terms",
+        f"getting word_date_count took {round(timeit.default_timer() - start_time, 2)} seconds for {len(terms)} terms",
         flush=True,
     )
 
@@ -264,7 +271,7 @@ def _find_spiked_words(
         A list of spikes, where each spike consists of:
         - word (str): The spike word
         - score (float): Generally, how big the spike is
-        - date (str): The date the spike occured on
+        - date (str): The date the spike occurred on
         - lang (str): Language of tickets used in spike calculation
 
         A list of prompt strings which are concatenated body text of tickets

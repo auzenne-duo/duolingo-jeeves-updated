@@ -52,6 +52,8 @@ class AICompletionsDAL:
         user_prompt: str,
         max_tokens: int = 512,
         raise_exceptions: bool = False,
+        timeout_seconds: float = 90.0,
+        top_p: float = 1.0,
     ):
         body = {
             "messages": [
@@ -61,7 +63,7 @@ class AICompletionsDAL:
             "modelParameters": {
                 "model": _CHAT_COMPLETIONS_MODEL,
                 "maxTokens": max_tokens,
-                "topP": 1.0,
+                "topP": top_p,
             },
             "taskName": "general",
         }
@@ -70,7 +72,7 @@ class AICompletionsDAL:
             response = self.client.put(
                 _CHAT_COMPLETIONS_ROUTE,
                 json=body,
-                timeout=90,
+                timeout=timeout_seconds,
             )
             response.raise_for_status()
             return response.json()["message"]["content"]
@@ -101,7 +103,7 @@ class AICompletionsDAL:
         user_prompts: Iterable[str],
         max_tokens: int = 512,
         timeout_seconds: float = 900.0,
-        topP: float = 1.0,
+        top_p: float = 1.0,
     ) -> List[str]:
         """
         Takes in a system prompt and a batch of user prompts
@@ -118,7 +120,7 @@ class AICompletionsDAL:
                 "modelParameters": {
                     "model": _CHAT_COMPLETIONS_MODEL,
                     "maxTokens": max_tokens,
-                    "topP": topP,
+                    "topP": top_p,
                 },
                 "taskName": "general",
             }
