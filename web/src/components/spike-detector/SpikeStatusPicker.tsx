@@ -9,6 +9,8 @@ import styles from "components/spike-detector/SpikeStatusPicker.scss";
 const STATUSES: Record<JSONAPI.SpikeStatus, string> = {
   CONFIRMED: "Confirmed",
   FIXED: "Fixed",
+  IGNORED: "Not a bug",
+  INVESTIGATING: "Investigating",
   UNCONFIRMED: "Unconfirmed",
 };
 

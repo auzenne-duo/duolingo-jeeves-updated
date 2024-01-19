@@ -243,7 +243,12 @@ declare namespace JSONAPI {
     word_count: SpikeWordStats[];
   }
 
-  type SpikeStatus = "CONFIRMED" | "UNCONFIRMED" | "FIXED";
+  type SpikeStatus =
+    | "CONFIRMED"
+    | "UNCONFIRMED"
+    | "FIXED"
+    | "INVESTIGATING"
+    | "IGNORED";
 
   interface SpikeStatusResponse {
     status: string;
