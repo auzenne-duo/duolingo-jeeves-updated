@@ -1,7 +1,8 @@
 """
-A script for finding spikes of word occurrences in Zendesk tickets.
-Candidate words are from Zendesk tickets on a target date.
+A script for finding spikes of word occurrences in all Jeeves documents.
+Candidate words are batched together by date, language, and spike category.
 """
+import json
 import timeit
 from collections import defaultdict
 from datetime import date, datetime, time
@@ -33,23 +34,74 @@ from jeeves.util.error_util import SpikeDetectorException
 SPIKE_EXCLUDE_WORDS_REGISTRY_KEY = "spike_exclude_words"
 SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
 STR_SPIKE_LEMMA_STATS_REGISTRY_KEY = "spike_lemma_stats"
-SPIKE_SUMMARIZER_SYSTEM_PROMPT = """
-Duolingo users can report bugs and feature requests as issues.
-Each issue has a title which summarizes the issue and a description with more detail.
-When given a list of issues, you will summarize the most common topic
-and predict whether the issues are about a bug in the app.
-An issue is a bug when it's about the app not working as expected, such as
-"Issues with quest tracking and badge progress" or "I can't log in".
-An issue is not a bug when it's about a feature request or something outside of the app, such as
-"I want to be able to change my username" or "I love duolingo".
-The response should be of the form:
-    SUMMARY: summary in English of the most common topic in three sentences or less
-    IS_BUG: True or False depending on whether the issues are about a bug""".strip()
+
+# Components of the request format (in YAML)
+REQ_SPIKE_WORD = "SPIKE WORD"
+REQ_TITLE = "TITLE"
+REQ_BODY = "BODY"
+
+# Components of the response format (in JSON)
+RESP_SUMMARY = "summary"
+RESP_IS_BUG = "is_bug"
+
+SPIKE_SUMMARIZER_SYSTEM_PROMPT = f"""
+You are part of a quality analytics pipeline at Duolingo that monitors internal Jira reports, Reddit, app store reviews
+from AppFigures, and Zendesk reports coming from email, Twitter, and our Shake-to-Report feature for beta users.
+First, you will be given a "spike word" in the format:
+{REQ_SPIKE_WORD}: <word>
+
+Next will be a list of reports from Duolingo users in any language (which may contain bug reports, feature requests,
+service requests, or something else, each of which should have that spike word in its text), in the format:
+{REQ_TITLE}: <title>
+{REQ_BODY}: <body>
+
+Your task is:
+In 50 words or fewer, write a short summary (IN ENGLISH) of these reports that helps employees at Duolingo to quickly
+understand the reason this word is spiking. If the spike is due to multiple users experiencing a bug, explain what
+the issue is. Otherwise, summarize what the tickets have in common in relation to the spike word. Your response
+should make it clear how the spike word relates to the issue described. If the spike word happens to be the name of
+people reporting an issue by coincidence, or happens to be part of an email signature, explain that and do not classify
+it as a bug. If the spike word is not in English, be sure to explain what it means in English as part of the summary.
+
+Write your response in English (no matter what language the original documents were in) in the following JSON format:
+{{
+  "{RESP_SUMMARY}": "<summary>",
+  "{RESP_IS_BUG}": <true/false>
+}}
+
+Consider an issue to be a "bug" if it has to do with the app not working as expected, such as:
+- Daily quests aren't being counted correctly
+- Users can't log in
+- Users are stuck on a green screen
+
+Spike words that are NOT a "bug" involve a feature request, something external, or a coincidence, such as:
+- Users want to be able to change their username
+- Compliments, general complaints, refund requests, or help repairing their streak
+- Retweets or gibberish
+- Names of people or rare words that happen to be found in multiple unrelated documents
+
+For example, if you are given the following input:
+{REQ_SPIKE_WORD}: accéder
+{REQ_TITLE}: Erreur d'authentification
+{REQ_BODY}: impossible d'accéder à mon compte
+
+{REQ_TITLE}: Page bloqué
+{REQ_BODY}: Bonjour, impossible hier accéder à mon compte
+
+Your response could be:
+{{
+  "{RESP_SUMMARY}": "Users are reporting that they are unable to access (accéder) or log in to their accounts.",
+  "{RESP_IS_BUG}": true
+}}
+""".strip()
 # if the number of unique users in a spike is less than this, we don't consider it a spike
 UNIQUE_USER_THRESHOLD = 3
 
 # We will get automated summaries for the top 5 spikes of each lang/category
 MAX_SPIKE_SUMMARIES = 5
+
+# The maximum number of random documents to send to GPT for summarization that contain the spikeword
+MAX_DOCS_PER_GPT_REQUEST = 20
 
 
 def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
@@ -181,14 +233,18 @@ def run_spike_detector_for_batch(
 
     for i, prompt in enumerate(top_spikes):
         try:
+            user_prompt = f"{REQ_SPIKE_WORD}: {batch_spike_list[i].word}\n\n{prompt}"
             response = app_registry(AICompletionsDAL).ask(
                 system_prompt=SPIKE_SUMMARIZER_SYSTEM_PROMPT,
-                user_prompt=prompt,
+                user_prompt=user_prompt,
                 max_tokens=1024,
                 top_p=0.8,
+                use_json_mode=True,
             )
-            batch_spike_list[i].summary = response.split("\n")[0].split("SUMMARY:")[1].strip()
-            batch_spike_list[i].is_bug = (response.split("IS_BUG:")[1].strip()) == "True"
+            # Parse the response as a JSON object
+            response_json = json.loads(response)
+            batch_spike_list[i].summary = response_json[RESP_SUMMARY]
+            batch_spike_list[i].is_bug = response_json[RESP_IS_BUG]
         except TimeoutError as e:
             rollbar.report_message(f"Spike summary request timed out: {e}", "warning")
         except Exception as e:
@@ -338,8 +394,12 @@ def _find_spiked_words(
 
             # we will then pass the text of up to 20 random documents to chatgpt to get a summary of the issue
             shuffle(docs)
+            random_sample = docs[:MAX_DOCS_PER_GPT_REQUEST]
             prompt = "\n".join(
-                [f"Title: {doc.header_text}\nDescription: {doc.body_text}\n" for doc in docs[:20]]
+                [
+                    f"{REQ_TITLE}: {doc.header_text}\n{REQ_BODY}: {doc.body_text}\n"
+                    for doc in random_sample
+                ]
             )
             prompts.append(prompt)
 

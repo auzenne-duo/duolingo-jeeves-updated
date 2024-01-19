@@ -37,6 +37,7 @@ _EMBEDDING_MODEL = "text-embedding-ada-002"
 
 _CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions"
 _CHAT_COMPLETIONS_MODEL = "gpt-dv-duo"
+_CHAT_COMPLETIONS_JSON_MODEL_PREVIEW = "gpt-4-1106-preview"
 _BATCH_CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions-batch"
 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE = "/1/ai-completions/chat-completion-statuses"
 
@@ -54,19 +55,23 @@ class AICompletionsDAL:
         raise_exceptions: bool = False,
         timeout_seconds: float = 90.0,
         top_p: float = 1.0,
+        use_json_mode: bool = False,
     ):
+        model = _CHAT_COMPLETIONS_JSON_MODEL_PREVIEW if use_json_mode else _CHAT_COMPLETIONS_MODEL
         body = {
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
             "modelParameters": {
-                "model": _CHAT_COMPLETIONS_MODEL,
+                "model": model,
                 "maxTokens": max_tokens,
                 "topP": top_p,
             },
             "taskName": "general",
         }
+        if use_json_mode:
+            body["modelParameters"]["useJsonMode"] = True
 
         try:
             response = self.client.put(
