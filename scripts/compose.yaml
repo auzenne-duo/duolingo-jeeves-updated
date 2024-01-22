@@ -1,0 +1,8 @@
+services:
+  duolingo-jeeves-monitor-and-alarm:
+    build: ..
+    environment:
+      - BUILD_URL
+    volumes:
+      - ..:/code
+    entrypoint: python jeeves/scripts/index_pipeline_and_spike_detector/monitor_and_alarm.py

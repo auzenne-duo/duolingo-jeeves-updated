@@ -112,6 +112,44 @@ jobs:
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
+  - name: duolingo-jeeves-monitor-and-alarm
+    description: "Pipeline that runs periodically to ensure Jeeves has up-to-date Opensearch documents."
+    jenkins_cluster: script-runner-jenkins
+    log_rotator:
+      days_to_keep: 30
+      num_to_keep: -1
+      artifact_days_to_keep: -1
+      artifact_num_to_keep: -1
+    rebuild_settings:
+      auto_rebuild: false
+      rebuild_disabled: false
+    parameters:
+      - type: string
+        description: branch in duolingo-jeeves to build
+        name: BUILD_BRANCH
+        default: master
+      - type: string
+        description: "When testing, use C0UDM7XA4 for #slack-test Slack channel. Default to #pd-snow (C035TTWUBTN)."
+        name: SLACK_CHANNEL_ID
+        default: C035TTWUBTN
+    branch: ${BUILD_BRANCH}
+    scm:
+      clone_option:
+        shallow_clone: true
+        depth: 100
+    # Runs every 6 hours
+    cron: "H */6 * * *"
+    timestamps: true
+    bindings:
+      - credentials_id: TAFTT_PROD_SLACK_TOKEN
+        variable: SLACK_API_TOKEN
+    docker:
+      compose_file: scripts/compose.yaml
+    mailer:
+      recipients: |-
+        aaron.wang@duolingo.com david.sawicki@duolingo.com
+      notify_every_unstable_build: true
+      send_to_individuals: false
   - name: |-
       duolingo-jeeves-refresh-tickets
     description: |-
