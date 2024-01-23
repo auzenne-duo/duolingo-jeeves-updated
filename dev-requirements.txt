@@ -31,13 +31,13 @@ blinker==1.6.2
     #   -r requirements.txt
     #   duolingo-nlp
     #   flask
-boto3==1.26.97
+boto3==1.34.25
     # via
     #   -r requirements.txt
     #   duolingo-base
     #   duolingo-nlp
     #   duolingo-notify
-botocore==1.29.153
+botocore==1.34.25
     # via
     #   -r requirements.txt
     #   boto3
@@ -567,7 +567,7 @@ rollbar==0.16.3
     #   -r requirements.txt
     #   duolingo-base
     #   duolingo-nlp
-s3transfer==0.6.1
+s3transfer==0.10.0
     # via
     #   -r requirements.txt
     #   boto3

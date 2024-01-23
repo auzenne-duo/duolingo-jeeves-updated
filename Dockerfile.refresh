@@ -32,8 +32,10 @@ RUN apt-get update \
  && ln -s /usr/bin/python3 /usr/bin/python
 
 RUN pip3 install -U pip pip-tools wheel \
- && pip3 install \
+ && pip3 install -U \
       awscli \
+      boto3 \
+      botocore \
       setuptools
 
 ARG REQUIREMENTS=dev-requirements.txt

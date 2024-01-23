@@ -1,7 +1,8 @@
 --index-url https://pypi.duolingo.com/simple/
 
 attrs==21.4.0
-boto3==1.26.97
+boto3==1.34.25
+botocore==1.34.25
 blinker
 click
 cssselect2==0.4.1
