@@ -13,7 +13,7 @@ jobs:
       notify_failure: true
       notify_repeated_failure: true
       commit_info: AUTHORS_AND_TITLES
-      room: ci
+      room: "#ci,#pd-snow"
   - name: duolingo-jeeves-health
     description: |
       Jenkins Job for checking CI Health
