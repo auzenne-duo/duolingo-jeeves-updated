@@ -114,7 +114,8 @@ jobs:
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
   - name: duolingo-jeeves-monitor-and-alarm
     description: "Pipeline that runs periodically to ensure Jeeves has up-to-date Opensearch documents."
-    jenkins_cluster: script-runner-jenkins
+    # This pipeline is technically a script, but we run it on client-eng-jenkins so that TRI team members can disable it and snooze notifications to #pd-snow while investigating.
+    jenkins_cluster: client-eng-jenkins
     log_rotator:
       days_to_keep: 30
       num_to_keep: -1
