@@ -17,12 +17,12 @@ else
   host_agnostic_docker_options=(
     -e AWS_ACCESS_KEY_ID
     -e AWS_SECRET_ACCESS_KEY
-    -v "${HOME}/.aws:/root/.aws"
   )
 
   # `docker run` options that depend on whether the host is Jenkins
   if [[ -z ${JENKINS_URL} ]]; then
     host_specific_docker_options=(
+      -v "${HOME}/.aws:/root/.aws"
     )
 
   else
