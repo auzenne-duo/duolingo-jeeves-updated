@@ -300,7 +300,7 @@ class SpikeIndexDAL:
         self,
         lang: str,
         date_str: str,
-        num_spikes: int,
+        num_spikes: Optional[int],
         spike_group: SpikeCategory,
         only_bugs: bool = False,
     ) -> Iterator[SpikeWord]:
@@ -320,7 +320,9 @@ class SpikeIndexDAL:
             See documentation for bulk_index_spikes for a description of spike
             format.
         """
-        print(f"Yielding {num_spikes} {spike_group.name} spikes from {date_str}")
+        print(
+            f"Yielding {num_spikes if num_spikes is not None else ''} {spike_group.name} spikes from {date_str}"
+        )
         return self.yield_spikes_in_date_range(
             lang=lang,
             start_date=date_str,

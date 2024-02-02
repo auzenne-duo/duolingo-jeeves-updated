@@ -43,6 +43,7 @@ REQ_BODY = "BODY"
 # Components of the response format (in JSON)
 RESP_SUMMARY = "summary"
 RESP_IS_BUG = "is_bug"
+RESP_IS_SOCIAL_TREND = "is_social_trend"
 
 SPIKE_SUMMARIZER_SYSTEM_PROMPT = f"""
 You are part of a quality analytics pipeline at Duolingo that monitors internal Jira reports, Reddit, app store reviews
@@ -66,7 +67,8 @@ it as a bug. If the spike word is not in English, be sure to explain what it mea
 Write your response in English (no matter what language the original documents were in) in the following JSON format:
 {{
   "{RESP_SUMMARY}": "<summary>",
-  "{RESP_IS_BUG}": <true/false>
+  "{RESP_IS_BUG}": <true/false>,
+  "{RESP_IS_SOCIAL_TREND}": <true/false>
 }}
 
 Consider an issue to be a "bug" if it has to do with the app not working as expected, such as:
@@ -80,6 +82,11 @@ Spike words that are NOT a "bug" involve a feature request, something external, 
 - Retweets or gibberish
 - Names of people or rare words that happen to be found in multiple unrelated documents
 
+Consider a spike word to be related to a social trend the reports are about something fun trending on social media, such as:
+- A new feature is trending on a social media platform
+- Discussing a Duolingo meme or viral tiktok video
+- Bugs are not social trends
+
 For example, if you are given the following input:
 {REQ_SPIKE_WORD}: accéder
 {REQ_TITLE}: Erreur d'authentification
@@ -91,7 +98,23 @@ For example, if you are given the following input:
 Your response could be:
 {{
   "{RESP_SUMMARY}": "Users are reporting that they are unable to access (accéder) or log in to their accounts.",
-  "{RESP_IS_BUG}": true
+  "{RESP_IS_BUG}": true,
+  "{RESP_IS_SOCIAL_TREND}": false
+}}
+
+For example, if you are given the following input:
+{REQ_SPIKE_WORD}: party
+{REQ_TITLE}: Celebrating 365 Days of Keeping My Streak Alive
+{REQ_BODY}: Join my Duolingo Streak Party! #LanguageJourney #DuolingoStreak
+
+{REQ_TITLE}: Get Ready for a Feathered Fiesta!
+{REQ_BODY}: I'm throwing a streak party, and it's going to be 'owl'-t of this world!
+
+Your response could be:
+{{
+  "{RESP_SUMMARY}": "Users are posting about their streak parties to celebrate their streak milestones.",
+  "{RESP_IS_BUG}": false,
+  "{RESP_IS_SOCIAL_TREND}": true
 }}
 """.strip()
 # if the number of unique users in a spike is less than this, we don't consider it a spike
@@ -245,6 +268,7 @@ def run_spike_detector_for_batch(
             response_json = json.loads(response)
             batch_spike_list[i].summary = response_json[RESP_SUMMARY]
             batch_spike_list[i].is_bug = response_json[RESP_IS_BUG]
+            batch_spike_list[i].is_social_trend = response_json[RESP_IS_SOCIAL_TREND]
         except TimeoutError as e:
             rollbar.report_message(f"Spike summary request timed out: {e}", "warning")
         except Exception as e:

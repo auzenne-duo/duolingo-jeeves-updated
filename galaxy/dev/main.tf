@@ -219,9 +219,26 @@ module "duolingo-jeeves-worker-cron" {
   owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "worker-cron.json"
-  cookie_secret        = data.aws_kms_secrets.secrets.plaintext["spike_reporter_slack_api_token"]
-  schedule_expression  = "cron(* * * * ? 1970)" # "cron(0/20 * * * ? *)"
-  release_version      = var.release_version
+  environment_vars = [
+    {
+      name  = "PYTHONPATH"
+      value = "/code"
+    },
+    {
+      name  = "SPIKE_REPORTER_SLACK_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["spike_reporter_slack_api_token"]
+    },
+    {
+      name  = "BUG_SPIKE_REPORTER_SLACK_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["bug_spike_reporter_slack_api_token"]
+    },
+    {
+      name  = "SOCIAL_TRENDS_SPIKE_REPORTER_SLACK_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["social_trends_spike_reporter_slack_api_token"]
+    }
+  ]
+  schedule_expression = "cron(* * * * ? 1970)" # "cron(0/20 * * * ? *)"
+  release_version     = var.release_version
 }
 
 module "duolingo-jeeves-sqs-worker-1" {

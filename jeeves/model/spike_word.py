@@ -22,6 +22,7 @@ class SpikeWord:
     fixed_user_id: Optional[int] = attr.ib(default=None)
     summary: Optional[str] = attr.ib(default=None)
     is_bug: Optional[bool] = attr.ib(default=None)
+    is_social_trend: Optional[bool] = attr.ib(default=None)
     experiment_spikes: Optional[Dict[str, int]] = attr.ib(default=None)
     status: Optional[str] = attr.ib(default=_DEFAULT_SPIKE_STATUS)
     status_user_id: Optional[int] = attr.ib(default=None)
@@ -48,6 +49,9 @@ class SpikeWord:
             fixed_user_id=spike_dict["fixed_user_id"] if "fixed_user_id" in spike_dict else None,
             summary=spike_dict["summary"] if "summary" in spike_dict else None,
             is_bug=spike_dict["is_bug"] if "is_bug" in spike_dict else True,
+            is_social_trend=spike_dict["is_social_trend"]
+            if "is_social_trend" in spike_dict
+            else False,
             experiment_spikes=spike_dict["experiment_spikes"].to_dict()
             if "experiment_spikes" in spike_dict
             else {},
@@ -70,6 +74,7 @@ class SpikeWord:
             "fixed_user_id": self.fixed_user_id,
             "summary": self.summary,
             "is_bug": self.is_bug,
+            "is_social_trend": self.is_social_trend,
             "experiment_spikes": self.experiment_spikes,
             "status": self.status,
             "status_user_id": self.status_user_id,

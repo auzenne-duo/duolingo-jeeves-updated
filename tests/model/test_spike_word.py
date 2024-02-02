@@ -17,6 +17,7 @@ class TestSpikeWord(unittest.TestCase):
             confirmed_user_id=10,
             summary="summary",
             is_bug=True,
+            is_social_trend=False,
             experiment_spikes={},
         )
 
@@ -35,6 +36,7 @@ class TestSpikeWord(unittest.TestCase):
             "fixed_user_id": 19,
             "summary": "summary",
             "is_bug": True,
+            "is_social_trend": False,
         }
 
         result = SpikeWord.from_dict(testDict)
@@ -52,6 +54,7 @@ class TestSpikeWord(unittest.TestCase):
         self.assertEqual(result.fixed_user_id, 19)
         self.assertEqual(result.summary, "summary")
         self.assertEqual(result.is_bug, True)
+        self.assertEqual(result.is_social_trend, False)
 
     def test_from_dict_no_confirmed(self):
         testDict = {
@@ -116,6 +119,7 @@ class TestSpikeWord(unittest.TestCase):
                 "fixed_user_id": None,
                 "summary": "summary",
                 "is_bug": True,
+                "is_social_trend": False,
                 "experiment_spikes": {},
                 "status": "UNCONFIRMED",
                 "status_user_id": None,

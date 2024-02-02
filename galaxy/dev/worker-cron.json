@@ -11,10 +11,7 @@
         "hardLimit": 65535
     }],
     "command": ["python","./jeeves/scripts/index_pipeline_and_spike_detector/slack.py"],
-    "environment": [
-        {"name": "PYTHONPATH", "value": "/code"},
-        {"name": "SPIKE_REPORTER_SLACK_API_TOKEN", "value": "${cookie_secret}"}
-    ],
+    "environment": ${environment_vars},
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {

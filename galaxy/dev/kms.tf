@@ -100,6 +100,30 @@ data "aws_kms_secrets" "secrets" {
   }
 
   secret {
+    name    = "bug_spike_reporter_slack_api_token"
+    payload = "AQICAHi8VJKHFYAxFeUp4dS+8Aw/C0l5T9o3fMCTutWJlPq2MgGs9MsuYeyeU2OhbZhzPNs8AAAAlzCBlAYJKoZIhvcNAQcGoIGGMIGDAgEAMH4GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMsvT755PfQEU1IxXMAgEQgFE1/D93ESBYwcr3jiYLrNbHRFG5SoBmqPUNMY4S/v97F1/lQpNyzehwYQk+OzvL8Y43pLk1tA9+g4yfM5mknSDWikqnorfBjAerJazmle3/tUU="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "worker-cron"
+      environment = var.environment
+    }
+  }
+
+  secret {
+    name    = "social_trends_spike_reporter_slack_api_token"
+    payload = "AQICAHi8VJKHFYAxFeUp4dS+8Aw/C0l5T9o3fMCTutWJlPq2MgGGImnuWix28fk6NwnfluwzAAAAlzCBlAYJKoZIhvcNAQcGoIGGMIGDAgEAMH4GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMfAiw6oh/1GFhGSFTAgEQgFG3gdramtxEcoYbkGPILDRzAqvfSnZkm68qjqUO3kwiyy2g/ljp7C8Ds2t/2Fypn9Y1FAG743gSzkM3ff7ElQopRB4unmpZ/oA5wau5v8QL+RU="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "worker-cron"
+      environment = var.environment
+    }
+  }
+
+  secret {
     name    = "jira_api_token_general"
     payload = "AQICAHi8VJKHFYAxFeUp4dS+8Aw/C0l5T9o3fMCTutWJlPq2MgFkrNor5k3GY9kkgWSedg/sAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMGa0G3EGOkq+KDGvXAgEQgDPBBIqmILw6848rsaHaXezU7rngkK/goYERsxmBcMoRMQfJeK72YA9EFDNwsRJSaBerJ2w="
 
