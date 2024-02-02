@@ -380,6 +380,8 @@ class JiraDocument(JeevesDocument):
         """
         Please see parent class for documentation
         """
+        if not isinstance(internal_json, dict):
+            return
         return cls(
             data_source=internal_json["data_source"],
             document_id=internal_json["document_id"],

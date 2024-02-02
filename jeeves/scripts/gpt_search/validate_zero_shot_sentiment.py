@@ -25,15 +25,18 @@ if __name__ == "__main__":
             f"{document.header_text}. {document.body_text}. {document.data_source}. {document.course}. {document.attachments}. {document.date_time}"
         )
         """
-        polarity = calc_polarity(doc_embedding, pos_embedding, neg_embedding)
-        if label == "positive" and polarity > 0:
-            confusion_matrix["tp"] += 1
-        elif label == "positive" and polarity < 0:
-            confusion_matrix["fn"] += 1
-        elif label == "negative" and polarity > 0:
-            confusion_matrix["fp"] += 1
-        elif label == "negative" and polarity < 0:
-            confusion_matrix["tn"] += 1
+        if pos_embedding is not None and neg_embedding is not None:
+            polarity = calc_polarity(doc_embedding, pos_embedding, neg_embedding)
+            if label == "positive" and polarity > 0:
+                confusion_matrix["tp"] += 1
+            elif label == "positive" and polarity < 0:
+                confusion_matrix["fn"] += 1
+            elif label == "negative" and polarity > 0:
+                confusion_matrix["fp"] += 1
+            elif label == "negative" and polarity < 0:
+                confusion_matrix["tn"] += 1
+        else:
+            raise ValueError("Failed to retrieve positive and negative embeddings")
 
     total = sum(confusion_matrix.values())
     print(f'Accuracy: {(confusion_matrix["tn"] + confusion_matrix["tp"]) / total:.3f}')

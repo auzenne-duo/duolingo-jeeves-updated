@@ -154,7 +154,7 @@ class TopicSimilarityManager:
 
     def construct_svm_for_filtering(
         self,
-        sorted_docs: Dict[str, List[JeevesDocument]],
+        sorted_docs: Dict[SimilarityCategory, List[JeevesDocument]],
         target_topic: str,
         label_to_num: Dict[SimilarityCategory, int],
     ) -> SVC:
@@ -208,7 +208,7 @@ class TopicSimilarityManager:
 
     def sort_documents_using_cosine_similarity(
         self, documents_list: List[MatchingDocument]
-    ) -> Dict[str, List[JeevesDocument]]:
+    ) -> Dict[SimilarityCategory, List[JeevesDocument]]:
         """
         Sort documents into four lists: similar, strongly similar, dissimilar, and strongly dissimilar.
         Not all documents will be returned. We want documents that would be good to train our classifier on.
@@ -235,7 +235,7 @@ class TopicSimilarityManager:
         likely_related_docs: List[JeevesDocument],
         likely_unrelated_docs: List[JeevesDocument],
         target_topic: str,
-    ) -> Dict[str, List[JeevesDocument]]:
+    ) -> Dict[SimilarityCategory, List[JeevesDocument]]:
         """
         Use GPT to determine which documents are related to the target topic and which are not
         related to the target topic. Return two lists where one is a list of related documents
@@ -243,7 +243,10 @@ class TopicSimilarityManager:
 
         Likely related docs and likely unrelated docs should both be sorted from highest to lowest cosine similarity
         """
-        relevant_docs = {SimilarityCategory.RELATED: [], SimilarityCategory.UNRELATED: []}
+        relevant_docs: Dict[SimilarityCategory, List[JeevesDocument]] = {
+            SimilarityCategory.RELATED: [],
+            SimilarityCategory.UNRELATED: [],
+        }
         user_prompt = f"{REQ_RESP_TOPIC}: {target_topic}\n{REQ_DOCUMENTS}: "
         LOG.debug(
             f"Likely Potential Documents to send to GPT-4 {[doc.jeeves_uid for doc in likely_related_docs]}"
@@ -292,7 +295,7 @@ class TopicSimilarityManager:
 
     def get_max_docs_under_content_length_limit(
         self, docs: List[JeevesDocument]
-    ) -> Tuple[List[str], Dict[int, str]]:
+    ) -> Tuple[List[str], Dict[str, str]]:
         """
         Given the CONTEXT_LENGTH for our GPT model, return the greatest number of documents possible
         while still staying under the total token limit.

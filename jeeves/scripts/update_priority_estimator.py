@@ -91,7 +91,7 @@ def get_updated_jira_priorities(
 
     Params:
         earliest_date: filter for issues updated after this date
-        current_date: the current date when this issues are being checked (used to annotate)
+        current_date: the current date when these issues are being checked (used to annotate)
         overridden_priorities: mapping of Jira key to already seen overridden priorities
 
     Returns a mapping of Jira key to newly overridden priorities as OverriddenPriorityIssue objects
@@ -117,6 +117,8 @@ def get_updated_jira_priorities(
     new_overridden_priorities = {}
     JiraManager.get_feature_field()
     for i, issue in enumerate(JiraDAL.paginate_search_issues(url_params)):
+        if not isinstance(issue, dict):
+            continue
         issue_key = issue["key"]
         skip = False
         for history in issue["changelog"]["histories"]:

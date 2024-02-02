@@ -141,7 +141,7 @@ class SentimentSearchManager:
         LOG.debug(f"Performed knn search... got {len(hits.values())} docs")
 
         related_docs = self.topic_similarity_manager.filter_documents_using_topic(
-            hits.values(), dsl_response.target_topic
+            hits.values(), dsl_response.target_topic or "duolingo"
         )
         LOG.debug(f"Found {len(related_docs)} related documents...")
 
@@ -164,7 +164,7 @@ class SentimentSearchManager:
             positive_bucket=buckets[POSITIVE_CLASS],
             negative_bucket=buckets[NEGATIVE_CLASS],
             results=results,
-            topic=dsl_response.target_topic,
+            topic=dsl_response.target_topic if dsl_response.target_topic else "",
         )
 
     @classmethod
@@ -180,9 +180,21 @@ class SentimentSearchManager:
         Each dictionary contains a string representing a date. Each date has a float representing the average sentiment
         score and the number of documents for that date.
         """
-        score_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}, NEUTRAL_CLASS: {}}
-        count_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}, NEUTRAL_CLASS: {}}
-        average_dict = {POSITIVE_CLASS: {}, NEGATIVE_CLASS: {}, NEUTRAL_CLASS: {}}
+        score_dict: Dict[str, Dict[str, float]] = {
+            POSITIVE_CLASS: {},
+            NEGATIVE_CLASS: {},
+            NEUTRAL_CLASS: {},
+        }
+        count_dict: Dict[str, Dict[str, int]] = {
+            POSITIVE_CLASS: {},
+            NEGATIVE_CLASS: {},
+            NEUTRAL_CLASS: {},
+        }
+        average_dict: Dict[str, Dict[str, SentimentBucket]] = {
+            POSITIVE_CLASS: {},
+            NEGATIVE_CLASS: {},
+            NEUTRAL_CLASS: {},
+        }
         for doc in documents_list:
             date = doc.jeeves_document.date_time
             if bucket_window == BucketWindow.DAY:
@@ -191,19 +203,19 @@ class SentimentSearchManager:
                 date = date - datetime.timedelta(days=date.weekday())
             elif bucket_window == BucketWindow.MONTH:
                 date = date.replace(day=1)
-            date = date.date().isoformat()
-            if date not in score_dict[doc.label]:
-                score_dict[doc.label][date] = 0
-                count_dict[doc.label][date] = 0
-            score_dict[doc.label][date] += doc.sentiment_score
-            count_dict[doc.label][date] += 1
+            date_str = date.date().isoformat()
+            if date_str not in score_dict[doc.label]:
+                score_dict[doc.label][date_str] = 0
+                count_dict[doc.label][date_str] = 0
+            score_dict[doc.label][date_str] += doc.sentiment_score
+            count_dict[doc.label][date_str] += 1
 
         for label in [POSITIVE_CLASS, NEGATIVE_CLASS]:
-            for date in score_dict[label]:
-                if count_dict[label][date] >= MIN_DOC_PER_DAY:
-                    score = score_dict[label][date] / count_dict[label][date]
-                    average_dict[label][date] = SentimentBucket(
-                        average_sentiment_score=score, num_documents=count_dict[label][date]
+            for date_str in score_dict[label]:
+                if count_dict[label][date_str] >= MIN_DOC_PER_DAY:
+                    score = score_dict[label][date_str] / count_dict[label][date_str]
+                    average_dict[label][date_str] = SentimentBucket(
+                        average_sentiment_score=score, num_documents=count_dict[label][date_str]
                     )
 
         return average_dict
