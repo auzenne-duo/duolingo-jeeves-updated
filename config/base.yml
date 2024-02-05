@@ -7,4 +7,4 @@ blueprints:
   - jeeves.view.health.blueprint_health
 
 opensearch:
-  data_version_identifier: 5.1.6
+  data_version_identifier: 5.1.7
