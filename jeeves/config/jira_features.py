@@ -140,6 +140,9 @@ JIRA_FEATURES = {
         "Experimental AI": {
             "Facetime": [],
         },
+        "Mobile Language Test": {
+            "Mobile Language Test": [],
+        },
     },
     "Learning Scaling": {
         "Learning Infrastructure": {},
