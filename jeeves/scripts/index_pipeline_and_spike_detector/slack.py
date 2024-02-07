@@ -28,14 +28,12 @@ _SLACK_REPORT_LANG = "en"
 
 _SLACK_API = "https://slack.com/api"
 _SPIKE_CATEGORY_TO_SLACK_CHANNELS = {
-    SpikeCategory.EXTERNAL_NON_STR_SPIKES: [SlackChannel.BUG_TRIAGE, SlackChannel.JEEVES],
-    SpikeCategory.EXTERNAL_STR_SPIKES: [SlackChannel.TEAM_QA, SlackChannel.JEEVES],
+    SpikeCategory.EXTERNAL_NON_STR_SPIKES: [SlackChannel.JEEVES],
+    SpikeCategory.EXTERNAL_STR_SPIKES: [SlackChannel.JEEVES],
 }
 
 # Keeps track of which bots posts to which channel
 _SLACK_CHANNEL_TO_SLACK_BOT = {
-    SlackChannel.BUG_TRIAGE: [SlackBot.SPIKE_REPORTER],
-    SlackChannel.TEAM_QA: [SlackBot.SPIKE_REPORTER],
     SlackChannel.JEEVES: [SlackBot.BUG_SPIKE_REPORTER, SlackBot.SOCIAL_TRENDS_SPIKE_REPORTER],
     SlackChannel.POST_TEST_RESULTS: [
         SlackBot.SPIKE_REPORTER,
