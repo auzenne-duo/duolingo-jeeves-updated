@@ -9,11 +9,13 @@ jobs:
     timeout: 90
     command: bash -ex jenkins-build.sh prod
     slack:
-      notify_success: true
+      commit_info: AUTHORS_AND_TITLES
+      notify_back_to_normal: true
       notify_failure: true
       notify_repeated_failure: true
-      commit_info: AUTHORS_AND_TITLES
-      room: "#ci,#pd-snow"
+      notify_success: false
+      notify_unstable: true
+      room: "ci,pd-snow"
   - name: duolingo-jeeves-health
     description: |
       Jenkins Job for checking CI Health
