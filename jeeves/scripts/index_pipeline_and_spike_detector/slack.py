@@ -128,7 +128,7 @@ def spike_sorter(spikes: List[SpikeWord]):
     }
 
     for spike in spikes:
-        if spike.is_bug or spike.is_social_trend is False:
+        if spike.is_bug:
             spike_buckets[SlackBot.BUG_SPIKE_REPORTER.slack_name].append(spike)
         elif spike.is_social_trend:
             spike_buckets[SlackBot.SOCIAL_TRENDS_SPIKE_REPORTER.slack_name].append(spike)
