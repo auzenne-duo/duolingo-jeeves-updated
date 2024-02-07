@@ -43,6 +43,7 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("ningxin@duolingo.com", 510539986),
             ("ihsuan@duolingo.com", 282991771),
             ("hideki@duolingo.com", 1076),
+            ("soyee@duolingo.com", 969088226),
         ],
         _RECEIVE_ALL: [
             ("mpereslucha@duolingo.com", 759837354),
@@ -63,10 +64,15 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("maggie.huang@duolingo.com", 49022092),
             ("bill.guo@duolingo.com", 800409886),
             ("christopher@duolingo.com", 12670686),
+            ("megan@duolingo.com", 213757048),
         ],
         "Onboarding": [("sarahtracy@duolingo.com", 100396129), ("mike@duolingo.com", 32080913)],
         "Resurrection": [("kevinyang@duolingo.com", 3057357), ("tao@duolingo.com", 515653291)],
-        "Reengagement": [("osman@duolingo.com", 555374397), ("stephanie@duolingo.com", 350148009)],
+        "Reengagement": [
+            ("osman@duolingo.com", 555374397),
+            ("soyee@duolingo.com", 969088226),
+            ("stephanie@duolingo.com", 350148009),
+        ],
         "Retention": [
             ("jackson@duolingo.com", 19364437),
             ("antonia@duolingo.com", 190618),
@@ -88,6 +94,7 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
     },
     "Learning R&D": {
         _AREA: [
+            ("ang@duolingo.com", 8676371),
             ("natalia@duolingo.com", 357062),
             ("joseph@duolingo.com", 47061),
             ("seun@duolingo.com", 448224015),
@@ -98,10 +105,15 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         ],
         _RECEIVE_ALL: [],
         "Path": [
+            ("ang@duolingo.com", 8676371),
+            ("hoshi@duolingo.com", 35950076),
+            ("leen@duolingo.com", 243742888),
+            ("rsalvador@duolingo.com", 591913431),
             ("will.haines@duolingo.com", 13834416),
             ("path-team@duolingo.com", None),
         ],
         "Personalized Sessions": [
+            ("ang@duolingo.com", 8676371),
             ("sanil@duolingo.com", 800086825),
             ("will.haines@duolingo.com", 13834416),
         ],
@@ -138,6 +150,7 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("jonathan.duxbury@duolingo.com", 446774430),
             ("hai@duolingo.com", 825435186),
             ("jtishler@duolingo.com", 120661234),
+            ("hoshi@duolingo.com", 35950076),
         ],
         _RECEIVE_ALL: [
             ("aspen@duolingo.com", 787642145),
@@ -161,7 +174,11 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         ],
         "Super Features": [("edwin@duolingo.com", 201732115)],
     },
-    "New Subjects": {_AREA: [], _RECEIVE_ALL: [("tianyu@duolingo.com", 919037599)]},
+    "New Subjects": {
+        _AREA: [("colleen@duolingo.com", 591143118)],
+        _RECEIVE_ALL: [("tianyu@duolingo.com", 919037599)],
+        "Math": [("colleen@duolingo.com", 591143118)],
+    },
     "Product Quality": {
         _AREA: [("peter@duolingo", 97197056)],
         "Engineering Studio": [
