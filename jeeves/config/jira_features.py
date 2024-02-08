@@ -92,6 +92,9 @@ JIRA_FEATURES = {
         },
     },
     "Learning R&D": {
+        "Learning R&D Infrastructure": {
+            "Generated sessions": [],
+        },
         "Personalized Sessions": {
             "Challenge layout issues": [
                 "exercise",
@@ -103,7 +106,6 @@ JIRA_FEATURES = {
                 "token",
                 "word bank",
             ],
-            "Generated sessions": [],
             "Smart tips": ["smart tip"],
         },
         "New Writing Systems": {
