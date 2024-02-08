@@ -12,7 +12,8 @@ resource "aws_route53_record" "duolingo-jeeves-memcache-vpc-record" {
 }
 
 module "duolingo-jeeves-memcache" {
-  source             = "github.com/duolingo/infra-galaxy//modules/memcache_cluster"
+  source             = "app.terraform.io/duolingo/galaxy/terraform//modules/memcache_cluster"
+  version            = "~> 1.0"
   identifier         = "duolingo-jeeves-dev"
   product            = var.product
   owner              = var.owner

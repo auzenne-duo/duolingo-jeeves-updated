@@ -42,7 +42,8 @@ resource "aws_route53_record" "duolingo-jeeves-prod" {
 }
 
 module "duolingo-jeeves" {
-  source                               = "github.com/duolingo/infra-galaxy//modules/ecs_web_service"
+  source                               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_web_service"
+  version                              = "~> 1.0"
   environment                          = var.environment
   service                              = var.service
   subservice                           = "api"
@@ -134,7 +135,8 @@ module "duolingo-jeeves" {
 }
 
 module "duolingo-jeeves-s3-worker" {
-  source                             = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  source                             = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
+  version                            = "~> 1.0"
   environment                        = var.environment
   service                            = var.service
   subservice                         = "s3-worker"
@@ -218,7 +220,8 @@ module "duolingo-jeeves-s3-worker" {
 }
 
 module "duolingo-jeeves-worker-cron" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
+  version              = "~> 1.0"
   environment          = var.environment
   service              = var.service
   subservice           = "worker-cron"
@@ -256,7 +259,8 @@ module "duolingo-jeeves-worker-cron" {
 }
 
 module "duolingo-jeeves-sqs-worker-1" {
-  source                      = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  source                      = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
+  version                     = "~> 1.0"
   environment                 = var.environment
   service                     = var.service
   subservice                  = "sqs-worker-1"
@@ -311,7 +315,8 @@ module "duolingo-jeeves-sqs-worker-1" {
 }
 
 module "duolingo-jeeves-sqs-worker-2" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
+  version              = "~> 1.0"
   environment          = var.environment
   service              = var.service
   subservice           = "sqs-worker-2"
@@ -360,7 +365,8 @@ module "duolingo-jeeves-sqs-worker-2" {
 }
 
 module "duolingo-jeeves-spike-worker" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
+  version              = "~> 1.0"
   environment          = var.environment
   service              = var.service
   subservice           = "spike-worker"
@@ -402,7 +408,8 @@ module "duolingo-jeeves-spike-worker" {
 }
 
 module "duolingo-jeeves-email-sender" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
+  version              = "~> 1.0"
   environment          = var.environment
   service              = var.service
   subservice           = "email-sender"
@@ -422,7 +429,8 @@ module "duolingo-jeeves-email-sender" {
 }
 
 module "duolingo-jeeves-priority-estimator-updater" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
+  version              = "~> 1.0"
   environment          = var.environment
   service              = var.service
   subservice           = "priority-estimator-updater"
@@ -464,7 +472,8 @@ module "duolingo-jeeves-priority-estimator-updater" {
 }
 
 module "duolingo-jeeves-ensure-embeddings-worker" {
-  source               = "github.com/duolingo/infra-galaxy//modules/ecs_worker_service"
+  source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
+  version              = "~> 1.0"
   environment          = var.environment
   service              = var.service
   subservice           = "ensure-embeddings-worker"

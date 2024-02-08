@@ -1,6 +1,6 @@
 # Galaxy
 
-This directory contains Terraform config files that work in tandem with [Galaxy](https://github.com/duolingo/infra-galaxy) to deploy the necessary infrastructure to AWS for the service. Checkout the Galaxy documentation for more information on how this works.
+This directory contains Terraform config files that work in tandem with [Galaxy](https://github.com/duolingo/infra-terraform-galaxy) to deploy the necessary infrastructure to AWS for the service. Checkout the Galaxy documentation for more information on how this works.
 
 # Maintenance
 
