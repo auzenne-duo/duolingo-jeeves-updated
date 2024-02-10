@@ -8,7 +8,7 @@ import codecs
 import sys
 from typing import Dict, List
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.config import Config
 from duolingo_notify.api import RequestBuilder
 

@@ -9,8 +9,8 @@ from datetime import date, datetime, time
 from random import shuffle
 from typing import Dict, List, Optional, Tuple, Union
 
+import duo_logging.legacy as rollbar
 import numpy as np
-import rollbar
 
 from jeeves import registry as app_registry
 from jeeves.config.config import COUNT_THRESHOLD, HISTORY_WINDOW_SIZE, SPIKE_THRESHOLD

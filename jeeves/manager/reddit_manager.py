@@ -8,9 +8,9 @@ import os
 from datetime import datetime
 from typing import Dict, Optional, Tuple, Type
 
+import duo_logging.legacy as rollbar
 import pytz
 import requests
-import rollbar
 from duolingo_base.dal.s3 import S3Client
 from requests.exceptions import RequestException
 

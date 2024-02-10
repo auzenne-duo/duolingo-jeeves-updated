@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 from typing import List, Optional, Type
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.dal.s3 import S3Client, S3Exception
 
 from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS

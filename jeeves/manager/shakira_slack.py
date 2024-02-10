@@ -6,6 +6,7 @@ import json
 import os
 from typing import Optional
 
+import duo_logging.legacy as rollbar  # type: ignore[import]
 from requests import post
 from requests.exceptions import RequestException
 

@@ -1,7 +1,7 @@
 import json
 from typing import Any, Dict, List, Optional
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.dal.s3 import S3Client, S3DownloadException
 
 _EMPLOYEES_JSON_FILE_BUCKET = "internal-static.duolingo.com"

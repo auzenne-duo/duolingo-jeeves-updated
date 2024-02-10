@@ -27,7 +27,7 @@ mkdir ./duplicate-detector-model
 aws s3 sync --quiet "$DUPLICATE_DETECTOR_REMOTE_PATH" ./duplicate-detector-model/
 aws s3 sync --quiet "$PRIORITY_ESTIMATOR_REMOTE_PATH" ./priority_estimator_model/
 echo "DOCKER_FILE: $DOCKER_FILE"
-IMAGE_HASH="$(docker build -q -f "$DOCKER_FILE" . | head -1)"
+IMAGE_HASH="$(docker build --build-arg JENKINS_BUILD_NUMBER=$BUILD_NUMBER -q -f "$DOCKER_FILE" . | head -1)"
 
 # ----- deploy -----
 

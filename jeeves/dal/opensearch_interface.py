@@ -9,8 +9,8 @@ from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
 from typing import Any, Dict, Generator, Iterator, List, Optional, Set, Union, cast
 
+import duo_logging.legacy as rollbar
 import numpy as np
-import rollbar
 from duolingo_base.config import Config
 from duolingo_nlp.annotations import AnnotationKind, Language, Text
 from duolingo_nlp.annotators.text.client.nlp import TextNLPBackendClient

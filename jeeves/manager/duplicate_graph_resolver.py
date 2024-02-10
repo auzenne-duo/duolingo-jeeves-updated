@@ -8,7 +8,7 @@ import asyncio
 from collections import Counter
 from typing import Dict, List, Optional, Tuple
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.util import registry
 
 from jeeves.dal.jira_dal import JiraApiDAL

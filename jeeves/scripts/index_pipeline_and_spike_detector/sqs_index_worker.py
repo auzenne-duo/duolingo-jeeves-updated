@@ -1,7 +1,7 @@
 import json
 import sys
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 

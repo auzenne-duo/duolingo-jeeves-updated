@@ -4,7 +4,7 @@ import sys
 from typing import List
 from urllib import parse
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.config import Config
 from requests import post
 from requests.exceptions import RequestException

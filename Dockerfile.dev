@@ -1,4 +1,8 @@
 FROM node:16.13.1-alpine3.15 AS web-requirements
+# Sentry config
+ARG JENKINS_BUILD_NUMBER
+ENV SENTRY_RELEASE $JENKINS_BUILD_NUMBER
+ENV JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER
 
 WORKDIR /code
 COPY web/package.json .
@@ -6,6 +10,10 @@ COPY web/package-lock.json .
 RUN npm ci
 
 FROM node:16.13.1-alpine3.15 AS web-builder
+# Sentry config
+ARG JENKINS_BUILD_NUMBER
+ENV SENTRY_RELEASE $JENKINS_BUILD_NUMBER
+ENV JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER
 
 WORKDIR /code
 COPY web .
@@ -15,6 +23,10 @@ RUN rm -rf dist && \
   "$(npm bin)/webpack" --config config/webpack.config.js --mode production --env excess_mode="debug"
 
 FROM ubuntu:20.04
+# Sentry config
+ARG JENKINS_BUILD_NUMBER
+ENV SENTRY_RELEASE $JENKINS_BUILD_NUMBER
+ENV JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER
 
 # Opentelemetry Configuration
 ENV OTEL_LOGS_EXPORTER none

@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from timeit import default_timer
 from typing import Dict, Iterator, List, Optional, Tuple, Union
 
-import rollbar
+import duo_logging.legacy as rollbar
 from requests import RequestException, Response, Session, get, post, put
 from requests.auth import HTTPBasicAuth
 

@@ -12,7 +12,7 @@ asgiref==3.7.2
     #   flask
 astroid==2.15.5
     # via pylint
-async-timeout==4.0.2
+async-timeout==4.0.3
     # via
     #   -r requirements.txt
     #   redis
@@ -52,6 +52,7 @@ certifi==2023.5.7
     #   -r requirements.txt
     #   opensearch-py
     #   requests
+    #   sentry-sdk
 cffi==1.15.1
     # via
     #   -r dev-requirements.in
@@ -104,7 +105,11 @@ deprecation==2.1.0
     #   duolingo-nlp
 dill==0.3.6
     # via pylint
-duolingo-base==1.11.1
+duo-logging==0.4.4
+    # via
+    #   -r requirements.txt
+    #   duolingo-base
+duolingo-base==1.11.1.1
     # via -r requirements.txt
 duolingo-nlp==4.17.0
     # via -r requirements.txt
@@ -129,6 +134,7 @@ filelock==3.9.0
 flask[async]==2.3.2
     # via
     #   -r requirements.txt
+    #   duo-logging
     #   duolingo-base
     #   flask
     #   flask-cors
@@ -178,7 +184,7 @@ importlib-metadata==6.8.0
     #   duolingo-nlp
     #   flask
     #   markdown
-importlib-resources==6.0.1
+importlib-resources==6.1.1
     # via
     #   -r requirements.txt
     #   matplotlib
@@ -565,7 +571,7 @@ retrying==1.3.4
 rollbar==0.16.3
     # via
     #   -r requirements.txt
-    #   duolingo-base
+    #   duo-logging
     #   duolingo-nlp
 s3transfer==0.10.0
     # via
@@ -592,6 +598,10 @@ sentencepiece==0.1.97
     # via
     #   -r requirements.txt
     #   sentence-transformers
+sentry-sdk==1.40.2
+    # via
+    #   -r requirements.txt
+    #   duo-logging
 simplejson==3.19.1
     # via
     #   -r requirements.txt
@@ -678,6 +688,7 @@ typing-extensions==4.6.3
     #   -r requirements.txt
     #   asgiref
     #   astroid
+    #   duo-logging
     #   duolingo-base
     #   huggingface-hub
     #   mypy
@@ -703,6 +714,7 @@ urllib3==1.26.16
     #   opensearch-py
     #   requests
     #   responses
+    #   sentry-sdk
 uwsgi==2.0.21
     # via -r requirements.txt
 weasyprint==59.0

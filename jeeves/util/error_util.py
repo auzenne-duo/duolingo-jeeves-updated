@@ -1,7 +1,7 @@
 import sys
 from typing import Optional
 
-import rollbar
+import duo_logging.legacy as rollbar
 from opensearch_dsl.response import Response
 from requests.exceptions import RequestException
 

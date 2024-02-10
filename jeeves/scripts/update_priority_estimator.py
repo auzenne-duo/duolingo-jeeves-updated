@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Optional
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.dal import s3
 
 from jeeves import apply_registry, close_registry

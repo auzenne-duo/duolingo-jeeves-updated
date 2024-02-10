@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, registry as app_registry

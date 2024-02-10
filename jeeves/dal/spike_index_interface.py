@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import date
 from typing import Any, Dict, Iterator, List, Optional
 
-import rollbar
+import duo_logging.legacy as rollbar
 from duolingo_base.config import Config
 from nltk.stem.snowball import SnowballStemmer
 from opensearch_dsl import Mapping, Search

@@ -1,6 +1,6 @@
 import sys
 
-import rollbar
+import duo_logging.legacy as rollbar
 
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.config.config import GPT_EMBEDDING_MODEL
