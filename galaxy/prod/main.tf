@@ -239,8 +239,8 @@ module "duolingo-jeeves-worker-cron" {
       value = "/code"
     },
     {
-      name  = "SPIKE_REPORTER_SLACK_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["spike_reporter_slack_api_token"]
+      name  = "BETA_FEEDBACK_SPIKE_REPORTER_SLACK_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["beta_feedback_spike_reporter_slack_api_token"]
     },
     {
       name  = "BUG_SPIKE_REPORTER_SLACK_API_TOKEN"
@@ -249,6 +249,10 @@ module "duolingo-jeeves-worker-cron" {
     {
       name  = "SOCIAL_TRENDS_SPIKE_REPORTER_SLACK_API_TOKEN"
       value = data.aws_kms_secrets.secrets.plaintext["social_trends_spike_reporter_slack_api_token"]
+    },
+    {
+      name  = "SPIKE_REPORTER_SLACK_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["spike_reporter_slack_api_token"]
     }
   ]
   schedule_expression = "cron(0 9 * * ? *)"

@@ -124,6 +124,18 @@ data "aws_kms_secrets" "secrets" {
   }
 
   secret {
+    name    = "beta_feedback_spike_reporter_slack_api_token"
+    payload = "AQICAHi8VJKHFYAxFeUp4dS+8Aw/C0l5T9o3fMCTutWJlPq2MgHFQkD+4uwGBvsNvkkD89KeAAAAlzCBlAYJKoZIhvcNAQcGoIGGMIGDAgEAMH4GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMWXMMLb/TUo2W80fWAgEQgFEvABT35w7X5xB7JCAXvtG6D1V/31fTZ1VyvjDNasIY6Js+Crx4BP7RmDH7HUFnke1QqCSTTz2LI3VUS0gQb6q970UxPil3jBIqN7nSgJ9wSX0="
+
+    context = {
+      product     = var.product
+      service     = var.service
+      subservice  = "worker-cron"
+      environment = var.environment
+    }
+  }
+
+  secret {
     name    = "jira_api_token_general"
     payload = "AQICAHi8VJKHFYAxFeUp4dS+8Aw/C0l5T9o3fMCTutWJlPq2MgFkrNor5k3GY9kkgWSedg/sAAAAdjB0BgkqhkiG9w0BBwagZzBlAgEAMGAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMGa0G3EGOkq+KDGvXAgEQgDPBBIqmILw6848rsaHaXezU7rngkK/goYERsxmBcMoRMQfJeK72YA9EFDNwsRJSaBerJ2w="
 

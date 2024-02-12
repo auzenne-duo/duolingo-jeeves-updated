@@ -19,3 +19,8 @@ class SlackBot(namedtuple("SlackBot", "slack_name api_token spike_type_insert"),
         os.environ.get("SOCIAL_TRENDS_SPIKE_REPORTER_SLACK_API_TOKEN"),
         "related to social media trends ",
     )
+    BETA_FEEDBACK_SPIKE_REPORTER = (
+        "beta_feedback_spike_reporter",
+        os.environ.get("BETA_FEEDBACK_SPIKE_REPORTER_SLACK_API_TOKEN"),
+        "",  # Message insert not needed for beta feedback.
+    )

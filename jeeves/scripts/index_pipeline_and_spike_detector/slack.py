@@ -34,11 +34,16 @@ _SPIKE_CATEGORY_TO_SLACK_CHANNELS = {
 
 # Keeps track of which bots posts to which channel
 _SLACK_CHANNEL_TO_SLACK_BOT = {
-    SlackChannel.JEEVES: [SlackBot.BUG_SPIKE_REPORTER, SlackBot.SOCIAL_TRENDS_SPIKE_REPORTER],
-    SlackChannel.POST_TEST_RESULTS: [
-        SlackBot.SPIKE_REPORTER,
+    SlackChannel.JEEVES: [
+        SlackBot.BETA_FEEDBACK_SPIKE_REPORTER,
         SlackBot.BUG_SPIKE_REPORTER,
         SlackBot.SOCIAL_TRENDS_SPIKE_REPORTER,
+    ],
+    SlackChannel.POST_TEST_RESULTS: [
+        SlackBot.BETA_FEEDBACK_SPIKE_REPORTER,
+        SlackBot.BUG_SPIKE_REPORTER,
+        SlackBot.SOCIAL_TRENDS_SPIKE_REPORTER,
+        SlackBot.SPIKE_REPORTER,
     ],
 }
 
@@ -108,10 +113,10 @@ def spike_to_fields_array(spike: SpikeWord):
     ]
 
 
-def spike_sorter(spikes: List[SpikeWord]):
+def spike_sorter(spikes: List[SpikeWord], curr_spike_category: SpikeCategory):
     """
-    For each bot prepare a set of spikes to be posted depending on whether
-    the spikes are a social media trend versus a bug.
+    For each bot prepare a set of spikes to be posted depending on the spike category and
+    whether the spikes are a social media trend versus a bug.
     We are unfortunately limited to four spikes because the Slack API
     only allows 10 cells for section block fields, which means we can have
     at most five rows with two columns, and we need one of those rows for the
@@ -123,6 +128,7 @@ def spike_sorter(spikes: List[SpikeWord]):
         SlackBot.SPIKE_REPORTER.slack_name: spikes,
         SlackBot.BUG_SPIKE_REPORTER.slack_name: [],
         SlackBot.SOCIAL_TRENDS_SPIKE_REPORTER.slack_name: [],
+        SlackBot.BETA_FEEDBACK_SPIKE_REPORTER.slack_name: spikes,
     }
 
     for spike in spikes:
@@ -132,6 +138,14 @@ def spike_sorter(spikes: List[SpikeWord]):
             spike_buckets[SlackBot.SOCIAL_TRENDS_SPIKE_REPORTER.slack_name].append(spike)
     for bot in spike_buckets:
         spike_buckets[bot] = sorted(spike_buckets[bot], key=lambda x: x.score, reverse=True)[:4]
+
+    # Only beta feedback bot posts beta feedback spikes
+    if curr_spike_category == SpikeCategory.EXTERNAL_STR_SPIKES:
+        spike_buckets[SlackBot.BUG_SPIKE_REPORTER.slack_name] = []
+        spike_buckets[SlackBot.SOCIAL_TRENDS_SPIKE_REPORTER.slack_name] = []
+    elif curr_spike_category == SpikeCategory.EXTERNAL_NON_STR_SPIKES:
+        spike_buckets[SlackBot.BETA_FEEDBACK_SPIKE_REPORTER.slack_name] = []
+
     return spike_buckets
 
 
@@ -173,7 +187,9 @@ if __name__ == "__main__":
             if weekday not in _SPIKE_CATEGORY_TO_REPORT_DAYS.get(spike_category, range(7)):
                 continue
             top_spikes = get_top_spikes_yesterday(spike_category)
-            spikes_for_bots = spike_sorter(top_spikes)  # Prepare spikes for each bot
+            spikes_for_bots = spike_sorter(
+                top_spikes, spike_category
+            )  # Prepare spikes for each bot
             if len(top_spikes) == 0:
                 continue
 
@@ -181,7 +197,8 @@ if __name__ == "__main__":
                 [_DEV_SLACK_CHANNEL]
                 if _config.get_nested(["environment"]) == "dev"
                 else slack_channels
-            )
+            )  # Only post to the dev channel in the dev environment
+
             for slack_channel in slack_channels:
                 for bot in _SLACK_CHANNEL_TO_SLACK_BOT[slack_channel]:
                     headers = {
