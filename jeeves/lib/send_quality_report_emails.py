@@ -105,11 +105,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         ],
         _RECEIVE_ALL: [],
         "Path": [
-            ("ang@duolingo.com", 8676371),
-            ("hoshi@duolingo.com", 35950076),
-            ("leen@duolingo.com", 243742888),
-            ("rsalvador@duolingo.com", 591913431),
-            ("will.haines@duolingo.com", 13834416),
             ("path-team@duolingo.com", None),
         ],
         "Personalized Sessions": [
@@ -122,9 +117,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("jasong@duolingo.com", 430902565),
             ("michael@duolingo.com", 15587805),
             ("cailyn@duolingo.com", 507747809),
-        ],
-        "Mobile Language Test": [
-            ("team-mobile-language-test@duolingo.com", None),
         ],
     },
     "Learning Scaling": {
