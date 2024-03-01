@@ -10,6 +10,7 @@ from opensearch_dsl import Mapping, Search
 from opensearchpy import OpenSearch
 from opensearchpy.helpers import bulk
 
+from jeeves.model.custom_types import JSON
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
 from jeeves.util.date_util import date_to_str, str_to_date
@@ -388,6 +389,28 @@ class SpikeIndexDAL:
         else:
             for res in s.scan():
                 yield SpikeWord.from_dict(res)
+
+    def execute_arbitrary_query(self, jsn: Dict[str, any]) -> List[SpikeWord]:
+        """
+        Given JSON representing an arbitrary OpenSearch query, execute that query and return the results.
+
+        Parameters:
+            jsn: A dictionary representing an arbitrary OpenSearch query
+
+        Returns:
+            A list of spike words that match the query criteria
+        """
+        s = Search(using=self._es, index=self._spikename)
+        s = s.update_from_dict(jsn)
+        response = s.execute()
+        if not response.success():
+            raise Exception(
+                f"""Attempt to search for spikes with query {jsn} failed. Here's what the call to
+            execute() returned: {response.to_dict()}"""
+            )
+        else:
+            spike_results = [SpikeWord.from_dict(hit) for hit in response]
+            return spike_results
 
     def get_spike_by_id(self, spike_id: str) -> SpikeWord:
         s = Search(using=self._es, index=self._spikename).filter("term", _id=spike_id)
