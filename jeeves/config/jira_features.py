@@ -156,9 +156,6 @@ JIRA_FEATURES = {
                 "Did not receive XP",
             ],
         },
-        "Advanced Monolingual English Experience": {
-            "AMEE": ["monolingual"],
-        },
     },
     "Monetization": {
         "Subscription Packaging": {
@@ -329,7 +326,6 @@ JIRA_FEATURES_REGISTRY_KEY = "jira_features"
 JIRA_FEATURES_DESCRIPTIONS = {
     "Achievements": "Claiming and viewing achievements in the profile page",
     "Ads / rewarded ads": "Problems with ads layout, audio, completion, etc.",
-    "AMEE": "Issues with Advanced Monolingual English Experience exercises",
     "App startup": "Crashes or slowness on app startup",
     "Cantonese": "Issues specific to the Cantonese course",
     "Challenge layout issues": "Problems with format of elements in an exercise, such as overlapping tokens, text in incorrect location, missing prompts, etc.",
