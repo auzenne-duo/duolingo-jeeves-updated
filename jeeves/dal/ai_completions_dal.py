@@ -11,6 +11,7 @@ import requests
 from duolingo_base.dal import auth_api
 from duolingo_base.dal.duoapi import DuolingoApiClient
 from duolingo_base.util import registry
+from retrying import retry  # type: ignore[import]
 
 from jeeves.util.error_util import print_request_exception
 
@@ -40,6 +41,11 @@ _CHAT_COMPLETIONS_MODEL = "gpt-dv-duo"
 _CHAT_COMPLETIONS_JSON_MODEL_PREVIEW = "gpt-4-1106-preview"
 _BATCH_CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions-batch"
 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE = "/1/ai-completions/chat-completion-statuses"
+
+
+def retry_if_request_exception(exception: Exception) -> bool:
+    """Return True and retry the request iff we received a RequestException"""
+    return isinstance(exception, requests.exceptions.RequestException)
 
 
 @registry.bind(api_client=registry.reference(AICompletionsClient))
@@ -87,12 +93,13 @@ class AICompletionsDAL:
                 raise e
             return None
 
+    @retry(retry_on_exception=retry_if_request_exception, stop_max_attempt_number=3)  # type: ignore[misc]
     def request_embedding(self, text: str, raise_exceptions: bool = False) -> Optional[List[float]]:
         try:
             response = self.client.put(
                 _EMBEDDING_REQUEST_ROUTE,
                 json={"model": _EMBEDDING_MODEL, "input": text},
-                timeout=30,
+                timeout=5,
             )
             response.raise_for_status()
             return response.json()["embeddingVector"]
