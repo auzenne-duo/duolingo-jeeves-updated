@@ -243,15 +243,21 @@ class ZendeskDocument(JeevesDocument):
             return False
 
         # Ignore tickets sent BY the following emails
-        _SENDERS_TO_IGNORE = {"no-reply@duolingo.com", "community@duolingo.com"}
+        _SENDERS_TO_IGNORE = {
+            "business@duolingo.com",
+            "community@duolingo.com",
+            "no-reply@duolingo.com",
+        }
         # Also ignore tickets sent TO the following emails
         _RECEIVERS_TO_IGNORE = {
-            "luis@duolingotest.zendesk.com",
-            "luis@duolingo.com",
+            "business@duolingo.com",
             "institution@testcenter.zendesk.com",
             "institutional@testcenter.zendesk.com",
-            "testcenter-support@duolingo.com",
+            "luis@duolingo.com",
+            "luis@duolingotest.zendesk.com",
             "privacy@duolingotest.zendesk.com",
+            "support@duolingobusiness.zendesk.com",
+            "testcenter-support@duolingo.com",
         }
         # Also also ignore tickets with one or more of the following tags
         _TAGS_TO_IGNORE = {

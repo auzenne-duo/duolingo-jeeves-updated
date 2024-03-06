@@ -10,6 +10,7 @@ jobs:
     command: bash -ex jenkins-build.sh prod
     slack:
       commit_info: AUTHORS_AND_TITLES
+      notify_aborted: true
       notify_back_to_normal: true
       notify_failure: true
       notify_repeated_failure: true
