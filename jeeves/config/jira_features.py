@@ -74,6 +74,7 @@ JIRA_FEATURES = {
             "Practice reminders / notifications": ["reminder", "notification"],
             "Lesson complete session end": ["complete"],
             "Widget": [],
+            "XP Happy Hour": [],
         },
         "Retention": {
             "Achievements": ["achievement"],
