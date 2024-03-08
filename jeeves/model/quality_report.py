@@ -297,7 +297,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             assert not self.key_to_issue[issue_key].quality_score_params.is_done
             added_open_score_delta += self.key_to_issue[issue_key].quality_score_params.score
         new_total += added_open_score_delta
-        if new_total:
+        if new_total and change_due_to_resolved_issues != "N/A":
             change_due_to_included_issues = 100 * new_closed_total / new_total - (
                 previous_overall_score + change_due_to_resolved_issues
             )
@@ -318,7 +318,11 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
                 ].quality_score_params.score
         new_total += removed_closed_score_delta + removed_open_score_delta
         new_closed_total += removed_closed_score_delta
-        if new_total:
+        if (
+            new_total
+            and change_due_to_resolved_issues != "N/A"
+            and change_due_to_included_issues != "N/A"
+        ):
             change_due_to_removed_issues = 100 * new_closed_total / new_total - (
                 previous_overall_score
                 + change_due_to_resolved_issues
