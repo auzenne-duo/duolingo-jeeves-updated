@@ -358,7 +358,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Other": "Please try to use a specific feature if possible.",
     "Path": "Problems with the main path page, such as tiles not completing properly. Callouts on path fall under this feature.",
     "Path Sections": "Bugs with the section header, section cards, etc.",
-    "Placement Test": "Issues with placement test after onboarding or 'Jump Here' test in path",
+    "Placement Test": "Issues with placement test in onboarding or when adding a new course",
     "Practice Hub": "Practice tab including speaking, listening, story, word, and personalized weekly practice",
     "Progress Bar": "Issues with the progress bar at the top of a lesson",
     "Registration": "Bugs with profile creation flow after onboarding",
