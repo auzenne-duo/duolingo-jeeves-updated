@@ -295,7 +295,12 @@ class ZendeskDocument(JeevesDocument):
 
         tag_data = document.tags
         if tag_data and set(tag_data) & _TAGS_TO_IGNORE:
-            return False
+            # TRI-4490: Only exclude by tag if it's NOT from a beta user (all beta user reports should be indexed)
+            if document.shake_to_report_category not in [
+                ShakeToReportCategory.EXTERNAL,
+                ShakeToReportCategory.INTERNAL,
+            ]:
+                return False
 
         # Skip tickets that have an empty string ('') description
         # after cleanup, which are those that consist of just
