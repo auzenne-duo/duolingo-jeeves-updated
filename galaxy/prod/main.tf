@@ -24,23 +24,6 @@ terraform {
   required_version = "0.12.31"
 }
 
-# Get the zone information for the duolingo.com domain
-data "aws_route53_zone" "duolingo" {
-  name = "duolingo.com."
-}
-
-resource "aws_route53_record" "duolingo-jeeves-prod" {
-  zone_id = data.aws_route53_zone.duolingo.zone_id
-  name    = "jeeves.${data.aws_route53_zone.duolingo.name}"
-  type    = "A"
-
-  alias {
-    name                   = module.duolingo-jeeves.dns_name
-    zone_id                = module.duolingo-jeeves.zone_id
-    evaluate_target_health = false
-  }
-}
-
 module "duolingo-jeeves" {
   source                               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_web_service"
   version                              = "~> 1.0"
@@ -57,6 +40,101 @@ module "duolingo-jeeves" {
   ecs_cluster                          = var.ecs_cluster # Name of the ECS cluster to run on
   container_port                       = 5000
   internal                             = "false" # Create a service accessible outside the office network
+  enable_http_listener                 = "true"
+  http_listener_type                   = "redirect"
+  release_version                      = var.release_version
+  health_check_grace_period_seconds    = 120
+  latency_threshold                    = 1000
+  latency_threshold_evaluation_periods = 10
+
+  secrets = [
+    {
+      name  = "DUOLINGO_USERNAME"
+      value = "DUOLINGO_USERNAME/000000"
+    },
+    {
+      name  = "DUOLINGO_PASSWORD"
+      value = "DUOLINGO_PASSWORD/000000"
+    },
+    {
+      name  = "SHAKIRA_SLACK_API_TOKEN"
+      value = "SHAKIRA_SLACK_API_TOKEN/000000"
+    }
+  ]
+
+  environment_vars = [
+    {
+      name  = "JIRA_USERNAME"
+      value = "jira-automation@duolingo.com"
+    },
+    {
+      name  = "JIRA_API_TOKEN"
+      value = data.aws_kms_secrets.secrets.plaintext["jira_api_token_general"]
+    },
+    {
+      name  = "SHAKIRA_JIRA_USERNAME_IOS"
+      value = "ios-shake-feedback@duolingo.com"
+    },
+    {
+      name  = "SHAKIRA_JIRA_API_TOKEN_IOS"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_ios"]
+    },
+    {
+      name  = "SHAKIRA_JIRA_USERNAME_ANDROID"
+      value = "android-shake-feedback@duolingo.com"
+    },
+    {
+      name  = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_android"]
+    },
+    {
+      name  = "SHAKIRA_JIRA_USERNAME_WEB"
+      value = "jira-automation@duolingo.com"
+    },
+    {
+      name  = "SHAKIRA_JIRA_API_TOKEN_WEB"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_web"]
+    },
+    {
+      name  = "SHAKIRA_JIRA_USERNAME_LITERACY"
+      value = "jira-automation@duolingo.com"
+    },
+    {
+      name  = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
+      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_literacy"]
+    },
+    {
+      name  = "SENTRY_DSN"
+      value = data.sentry_key.sentry_dsn.dsn_public
+    },
+    {
+      name  = "SENTRY_ENVIRONMENT"
+      value = var.environment
+    }
+  ]
+
+  warning_alarm_actions   = [aws_sns_topic.warning.arn]
+  emergency_alarm_actions = [aws_sns_topic.warning.arn]
+}
+
+# Duplicate the module for the internal, behind-edge-gateway version of the service.
+# See: https://docs.google.com/document/d/1tU7y9wWsBFwdnWFkz0bEosU7U_8lxs4N7h4NJ80CqfU/edit
+module "duolingo-jeeves-internal" {
+  source                               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_web_service"
+  version                              = "~> 1.0"
+  environment                          = var.environment
+  service                              = var.service
+  subservice                           = "internal"
+  health_check_path                    = "/health"
+  min_count                            = 2    # Minimum number of tasks to run in autoscaling group
+  max_count                            = 5    # Maximum number of tasks to run in autoscaling group
+  scale_out_cpu                        = 80   # Scale out at this cpu usage (percent)
+  memory                               = 8192 # Maximum memory (default: 128MB)
+  product                              = var.product
+  owner                                = var.owner       # The name of the owner for this service
+  ecs_cluster                          = var.ecs_cluster # Name of the ECS cluster to run on
+  container_port                       = 5000
+  internal                             = "true" #Create internal service. This handles traffic behind the edge gateway
   enable_http_listener                 = "true"
   http_listener_type                   = "redirect"
   release_version                      = var.release_version

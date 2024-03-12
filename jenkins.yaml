@@ -102,6 +102,7 @@ jobs:
       REGISTRY="940168671796.dkr.ecr.us-east-1.amazonaws.com"
 
       MODULE=duolingo-jeeves
+      MODULE_INTERNAL=duolingo-jeeves-internal
       MODULE_S3_WORKER=duolingo-jeeves-s3-worker
       MODULE_WORKER_CRON=duolingo-jeeves-worker-cron
 
@@ -113,6 +114,7 @@ jobs:
 
       # ----- deploy -----
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
+      echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_INTERNAL" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
   - name: duolingo-jeeves-monitor-and-alarm

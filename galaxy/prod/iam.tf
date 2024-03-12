@@ -77,6 +77,13 @@ resource "aws_iam_role_policy" "s3-rw-duolingo-jeeves" {
   policy = data.aws_iam_policy_document.s3-rw-duolingo-jeeves.json
 }
 
+resource "aws_iam_role_policy" "s3-rw-duolingo-jeeves-internal" {
+  name = "s3-rw-duolingo-jeeves-internal"
+  role = module.duolingo-jeeves-internal.iam_role
+
+  policy = data.aws_iam_policy_document.s3-rw-duolingo-jeeves.json
+}
+
 resource "aws_iam_role_policy" "s3-rw-duolingo-jeeves-s3-worker" {
   name = "s3-rw-duolingo-jeeves"
   role = module.duolingo-jeeves-s3-worker.iam_role
