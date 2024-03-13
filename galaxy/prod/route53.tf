@@ -9,8 +9,8 @@ resource "aws_route53_record" "duolingo-jeeves-prod" {
   type    = "A"
 
   alias {
-    name                   = module.duolingo-jeeves.dns_name
-    zone_id                = module.duolingo-jeeves.zone_id
+    name                   = "infra-edge-gateway-prod.duolingo.com"
+    zone_id                = data.aws_route53_zone.duolingo.zone_id
     evaluate_target_health = false
   }
 }

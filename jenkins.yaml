@@ -101,20 +101,18 @@ jobs:
       TERRAFORM_PATH="galaxy/prod"
       REGISTRY="940168671796.dkr.ecr.us-east-1.amazonaws.com"
 
-      MODULE=duolingo-jeeves
-      MODULE_INTERNAL=duolingo-jeeves-internal
+      MODULE=duolingo-jeeves-internal
       MODULE_S3_WORKER=duolingo-jeeves-s3-worker
       MODULE_WORKER_CRON=duolingo-jeeves-worker-cron
 
 
       # ----- get previously successful image -----
-      ECR_REPO="$MODULE-api-prod"
+      ECR_REPO="$MODULE-prod"
       docker pull "$REGISTRY/$ECR_REPO:$LAST_SUCCESS"
       IMAGE_HASH=$(docker images --quiet --no-trunc --filter=reference="*/$ECR_REPO:$LAST_SUCCESS")
 
       # ----- deploy -----
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
-      echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_INTERNAL" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
   - name: duolingo-jeeves-monitor-and-alarm

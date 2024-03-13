@@ -19,6 +19,7 @@ resource "pagerduty_service" "service" {
   auto_resolve_timeout = 14400
 
   acknowledgement_timeout = 1800
+  alert_creation          = "create_alerts_and_incidents"
 
   incident_urgency_rule {
     type    = "constant"
@@ -32,6 +33,7 @@ resource "pagerduty_service" "service-low" {
   auto_resolve_timeout = 14400
 
   acknowledgement_timeout = 1800
+  alert_creation          = "create_alerts_and_incidents"
 
   incident_urgency_rule {
     type    = "constant"
