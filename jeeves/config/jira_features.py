@@ -91,6 +91,9 @@ JIRA_FEATURES = {
             "Quests Tab": [],
             "Power Chests": ["timed chest"],
         },
+        "Growth Score": {
+            "Score": ["duolingo score", "scores"],
+        },
     },
     "Learning R&D": {
         "Learning R&D Infrastructure": {
