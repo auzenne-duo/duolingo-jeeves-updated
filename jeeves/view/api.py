@@ -545,12 +545,15 @@ def get_features_by_team_and_area():
         abort(make_response("Something went wrong retrieving feature options from Jira", 500))
 
 
-@blueprint_api.route("/api/2/shakira/suggested_features")
+@blueprint_api.route("/api/2/shakira/suggested_features", methods=["GET", "POST"])
 def get_suggested_features():
     """
     Endpoint for detecting suggested Jira features for a bug report.
     Essentially just a wrapper around a library function so that we have an
     endpoint for that function.
+
+    For now, supports both GET and POST requests.
+    TODO (TRI-4500): Deprecate GET once all traffic is moved to POST.
 
     Parameters:
         project (str): The Jira project to get features from.
@@ -562,12 +565,27 @@ def get_suggested_features():
         suggested_features (str[]): The features suggested by the JiraFeatureManager.
         other_features (str[]): Other Jira features that the user may choose from.
     """
-    project = request.args.get("project")
-    summary = request.args.get("summary")
+    description = None
+    generated_description = None
+    project = None
+    summary = None
+
+    if request.method == "GET":
+        description = request.args.get("description")
+        generated_description = request.args.get("generated_description")
+        project = request.args.get("project")
+        summary = request.args.get("summary")
+    elif request.method == "POST":
+        body = request.get_json()
+        description = body.get("description")
+        generated_description = body.get("generated_description")
+        project = body.get("project")
+        summary = body.get("summary")
+    else:
+        abort(make_response("Invalid request method", 400))
+
     if not summary:
         abort(make_response("Please provide `summary` parameter.", 400))
-    description = request.args.get("description")
-    generated_description = request.args.get("generated_description")
 
     jira_feature_manager = app_registry(JiraFeatureManager)
 
