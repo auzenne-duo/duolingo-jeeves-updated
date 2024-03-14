@@ -12,8 +12,10 @@ class SUPPORTED_LANGUAGES(Enum):
     es = auto()  # Spanish
     de = auto()  # German
     fr = auto()  # French
+    hi = auto()  # Hindi
     it = auto()  # Italian
     ja = auto()  # Japanese
+    pt = auto()  # Portuguese
     ru = auto()  # Russian
     zh = auto()  # Chinese
 

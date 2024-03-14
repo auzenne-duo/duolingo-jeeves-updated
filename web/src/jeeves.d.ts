@@ -151,8 +151,10 @@ declare namespace JSONAPI {
     | "fr"
     | "en"
     | "es"
+    | "hi"
     | "it"
     | "ja"
+    | "pt"
     | "ru"
     | "xx"
     | "zh";
