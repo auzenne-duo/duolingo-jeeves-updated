@@ -44,11 +44,11 @@ def auth_before_request():
     elif request.path in {"/health"} | {f"/api/1/{lang.name}/init" for lang in SUPPORTED_LANGUAGES}:
         return None
     elif request.path == "/api/1/shake_to_report_tokens":
-        return requires_auth(permission="unlock-skill-tree")(lambda: None)()
+        return requires_auth(permission="unlock-skill-tree", prompt_login=False)(lambda: None)()
     elif request.path.startswith("/api/1/shakira/"):
-        return requires_auth(permission="shake-to-report")(lambda: None)()
+        return requires_auth(permission="shake-to-report", prompt_login=False)(lambda: None)()
     else:
-        return requires_auth(permission="access-jeeves")(lambda: None)()
+        return requires_auth(permission="access-jeeves", prompt_login=False)(lambda: None)()
 
 
 application.before_request(auth_before_request)

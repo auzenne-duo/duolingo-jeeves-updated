@@ -218,7 +218,7 @@ def get_spike_data(lang):
 
 
 @blueprint_api.route("/api/1/set_spike_confirm", methods=["PATCH"])
-@requires_auth(permission="access-jeeves")
+@requires_auth(permission="access-jeeves", prompt_login=False)
 def set_spike_confirm():
     spike_id = request.json.get("spike_id")
     desired_state = request.json.get("desired_state")
@@ -228,7 +228,7 @@ def set_spike_confirm():
 
 
 @blueprint_api.route("/api/1/set_spike_fixed", methods=["PATCH"])
-@requires_auth(permission="access-jeeves")
+@requires_auth(permission="access-jeeves", prompt_login=False)
 def set_spike_fixed():
     try:
         spike_id = request.json["spike_id"]
@@ -241,7 +241,7 @@ def set_spike_fixed():
 
 
 @blueprint_api.route("/api/1/set_spike_status", methods=["PATCH"])
-@requires_auth(permission="access-jeeves")
+@requires_auth(permission="access-jeeves", prompt_login=False)
 def set_spike_status():
     try:
         spike_id = request.json.get("spike_id")
@@ -254,7 +254,7 @@ def set_spike_status():
 
 
 @blueprint_api.route("/api/1/send_beta_emails", methods=["POST"])
-@requires_auth(permission="access-jeeves")
+@requires_auth(permission="access-jeeves", prompt_login=False)
 def send_beta_emails():
     try:
         spike_id = request.json["spike_id"]
