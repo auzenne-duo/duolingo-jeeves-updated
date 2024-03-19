@@ -157,7 +157,11 @@ export const getUntruncatedTitle = (t: JSONAPI.Ticket) =>
   !t.header_text ||
   // Header text for tickets reported via the Zendesk mobile SDK
   // is often truncated after just a few characters.
-  (t.data_source === "Zendesk" && t.via?.channel === "mobile_sdk")
+  (t.data_source === "Zendesk" && t.via?.channel === "mobile_sdk") ||
+  // Header text for tickets reported via Zendesk email often don't have descriptive headers
+  (t.data_source === "Zendesk" &&
+    t.via?.channel === "email" &&
+    t.header_text.split(" ").length < 3)
     ? t.body_text?.trim().split(/\n|\.\s/)[0]
     : t.header_text;
 
