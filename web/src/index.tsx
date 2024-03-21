@@ -15,7 +15,7 @@ import {
 
 import App from "components/App";
 import "images/favicon.ico";
-import "styles/index.scss";
+import "styles/index.module.scss";
 
 const rollbarConfig = {
   accessToken: "58450d5ce0c24f97aa30aca8003ab95d",

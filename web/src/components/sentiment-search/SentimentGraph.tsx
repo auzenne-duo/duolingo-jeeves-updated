@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import ResizableGraph, { usePlotState } from "components/ResizableGraph";
-import styles from "components/sentiment-search/SentimentGraph.scss";
+import styles from "components/sentiment-search/SentimentGraph.module.scss";
 
 const BUCKET_SIZE = 0.2;
 

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { LegacyButton } from "web-ui/legacy";
 
-import styles from "components/Hamburger.scss";
+import styles from "components/Hamburger.module.scss";
 
 interface Props {
   isOpen: boolean;

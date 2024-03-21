@@ -2,7 +2,7 @@ import * as React from "react";
 
 import Tickets from "components/Tickets";
 import SearchExample from "components/time-series-analyzer/SearchExample";
-import styles from "components/time-series-analyzer/TimeSeriesAnalyzer.scss";
+import styles from "components/time-series-analyzer/TimeSeriesAnalyzer.module.scss";
 import useDocumentTitle from "components/useDocumentTitle";
 import useSearchParams from "components/useSearchParams";
 

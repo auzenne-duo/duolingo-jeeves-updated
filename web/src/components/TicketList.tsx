@@ -1,7 +1,7 @@
 import * as React from "react";
 import { alignNearest } from "web-ui/util/scroll";
 
-import styles from "components/TicketList.scss";
+import styles from "components/TicketList.module.scss";
 import TicketListItem from "components/TicketListItem";
 import type { RenderableTag } from "components/TicketListItem";
 

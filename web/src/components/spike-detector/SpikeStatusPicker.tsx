@@ -4,7 +4,7 @@ import { Select } from "web-ui";
 
 import { setSpikeStatus } from "api/jeeves";
 import { getUser } from "api/user";
-import styles from "components/spike-detector/SpikeStatusPicker.scss";
+import styles from "components/spike-detector/SpikeStatusPicker.module.scss";
 
 const STATUSES: Record<JSONAPI.SpikeStatus, string> = {
   CONFIRMED: "Confirmed",

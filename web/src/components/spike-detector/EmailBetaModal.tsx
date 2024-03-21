@@ -6,7 +6,7 @@ import { LegacyButton } from "web-ui/legacy";
 
 import { sendBetaEmails } from "api/jeeves";
 import IconButton from "components/IconButton";
-import styles from "components/spike-detector/EmailBetaModal.scss";
+import styles from "components/spike-detector/EmailBetaModal.module.scss";
 import imageClose from "images/x.svg";
 
 interface Props {

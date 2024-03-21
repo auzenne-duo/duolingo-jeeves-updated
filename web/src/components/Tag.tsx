@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import cn from "classnames";
-import styles from "components/Tag.scss";
+import styles from "components/Tag.module.scss";
 import imageLink from "images/link.svg";
 
 interface Props {

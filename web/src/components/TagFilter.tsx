@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { getFilterLink } from "../util";
 import cn from "classnames";
 import Tag from "components/Tag";
-import styles from "components/TagFilter.scss";
+import styles from "components/TagFilter.module.scss";
 
 export interface Props extends React.ComponentProps<typeof Tag> {
   field: string;

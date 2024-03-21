@@ -10,7 +10,7 @@ import { Route, Switch } from "react-router-dom";
 import { ThemeProvider } from "web-ui";
 
 import { getLoggedIn } from "api/user";
-import styles from "components/App.scss";
+import styles from "components/App.module.scss";
 import Lightbox from "components/Lightbox";
 import MenuDrawer from "components/MenuDrawer";
 import Topbar from "components/Topbar";

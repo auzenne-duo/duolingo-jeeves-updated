@@ -7,7 +7,7 @@ import Table from "components/Table";
 import EmailBetaButton from "components/spike-detector/EmailBetaButton";
 import ExperimentsList from "components/spike-detector/ExperimentsList";
 import SpikeStatusPicker from "components/spike-detector/SpikeStatusPicker";
-import styles from "components/spike-detector/SpikeTable.scss";
+import styles from "components/spike-detector/SpikeTable.module.scss";
 import useIsMobile from "components/useIsMobile";
 
 interface Props {

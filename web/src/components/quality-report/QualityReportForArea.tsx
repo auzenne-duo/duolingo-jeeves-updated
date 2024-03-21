@@ -12,7 +12,7 @@ import Tag from "components/Tag";
 import Ticket from "components/Ticket";
 import TicketList from "components/TicketList";
 import QualityGraph from "components/quality-report/QualityGraph";
-import styles from "components/quality-report/QualityReportForArea.scss";
+import styles from "components/quality-report/QualityReportForArea.module.scss";
 import useDocumentTitle from "components/useDocumentTitle";
 import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";

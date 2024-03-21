@@ -4,7 +4,7 @@ import { Checkbox } from "web-ui/juicy";
 
 import cn from "classnames";
 import ResizableGraph, { usePlotState } from "components/ResizableGraph";
-import styles from "components/quality-report/QualityGraph.scss";
+import styles from "components/quality-report/QualityGraph.module.scss";
 
 const BLACK_TEXT = "#3c3c3c";
 const JUICY_BEETLE = "#ce82ff";

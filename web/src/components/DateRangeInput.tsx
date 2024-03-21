@@ -3,7 +3,7 @@ import * as React from "react";
 import { DateInput } from "web-ui";
 
 import cn from "classnames";
-import styles from "components/DateRangeInput.scss";
+import styles from "components/DateRangeInput.module.scss";
 
 type DateInputProps = React.ComponentProps<typeof DateInput>;
 

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import styles from "components/spike-detector/ExperimentsList.scss";
+import styles from "components/spike-detector/ExperimentsList.module.scss";
 
 interface Props {
   experimentSpikes: JSONAPI.ExperimentSpike[];

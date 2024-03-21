@@ -2,7 +2,7 @@ import * as React from "react";
 import { Toggle } from "web-ui/juicy";
 
 import cn from "classnames";
-import styles from "components/LabelledToggle.scss";
+import styles from "components/LabelledToggle.module.scss";
 
 export interface Props {
   checked: boolean;

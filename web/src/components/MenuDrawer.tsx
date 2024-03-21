@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useClickOutside } from "web-ui";
 
-import styles from "components/MenuDrawer.scss";
+import styles from "components/MenuDrawer.module.scss";
 import Sidebar from "components/Sidebar";
 
 const WIDTH_APP_MAX = 1140;

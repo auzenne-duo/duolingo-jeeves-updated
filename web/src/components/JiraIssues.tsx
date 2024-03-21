@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import styles from "components/JiraIssues.scss";
+import styles from "components/JiraIssues.module.scss";
 import JiraStatus from "components/JiraStatus";
 
 interface Props {

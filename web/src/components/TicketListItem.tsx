@@ -16,7 +16,7 @@ import JiraStatus from "components/JiraStatus";
 import PlatformIcon from "components/PlatformIcon";
 import Tag from "components/Tag";
 import TagFilterOrTag from "components/TagFilterOrTag";
-import styles from "components/TicketListItem.scss";
+import styles from "components/TicketListItem.module.scss";
 import useIsTablet from "components/useIsTablet";
 
 export type RenderableTag =

@@ -14,7 +14,7 @@ import Hamburger from "components/Hamburger";
 import LabelledToggle from "components/LabelledToggle";
 import type { SearchInputChangeEvent } from "components/SearchInput";
 import SearchInput from "components/SearchInput";
-import styles from "components/Topbar.scss";
+import styles from "components/Topbar.module.scss";
 import useDateRangeFilter from "components/useDateRangeFilter";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import usePage, { Page } from "components/usePage";

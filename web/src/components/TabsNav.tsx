@@ -2,7 +2,7 @@ import * as React from "react";
 import { NavLink } from "react-router-dom";
 
 import cn from "classnames";
-import styles from "components/TabsNav.scss";
+import styles from "components/TabsNav.module.scss";
 
 interface Tab {
   href: string;

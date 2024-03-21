@@ -1,7 +1,7 @@
 import React from "react";
 
 import cn from "classnames";
-import styles from "components/DisclosureTriangle.scss";
+import styles from "components/DisclosureTriangle.module.scss";
 
 type Direction = "down" | "left" | "right" | "up";
 

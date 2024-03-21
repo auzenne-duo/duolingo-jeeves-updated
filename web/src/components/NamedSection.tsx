@@ -2,7 +2,7 @@ import * as React from "react";
 import { LegacyButton } from "web-ui/legacy";
 
 import cn from "classnames";
-import styles from "components/NamedSection.scss";
+import styles from "components/NamedSection.module.scss";
 import imageCaret from "images/caret.svg";
 
 interface Props {

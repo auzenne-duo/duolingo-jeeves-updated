@@ -1,7 +1,7 @@
 import React from "react";
 
 import Table from "components/Table";
-import styles from "components/spike-stats/ConfirmationStatsTable.scss";
+import styles from "components/spike-stats/ConfirmationStatsTable.module.scss";
 
 interface Props {
   spikeStats: JSONAPI.SpikeStats;

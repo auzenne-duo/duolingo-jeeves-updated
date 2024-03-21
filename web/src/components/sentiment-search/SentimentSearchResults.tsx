@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { sentimentSearch } from "api/jeeves";
 import SentimentGraph from "components/sentiment-search/SentimentGraph";
-import styles from "components/sentiment-search/SentimentSearchResults.scss";
+import styles from "components/sentiment-search/SentimentSearchResults.module.scss";
 import SentimentSearchTable from "components/sentiment-search/SentimentSearchTable";
 import useSearchParams from "components/useSearchParams";
 import AppStateContext from "contexts/AppStateContext";

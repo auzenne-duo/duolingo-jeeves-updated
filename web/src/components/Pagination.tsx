@@ -3,7 +3,7 @@ import * as React from "react";
 import { Button } from "web-ui/juicy";
 
 import LinkButton from "components/LinkButton";
-import styles from "components/Pagination.scss";
+import styles from "components/Pagination.module.scss";
 
 interface Props {
   nextLink?: LocationDescriptor | (() => void);

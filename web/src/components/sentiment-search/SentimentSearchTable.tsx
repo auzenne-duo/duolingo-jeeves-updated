@@ -3,7 +3,7 @@ import * as React from "react";
 import { getPaginationString } from "../../util";
 import Pagination from "components/Pagination";
 import Table from "components/Table";
-import styles from "components/sentiment-search/SentimentSearchTable.scss";
+import styles from "components/sentiment-search/SentimentSearchTable.module.scss";
 
 const RESULTS_PER_PAGE = 30;
 

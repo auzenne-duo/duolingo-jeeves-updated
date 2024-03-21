@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import cn from "classnames";
-import styles from "components/JiraStatus.scss";
+import styles from "components/JiraStatus.module.scss";
 
 const getColor = (status: string): "blue" | "gray" | "green" => {
   switch (status.toLowerCase()) {

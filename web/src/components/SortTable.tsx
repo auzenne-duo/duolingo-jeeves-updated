@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import React from "react";
 
 import DisclosureTriangle from "components/DisclosureTriangle";
-import styles from "components/SortTable.scss";
+import styles from "components/SortTable.module.scss";
 import Table from "components/Table";
 
 interface Props<T> {

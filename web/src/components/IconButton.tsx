@@ -2,7 +2,7 @@ import * as React from "react";
 import { LegacyButton } from "web-ui/legacy";
 
 import cn from "classnames";
-import styles from "components/IconButton.scss";
+import styles from "components/IconButton.module.scss";
 
 interface Props {
   className?: string;

@@ -9,7 +9,7 @@ import { getBlob } from "api/client";
 import * as shakiraApi from "api/shakira";
 import { getLoggedIn } from "api/user";
 import cn from "classnames";
-import styles from "components/ShakeToReportForm.scss";
+import styles from "components/ShakeToReportForm.module.scss";
 import imageArrowLeft from "images/arrow-left.svg";
 import track from "track";
 

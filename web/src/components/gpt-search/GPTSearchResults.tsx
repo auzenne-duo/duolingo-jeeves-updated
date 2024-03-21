@@ -8,7 +8,7 @@ import NamedSection from "components/NamedSection";
 import Table from "components/Table";
 import Ticket from "components/Ticket";
 import TicketList from "components/TicketList";
-import styles from "components/gpt-search/GPTSearchResults.scss";
+import styles from "components/gpt-search/GPTSearchResults.module.scss";
 import useSearchParams from "components/useSearchParams";
 import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";

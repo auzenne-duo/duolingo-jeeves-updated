@@ -23,7 +23,7 @@ import PlatformIcon from "components/PlatformIcon";
 import ShakeToReportForm from "components/ShakeToReportForm";
 import Tag from "components/Tag";
 import TagFilterOrTag from "components/TagFilterOrTag";
-import styles from "components/Ticket.scss";
+import styles from "components/Ticket.module.scss";
 import AppStateContext from "contexts/AppStateContext";
 import imageBug from "images/ant.svg";
 import imageClose from "images/x.svg";

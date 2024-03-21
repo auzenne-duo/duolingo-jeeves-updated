@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import styles from "components/time-series-analyzer/SearchExample.scss";
+import styles from "components/time-series-analyzer/SearchExample.module.scss";
 
 interface Props {
   query: string;

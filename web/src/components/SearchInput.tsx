@@ -2,7 +2,7 @@ import * as React from "react";
 import { SearchSuggestions } from "web-ui";
 
 import PlatformIcon from "components/PlatformIcon";
-import styles from "components/SearchInput.scss";
+import styles from "components/SearchInput.module.scss";
 import useFeaturesByTeamAndArea from "components/useFeaturesByTeamAndArea";
 import { escapeTerm, unescapeSpaces } from "opensearch";
 
