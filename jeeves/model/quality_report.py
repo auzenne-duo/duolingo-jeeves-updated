@@ -46,6 +46,32 @@ class RecentChanges:
     newly_resolved_issues: list[str]
     previous_report_date_string: str
 
+    def serialize(self) -> dict[str, Any]:
+        """
+        Serializes RecentChanges into what the frontend needs to display
+        """
+        if self.previous_report_date_string == "No previous quality report found":
+            return None
+
+        previous_report_date_string = self.previous_report_date_string
+        change_due_to_added_issues = self.change_due_to_included_issues
+        change_due_to_resolved_issues = self.change_due_to_resolved_issues
+        resolved_issue_list = self.newly_resolved_issues
+        added_issue_list = self.newly_resolved_issues
+        if self.change_due_to_included_issues == "N/A":
+            change_due_to_added_issues = 0
+            added_issue_list = []
+        if self.change_due_to_resolved_issues == "N/A":
+            change_due_to_resolved_issues = 0
+            resolved_issue_list = []
+        return {
+            "previous_report_date_string": previous_report_date_string,
+            "change_due_to_added_issues": change_due_to_added_issues,
+            "change_due_to_resolved_issues": change_due_to_resolved_issues,
+            "resolved_issue_count": len(resolved_issue_list),
+            "added_issue_count": len(added_issue_list),
+        }
+
 
 @dataclass
 class SerializedQualityReportData:
@@ -67,6 +93,7 @@ class SerializedQualityReportData:
     max_dupes_issues: list[JSON]
     design_quality_issues: list[JSON]
     title: str
+    recent_changes: Optional[dict[str, Any]]
 
 
 @dataclass
@@ -245,7 +272,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
                 }
                 break
         else:
-            return RecentChanges([], [], [], 0, 0, 0, "No previous quality report found")
+            return RecentChanges(0, 0, 0, [], [], [], "No previous quality report found")
 
         previous_score_breakdown = self.calculate_scores(
             self.end_date, previous_key_to_issue.values()
@@ -390,6 +417,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             max_dupes_issues=max_dupes_issues_json,
             design_quality_issues=design_quality_issues_json,
             title=self.title,
+            recent_changes=self.recent_changes.serialize(),
         )
 
 

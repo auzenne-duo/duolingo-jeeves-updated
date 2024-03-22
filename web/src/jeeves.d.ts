@@ -40,6 +40,7 @@ declare namespace JSONAPI {
     scores: QualityScores;
     start_date: string;
     title: string;
+    recent_changes?: QualityReportRecentChanges;
   }
 
   interface DocumentContent {
@@ -182,6 +183,13 @@ declare namespace JSONAPI {
     DLAI: [date: string, score: number][];
     DLAW: [date: string, score: number][];
     Overall: [date: string, score: number][];
+  }
+  interface QualityReportRecentChanges {
+    previous_report_date_string: string;
+    change_due_to_added_issues: number;
+    change_due_to_resolved_issues: number;
+    resolved_issue_count: number;
+    added_issue_count: number;
   }
 
   interface SearchResult {

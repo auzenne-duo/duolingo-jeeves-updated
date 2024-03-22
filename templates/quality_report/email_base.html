@@ -879,7 +879,9 @@
                         class="qa-summary"
                       >
                         <ul style="list-style-type: none; text-align: center">
-                          {% if report.recent_changes.newly_resolved_issues %}
+                          {% if report.recent_changes.newly_resolved_issues and
+                          report.recent_changes.change_due_to_resolved_issues !=
+                          "N/A" %}
                           <li>
                             <a
                               class="blue-link"
@@ -894,7 +896,9 @@
                             </a>
                           </li>
                           {% endif %} {% if
-                          report.recent_changes.newly_included_issues %}
+                          report.recent_changes.newly_included_issues and
+                          report.recent_changes.change_due_to_included_issues !=
+                          "N/A" %}
                           <li>
                             <a
                               class="blue-link"
