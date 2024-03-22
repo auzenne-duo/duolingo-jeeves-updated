@@ -6,7 +6,7 @@ jobs:
       Jenkins Job for Continuous Deployment
     node: ec2-jenkins-deployment-2023
     push: true
-    timeout: 90
+    timeout: 120
     command: bash -ex jenkins-build.sh prod
     slack:
       commit_info: AUTHORS_AND_TITLES
