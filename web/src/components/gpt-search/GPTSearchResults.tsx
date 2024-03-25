@@ -15,6 +15,12 @@ import useTicketQuery from "components/useTicketQuery";
 import useTicketSelection from "components/useTicketSelection";
 import AppStateContext from "contexts/AppStateContext";
 
+// Maps backend error messages to a more user-friendly format.
+const ERROR_MESSAGES: Partial<Record<string, string>> = {
+  "Timed out waiting for the k-NN search to finish.":
+    "Timed out waiting for the search to finish.",
+};
+
 const OPENING_TAG = "<b>";
 const CLOSING_TAG = "</b>";
 const TAG_PAIR_LENGTH = OPENING_TAG.length + CLOSING_TAG.length;
@@ -262,7 +268,9 @@ const GPTSearchResults = () => {
       )
     ) : knnResp?.error ? (
       <>
-        <span className={styles.error}>{knnResp.error}</span>
+        <span className={styles.error}>
+          {ERROR_MESSAGES[knnResp.error] ?? knnResp.error}
+        </span>
         {renderFilterTable(filters)}
       </>
     ) : knnResp && allDocs?.length ? (
