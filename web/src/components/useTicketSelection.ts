@@ -4,30 +4,48 @@ import { useHistory, useLocation } from "react-router-dom";
 import { encodeURLSearchParams } from "../util";
 import useSearchParams from "components/useSearchParams";
 
+export const LIST_ID_PROP = Symbol();
+
 interface Options {
   onNext?: () => void;
   onPrev?: () => void;
 }
 
-type SetIdCallback = (newId: string | undefined) => void;
+type SetIdCallback = (newId?: string, listId?: string) => void;
+
+interface TicketInList extends JSONAPI.Ticket {
+  [LIST_ID_PROP]?: string;
+}
 
 const useTicketSelection = (
-  tickets: JSONAPI.Ticket[] | undefined,
+  tickets: TicketInList[] | undefined,
   { onNext, onPrev }: Options = {},
-): [string | undefined, SetIdCallback] => {
+): [
+  string | undefined,
+  SetIdCallback,
+  {
+    listId: string | undefined;
+  },
+] => {
   const history = useHistory();
   const location = useLocation();
   const search = useSearchParams();
 
   const id = search.get("id");
+  const listId = search.get("list");
 
   const setId = React.useCallback<SetIdCallback>(
-    newId => {
+    (newId, newListId) => {
       const params = new URLSearchParams(location.search);
       if (newId === undefined) {
         params.delete("id");
       } else {
         params.set("id", newId);
+      }
+      if (newListId === undefined) {
+        params.delete("list");
+      } else {
+        params.set("list", newListId);
       }
       history.push({
         ...location,
@@ -45,11 +63,18 @@ const useTicketSelection = (
 
   React.useEffect(() => {
     if (tickets?.length) {
-      const currentIndex = tickets.findIndex(t => t.jeeves_uid === id);
+      const currentIndex = tickets.findIndex(
+        t =>
+          t.jeeves_uid === id &&
+          (t[LIST_ID_PROP] === listId || listId === null),
+      );
+
+      const setIdByTicket = (t: TicketInList) =>
+        setId(t.jeeves_uid, t[LIST_ID_PROP]);
 
       const next = () => {
         if (currentIndex < tickets.length - 1) {
-          setId(tickets[currentIndex + 1].jeeves_uid);
+          setIdByTicket(tickets[currentIndex + 1]);
         } else {
           onNextRef.current?.();
         }
@@ -57,9 +82,9 @@ const useTicketSelection = (
 
       const prev = () => {
         if (currentIndex === -1) {
-          setId(tickets[tickets.length - 1].jeeves_uid);
+          setIdByTicket(tickets[tickets.length - 1]);
         } else if (currentIndex > 0) {
-          setId(tickets[currentIndex - 1].jeeves_uid);
+          setIdByTicket(tickets[currentIndex - 1]);
         } else {
           onPrevRef.current?.();
         }
@@ -78,9 +103,9 @@ const useTicketSelection = (
       return () => document.removeEventListener("keydown", handleKeydown);
     }
     return undefined;
-  }, [history, id, setId, tickets]);
+  }, [history, id, listId, setId, tickets]);
 
-  return [id ?? undefined, setId];
+  return [id ?? undefined, setId, { listId: listId ?? undefined }];
 };
 
 export default useTicketSelection;

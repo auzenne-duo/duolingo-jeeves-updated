@@ -12,7 +12,9 @@ import styles from "components/gpt-search/GPTSearchResults.module.scss";
 import useSearchParams from "components/useSearchParams";
 import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";
-import useTicketSelection from "components/useTicketSelection";
+import useTicketSelection, {
+  LIST_ID_PROP,
+} from "components/useTicketSelection";
 import AppStateContext from "contexts/AppStateContext";
 
 // Maps backend error messages to a more user-friendly format.
@@ -121,7 +123,13 @@ const GPTSearchResults = () => {
   // TODO (renspoesse): pass on pagination functions once implemented.
   // TODO (renspoesse): implement these hooks and the TicketList component
   //  for the new sentiment search views.
-  const [id, setId] = useTicketSelection(allDocs);
+  const [id, setId, { listId: listIdOfSelection }] = useTicketSelection([
+    ...(supportingDocsAsTickets?.map(t => ({
+      ...t,
+      [LIST_ID_PROP]: "supporting",
+    })) ?? []),
+    ...(allDocs?.map(t => ({ ...t, [LIST_ID_PROP]: "top" })) ?? []),
+  ]);
   useTicketAside(id);
 
   const { data: selected } = useTicketQuery(id);
@@ -135,11 +143,11 @@ const GPTSearchResults = () => {
       : undefined;
   }, [supportingDocs, selected]);
 
-  const handleClick = (t: JSONAPI.Ticket) => {
-    if (t.jeeves_uid === selected?.jeeves_uid) {
+  const handleClick = (t: JSONAPI.Ticket, listId: string) => {
+    if (t.jeeves_uid === selected?.jeeves_uid && listId === listIdOfSelection) {
       dispatch?.({ type: "TOGGLE_ASIDE" });
     } else {
-      setId(t.jeeves_uid);
+      setId(t.jeeves_uid, listId);
     }
   };
 
@@ -227,8 +235,8 @@ const GPTSearchResults = () => {
     <NamedSection className={styles.section} name={name}>
       <TicketList
         bordered={false}
-        onClick={handleClick}
-        selectedId={id}
+        onClick={ticket => handleClick(ticket, "top")}
+        selectedId={listIdOfSelection === "top" ? id : undefined}
         tickets={docs}
       />
     </NamedSection>
@@ -291,8 +299,8 @@ const GPTSearchResults = () => {
     >
       <TicketList
         bordered={false}
-        onClick={handleClick}
-        selectedId={id}
+        onClick={ticket => handleClick(ticket, "supporting")}
+        selectedId={listIdOfSelection === "supporting" ? id : undefined}
         tickets={docs}
       />
     </NamedSection>

@@ -16,7 +16,9 @@ import styles from "components/quality-report/QualityReportForArea.module.scss";
 import useDocumentTitle from "components/useDocumentTitle";
 import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";
-import useTicketSelection from "components/useTicketSelection";
+import useTicketSelection, {
+  LIST_ID_PROP,
+} from "components/useTicketSelection";
 import AppStateContext from "contexts/AppStateContext";
 
 const MAX_LINKED_ISSUES = 200;
@@ -74,21 +76,23 @@ const QualityReportForArea = ({ area, team }: Props) => {
 
   const teams = React.useMemo(() => data?.teams.map(t => t.title), [data]);
   const tickets = [
-    ...(mostReported ?? []),
-    ...(highestPriority ?? []),
-    ...(topDesign ?? []),
+    ...(mostReported?.map(t => ({ ...t, [LIST_ID_PROP]: "reported" })) ?? []),
+    ...(highestPriority?.map(t => ({ ...t, [LIST_ID_PROP]: "priority" })) ??
+      []),
+    ...(topDesign?.map(t => ({ ...t, [LIST_ID_PROP]: "design" })) ?? []),
   ];
 
-  const [id, setId] = useTicketSelection(tickets);
+  const [id, setId, { listId: listIdOfSelection }] =
+    useTicketSelection(tickets);
   useTicketAside(id);
 
   const { data: selected } = useTicketQuery(id);
 
-  const handleClick = (t: JSONAPI.Ticket) => {
-    if (t.jeeves_uid === selected?.jeeves_uid) {
+  const handleClick = (t: JSONAPI.Ticket, listId: string) => {
+    if (t.jeeves_uid === selected?.jeeves_uid && listId === listIdOfSelection) {
       dispatch?.({ type: "TOGGLE_ASIDE" });
     } else {
-      setId(t.jeeves_uid);
+      setId(t.jeeves_uid, listId);
     }
   };
 
@@ -146,8 +150,8 @@ const QualityReportForArea = ({ area, team }: Props) => {
       >
         <TicketList
           bordered={false}
-          onClick={handleClick}
-          selectedId={id}
+          onClick={ticket => handleClick(ticket, "reported")}
+          selectedId={listIdOfSelection === "reported" ? id : undefined}
           tickets={mostReported ?? []}
         />
       </NamedSection>
@@ -159,8 +163,8 @@ const QualityReportForArea = ({ area, team }: Props) => {
       >
         <TicketList
           bordered={false}
-          onClick={handleClick}
-          selectedId={id}
+          onClick={ticket => handleClick(ticket, "priority")}
+          selectedId={listIdOfSelection === "priority" ? id : undefined}
           showTags={["priority", "issue_key", "status", "date"]}
           tickets={highestPriority ?? []}
         />
@@ -173,8 +177,8 @@ const QualityReportForArea = ({ area, team }: Props) => {
       >
         <TicketList
           bordered={false}
-          onClick={handleClick}
-          selectedId={id}
+          onClick={ticket => handleClick(ticket, "design")}
+          selectedId={listIdOfSelection === "design" ? id : undefined}
           showTags={["priority", "issue_key", "child_issues", "status", "date"]}
           tickets={topDesign ?? []}
         />
