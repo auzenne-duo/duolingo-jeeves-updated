@@ -31,6 +31,13 @@ _RECEIVE_ALL = "RECEIVE_ALL"
 # You can run get_latest_recipient_groups function to get the latest mapping of recipients
 
 RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
+    "Design Accelerator": {
+        _AREA: [("peter@duolingo", 97197056)],
+        "Design Systems": [
+            ("ash@duolingo.com", 1252195),
+            ("shawn.buessing@duolingo.com", 18288193),
+        ],
+    },
     "Growth": {
         _AREA: [
             ("colombo@duolingo.com", 65494655),
@@ -90,6 +97,17 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         "Growth Web": [
             ("christopher@duolingo.com", 12670686),
             ("deanna@duolingo.com", 95819324),
+        ],
+    },
+    "Infra Platform": {
+        _AREA: [("peter@duolingo", 97197056)],
+        "Engineering Studio": [
+            ("becky@duolingo.com", 614576367),
+            ("sharanya@duolingo.com", 105463277),
+        ],
+        "Stability and Performance": [
+            ("leon@duolingo.com", 233506),
+            ("caesar@duolingo.com", 197953187),
         ],
     },
     "Learning R&D": {
@@ -171,21 +189,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         _RECEIVE_ALL: [("tianyu@duolingo.com", 919037599)],
         "Math": [("colleen@duolingo.com", 591143118)],
     },
-    "Product Quality": {
-        _AREA: [("peter@duolingo", 97197056)],
-        "Engineering Studio": [
-            ("ramya@duolingo.com", 550324696),
-            ("becky@duolingo.com", 614576367),
-        ],
-        "Design Systems": [
-            ("ash@duolingo.com", 1252195),
-            ("shawn.buessing@duolingo.com", 18288193),
-        ],
-        "Stability and Performance": [
-            ("leon@duolingo.com", 233506),
-            ("caesar@duolingo.com", 197953187),
-        ],
-    },
 }
 
 
@@ -199,7 +202,6 @@ RECEIVE_ALL_AREA_REPORTS = [
 
 RECEIVE_ALL_REPORTS = [
     ("blanca@duolingo.com", 36291958),
-    ("ramya@duolingo.com", 550324696),
     ("caleb.noble@duolingo.com", 23133309),
     ("britni@duolingo.com", 875832803),
     ("rwagner@duolingo.com", 105023805),
