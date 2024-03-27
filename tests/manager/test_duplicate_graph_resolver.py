@@ -8,6 +8,7 @@ import pytest
 from jeeves.dal.jira_dal import JiraApiDAL
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
+from jeeves.manager.parent_summary_manager import JiraTicketText
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.date_util import get_n_days_ago
@@ -210,10 +211,8 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         magic_mock_jira_dal.get_issue.return_value = parent_issue
         magic_mock_jira_dal.create_bug_issue.return_value = "parent_key"
 
-        mock_parent_summary_generator.generate_summary_and_description.return_value = (
-            MOCK_SUMMARY,
-            MOCK_DESCRIPTION,
-        )
+        mock_response = JiraTicketText(description=MOCK_DESCRIPTION, title=MOCK_SUMMARY)
+        mock_parent_summary_generator.generate_summary_and_description.return_value = mock_response
 
         duplicate_graph_resolver = DuplicateGraphResolver(
             mock_es_dal, magic_mock_jira_dal, mock_jira_manager, mock_parent_summary_generator

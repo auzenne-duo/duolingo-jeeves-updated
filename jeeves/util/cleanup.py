@@ -1,5 +1,5 @@
 import re
-from typing import Pattern, Tuple
+from typing import List, Pattern, Tuple
 
 from jeeves.model.custom_types import JSON
 from jeeves.util.metadata import parse_metadata
@@ -90,7 +90,7 @@ def _compile_common_zendesk_header_re() -> Pattern:
 
 
 _CLEANUP_PATTERN = _compile_cleanup_pattern()
-_EMPTY_STRING_PATTERN = re.compile(r'^[\s\.,\?\\\/<>\(\)\+=_`~!@#\$%^&\*\[\]\{\}\|\'";:\-]*$')
+_EMPTY_STRING_PATTERN = re.compile(r'^[\s\.,\?\\\/<>\(\)\+=_`~!@#\$%^&\*\[\]\{\}\|\'";:\-\u2014]*$')
 
 
 _HYPHEN_LINE_PATTERN = re.compile("^[-\u2014]+$")
@@ -128,6 +128,25 @@ def check_for_hyphen_line(body_text: str) -> bool:
     """
     body_lines = [line.strip() for line in body_text.split("\n")]
     return any([bool(_HYPHEN_LINE_PATTERN.match(line)) for line in body_lines])
+
+
+def filter_lines(lines: List[str]) -> List[str]:
+    """
+    Filters out lines that are empty, contain only whitespace/punctuation, or are known strings added by the clients
+    """
+    return [
+        line
+        for line in lines
+        if not _EMPTY_STRING_PATTERN.match(line)
+        and line.lower()
+        not in {
+            "reported offline",
+            "reported with shake-to-report",
+            "this issue is linked to another issue.",
+            "this issue will be shared to a feature-specific slack channel.",
+        }
+        and not line.lower().startswith("character not showing because")
+    ]
 
 
 def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
@@ -242,18 +261,21 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
     filtered_body_text_prologue = ""
     if rover_idx > 0:
         # We have actual body text
-        filtered_body_text_prologue = "\n".join(body_lines[:rover_idx]).strip()
+        filtered_body_text_prologue = "\n".join(filter_lines(body_lines[:rover_idx])).strip()
 
     filtered_body_text_epilogue = ""
     if max_data_idx < len(body_lines):
-        filtered_body_text_epilogue = "\n".join(body_lines[max_data_idx + 1 :]).strip()
+        epilogue_start_index = max_data_idx + 1
+        filtered_body_text_epilogue = "\n".join(
+            filter_lines(body_lines[epilogue_start_index:])
+        ).strip()
 
     filtered_body_text = f"{filtered_body_text_prologue}\n{filtered_body_text_epilogue}"
 
     raw_metadata_text = "\n".join(body_lines[rover_idx : max_data_idx + 1])
     extracted_metadata["raw"] = raw_metadata_text
 
-    return (filtered_body_text, extracted_metadata)
+    return filtered_body_text, extracted_metadata
 
 
 def extract_common_zendesk_headers(body_text: str) -> Tuple[str, JSON]:

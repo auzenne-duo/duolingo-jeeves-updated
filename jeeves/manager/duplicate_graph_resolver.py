@@ -15,18 +15,18 @@ from jeeves.dal.jira_dal import JiraApiDAL
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.jira_manager import JiraManager
-from jeeves.manager.parent_summary_manager import ParentSummaryManager
+from jeeves.manager.parent_summary_manager import JiraTicketText, ParentSummaryManager
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
 from jeeves.util.async_util import get_asyncio_loop
-from jeeves.util.cleanup import extract_duolingo_metadata
 from jeeves.util.parent_jira_issue_util import (
     generate_parent_body_text_from_data,
     parse_parent_description,
-    strip_parent_description,
     update_parent_data_from_child,
 )
 from jeeves.util.quality_report_util import is_jira_issue_resolved
+
+PARENT_PREFIX = "[Parent]"
 
 
 @registry.bind(
@@ -225,28 +225,21 @@ class DuplicateGraphResolver:
                 result_list.append(f"F {outward_end} {inward_end}\n")
 
         children_docs = [
-            doc
+            JiraTicketText.from_jira_doc(doc)
             for doc in duplicate_graph.issue_keys_to_documents.values()
             if not JiraDocument.is_group_parent(doc)
         ]
-        headers = [doc.header_text for doc in children_docs]
-        # Remove shake-to-report metadata and parent issue description from the descriptions
-        # before sending to AI.
-        descriptions = [
-            strip_parent_description(extract_duolingo_metadata(doc.body_text)[0])
-            for doc in children_docs
-        ]
-        (
-            ai_summary,
-            ai_description,
-        ) = self._parent_summary_manager.generate_summary_and_description(headers, descriptions)
+        aic_summary = self._parent_summary_manager.generate_summary_and_description(children_docs)
+        aic_title = aic_summary.title
+        aic_description = aic_summary.description
+
         # Prepend [Parent] to the summary so that it's clear that this is a parent issue.
-        # and [Parent] not already in the summary
-        if "[Parent]" not in ai_summary:
-            ai_summary = f"[Parent] {ai_summary}"
+        # (Only if [Parent] is not already in the summary)
+        if PARENT_PREFIX not in aic_title:
+            aic_title = f"{PARENT_PREFIX} {aic_title}"
 
         self._try_set_remote_parent(
-            parent_key, ai_summary, ai_description, parent_data, most_common_feature, priority
+            parent_key, aic_title, aic_description, parent_data, most_common_feature, priority
         )
 
         result_manifest = "".join(result_list)

@@ -188,7 +188,7 @@ def strip_parent_description(body_text: str) -> str:
 
     Returns:
         A string representing the description of the issue with all of the
-        parent data catgories stripped out.
+        parent data categories stripped out.
     """
     stripped_description_lines = []
     category_mapping = JiraDocument.get_parent_category_mappings().keys()
