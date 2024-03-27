@@ -93,6 +93,16 @@ To force refresh all tickets in jeeves, build this job: [https://jenkins-ci.duol
 
 To force refresh all spikes, set the `force_spike_refresh_flag` to 1 in aws bucket `jeeves-document-cache`.
 
+## Pinecone
+
+[Pinecone](https://www.pinecone.io/) is a vector database that only supports storing the document IDs, embeddings, and a tiny bit of metadata.
+Pinecone can perform _k_-NN search very quickly, but it's meant to be used alongside a more traditional database that stores the rest of the document info.
+In the future we will replace OpenSearch with a relational database that stores all the document info except for the embeddings.
+
+To request access to Pinecone for Jeeves, please make a ticket with IT. Be sure to specify you would like access to specifically the Jeeves project on Pinecone.
+The Pinecone API key is scoped to the entire Pinecone project, so it can be used with several different indexes. It is stored in the Test Automation vault in 1Password. For access please contact the
+TRI team in [#team-test-and-release-infrastructure](https://duolingo.slack.com/archives/C010XQ3RQN8).
+
 # Quality Reports
 
 To run the quality report script locally, pango must be installed:

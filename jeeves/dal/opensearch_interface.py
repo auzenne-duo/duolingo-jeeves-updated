@@ -1289,6 +1289,13 @@ class OpenSearchDAL:
 
         return result_docs
 
+    def get_jeeves_documents_from_ids(self, ids: List[str]) -> List[JeevesDocument]:
+        """
+        Given a list of jeeves_uids, get a list of JeevesDocuments from OpenSearch
+        """
+        query = {"query": {"bool": {"filter": {"terms": {"jeeves_uid": ids}}}}}
+        return self.execute_arbitrary_query(query)
+
     def perform_knn_search(
         self,
         filters: Dict[str, Any],

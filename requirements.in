@@ -49,6 +49,7 @@ opentelemetry-sdk==1.13.0
 opentelemetry-util-http==0.34b0
 pandas==2.0.1
 pillow>=10.0.1
+pinecone-client==3.1.0
 protobuf==3.19.5 # otherwise duolingo-notify > duolingo-proto bumps it to 3.20.1 which is too high
 pydyf==0.6.0
 pyphen==0.11.0
