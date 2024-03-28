@@ -252,12 +252,6 @@ jobs:
         default: false
       - type: boolean
         description: |-
-          Whether to re-deploy the worker that updates the priority estimator model based on overriden Jira issues
-        name: |-
-          DEPLOY_PRIORITY_ESTIMATOR_UPDATER
-        default: true
-      - type: boolean
-        description: |-
           Whether to re-deploy the worker that iterates through indexed documents and ensures embeddings are populated.
         name: |-
           DEPLOY_ENSURE_EMBEDDINGS_WORKER
