@@ -15,7 +15,6 @@ from jeeves.model.slack_channel import (
     SlackChannel,
     area_design_quality_channel,
 )
-from jeeves.util.priority_estimator import PriorityEstimator
 from jeeves.util.shakira import (
     JIRA_PROJ_TO_PLATFORM,
     JIRA_RELEASE_BLOCKER_LABEL,
@@ -239,8 +238,6 @@ class ShakiraManager:
 
         related_issue_invalid = related_issue_key is not None and not related_issue_exists
 
-        priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email)
-
         should_post_to_slack = (
             channels is not None and not related_issue_invalid
         ) or post_to_slack_only
@@ -262,7 +259,6 @@ class ShakiraManager:
                 reporter_email=reporter_email,
                 pre_release=pre_release,
                 will_post_to_slack=should_post_to_slack,
-                priority=priority,
                 related_issue_exists=related_issue_exists,
             )
             if issue_key:
@@ -274,10 +270,6 @@ class ShakiraManager:
                         outward_issue_key=related_issue_key,
                         inward_issue_key=issue_key,
                     )
-
-                # add comment that priority is automatically generated
-                comment = f"Priority was automatically assigned {priority}. Please change any incorrect priorities so we can incorporate your feedback!"
-                self._jira_client.add_comment(project, issue_key, comment)
 
             if not should_post_to_slack:
                 return (
