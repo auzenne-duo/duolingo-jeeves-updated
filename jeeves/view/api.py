@@ -11,6 +11,7 @@ from duolingo_base.view.auth import requires_auth
 from flask import Blueprint, Response, abort, g, json, make_response, request, send_from_directory
 
 from jeeves import registry as app_registry
+from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.lib.send_issue_fixed_emails import IssueFixedEmailSender
@@ -28,12 +29,17 @@ from jeeves.manager.shakira import ShakiraManager
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
+from jeeves.scripts.update_priority_estimator import (
+    get_s3_overridden_priorities,
+    upload_s3_overridden_priorities,
+)
 from jeeves.util.date_util import (
     date_to_str,
     datetime_to_str,
     get_utc_today,
     time_series_str_to_datetime as str_to_datetime,
 )
+from jeeves.util.priority_estimator import PriorityEstimator
 
 # This is being referenced by the application.py
 blueprint_api = Blueprint("api", __name__)
@@ -629,6 +635,69 @@ def report_issue_v2():
             return json.jsonify(issue_status)
     except KeyError:
         abort(make_response("Missing required field(s)", 400))
+
+
+@blueprint_api.route("/api/2/shakira/estimate_priority")
+def get_estimate_priority():
+    """
+    Endpoint for estimating priority for a Jira bug report.
+
+    Parameters:
+        summary (str): The summary of the issue.
+        feature (str): The jira feature of the issue.
+        reporter_email (str): email address of the reporter such as duo@duolingo.com
+
+    Returns:
+        priority (str): Jira priority as Low, Medium, or High
+    """
+    summary = request.args.get("summary")
+    feature = request.args.get("feature", "")
+    reporter_email = request.args.get("reporter_email", "")
+    if not summary:
+        abort(make_response("Please provide `summary` parameter.", 400))
+    priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email)
+    return json.jsonify(priority)
+
+
+@blueprint_api.route("/api/2/shakira/update_priority_estimator", methods=["POST"])
+def update_priority_estimator():
+    """
+    Endpoint for updating the priority estimator model given true data
+
+    Parameters:
+        issue_key (str): Jira issue key
+        summary (str): The summary of the issue.
+        feature (str): The jira feature of the issue.
+        reporter_email (str): email address of the reporter such as duo@duolingo.com
+        priority (str): true priority
+    """
+    issue_key = request.form.get("issue_key")
+    if not issue_key:
+        abort(make_response("Please provide the issue key.", 400))
+    summary = request.form.get("summary")
+    feature = request.form.get("feature", "")
+    reporter_email = request.form.get("reporter_email", "")
+    priority = request.form.get("priority")
+    if priority not in JIRA_PRIORITY_STR_TO_INT:
+        abort(make_response(f"Invalid `priority` parameter: {priority}.", 400))
+
+    overridden_priorities = get_s3_overridden_priorities()
+    if issue_key in overridden_priorities:
+        return f"Model already updated with issue {issue_key}."
+    updated_priority = {
+        issue_key: {
+            "summary": summary,
+            "feature": feature,
+            "reporter_email": reporter_email,
+            "priority": priority,
+            "date_stored": date_to_str(datetime.now()),
+        }
+    }
+    data = [PriorityEstimator.format_data(summary, feature, reporter_email)]
+    PriorityEstimator.fit_to_data(data, [JIRA_PRIORITY_STR_TO_INT[priority]])
+    overridden_priorities.update(updated_priority)
+    upload_s3_overridden_priorities(overridden_priorities)
+    return f"Done fitting {data} to {priority}"
 
 
 @blueprint_api.route("/api/1/spike_categories")

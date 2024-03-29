@@ -15,6 +15,7 @@ from werkzeug.datastructures import FileStorage
 from jeeves.dal.employees import EmployeesDAL
 from jeeves.lib.profiling import traced_function
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
+from jeeves.model.jira_priorities import JiraPriority
 from jeeves.util.error_util import print_request_exception
 
 _HOST = "https://duolingo.atlassian.net"
@@ -244,6 +245,7 @@ class ShakiraJiraApiClient:
         reporter_email: Optional[str],
         pre_release: bool,
         will_post_to_slack: Optional[bool],
+        priority: Optional[JiraPriority],
         related_issue_exists: Optional[bool],
     ) -> Optional[str]:
         """
@@ -297,6 +299,9 @@ class ShakiraJiraApiClient:
                 if feature_field_key and feature_value_id:
                     fields[feature_field_key] = {"id": feature_value_id}
 
+            if priority:
+                fields["priority"] = {"name": priority}
+
             reporter_id = None
             if reporter_email:
                 reporter_id = self._get_id_for_user(reporter_email)
@@ -323,6 +328,18 @@ class ShakiraJiraApiClient:
             except RequestException as e:
                 print_request_exception(e, rollbar_level="error")
                 return None
+
+    def add_comment(self, project: str, issue_key: str, comment: str) -> None:
+        request = {"body": comment}
+        url = f"{_API}/issue/{issue_key}/comment"
+        headers = {"Content-Type": "application/json"}
+        auth = self._get_jira_auth("DLAW")
+        try:
+            r = post(url, auth=auth, headers=headers, data=json.dumps(request))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e, rollbar_level="error")
+            return None
 
     def get_issue_details(self, issue_key: str) -> Optional[Dict]:
         """

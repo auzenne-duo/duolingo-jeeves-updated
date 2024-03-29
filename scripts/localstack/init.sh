@@ -58,7 +58,7 @@ for source in ${sources}; do
 done
 
 # Uncomment this to download the duplicate detector and priority detector models because they take a long time
-# other_items="duplicate-detector-model spike_exclude_words spike_lemma_stats"
+# other_items="duplicate-detector-model priority_estimator_model spike_exclude_words spike_lemma_stats"
 other_items="spike_exclude_words spike_lemma_stats"
 for item in ${other_items}; do
   echo "Downloading ${item} from s3://${prod_bucket} ..."
