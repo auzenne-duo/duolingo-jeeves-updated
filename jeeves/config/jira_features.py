@@ -78,8 +78,8 @@ JIRA_FEATURES = {
     "Growth": {
         "China": {
             "China Compliances": [],
+            "China Android Super": [],
             "WeChat": ["wechat registration", "wechat login", "wechat sharing"],
-            "Cantonese": [],
         },
         "Connections": {
             "Avatar Builder": ["avatar creator"],
@@ -332,7 +332,6 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Achievements": "Claiming and viewing achievements in the profile page",
     "Ads / rewarded ads": "Problems with ads layout, audio, completion, etc.",
     "App startup": "Crashes or slowness on app startup",
-    "Cantonese": "Issues specific to the Cantonese course",
     "Challenge layout issues": "Problems with format of elements in an exercise, such as overlapping tokens, text in incorrect location, missing prompts, etc.",
     "Character Bingo": "Issues specific to the Character Bingo exercise",
     "Course picker": "Issues with picking a course during onboarding",
