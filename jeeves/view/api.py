@@ -9,6 +9,7 @@ from typing import Any, Dict
 
 from duolingo_base.view.auth import requires_auth
 from flask import Blueprint, Response, abort, g, json, make_response, request, send_from_directory
+from opentelemetry import trace
 
 from jeeves import registry as app_registry
 from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
@@ -49,6 +50,8 @@ _LOG = logging.getLogger("application")
 _DEPLOYED_TIMESTAMP = datetime_to_str(get_utc_today())
 
 _init_timestamp = datetime_to_str(get_utc_today())
+
+tracer = trace.get_tracer(__name__)
 
 
 @blueprint_api.route("/api/1/hello")
@@ -356,7 +359,8 @@ def report_issue():
     Either create an issue in JIRA or post the screenshot to slack, depending on the feature and slack_channel fields.
     """
     try:
-        issue_data = json.loads(request.form["issueData"])
+        with tracer.start_as_current_span("report_issue_decode_json"):
+            issue_data = json.loads(request.form["issueData"])
         issue_status = app_registry(ShakiraManager).report_issue(
             project=issue_data["project"],
             feature=issue_data.get("feature"),
@@ -613,7 +617,8 @@ def report_issue_v2():
     Create an issue in JIRA and/or post the issue to Slack, depending on the feature and slackReportType fields.
     """
     try:
-        issue_data = json.loads(request.form["issueData"])
+        with tracer.start_as_current_span("report_issue_v2_decode_json"):
+            issue_data = json.loads(request.form["issueData"])
         issue_status = app_registry(ShakiraManager).report_issue(
             project=issue_data["project"],
             feature=issue_data.get("feature"),
