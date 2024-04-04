@@ -54,23 +54,40 @@ class RecentChanges:
             return None
 
         previous_report_date_string = self.previous_report_date_string
+
         change_due_to_added_issues = self.change_due_to_included_issues
+        added_issue_list = self.newly_included_issues
+        added_issue_params = urllib.parse.urlencode(
+            {"jql": f"Key in ({', '.join(added_issue_list)})"}
+        )
+        added_issue_link = f"https://duolingo.atlassian.net/issues/?{added_issue_params}"
+
         change_due_to_resolved_issues = self.change_due_to_resolved_issues
         resolved_issue_list = self.newly_resolved_issues
-        added_issue_list = self.newly_resolved_issues
+        resolved_issue_params = urllib.parse.urlencode(
+            {"jql": f"Key in ({', '.join(resolved_issue_list)})"}
+        )
+        resolved_issue_link = f"https://duolingo.atlassian.net/issues/?{resolved_issue_params}"
         if self.change_due_to_included_issues == "N/A":
             change_due_to_added_issues = 0
             added_issue_list = []
+            added_issue_link = ""
         if self.change_due_to_resolved_issues == "N/A":
             change_due_to_resolved_issues = 0
             resolved_issue_list = []
-        return {
+            resolved_issue_link = ""
+        serialized_recent_changes = {
             "previous_report_date_string": previous_report_date_string,
             "change_due_to_added_issues": change_due_to_added_issues,
             "change_due_to_resolved_issues": change_due_to_resolved_issues,
             "resolved_issue_count": len(resolved_issue_list),
             "added_issue_count": len(added_issue_list),
         }
+        if len(added_issue_list) > 0 and added_issue_link != "":
+            serialized_recent_changes["added_issue_link"] = added_issue_link
+        if len(resolved_issue_list) > 0 and resolved_issue_link != "":
+            serialized_recent_changes["resolved_issue_link"] = resolved_issue_link
+        return serialized_recent_changes
 
 
 @dataclass

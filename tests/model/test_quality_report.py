@@ -125,3 +125,28 @@ class TestQualityReport(unittest.TestCase):
         result = test_report.jeeves_link
         expected = "https://jeeves.duolingo.com/en/quality-report?area=Learning%20R%26D&team=Personalized%20Sessions"
         self.assertEqual(result, expected)
+
+    def test_serialize_recent_changes(self):
+        mock_recent_changes = RecentChanges(
+            change_due_to_included_issues=1,
+            change_due_to_removed_issues=18,
+            change_due_to_resolved_issues=2022,
+            newly_included_issues=["DLAI-997", "DLAI-998", "DLAI-999"],
+            newly_removed_issues=["DLAI-1000", "DLAI-1001", "DLAI-1002", "DLAI-1003"],
+            newly_resolved_issues=["DLAI-123", "DLAI-456"],
+            previous_report_date_string="2024-05-01",
+        )
+
+        result = mock_recent_changes.serialize()
+
+        expected = {
+            "previous_report_date_string": "2024-05-01",
+            "change_due_to_added_issues": 1,
+            "change_due_to_resolved_issues": 2022,
+            "resolved_issue_count": 2,
+            "added_issue_count": 3,
+            "added_issue_link": "https://duolingo.atlassian.net/issues/?jql=Key+in+%28DLAI-997%2C+DLAI-998%2C+DLAI-999%29",
+            "resolved_issue_link": "https://duolingo.atlassian.net/issues/?jql=Key+in+%28DLAI-123%2C+DLAI-456%29",
+        }
+
+        self.assertEqual(result, expected)

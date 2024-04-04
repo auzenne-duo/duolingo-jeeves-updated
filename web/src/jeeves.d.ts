@@ -190,6 +190,8 @@ declare namespace JSONAPI {
     change_due_to_resolved_issues: number;
     resolved_issue_count: number;
     added_issue_count: number;
+    added_issue_link?: string;
+    resolved_issue_link?: string;
   }
 
   interface SearchResult {
