@@ -25,7 +25,6 @@ JIRA_FEATURES = {
     "Design Accelerator": {
         "Animation Accelerator": {
             "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
-            "Adventures": [],
             "World characters": [
                 "world character",
                 "character animation",
@@ -245,6 +244,7 @@ JIRA_FEATURES = {
             "Stories": ["story"],
             "Pronunciation Bingo": [],
             "DuoRadio": [],
+            "Adventures": [],
         },
         "Experimental AI": {
             "Facetime": [],
