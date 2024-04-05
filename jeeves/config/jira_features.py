@@ -284,7 +284,7 @@ JIRA_FEATURES = {
             "Shop items": [],
             "Side Quests": ["side quest"],
         },
-        "Max Coach": {
+        "Mochi": {
             "Explain my Answer": ["EMA", "explanation"],
             "Lesson Coach": ["Coach"],
             "On-call tips": ["OCT"],
@@ -341,7 +341,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "DuoNews": "Issues with news cells in the Feed page",
     "Early Bird / Night Owl Chests": "Issues with the Early Bird or Night Owl chest rewards",
     "Explain my Answer": "Issues with the Explain my Answer tutor",
-    "Family plan": "Problems with the Super family plan",
+    "Family plan": "Problems with the family plan (any tier)",
     "Feed Tab": "Issues on the Feed page such as Kudos, nudges, gifting",
     "Friends": "Issues with Friends page, following people, friend updates",
     "Friends Quest": "Issues with the Friends Quest",
