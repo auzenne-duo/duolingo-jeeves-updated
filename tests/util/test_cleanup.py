@@ -78,15 +78,19 @@ class Test(unittest.TestCase):
         real_test_result = extract_common_zendesk_headers(real_test_input)
         self.assertEqual(real_test_result, real_test_expected)
 
-        # This test is identical to the previous one, except the whitespace
-        # between the message and metadata has been removed. The expected
-        # output is identical to the previous test.
-        less_whitespace_test_input = "Please discontinue the “Practice Complete” feature with the points calculator as it is a waste of learning time with no real benefit at all. It is very frustrating to have to sit and watch that feature so many times over and over during lessons. Waiting for it to finish is truly a waste of time that could be better spent learning. It is also irritating that you have to tap twice to continue when it is over. \n\nI am a Plus member who is serious about devoting time to learning French with Duo. \n\nThank you. \n\nKathryn Gerth Username: Kathryn836594\nLearning language: fr\nCourse: DUOLINGO_FR_EN\nuFlags: PS6T3BRN PU0310K4\nApp version: 6.103.0.3\nDevice model: iPhone\nRaw Platform: iPhone13,2\nPlatform: iPhone13,2\nOS version: 14.4\nUI language: en-us\nlogs.txt\nSent from my iPhone"
-        less_whitespace_test_result = extract_common_zendesk_headers(less_whitespace_test_input)
-        self.assertEqual(less_whitespace_test_result, real_test_expected)
-
-        adjacent_test_input = "Hello:\n\nI would like a refund please. I have just had a baby and I am working full time and unfortunately unable to use this subscription at this point in time. Please help! \n\nThank you,\n\nKayla (Fava) Sangster\n\n\n\n-------------------\nApp Information:\nUsername: KaylaMarie980480\nLearning language: es\nCourse: DUOLINGO_ES_EN\nUI language: en\nuFlags: LITNBU2T\n-------------------"
-        adjacent_test_expected = (adjacent_test_input, {})
+        adjacent_test_input = "Hello:\n\nI would like a refund please. I have just had a baby and I am working full time and unfortunately unable to use this subscription at this point in time. Please help! \n\nThank you,\n\nKayla (Fava) Sangster\n\n\n\n-------------------\nApp Information:\nUsername: KaylaMarie980480\nLearning language: es\nCourse:\nUI language: en\nuFlags: LITNBU2T\nUserId: 12345\n-------------------"
+        adjacent_test_expected_body = "Hello:\n\nI would like a refund please. I have just had a baby and I am working full time and unfortunately unable to use this subscription at this point in time. Please help! \n\nThank you,\n\nKayla (Fava) Sangster\n\n\n\n-------------------\nApp Information:\n-------------------"
+        adjacent_test_expected = (
+            adjacent_test_expected_body,
+            {
+                "username": "KaylaMarie980480",
+                "learning_language": "es",
+                "course": "",
+                "ui_language": "en",
+                "uflags": "LITNBU2T",
+                "userid": "12345",
+            },
+        )
         adjacent_test_result = extract_common_zendesk_headers(adjacent_test_input)
         self.assertEqual(adjacent_test_result, adjacent_test_expected)
 

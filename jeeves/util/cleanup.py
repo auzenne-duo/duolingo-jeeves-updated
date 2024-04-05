@@ -51,6 +51,7 @@ def _compile_cleanup_pattern():
 
 
 _COMMON_ZENDESK_META_HEADER_LIST = [
+    "UserId",
     "Username",
     "Learning language",
     "Course",
@@ -77,16 +78,9 @@ def _compile_common_zendesk_header_re() -> Pattern:
         metadata headers
     """
     # Add a colon, capturing group, and end-of-line check to each header
-    prepared_lines = [f"{header}: (.*?)$" for header in _COMMON_ZENDESK_META_HEADER_LIST]
+    prepared_lines = [f"^({header}):(.*?)$" for header in _COMMON_ZENDESK_META_HEADER_LIST]
 
-    # Add arbitrary whitespace and beginning-of-line check between each header.
-    # We put the beginning-of-line check here instead of on every header since
-    # some documents have the first header begin on the same line as text that
-    # isn't metadata, so we don't want a beginning-of-line check on the first
-    # header.
-    complete_pattern = "\s*?^".join(prepared_lines)
-
-    return re.compile(complete_pattern, re.MULTILINE)
+    return re.compile("|".join(prepared_lines), re.MULTILINE | re.IGNORECASE)
 
 
 _CLEANUP_PATTERN = _compile_cleanup_pattern()
@@ -280,15 +274,9 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
 
 def extract_common_zendesk_headers(body_text: str) -> Tuple[str, JSON]:
     """
-    Checks for a specific combination and ordering of known metadata headers
+    Checks for a specific group of known metadata headers
     in provided body text. If found, parses out the metadata and returns the
     cleaned body text and parsed metadata as separate objects.
-
-    Checking for specific headers in a specific order goes against the spirit
-    of the parsing function I already put in this file. However, in some limited
-    testing, these headers in this order appeared in over 90% of the Zendesk
-    documents we couldn't parse with the existing method, and I would rather
-    Ship It than come up with one method that works on both cases.
 
     Parameters:
         body_text: Description section of a document that we wish to clean
@@ -299,21 +287,24 @@ def extract_common_zendesk_headers(body_text: str) -> Tuple[str, JSON]:
         cannot be parsed, instead the first element will be the unmodified body
         text and the second element will be an empty dictionary.
     """
-    m = _COMMON_ZENDESK_META_PATTERN.search(body_text)
+    metadata = {}
+    # Keep track of first match to separate out the metadata section
+    start = None
 
-    if not m:
-        return (body_text, {})
+    for match in _COMMON_ZENDESK_META_PATTERN.finditer(body_text):
+        groups = [group for group in match.groups() if group is not None]
+        if len(groups) != 2:
+            continue
+        if start is None:
+            start = match.start()
+        key, value = groups
+        metadata[key.replace(" ", "_").lower()] = value.strip()
+        body_text = body_text.replace(match.group(), "")
 
-    keys = [header.replace(" ", "_").lower() for header in _COMMON_ZENDESK_META_HEADER_LIST]
-    values = list(m.groups())
-    if len(keys) != len(values):
-        return (body_text, {})
+    if start is not None:
+        prologue = body_text[:start].strip()
+        epilogue = body_text[start:].strip()
+        filtered_body_text = f"{prologue}\n{epilogue}"
+        return (filtered_body_text, metadata)
 
-    kv_pairs = zip(keys, values)
-    parsed_metadata = {key: val for (key, val) in kv_pairs}
-
-    prologue = body_text[: m.start()].strip()
-    epilogue = body_text[m.end() :].strip()
-    filtered_body_text = f"{prologue}\n{epilogue}"
-
-    return (filtered_body_text, parsed_metadata)
+    return (body_text, {})
