@@ -268,9 +268,6 @@ JIRA_FEATURES = {
         "Subscription Packaging": {
             "Ads / rewarded ads": ["ads"],
             "Super": [],
-            "Hearts / Unlimited Hearts": [
-                "heart",
-            ],
             "New Years Promo": [],
             "Max Upsell": [],
         },
@@ -279,6 +276,9 @@ JIRA_FEATURES = {
             "Ramp-up challenge": ["ramp up", "ramp-up"],
             "Gems / Lingots": ["gem", "lingot"],
             "Hard mode": [],
+            "Hearts / Unlimited Hearts": [
+                "heart",
+            ],
             "Magic Chests": ["chest game", "treasure chests", "pick a chest"],
             "Match madness": [],
             "Shop items": [],
