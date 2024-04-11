@@ -270,6 +270,7 @@ JIRA_FEATURES = {
             "Super": [],
             "New Years Promo": [],
             "Max Upsell": [],
+            "Duo on Path": [],
         },
         "In-App Purchases (Poseidon)": {
             "In-app purchases": ["shop"],
@@ -339,6 +340,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Course Switching": "Issues with switching courses or languages",
     "Daily Quests": "Problems with daily quest progress, rewards, or related text/layout ",
     "Drawers / home messages": "For general drawer issues. If possible, choose a more specific feature.",
+    "Duo on Path": "Issues with the animated Duo on path node feature for Super users",
     "DuoNews": "Issues with news cells in the Feed page",
     "Early Bird / Night Owl Chests": "Issues with the Early Bird or Night Owl chest rewards",
     "Explain my Answer": "Issues with the Explain my Answer tutor",
