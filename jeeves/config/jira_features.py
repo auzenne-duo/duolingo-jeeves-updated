@@ -123,12 +123,12 @@ JIRA_FEATURES = {
         },
         "Reengagement": {
             "Practice reminders / notifications": ["reminder", "notification"],
-            "Lesson complete session end": ["complete"],
             "Widget": [],
             "XP Happy Hour": [],
         },
         "Retention": {
             "Achievements": ["achievement"],
+            "Lesson complete session end": ["complete"],
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
             "Haptic Feedback": ["haptics", "vibrations", "buzz"],
