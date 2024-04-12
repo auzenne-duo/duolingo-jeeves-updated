@@ -8,7 +8,7 @@ export const get = async <T>(url: string, throwError = true): Promise<T> => {
     headers: [["Authorization", BEARER]],
   });
   if (!response.ok && throwError) {
-    throw Error(`Request failed with status ${response.status}.`);
+    throw Error(`Request failed with status ${response.status}`);
   }
   return response.json();
 };
@@ -19,7 +19,7 @@ export const getBlob = async (
 ): Promise<Blob> => {
   const response = await fetch(resolveUrl(url));
   if (!response.ok && throwError) {
-    throw Error(`Request failed with status ${response.status}.`);
+    throw Error(`Request failed with status ${response.status}`);
   }
   return response.blob();
 };
@@ -49,7 +49,7 @@ export const post = async <T>(
     method,
   });
   if (!response.ok && throwError) {
-    throw Error(`Request failed with status ${response.status}.`);
+    throw Error(`Request failed with status ${response.status}`);
   }
   return response.json();
 };

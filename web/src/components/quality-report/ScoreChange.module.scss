@@ -1,0 +1,9 @@
+@use "styles/constants" as *;
+
+.negative {
+  color: web-ui-color("cardinal");
+}
+
+.positive {
+  color: web-ui-color("owl");
+}

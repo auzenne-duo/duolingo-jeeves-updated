@@ -13,6 +13,7 @@ import Ticket from "components/Ticket";
 import TicketList from "components/TicketList";
 import QualityGraph from "components/quality-report/QualityGraph";
 import styles from "components/quality-report/QualityReportForArea.module.scss";
+import ScoreChange from "components/quality-report/ScoreChange";
 import useDocumentTitle from "components/useDocumentTitle";
 import useTicketAside from "components/useTicketAside";
 import useTicketQuery from "components/useTicketQuery";
@@ -142,6 +143,34 @@ const QualityReportForArea = ({ area, team }: Props) => {
         title="Quality scores over time"
         visibleTraces={visibleTraces}
       />
+      {report.recent_changes ? (
+        <NamedSection
+          className={styles.section}
+          layout="grid"
+          name={`Changes since ${formatReadableDate(
+            new Date(report.recent_changes.previous_report_date_string),
+          )}`}
+        >
+          <div>
+            <div>
+              <a href={report.recent_changes.resolved_issue_link}>
+                {report.recent_changes.resolved_issue_count} resolved issue(s)
+              </a>{" "}
+              <ScoreChange
+                value={report.recent_changes.change_due_to_resolved_issues}
+              />
+            </div>
+            <div>
+              <a href={report.recent_changes.added_issue_link}>
+                {report.recent_changes.added_issue_count} added issue(s)
+              </a>{" "}
+              <ScoreChange
+                value={report.recent_changes.change_due_to_added_issues}
+              />
+            </div>
+          </div>
+        </NamedSection>
+      ) : null}
       <NamedSection
         className={styles.section}
         name={`Most reported issues${
