@@ -1,15 +1,19 @@
 import unittest
 from datetime import datetime
-from typing import List
+from typing import Dict, List, Optional, Tuple
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from jeeves.dal.jira_dal import JiraApiDAL
 from jeeves.dal.opensearch_interface import OpenSearchDAL
-from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
+from jeeves.manager.duplicate_graph_resolver import (
+    DuplicateGraphOperationResults,
+    DuplicateGraphResolver,
+)
 from jeeves.manager.parent_summary_manager import JiraTicketText
 from jeeves.model.jira_document import JiraDocument
+from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph, JiraDuplicateGraphOperationStatus
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.util.date_util import get_n_days_ago
 
@@ -317,3 +321,278 @@ class TestDuplicateGraphResolver(unittest.TestCase):
 
         self.assertEqual(key_to_issue, expected_key_to_issue)
         self.assertEqual(list_of_parents, expected_list_of_parents)
+
+
+@pytest.mark.parametrize(
+    ("graph", "expected_results"),
+    (
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "2"): "2",
+                ("2", "3"): "3",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.SUCCESS,
+                edge_failures=[],
+                edge_successes=[("0", "1"), ("1", "2"), ("2", "3")],
+            ),
+            id="path_graph",
+        ),
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "2"): "2",
+                ("2", "3"): "3",
+                ("3", "1"): "4",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.SUCCESS,
+                edge_failures=[],
+                edge_successes=[("0", "1"), ("1", "2"), ("2", "3"), ("3", "1")],
+            ),
+            id="cycle_graph",
+        ),
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "0"): "2",
+                ("1", "2"): "3",
+                ("2", "1"): "4",
+                ("2", "3"): "5",
+                ("3", "2"): "6",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.SUCCESS,
+                edge_failures=[],
+                edge_successes=[
+                    ("0", "1"),
+                    ("1", "0"),
+                    ("1", "2"),
+                    ("2", "1"),
+                    ("2", "3"),
+                    ("3", "2"),
+                ],
+            ),
+            id="fully_connected_graph",
+        ),
+        pytest.param(
+            {},
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.SUCCESS,
+                edge_failures=[],
+                edge_successes=[],
+            ),
+            id="empty_graph",
+        ),
+    ),
+)
+def test_disconnect_duplicates_remote_jira_always_succeeds(
+    graph: Dict[Tuple[str, str], str],
+    expected_results: DuplicateGraphOperationResults,
+) -> None:
+    # Yield ID if it's in our graph
+    def get_issue_link(_graph, vertex1: str, vertex2: str) -> Optional[str]:
+        return {"id": graph[(vertex1, vertex2)]} if (vertex1, vertex2) in graph else None
+
+    # Always return True for deletion
+    def get_deletion_results(link_ids: List[str]) -> List[Tuple[str, bool]]:
+        return [(link_id, True) for link_id in link_ids]
+
+    resolver = DuplicateGraphResolver(
+        mock_es_dal, mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
+    )
+    duplicate_graph = JiraDuplicateGraph(
+        issue_keys_to_documents={}, existing_issue_links=set(graph)
+    )
+    with patch.object(resolver, "_get_duplicate_issue_link", get_issue_link):
+        with patch.object(resolver, "get_duplicate_graph", return_value=duplicate_graph):
+            with patch.object(resolver, "_get_deletion_results", get_deletion_results):
+                result = resolver.disconnect_duplicates_remote("foo")
+    # Standardize order
+    result["edge_failures"].sort()
+    result["edge_successes"].sort()
+    expected_results["edge_failures"].sort()
+    expected_results["edge_successes"].sort()
+    assert result == expected_results
+
+
+@pytest.mark.parametrize(
+    ("graph", "expected_results"),
+    (
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "2"): "2",
+                ("2", "3"): "3",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.FAILURE,
+                edge_failures=[("0", "1"), ("1", "2"), ("2", "3")],
+                edge_successes=[],
+            ),
+            id="path_graph",
+        ),
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "2"): "2",
+                ("2", "3"): "3",
+                ("3", "1"): "4",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.FAILURE,
+                edge_failures=[("0", "1"), ("1", "2"), ("2", "3"), ("3", "1")],
+                edge_successes=[],
+            ),
+            id="cycle_graph",
+        ),
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "0"): "2",
+                ("1", "2"): "3",
+                ("2", "1"): "4",
+                ("2", "3"): "5",
+                ("3", "2"): "6",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.FAILURE,
+                edge_failures=[
+                    ("0", "1"),
+                    ("1", "0"),
+                    ("1", "2"),
+                    ("2", "1"),
+                    ("2", "3"),
+                    ("3", "2"),
+                ],
+                edge_successes=[],
+            ),
+            id="fully_connected_graph",
+        ),
+        pytest.param(
+            {},
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.SUCCESS,
+                edge_failures=[],
+                edge_successes=[],
+            ),
+            id="empty_graph",
+        ),
+    ),
+)
+def test_disconnect_duplicates_remote_jira_always_fails(
+    graph: Dict[Tuple[str, str], str],
+    expected_results: DuplicateGraphOperationResults,
+) -> None:
+    # Yield ID if it's in our graph
+    def get_issue_link(_graph, vertex1: str, vertex2: str) -> Optional[str]:
+        return {"id": graph[(vertex1, vertex2)]} if (vertex1, vertex2) in graph else None
+
+    # Always return True for deletion
+    def get_deletion_results(link_ids: List[str]) -> List[Tuple[str, bool]]:
+        return [(link_id, False) for link_id in link_ids]
+
+    resolver = DuplicateGraphResolver(
+        mock_es_dal, mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
+    )
+    duplicate_graph = JiraDuplicateGraph(
+        issue_keys_to_documents={}, existing_issue_links=set(graph)
+    )
+    with patch.object(resolver, "_get_duplicate_issue_link", get_issue_link):
+        with patch.object(resolver, "get_duplicate_graph", return_value=duplicate_graph):
+            with patch.object(resolver, "_get_deletion_results", get_deletion_results):
+                result = resolver.disconnect_duplicates_remote("foo")
+    # Standardize order
+    result["edge_failures"].sort()
+    result["edge_successes"].sort()
+    expected_results["edge_failures"].sort()
+    expected_results["edge_successes"].sort()
+    assert result == expected_results
+
+
+@pytest.mark.parametrize(
+    ("graph", "expected_results"),
+    (
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "2"): "2",
+                ("2", "3"): "3",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.PARTIAL,
+                edge_failures=[("1", "2"), ("2", "3")],
+                edge_successes=[("0", "1")],
+            ),
+            id="path_graph",
+        ),
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "2"): "2",
+                ("2", "3"): "3",
+                ("3", "1"): "4",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.PARTIAL,
+                edge_failures=[("1", "2"), ("2", "3"), ("3", "1")],
+                edge_successes=[("0", "1")],
+            ),
+            id="cycle_graph",
+        ),
+        pytest.param(
+            {
+                ("0", "1"): "1",
+                ("1", "0"): "2",
+                ("1", "2"): "3",
+                ("2", "1"): "4",
+                ("2", "3"): "5",
+                ("3", "2"): "6",
+            },
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.PARTIAL,
+                edge_failures=[("1", "0"), ("1", "2"), ("2", "1"), ("2", "3"), ("3", "2")],
+                edge_successes=[("0", "1")],
+            ),
+            id="fully_connected_graph",
+        ),
+        pytest.param(
+            {},
+            DuplicateGraphOperationResults(
+                status=JiraDuplicateGraphOperationStatus.SUCCESS,
+                edge_failures=[],
+                edge_successes=[],
+            ),
+            id="empty_graph",
+        ),
+    ),
+)
+def test_disconnect_duplicates_remote_jira_succeeds_once(
+    graph: Dict[Tuple[str, str], str],
+    expected_results: DuplicateGraphOperationResults,
+) -> None:
+    # Yield ID if it's in our graph
+    def get_issue_link(_graph, vertex1: str, vertex2: str) -> Optional[str]:
+        return {"id": graph[(vertex1, vertex2)]} if (vertex1, vertex2) in graph else None
+
+    # Always return True for deletion
+    def get_deletion_results(link_ids: List[str]) -> List[Tuple[str, bool]]:
+        return [(link_id, link_id == "1") for link_id in link_ids]
+
+    resolver = DuplicateGraphResolver(
+        mock_es_dal, mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
+    )
+    duplicate_graph = JiraDuplicateGraph(
+        issue_keys_to_documents={}, existing_issue_links=set(graph)
+    )
+    with patch.object(resolver, "_get_duplicate_issue_link", get_issue_link):
+        with patch.object(resolver, "get_duplicate_graph", return_value=duplicate_graph):
+            with patch.object(resolver, "_get_deletion_results", get_deletion_results):
+                result = resolver.disconnect_duplicates_remote("foo")
+    # Standardize order
+    result["edge_failures"].sort()
+    result["edge_successes"].sort()
+    expected_results["edge_failures"].sort()
+    expected_results["edge_successes"].sort()
+    assert result == expected_results

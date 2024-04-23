@@ -524,6 +524,30 @@ def fully_connect_duplicates():
     return json.jsonify(result_dict)
 
 
+@blueprint_api.route("/api/1/fully_disconnect_duplicates", methods=["POST"])
+def fully_disconnect_duplicates():
+    """
+    API wrapper around DuplicateGraphResolver.disconnect_duplicates_remote().
+    Given an issue key, will follow all duplicate relations and then remove them
+    such that the connected component in the duplicate graph is converted to an
+    independent set.
+
+    POST Body Parameters:
+        issue_key: Required; A key for an issue whose component we would like to disconnect.
+    """
+    data = request.get_json()
+    if (data is None) or ("issue_key" not in data):
+        abort(
+            make_response(
+                "Please provide an issue key from which to prune 'duplicates' links.", 400
+            )
+        )
+    issue_key = data["issue_key"]
+
+    results = app_registry(DuplicateGraphResolver).disconnect_duplicates_remote(issue_key)
+    return json.jsonify(results)
+
+
 @blueprint_api.route("/api/2/shakira/slack_report_types")
 def get_slack_report_types():
     """

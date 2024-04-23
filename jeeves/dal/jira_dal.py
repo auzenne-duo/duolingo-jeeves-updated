@@ -4,10 +4,10 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from timeit import default_timer
-from typing import Dict, Iterator, List, Optional, Tuple, Union
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import duo_logging.legacy as rollbar
-from requests import RequestException, Response, Session, get, post, put
+from requests import RequestException, Response, Session, delete, get, post, put
 from requests.auth import HTTPBasicAuth
 
 from jeeves.lib.profiling import traced_function
@@ -360,6 +360,50 @@ class JiraApiDAL:
                 for outward_key, inward_key in links
             ]
             for response in await asyncio.gather(*tasks):
+                results.append(response)
+        return results
+
+    @traced_function()
+    def delete_link(self, link_id: str):
+        """
+        Given a link ID, delete the link from JIRA.
+
+        Parameters:
+            link_id: ID of the link to delete.
+
+        Returns:
+            True if the link is deleted, otherwise False.
+        """
+        url = self._host + f"/rest/api/3/issueLink/{link_id}"
+        headers = {"Accept": "application/json"}
+
+        try:
+            r = delete(url, auth=self._auth, headers=headers)
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e, rollbar_level="error")
+            return (link_id, False)
+        return (link_id, True)
+
+    async def delete_links_async(self, link_ids: Iterable[str]) -> List[Tuple[str, bool]]:
+        results = []
+        # NOTE: The curious reviewer may wonder why we're combining ThreadPoolExecutor with asyncio.
+        # The reason is that the requests library is not async-compatible, so we need to put each request
+        # in its own thread to avoid blocking the event loop. At that point, one might ask why we're using
+        # asyncio at all. I went along with it because it appeared to be the standard in this codebase.
+        # It would probably be worth switching to aiohttp in the near future.
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            loop = get_asyncio_loop()
+            default_timer()
+            tasks = [
+                loop.run_in_executor(
+                    executor,
+                    self.delete_link,
+                    link_id,
+                )
+                for link_id in link_ids
+            ]
+            for response in await asyncio.gather(*tasks, return_exceptions=True):
                 results.append(response)
         return results
 

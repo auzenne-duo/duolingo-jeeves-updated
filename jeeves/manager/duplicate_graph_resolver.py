@@ -6,7 +6,7 @@ make sense or would cause a circular dependency.
 
 import asyncio
 from collections import Counter
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple, TypedDict
 
 import duo_logging.legacy as rollbar
 from duolingo_base.util import registry
@@ -17,7 +17,7 @@ from jeeves.lib.profiling import traced_function
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.parent_summary_manager import JiraTicketText, ParentSummaryManager
 from jeeves.model.jira_document import JiraDocument
-from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph
+from jeeves.model.jira_duplicate_graph import JiraDuplicateGraph, JiraDuplicateGraphOperationStatus
 from jeeves.util.async_util import get_asyncio_loop
 from jeeves.util.parent_jira_issue_util import (
     generate_parent_body_text_from_data,
@@ -27,6 +27,13 @@ from jeeves.util.parent_jira_issue_util import (
 from jeeves.util.quality_report_util import is_jira_issue_resolved
 
 PARENT_PREFIX = "[Parent]"
+DUPLICATE_ISSUE_LINK_TYPE = "Duplicate"
+
+
+class DuplicateGraphOperationResults(TypedDict):
+    status: JiraDuplicateGraphOperationStatus
+    edge_failures: List[Tuple[str, str]]
+    edge_successes: List[Tuple[str, str]]
 
 
 @registry.bind(
@@ -50,7 +57,7 @@ class DuplicateGraphResolver:
 
     @traced_function()
     def get_duplicate_graph(
-        self, issue_keys: List[str], key_to_doc: Dict[str, JiraDocument] = None
+        self, issue_keys: List[str], key_to_doc: Optional[Dict[str, JiraDocument]] = None
     ) -> JiraDuplicateGraph:
         """
         Takes issue key(s) and returns information about the set of reachable issues in the graph
@@ -66,7 +73,7 @@ class DuplicateGraphResolver:
         if key_to_doc is None:
             key_to_doc = {}
 
-        existing_links = set()
+        existing_links: Set[Tuple[str, str]] = set()
         visited = {}
         unvisited = set(issue_keys)
         missing_issues = set()
@@ -105,6 +112,54 @@ class DuplicateGraphResolver:
             visited[target_key] = target_issue
         return JiraDuplicateGraph(
             issue_keys_to_documents=visited, existing_issue_links=existing_links
+        )
+
+    def _get_duplicate_issue_link(
+        self, duplicate_graph: JiraDuplicateGraph, outward_key: str, inward_key: str
+    ):
+        doc = duplicate_graph.issue_keys_to_documents.get(outward_key)
+        if doc is None:
+            return None
+        try:
+            for issue_link in doc.issue_links:
+                if (
+                    DUPLICATE_ISSUE_LINK_TYPE in issue_link["type"]["name"]
+                    and "inwardIssue" in issue_link
+                    and issue_link["inwardIssue"]["key"] == inward_key
+                ):
+                    return issue_link
+        except:
+            return None
+        return None
+
+    def _get_deletion_results(self, link_ids: Iterable[str]):
+        loop = get_asyncio_loop()
+        future = asyncio.ensure_future(self._jira_dal.delete_links_async(link_ids))
+        return loop.run_until_complete(future)
+
+    def disconnect_duplicates_remote(self, issue_key: str) -> DuplicateGraphOperationResults:
+        duplicate_graph = self.get_duplicate_graph([issue_key])
+        edges_to_ids: dict[Tuple[str, str], str] = {}
+        for outward_key, inward_key in duplicate_graph.existing_issue_links:
+            for permutation in ((outward_key, inward_key), (inward_key, outward_key)):
+                issue_link = self._get_duplicate_issue_link(duplicate_graph, *permutation)
+                if issue_link is not None:
+                    edges_to_ids[permutation] = issue_link["id"]
+
+        deletion_results = self._get_deletion_results(edges_to_ids.values())
+        ids_to_edges = {link_id: edge for edge, link_id in edges_to_ids.items()}
+        failed_edges = [
+            ids_to_edges[link_id] for link_id, success in deletion_results if not success
+        ]
+        status = JiraDuplicateGraphOperationStatus.FAILURE
+        if len(failed_edges) == 0:
+            status = JiraDuplicateGraphOperationStatus.SUCCESS
+        elif len(failed_edges) < len(edges_to_ids):
+            status = JiraDuplicateGraphOperationStatus.PARTIAL
+        return DuplicateGraphOperationResults(
+            status=status,
+            edge_failures=failed_edges,
+            edge_successes=[edge for edge in edges_to_ids if edge not in failed_edges],
         )
 
     def connect_duplicates_remote(self, issue_keys: List[str]) -> str:
