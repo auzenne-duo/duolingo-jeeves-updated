@@ -132,6 +132,7 @@ JIRA_FEATURES = {
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
             "Haptic Feedback": ["haptics", "vibrations", "buzz"],
+            "Live Activities": ["live", "activity", "activities", "lock screen", "dynamic island"],
         },
         "Time Spent Learning": {
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
@@ -360,6 +361,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
+    "Live Activities": "Problems with live activities on lock screen having bad UI, not starting, lasting too long, deeplinking wrong, etc",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Challenge": "Bugs with the monthly challenge",
     "Other": "Please try to use a specific feature if possible.",
