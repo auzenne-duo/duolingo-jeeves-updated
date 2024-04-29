@@ -128,6 +128,7 @@ JIRA_FEATURES = {
         },
         "Retention": {
             "Achievements": ["achievement"],
+            "Friend Streak": ["friends streak", "shared streak", "streak partner", "streak friend"],
             "Lesson complete session end": ["complete"],
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
@@ -348,6 +349,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Family plan": "Problems with the family plan (any tier)",
     "Family Quest": "Issues with the Family Quest",
     "Feed Tab": "Issues on the Feed page such as Kudos, nudges, gifting",
+    "Friend Streak": "Issues related to streaks shared with a friend (not personal streak)",
     "Friends": "Issues with Friends page, following people, friend updates",
     "Friends Quest": "Issues with the Friends Quest",
     "General performance issues": "App crashes, 4xx/5xx errors, freezes, slowness, etc.",
