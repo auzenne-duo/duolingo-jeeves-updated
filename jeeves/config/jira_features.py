@@ -223,7 +223,8 @@ JIRA_FEATURES = {
                 "Session type: alphabet_lesson",
                 "*session type*: alphabet_lesson",
             ],
-            "Transliteration": [],
+            "Layout Issues: Romaji/Furigana/Pinyin": ["Transliteration"],
+            "Settings Issues: Romaji/Furigana/Pinyin": [],
         },
         "Path": {
             "Path": [
@@ -361,6 +362,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Hard mode": "Problems with hard mode lessons specifically",
     "In-app purchases": "Problems with purchasing gems, row blaster, timer boosts, etc.",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
+    "Layout Issues: Romaji/Furigana/Pinyin": "Issues with transliterations in the challenge",
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
     "Live Activities": "Problems with live activities on lock screen having bad UI, not starting, lasting too long, deeplinking wrong, etc",
@@ -375,6 +377,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Registration": "Bugs with profile creation flow after onboarding",
     "Session end screens": "General session end screen issues. If possible, use a more specific feature",
     "Settings": "Problems specifically on the settings page.",
+    "Settings Issues: Romaji/Furigana/Pinyin": "Issues with transliteration settings not being obeyed",
     "Shake-to-report": "Problems with shake-to-report itself",
     "Shop items": "Bugs with the shop page, 'My Items' section of profile, purchasing shop items",
     "Side Quests": "Issues with the 'Rapid Review' exercises",
