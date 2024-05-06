@@ -26,6 +26,7 @@ _config.apply_rollbar()
 
 _UNSUBSCRIBED = [
     "jake@duolingo.com",
+    "josh.kenny@duolingo.com",
     "ming@duolingo.com",
 ]
 
