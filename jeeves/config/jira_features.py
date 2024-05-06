@@ -128,7 +128,13 @@ JIRA_FEATURES = {
         },
         "Retention": {
             "Achievements": ["achievement"],
-            "Friend Streak": ["friends streak", "shared streak", "streak partner", "streak friend"],
+            "Friend Streak": [
+                "friends streak",
+                "shared streak",
+                "streak partner",
+                "streak friend",
+                "title: Streak",
+            ],
             "Lesson complete session end": ["complete"],
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
