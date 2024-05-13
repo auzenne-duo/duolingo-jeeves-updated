@@ -45,23 +45,6 @@ JIRA_FEATURES = {
             ],
         },
         "Design Systems": {
-            # for keeping track of issues caused while we're rolling out this
-            # experiment (or revisions of this experiment):
-            # https://metrics.duolingo.com/experiments/ios_update_text_styles_dogfooding
-            "Typography": [
-                "text",
-                "wrap",
-                "cramped",
-                "font",
-                "type",
-                "font size",
-                "squished",
-                "squish",
-                "height",
-                "spacing",
-                "break",
-                "line",
-            ],
             "Progress Bar": [],
             "Grading Ribbon": [
                 "grading message",
@@ -390,7 +373,6 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Smart Tips": "Bugs with exercises that start with 'Here's a tip:'",
     "Streak": "Incorrect or buggy streak number or calendar",
     "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
-    "Typography": "[iOS Only] Problems with text wrapping, font size, line height, etc.",
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
 }
