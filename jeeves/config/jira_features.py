@@ -106,6 +106,14 @@ JIRA_FEATURES = {
         },
         "Reengagement": {
             "Practice reminders / notifications": ["reminder", "notification"],
+            "Weekly Lesson Goals": [
+                "weekly goal",
+                "lesson goal",
+                "WeeklyGoalSelection",
+                "WeeklyGoalSelectionFragment",
+                "WeeklyGoalCompleted",
+                "WeeklyGoalCompletedFragment",
+            ],
             "Widget": [],
             "XP Happy Hour": [],
         },
@@ -373,6 +381,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Smart Tips": "Bugs with exercises that start with 'Here's a tip:'",
     "Streak": "Incorrect or buggy streak number or calendar",
     "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
+    "Weekly Lesson Goals": "Problems with weekly lesson goals",
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
 }
