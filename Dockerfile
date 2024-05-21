@@ -1,20 +1,15 @@
 FROM node:16.13.1-alpine3.15 AS web-requirements
-# Sentry config
-ARG JENKINS_BUILD_NUMBER
-ENV SENTRY_RELEASE $JENKINS_BUILD_NUMBER
-ENV JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER
-
 WORKDIR /code
 COPY web/package.json .
 COPY web/package-lock.json .
 RUN npm ci
 
-FROM node:16.13.1-alpine3.15 AS web-builder
 # Sentry config
 ARG JENKINS_BUILD_NUMBER
 ENV SENTRY_RELEASE $JENKINS_BUILD_NUMBER
 ENV JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER
 
+FROM node:16.13.1-alpine3.15 AS web-builder
 WORKDIR /code
 COPY web .
 COPY --from=web-requirements /code/node_modules ./node_modules
@@ -22,12 +17,12 @@ RUN rm -rf dist && \
   "$(npm bin)/tsc" -p config && \
   "$(npm bin)/webpack" --config config/webpack.config.js --mode production
 
-FROM ubuntu:20.04
 # Sentry config
 ARG JENKINS_BUILD_NUMBER
 ENV SENTRY_RELEASE $JENKINS_BUILD_NUMBER
 ENV JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER
 
+FROM ubuntu:20.04
 # Opentelemetry Configuration
 ENV OTEL_LOGS_EXPORTER none
 ENV OTEL_METRICS_EXPORTER none
@@ -84,5 +79,10 @@ COPY . .
 COPY --from=web-builder /code/dist ./web/dist
 
 EXPOSE 5000
+
+# Sentry config
+ARG JENKINS_BUILD_NUMBER
+ENV SENTRY_RELEASE $JENKINS_BUILD_NUMBER
+ENV JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER
 
 CMD ["opentelemetry-instrument", "uwsgi", "uwsgi.ini"]
