@@ -1,62 +1,55 @@
 version: 2
-language: python
 jobs:
-  - name: duolingo-jeeves
+  - name: "duolingo-jeeves"
     description: |
       Jenkins Job for Continuous Deployment
-    node: ec2-jenkins-deployment-2023
+    node: "ec2-jenkins-deployment-2023"
     push: true
     timeout: 120
-    command: bash -ex jenkins-build.sh prod
+    command: "bash -ex jenkins-build.sh prod"
     slack:
-      commit_info: AUTHORS_AND_TITLES
       notify_aborted: true
       notify_back_to_normal: true
       notify_failure: true
       notify_repeated_failure: true
-      notify_success: false
       notify_unstable: true
       room: "ci,pd-snow"
-  - name: duolingo-jeeves-health
+  - name: "duolingo-jeeves-health"
     description: |
       Jenkins Job for checking CI Health
-    node: ec2-jenkins-worker
+    node: "ec2-jenkins-worker"
     days_to_keep: 15
     cron: "@weekly"
     timeout: 60
-    command: bash -ex jenkins-build.sh
-    junit: results.xml
-    cobertura: cobertura.xml
+    command: "bash -ex jenkins-build.sh"
+    junit: "results.xml"
+    cobertura: "cobertura.xml"
     record_coverage: true
-  - name: duolingo-jeeves-pr
+  - name: "duolingo-jeeves-pr"
     description: |
       Jenkins Job for Continuous Integration
-    node: ec2-jenkins-worker
+    node: "ec2-jenkins-worker"
     concurrent_builds: true
-    branch: ${sha1}
+    branch: "${sha1}"
     refspec: |-
       +refs/pull/*:refs/remotes/origin/pr/*
-    trigger_phrase: trigger ci
+    trigger_phrase: "trigger ci"
     timeout: 60
-    command: bash -ex jenkins-build.sh
-    junit: results.xml
-    cobertura: cobertura.xml
+    command: "bash -ex jenkins-build.sh"
+    junit: "results.xml"
+    cobertura: "cobertura.xml"
     compare_coverage: true
     recipients: |-
       ${ghprbActualCommitAuthorEmail}
-  - name: duolingo-jeeves-quick-deploy
+  - name: "duolingo-jeeves-quick-deploy"
     description: ""
-    node: ec2-jenkins-deployment-2023
+    node: "ec2-jenkins-deployment-2023"
     log_rotator:
       days_to_keep: 60
-      num_to_keep: -1
-      artifact_days_to_keep: -1
-      artifact_num_to_keep: -1
     rebuild_settings:
       auto_rebuild: false
-      rebuild_disabled: false
     parameters:
-      - type: string
+      - type: "string"
         description: |-
           BUILD_NUMBER from the last successful build for:
           <br>
@@ -64,34 +57,20 @@ jobs:
           <br>
           <br>
           e.g. 17
-        trim: true
-        name: LAST_SUCCESS
-        default: ""
+        name: "LAST_SUCCESS"
     throttle_job:
       max_concurrent_per_node: 0
       max_concurrent_total: 0
       categories: []
       throttle_enabled: false
-      throttle_option: project
-      limit_one_job_with_matching_params: false
-      params_to_use_for_limit: ""
     refspec: |-
       +refs/heads/*:refs/remotes/origin/*
-    scm: {}
     slack:
-      room: ""
-      start_notification: false
       notify_success: true
-      notify_aborted: false
-      notify_not_built: false
-      notify_unstable: false
-      notify_regression: false
       notify_failure: true
       notify_repeated_failure: true
-      include_test_summary: false
       include_custom_message: false
-      custom_message: ""
-      commit_info: NONE
+      commit_info: "NONE"
     timestamps: false
     command: |-
       #!/bin/bash
@@ -115,142 +94,117 @@ jobs:
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
-  - name: duolingo-jeeves-monitor-and-alarm
-    description: "Pipeline that runs periodically to ensure Jeeves has up-to-date Opensearch documents."
+  - name: "duolingo-jeeves-monitor-and-alarm"
+    description: |-
+      Pipeline that runs periodically to ensure Jeeves has up-to-date Opensearch documents.
     # This pipeline is technically a script, but we run it on client-eng-jenkins so that TRI team members can disable it and snooze notifications to #pd-snow while investigating.
-    jenkins_cluster: client-eng-jenkins
-    log_rotator:
-      days_to_keep: 30
-      num_to_keep: -1
-      artifact_days_to_keep: -1
-      artifact_num_to_keep: -1
+    jenkins_cluster: "client-eng-jenkins"
     rebuild_settings:
       auto_rebuild: false
-      rebuild_disabled: false
     parameters:
-      - type: string
-        description: branch in duolingo-jeeves to build
-        name: BUILD_BRANCH
-        default: master
-      - type: string
-        description: "When testing, use C0UDM7XA4 for #slack-test Slack channel. Default to #pd-snow (C035TTWUBTN)."
-        name: SLACK_CHANNEL_ID
-        default: C035TTWUBTN
-    branch: ${BUILD_BRANCH}
+      - type: "string"
+        description: "branch in duolingo-jeeves to build"
+        name: "BUILD_BRANCH"
+        default: "master"
+      - type: "string"
+        description: |-
+          When testing, use C0UDM7XA4 for #slack-test Slack channel. Default to #pd-snow (C035TTWUBTN).
+        name: "SLACK_CHANNEL_ID"
+        default: "C035TTWUBTN"
+    branch: "${BUILD_BRANCH}"
     scm:
       clone_option:
         shallow_clone: true
         depth: 100
     # Runs every 6 hours
     cron: "H */6 * * *"
-    timestamps: true
     bindings:
-      - credentials_id: TAFTT_PROD_SLACK_TOKEN
-        variable: SLACK_API_TOKEN
+      - credentials_id: "TAFTT_PROD_SLACK_TOKEN"
+        variable: "SLACK_API_TOKEN"
     docker:
-      compose_file: scripts/compose.yaml
+      compose_file: "scripts/compose.yaml"
     mailer:
       recipients: |-
         aaron.wang@duolingo.com david.sawicki@duolingo.com
-      notify_every_unstable_build: true
-      send_to_individuals: false
   - name: |-
       duolingo-jeeves-refresh-tickets
     description: |-
       Manually trigger this job to force refresh jeeves tickets
-    node: ec2-jenkins-worker
+    node: "ec2-jenkins-worker"
     log_rotator:
       days_to_keep: 60
-      num_to_keep: -1
-      artifact_days_to_keep: -1
-      artifact_num_to_keep: -1
     rebuild_settings:
       auto_rebuild: false
-      rebuild_disabled: false
     parameters:
-      - type: choice
+      - type: "choice"
         description: |-
           The target environment for which to refresh documents
-        name: ENVIRONMENT
+        name: "ENVIRONMENT"
         choices:
           - dev
           - prod
-      - type: string
-        description: ""
+      - type: "string"
         trim: false
-        name: BUILD_BRANCH
-        default: master
-      - type: string
+        name: "BUILD_BRANCH"
+        default: "master"
+      - type: "string"
         description: |-
           Date in ISO format (YYYY-MM-DD) that is the end of date range (inclusive) in which to refresh documents. Defaults to current date.
         trim: false
-        name: REFRESH_END_DATE
-        default: ""
-      - type: string
+        name: "REFRESH_END_DATE"
+      - type: "string"
         description: |-
           Date in ISO format (YYYY-MM-DD) that is the beginnning of date range (inclusive) in which to refresh documents.
         trim: false
-        name: REFRESH_START_DATE
-        default: ""
+        name: "REFRESH_START_DATE"
     throttle_job:
       max_concurrent_per_node: 0
       max_concurrent_total: 0
       categories: []
       throttle_enabled: false
-      throttle_option: project
-      limit_one_job_with_matching_params: false
-      params_to_use_for_limit: ""
-    branch: ${BUILD_BRANCH}
-    scm: {}
-    timestamps: true
-    command: bash -ex force_refresh_job.sh
+    branch: "${BUILD_BRANCH}"
+    command: "bash -ex force_refresh_job.sh"
   - name: |-
       duolingo-jeeves-deploy-galaxy-dev
     description: |-
       Manually trigger this job to deploy to the `dev` Galaxy environment.
       <br>
       https://duolingo.atlassian.net/browse/OPS-15408
-    node: ec2-jenkins-deployment-2023
+    node: "ec2-jenkins-deployment-2023"
     log_rotator:
       days_to_keep: 60
-      num_to_keep: -1
-      artifact_days_to_keep: -1
-      artifact_num_to_keep: -1
     rebuild_settings:
       auto_rebuild: false
-      rebuild_disabled: false
     parameters:
-      - type: string
-        description: ""
+      - type: "string"
         trim: false
-        name: BUILD_BRANCH
-        default: master
-      - type: boolean
+        name: "BUILD_BRANCH"
+        default: "master"
+      - type: "boolean"
         description: |-
           Whether to re-deploy the jeeves api and frontend
-        name: DEPLOY_API
+        name: "DEPLOY_API"
         default: true
-      - type: boolean
+      - type: "boolean"
         description: |-
           Whether to re-deploy the workers for the indexing pipeline: s3-worker, sqs-worker-1, sqs-worker-2
-        name: DEPLOY_INDEX_PIPELINE
+        name: "DEPLOY_INDEX_PIPELINE"
         default: true
-      - type: boolean
+      - type: "boolean"
         description: |-
           Whether to re-deploy the worker that posts daily spikes to slack
-        name: DEPLOY_SPIKE_SLACK_WORKER
+        name: "DEPLOY_SPIKE_SLACK_WORKER"
         default: true
-      - type: boolean
+      - type: "boolean"
         description: |-
           Whether to re-deploy the worker that checks for spike words and indexes them
-        name: DEPLOY_SPIKE_WORKER
+        name: "DEPLOY_SPIKE_WORKER"
         default: true
-      - type: boolean
+      - type: "boolean"
         description: |-
           Whether to re-deploy the worker that sends bug digest emails. Doesn't run in dev.
-        name: DEPLOY_EMAIL_SENDER
-        default: false
-      - type: boolean
+        name: "DEPLOY_EMAIL_SENDER"
+      - type: "boolean"
         description: |-
           Whether to re-deploy the worker that iterates through indexed documents and ensures embeddings are populated.
         name: |-
@@ -261,11 +215,6 @@ jobs:
       max_concurrent_total: 0
       categories: []
       throttle_enabled: false
-      throttle_option: project
-      limit_one_job_with_matching_params: false
-      params_to_use_for_limit: ""
-    branch: ${BUILD_BRANCH}
-    scm: {}
+    branch: "${BUILD_BRANCH}"
     timeout: 120
-    timestamps: true
-    command: bash -ex jenkins-build-dev.sh
+    command: "bash -ex jenkins-build-dev.sh"
