@@ -30,6 +30,7 @@ from jeeves.util.metadata_standardizer import MetaStdizer
 
 _USER = os.environ.get("ZENDESK_REPORTS_USER")
 _PASSWORD = os.environ.get("ZENDESK_REPORTS_PASSWORD")
+CONTRACTOR_EMAIL_DOMAIN = "@duolingocontractors.com"
 
 
 @attr.s(kw_only=True)
@@ -112,6 +113,8 @@ class ZendeskDocument(JeevesDocument):
         user_id = None
         if email:
             user_id = app_registry(MonolithDAL).get_user_by_email_or_username(email)
+            if CONTRACTOR_EMAIL_DOMAIN in email:
+                is_shake_to_report = True
         elif std_metadata["username"]:
             user_id = app_registry(MonolithDAL).get_user_by_email_or_username(
                 username=std_metadata["username"]
