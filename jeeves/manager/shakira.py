@@ -5,6 +5,7 @@ Interface for interacting with the Slack and JIRA managers for shakira routes.
 from typing import Dict, List, Optional, Tuple, Union
 
 from duolingo_base.util import registry
+from requests.exceptions import RequestException
 
 from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.profiling import traced_function
@@ -266,8 +267,23 @@ class ShakiraManager:
                 related_issue_exists=related_issue_exists,
             )
             if issue_key:
-                self._jira_client.upload_attachments(project, issue_key, files)
                 issue_url = self._jira_client.issue_url(issue_key)
+                try:
+                    self._jira_client.upload_attachments(project, issue_key, files)
+                except RequestException as e:
+                    return {
+                        "error": (
+                            f"Error uploading attachments to JIRA: {e}",
+                            e.response.status_code if e.response else 500,
+                        )
+                    }
+                except Exception as e:
+                    return {
+                        "error": (
+                            f"Error uploading attachments to JIRA: {e}",
+                            500,
+                        )
+                    }
 
                 if related_issue_exists:
                     self._jira_client.link_issues(
@@ -333,3 +349,44 @@ class ShakiraManager:
                 if primary_post_id is not None or issue_key is not None
                 else {"error": ("There was a problem reporting the issue.", 500)}
             )
+
+    @traced_function()
+    def upload_artifacts(
+        self,
+        jira_issue_key: str,
+        files: Dict[str, "FileStorage"],
+    ) -> Dict[str, Union[str, Tuple[str, int]]]:
+        """
+        Attach files to a Jira issue.
+
+        parameters:
+            jira_issue_key: Jira issue ID in string (E.g DLAA-2508)
+            files: MultiDict of form name to file. The screenshot file should have the form name "screenshot".
+
+        returns: Dict[str, ?] containing one or more of the following fields:
+            - "issueKey": str if an issue was created in JIRA.
+            - "jiraUrl": str if an issue was created in JIRA.
+            - "error": Tuple[message: str, code: int] if there was an error creating the issue.
+        """
+        project = jira_issue_key.split("-")[0]
+
+        try:
+            self._jira_client.upload_attachments(project, jira_issue_key, files)
+        except RequestException as e:
+            return {
+                "error": (
+                    f"Error uploading attachments to JIRA for {jira_issue_key}: {e}",
+                    e.response.status_code if e.response else 500,
+                )
+            }
+        except Exception as e:
+            return {
+                "error": (
+                    f"Error uploading attachments to JIRA for {jira_issue_key}: {e}",
+                    500,
+                )
+            }
+
+        issue_url = self._jira_client.issue_url(jira_issue_key)
+
+        return {"issueKey": jira_issue_key, "jiraUrl": issue_url}
