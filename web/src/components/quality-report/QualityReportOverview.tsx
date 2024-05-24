@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import cn from "classnames";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { getButtonClassName } from "web-ui/legacy";
 
 import { getQualityReport } from "api/jeeves";
-import cn from "classnames";
 import QualityGraph from "components/quality-report/QualityGraph";
 import styles from "components/quality-report/QualityReportOverview.module.scss";
 import useDocumentTitle from "components/useDocumentTitle";

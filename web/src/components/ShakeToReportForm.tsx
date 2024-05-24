@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import cn from "classnames";
 import * as React from "react";
-import { List, Select, TextArea } from "web-ui";
-import { TextInput } from "web-ui/juicy";
+import { List, Select } from "web-ui";
+import { TextArea, TextInput } from "web-ui/juicy";
 import { LegacyButton, getButtonClassName } from "web-ui/legacy";
 
 import { formatAttachment, getUntruncatedTitle, isImage } from "../util";
 import { getBlob } from "api/client";
 import * as shakiraApi from "api/shakira";
 import { getLoggedIn } from "api/user";
-import cn from "classnames";
 import styles from "components/ShakeToReportForm.module.scss";
 import imageArrowLeft from "images/arrow-left.svg";
 import track from "track";

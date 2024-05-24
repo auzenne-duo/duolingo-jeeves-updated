@@ -1,4 +1,4 @@
-FROM node:16.13.1-alpine3.15 AS web-requirements
+FROM node:18.16.0-alpine3.17 AS web-requirements
 WORKDIR /code
 COPY web/package.json .
 COPY web/package-lock.json .
@@ -9,13 +9,13 @@ ARG JENKINS_BUILD_NUMBER
 ENV SENTRY_RELEASE $JENKINS_BUILD_NUMBER
 ENV JENKINS_BUILD_NUMBER=$JENKINS_BUILD_NUMBER
 
-FROM node:16.13.1-alpine3.15 AS web-builder
+FROM node:18.16.0-alpine3.17 AS web-builder
 WORKDIR /code
 COPY web .
 COPY --from=web-requirements /code/node_modules ./node_modules
 RUN rm -rf dist && \
-  "$(npm bin)/tsc" -p config && \
-  "$(npm bin)/webpack" --config config/webpack.config.js --mode production
+  npx tsc -p config && \
+  npx webpack --config config/webpack.config.js --mode production
 
 # Sentry config
 ARG JENKINS_BUILD_NUMBER

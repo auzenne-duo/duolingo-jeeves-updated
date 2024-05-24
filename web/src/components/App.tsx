@@ -152,47 +152,53 @@ const App = () => {
 
   return (
     <ThemeProvider theme="light">
-      <AppStateContext.Provider value={[state, dispatch]}>
-        <QueryClientProvider client={queryClient}>
-          <Topbar />
-          <div className={styles[`wrap${state.showAside ? "-shifted" : ""}`]}>
-            <div className={styles.content}>
-              <Switch>
-                <Route path="/:lang/analysis">
-                  <TimeSeriesAnalyzer />
-                </Route>
-                <Route path="/:lang/discovery">
-                  <IssueDiscovery />
-                </Route>
-                <Route path="/:lang/gpt-search">
-                  <GPTSearch />
-                </Route>
-                <Route path="/:lang/quality-report">
-                  <QualityReport />
-                </Route>
-                <Route path="/:lang/sentiment-search">
-                  <SentimentSearch />
-                </Route>
-                <Route path="/:lang/spike">
-                  <SpikeDetector />
-                </Route>
-                <Route path="/:lang/spike-stats">
-                  <SpikeStats />
-                </Route>
-                <Route>
-                  <Dashboard />
-                </Route>
-              </Switch>
-            </div>
-            <div className={styles.aside} id="aside" />
-          </div>
-          <MenuDrawer
-            isOpen={state.showMenu}
-            onRequestClose={() => dispatch({ type: "HIDE_MENU" })}
-          />
-          <Lightbox />
-        </QueryClientProvider>
-      </AppStateContext.Provider>
+      {({ style }) => (
+        <div style={style}>
+          <AppStateContext.Provider value={[state, dispatch]}>
+            <QueryClientProvider client={queryClient}>
+              <Topbar />
+              <div
+                className={styles[`wrap${state.showAside ? "-shifted" : ""}`]}
+              >
+                <div className={styles.content}>
+                  <Switch>
+                    <Route path="/:lang/analysis">
+                      <TimeSeriesAnalyzer />
+                    </Route>
+                    <Route path="/:lang/discovery">
+                      <IssueDiscovery />
+                    </Route>
+                    <Route path="/:lang/gpt-search">
+                      <GPTSearch />
+                    </Route>
+                    <Route path="/:lang/quality-report">
+                      <QualityReport />
+                    </Route>
+                    <Route path="/:lang/sentiment-search">
+                      <SentimentSearch />
+                    </Route>
+                    <Route path="/:lang/spike">
+                      <SpikeDetector />
+                    </Route>
+                    <Route path="/:lang/spike-stats">
+                      <SpikeStats />
+                    </Route>
+                    <Route>
+                      <Dashboard />
+                    </Route>
+                  </Switch>
+                </div>
+                <div className={styles.aside} id="aside" />
+              </div>
+              <MenuDrawer
+                isOpen={state.showMenu}
+                onRequestClose={() => dispatch({ type: "HIDE_MENU" })}
+              />
+              <Lightbox />
+            </QueryClientProvider>
+          </AppStateContext.Provider>
+        </div>
+      )}
     </ThemeProvider>
   );
 };

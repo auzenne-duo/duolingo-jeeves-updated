@@ -1,6 +1,6 @@
+import cn from "classnames";
 import * as React from "react";
 
-import cn from "classnames";
 import styles from "components/Table.module.scss";
 
 interface Props {

@@ -1,8 +1,8 @@
+import cn from "classnames";
 import { parseISO } from "date-fns";
 import * as React from "react";
 import { Checkbox } from "web-ui/juicy";
 
-import cn from "classnames";
 import ResizableGraph, { usePlotState } from "components/ResizableGraph";
 import styles from "components/quality-report/QualityGraph.module.scss";
 

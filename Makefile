@@ -4,11 +4,11 @@
 
 .PHONY: eslint
 eslint:
-	cd web && "$$(npm bin)/eslint" --ext=.ts,.tsx src
+	cd web && npx eslint --ext=.ts,.tsx src
 
 .PHONY: eslint-fix
 eslint-fix:
-	cd web && "$$(npm bin)/eslint" --ext=.ts,.tsx --fix src
+	cd web && npx eslint --ext=.ts,.tsx --fix src
 
 # Installs the requirements to the local environment.
 .PHONY: python-install
@@ -24,7 +24,7 @@ install:
 
 .PHONY: test
 test: web-config
-	cd web && "$$(npm bin)/jest" --config config/jest.config.js --silent --watch
+	cd web && npx jest --config config/jest.config.js --silent --watch
 
 .PHONY: python-test
 python-test: python-install
@@ -43,17 +43,17 @@ spike-worker:
 .PHONY: web-build
 web-build: web-config
 	rm -rf web/dist
-	cd web && "$$(npm bin)/webpack" --config config/webpack.config.js --mode production
+	cd web && npx webpack --config config/webpack.config.js --mode production
 
 # Compiles TypeScript files in the web/config/ directory.
 .PHONY: web-config
 web-config:
-	cd web && "$$(npm bin)/tsc" -p config
+	cd web && npx tsc -p config
 
 .PHONY: web-dev
 web-dev: web-config
-	cd web && "$$(npm bin)/webpack" serve --config config/webpack.config.js --mode development --env api='http://localhost:5000/api'
+	cd web && npx webpack serve --config config/webpack.config.js --mode development --env api='http://localhost:5000/api'
 
 .PHONY: web-proxy
 web-proxy:
-	cd web && "$$(npm bin)/lcp" --proxyUrl https://jeeves.duolingo.com --port 5000 --proxyPartial '' --credentials --origin http://localhost:8080
+	cd web && npx lcp --proxyUrl https://jeeves.duolingo.com --port 5000 --proxyPartial '' --credentials --origin http://localhost:8080

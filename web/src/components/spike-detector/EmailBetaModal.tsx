@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import Modal from "react-modal";
-import { TextArea } from "web-ui";
+import { TextArea } from "web-ui/juicy";
 import { LegacyButton } from "web-ui/legacy";
 
 import { sendBetaEmails } from "api/jeeves";

@@ -2,10 +2,14 @@
   "compilerOptions": {
     "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
+    "moduleResolution": "node16",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
     "target": "ES2019",
     "types": ["node"]
-  }
+  },
+  "include": [".",
+    "../src/definitions/web-ui.d.ts"
+  ]
 }

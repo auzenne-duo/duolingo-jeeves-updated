@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import cn from "classnames";
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LoadingDots } from "web-ui";
@@ -16,7 +17,6 @@ import {
   normalizeNewLines,
 } from "../util";
 import { detectDuplicates } from "api/shakira";
-import cn from "classnames";
 import IconButton from "components/IconButton";
 import JiraIssues from "components/JiraIssues";
 import PlatformIcon from "components/PlatformIcon";

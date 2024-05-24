@@ -1,8 +1,8 @@
+import cn from "classnames";
 import Plotly from "plotly.js-basic-dist";
 import * as React from "react";
 import createPlotlyComponent from "react-plotly.js/factory";
 
-import cn from "classnames";
 import styles from "components/ResizableGraph.module.scss";
 
 /* eslint-disable @typescript-eslint/naming-convention */

@@ -38,7 +38,7 @@ else
   # --- run eslint ---
   WORKDIR="/code"
   CMD="cd /code && make install eslint"
-  docker run --rm --volume "$(pwd):$WORKDIR" node:16.13.1 sh -c "$CMD"
+  docker run --rm --volume "$(pwd):$WORKDIR" node:18.16.0 sh -c "$CMD"
 fi
 
 # ----- build -----

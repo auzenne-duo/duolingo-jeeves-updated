@@ -1,9 +1,8 @@
 @use "constants" as *;
-@use "colors" as colors;
+@use "colors" as *;
 @use "typography" as typography;
 
 :root {
-  @include colors.dynamic-colors(colors.$color-palette);
   @include typography.typography-tokens;
   --height-topbar: 58px;
   --margin: #{2 * $juicy-length};

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import cn from "classnames";
 import { endOfDay } from "date-fns";
 import * as React from "react";
 import { NavLink, useHistory, useLocation } from "react-router-dom";
@@ -7,7 +8,6 @@ import { TextInput } from "web-ui/juicy";
 
 import { encodeURLSearchParams } from "../util";
 import { getSpikeCategories } from "api/jeeves";
-import cn from "classnames";
 import type { DateRangeChangeEvent } from "components/DateRangeInput";
 import DateRangeInput from "components/DateRangeInput";
 import Hamburger from "components/Hamburger";

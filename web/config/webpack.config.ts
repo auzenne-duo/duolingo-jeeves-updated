@@ -4,6 +4,7 @@ import * as HtmlWebpackPlugin from "html-webpack-plugin";
 import type { Configuration as WebpackConfiguration } from "webpack";
 import { DefinePlugin } from "webpack";
 import type { Configuration as WebpackDevServerConfiguration } from "webpack-dev-server";
+import { colorImporter } from "web-ui/util/colorImporter";
 
 interface Configuration extends WebpackConfiguration {
   devServer?: WebpackDevServerConfiguration;
@@ -65,6 +66,21 @@ const webpackConfig = (
       },
       {
         loader: "sass-loader",
+        options: {
+          // We need to use the modern JS API to be able to use the
+          // new AsyncCompiler with shared resources support.
+          api: "modern-compiler",
+          implementation: "sass-embedded",
+          sassOptions: {
+            importers: [colorImporter],
+            loadPaths: [
+              path.resolve(__dirname, "../src"),
+              path.resolve(__dirname, "../node_modules"),
+            ],
+          },
+          // We aren't using this and disabling it improves compilation speed.
+          webpackImporter: false,
+        },
         test: /\.scss$/,
       },
       {
