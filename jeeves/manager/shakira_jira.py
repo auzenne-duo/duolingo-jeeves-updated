@@ -401,8 +401,6 @@ class ShakiraJiraApiClient:
             issue_key: JIRA issue to upload attachments to e.g. DLAA-5690
             files: MultiDict of form name to file
 
-        raises:
-            RequestException: if upload request fails
         """
         url = f"{_API}/issue/{issue_key}/attachments"
         headers = {"X-Atlassian-Token": "no-check"}  # header required by JIRA API
@@ -428,4 +426,3 @@ class ShakiraJiraApiClient:
             r.raise_for_status()
         except RequestException as e:
             print_request_exception(e, rollbar_level="error")
-            raise e

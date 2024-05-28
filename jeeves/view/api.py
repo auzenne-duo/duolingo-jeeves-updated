@@ -666,22 +666,6 @@ def report_issue_v2():
         abort(make_response("Missing required field(s)", 400))
 
 
-@blueprint_api.route("/api/2/shakira/upload_artifacts", methods=["POST"])
-def upload_artifacts():
-    """
-    Upload artifacts to attach to a JIRA issue.
-    """
-    issue_status = app_registry(ShakiraManager).upload_artifacts(
-        jira_issue_key=request.form["jiraIssueKey"],
-        files=request.files,
-    )
-    if "error" in issue_status:
-        message, code = issue_status["error"]
-        abort(make_response(message, code))
-    else:
-        return json.jsonify(issue_status)
-
-
 @blueprint_api.route("/api/2/shakira/estimate_priority")
 def get_estimate_priority():
     """
