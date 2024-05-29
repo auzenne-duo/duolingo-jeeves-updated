@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import requests
+
 from jeeves.dal.employees import EmployeesDAL
 from jeeves.manager.shakira import ShakiraManager
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
@@ -561,3 +563,44 @@ class Test(unittest.TestCase):
         mock_priority_estimator.estimate_priority.assert_called_with(
             "summary", "Callouts", "biglou@duolingo.com"
         )
+
+    def test_upload_artifacts_success(self):
+        shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        resp = shakira_manager.upload_artifacts(
+            jira_issue_key="TEST-1234",
+            files={"screenshot": "screenshot.png"},
+        )
+
+        shakira_jira_mock.upload_attachments.assert_called_once_with(
+            "TEST", "TEST-1234", {"screenshot": "screenshot.png"}
+        )
+        assert resp["issueKey"] == "TEST-1234"
+
+    def test_upload_artifacts_jira_error(self):
+        shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        mock_jira_response = requests.models.Response()
+        mock_jira_response.status_code = 500
+        shakira_jira_mock.upload_attachments.side_effect = requests.HTTPError(
+            "JIRA internal error", response=mock_jira_response
+        )
+
+        resp = shakira_manager.upload_artifacts(
+            jira_issue_key="TEST-1234",
+            files={"screenshot": "screenshot.png"},
+        )
+
+        assert resp["error"] == (
+            "Error uploading attachments to JIRA for TEST-1234: JIRA internal error",
+            500,
+        )
+
+    def test_upload_artifacts_no_artifacts(self):
+        shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+
+        resp = shakira_manager.upload_artifacts(
+            jira_issue_key="TEST-1234",
+            files={},
+        )
+
+        assert not shakira_jira_mock.upload_attachments.called
+        assert resp["issueKey"] == "TEST-1234"
