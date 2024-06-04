@@ -45,7 +45,7 @@ from jeeves.util.priority_estimator import PriorityEstimator
 # This is being referenced by the application.py
 blueprint_api = Blueprint("api", __name__)
 
-_LOG = logging.getLogger("application")
+LOG = logging.getLogger("application")
 
 _DEPLOYED_TIMESTAMP = datetime_to_str(get_utc_today())
 
@@ -643,6 +643,8 @@ def report_issue_v2():
     try:
         with tracer.start_as_current_span("report_issue_v2_decode_json"):
             issue_data = json.loads(request.form["issueData"])
+        LOG.info("Received issue data: %s", issue_data)
+        LOG.info("Received files: %s", request.files)
         issue_status = app_registry(ShakiraManager).report_issue(
             project=issue_data["project"],
             feature=issue_data.get("feature"),
@@ -671,6 +673,7 @@ def upload_artifacts():
     """
     Upload artifacts to attach to a JIRA issue.
     """
+    LOG.info("Uploading artifacts to %s: %s", request.form["jiraIssueKey"], request.files)
     issue_status = app_registry(ShakiraManager).upload_artifacts(
         jira_issue_key=request.form["jiraIssueKey"],
         files=request.files,
