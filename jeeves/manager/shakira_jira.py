@@ -3,6 +3,7 @@ Manager for interacting with the JIRA API for shakira.
 """
 
 import json
+import logging
 import os
 from typing import Dict, List, Optional, Union
 
@@ -17,6 +18,8 @@ from jeeves.lib.profiling import traced_function
 from jeeves.model.jira_issue_metadata import JiraIssueTypeMetaData
 from jeeves.model.jira_priorities import JiraPriority
 from jeeves.util.error_util import print_request_exception
+
+LOG = logging.getLogger(__name__)
 
 _HOST = "https://duolingo.atlassian.net"
 _API = f"{_HOST}/rest/api/2"
@@ -321,6 +324,8 @@ class ShakiraJiraApiClient:
             headers = {"Content-Type": "application/json"}
             auth = self._get_jira_auth(project)
             try:
+                LOG.info(f"Creating JIRA issue for project {project}\n{request}")
+
                 r = post(url, auth=auth, headers=headers, data=json.dumps(request))
                 r.raise_for_status()
                 response_json = json.loads(r.text)

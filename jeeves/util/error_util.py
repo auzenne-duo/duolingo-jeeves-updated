@@ -1,9 +1,12 @@
+import logging
 import sys
 from typing import Optional
 
 import duo_logging.legacy as rollbar
 from opensearch_dsl.response import Response
 from requests.exceptions import RequestException
+
+LOG = logging.getLogger(__name__)
 
 
 def print_request_exception(e: RequestException, rollbar_level: Optional[str] = None):
@@ -20,17 +23,21 @@ def print_request_exception(e: RequestException, rollbar_level: Optional[str] = 
     reason = e.response.reason if e.response is not None else None
     headers = e.response.headers if e.response is not None else None
     body = e.response.text if e.response is not None else None
-    print(
-        f"""
+    error_str = f"""
         An exception occurred for the following request:
         {method} {url}
         The above request generated the following response:
         {status_code}: {reason}
         Returned headers: {headers}
         Returned body: {body}
-        """,
-        file=sys.stderr,
-    )
+        """
+    if rollbar_level == "error" or rollbar_level == "critical":
+        LOG.error(error_str)
+    elif rollbar_level == "warning":
+        LOG.warning(error_str)
+    else:
+        LOG.info(error_str)
+
     if rollbar_level:
         rollbar.report_exc_info(
             sys.exc_info(),
