@@ -196,6 +196,10 @@ class ShakiraManager:
             - "error": Tuple[message: str, code: int] if there was an error creating the issue.
 
         """
+        # JIRA summary cannot be longer than be longer than 255 characters, truncate if necessary.
+        if len(summary) > 255:
+            summary = summary[:252] + "..."
+
         project_error_message = self.get_project_error_message(project)
         if project_error_message:
             return {

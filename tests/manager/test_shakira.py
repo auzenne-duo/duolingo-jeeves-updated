@@ -494,6 +494,38 @@ class Test(unittest.TestCase):
         )
         assert not shakira_slack_mock.post_issue.called
 
+    def test_report_issue_summary_too_long(self):
+        shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        shakira_manager.report_issue(
+            project="DLAA",
+            feature="Callouts",
+            slack_report_type=None,
+            client_specified_slack_channel_name=None,
+            related_issue_key=None,
+            summary="a" * 256,
+            description=None,
+            generated_description=None,
+            reporter_email=None,
+            pre_release=False,
+            release_blocker=False,
+            files={},
+        )
+
+        shakira_jira_mock.create_issue.assert_called_once_with(
+            project="DLAA",
+            feature="Callouts",
+            labels=[],
+            summary="a" * 252 + "...",
+            description=None,
+            generated_description=None,
+            reporter_email=None,
+            pre_release=False,
+            will_post_to_slack=False,
+            priority="Medium",
+            related_issue_exists=False,
+        )
+        assert not shakira_slack_mock.post_issue.called
+
     def test_report_issue_called_estimate_priority(self):
         shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
