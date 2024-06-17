@@ -78,6 +78,50 @@ Set up instructions:
 - Run the steps above to set up the Python virtual environment
 - Run `./env/bin/python ./jeeves/scripts/index_pipeline_and_spike_detector/slack.py`
 
+## Debugging and Testing
+
+### Importing Documents From `prod` to `dev` Environment
+
+Run the following `GET` command to retrieve a single document from production environment by its `jeeves_uid`:
+
+```
+curl -X GET "https://vpc-duolingo-jeeves-es-prod-eg2rc47wen2dsgmzunu4whvfju.us-east-1.es.amazonaws.com/jeeves_tickets_v_5.1.7/_search" -H 'Content-Type: application/json' -d '{"query": {"term": {"jeeves_uid": "Zendesk_8708307"}}}' | jq ".hits.hits | .[] | ._source" > document.json
+```
+
+Run the following `PUT` command to insert the document into the `dev` OpenSearch instance:
+
+```
+curl -X PUT "https://vpc-duolingo-jeeves-es-dev-4xpqalvnvjkuon2qvzqyep3vxa.us-east-1.es.amazonaws.com/jeeves_tickets_v_5.1.7/_doc/<DOCUMENT_ID>/" -H 'Content-Type: application/json' --data-binary @document.json
+```
+
+where DOCUMENT_ID can be found by running:
+
+```
+curl -X GET "https://vpc-duolingo-jeeves-es-prod-eg2rc47wen2dsgmzunu4whvfju.us-east-1.es.amazonaws.com/jeeves_tickets_v_5.1.7/_search" -H 'Content-Type: application/json' -d '{"query": {"term": {"jeeves_uid": "Zendesk_8708307"}}}' | jq ".hits.hits | .[] | ._id"
+```
+
+### Common Issue: Exceeded OpenSearch Fields Limit
+
+If you see the following error when trying to import tickets:
+
+```
+{"error":{"root_cause":[{"type":"illegal_argument_exception","reason":"Limit of total fields [6000] in index [jeeves_tickets_v_5.1.7] has been exceeded"}],"type":"illegal_argument_exception","reason":"Limit of total fields [6000] in index [jeeves_tickets_v_5.1.7] has been exceeded"},"status":400}
+```
+
+This is because of the `index.mapping.total_fields.limit` setting in OpenSearch, which can be viewed by the following `GET` request:
+
+```
+curl -X GET "https://vpc-duolingo-jeeves-es-dev-4xpqalvnvjkuon2qvzqyep3vxa.us-east-1.es.amazonaws.com/jeeves_tickets_v_5.1.7/_settings" -H 'Content-Type: application/json' | jq
+```
+
+NOTE: The total_fields limit increase is a temporary workaround, longterm wise, we should find ways to remove experiments from the opensearch documents.
+
+To temporarily bypass the limit, one can run:
+
+```
+curl -X PUT "https://vpc-duolingo-jeeves-es-dev-4xpqalvnvjkuon2qvzqyep3vxa.us-east-1.es.amazonaws.com/jeeves_tickets_v_5.1.7/_settings" -H 'Content-Type: application/json' -d '{ "index.mapping.total_fields.limit": 6000 }'
+```
+
 ## Import Infrastructure
 
 See yml files in `/config` to get exact s3 bucket/queue names.
