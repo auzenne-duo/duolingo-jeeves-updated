@@ -1,4 +1,5 @@
 import os
+from concurrent.futures import ThreadPoolExecutor
 from typing import Type, TypeVar
 
 from duolingo_base.config import Config
@@ -35,9 +36,12 @@ def apply_registry():
     service_registry[JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY] = JIRA_FEATURES_DESCRIPTIONS
     service_registry[SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY] = SESSION_END_SCREEN_TO_FEATURE
     service_registry[DEBUG_TYPE_TO_FEATURES_REGISTRY_KEY] = DEBUG_TYPE_TO_FEATURES
+    service_registry[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)
 
 
 def close_registry():
+    executor = service_registry[ThreadPoolExecutor]
+    executor.shutdown(wait=False)
     service_registry.close()
 
 

@@ -3,11 +3,13 @@ Interface for interacting with the Slack and JIRA managers for shakira routes.
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional, Tuple, Union
 
 from duolingo_base.util import registry
 from requests.exceptions import RequestException
 
+from jeeves import registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
@@ -154,6 +156,24 @@ class ShakiraManager:
 
         return channels
 
+    def _set_priority(self, project, issue_key, summary, feature, reporter_email):
+        """
+        Set the priority of the Jira issue based on the project, summary, features, and reporter_email.
+
+        parameters:
+            project: e.g. DLAA, DLAI, DLAW
+            issue_key: e.g. DLAA-1234
+            summary: e.g. "Achievements: Issue with achievements"
+            features: e.g. Achievements
+            reporter_email: e.g. "
+        """
+        priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email)
+        LOG.info(f"Setting priority {priority} for {issue_key}")
+
+        self._jira_client.set_priority(project, issue_key, priority)
+        comment = f"Priority was automatically assigned {priority}. Please change any incorrect priorities so we can incorporate your feedback!"
+        self._jira_client.add_comment(project, issue_key, comment)
+
     @traced_function()
     def report_issue(
         self,
@@ -246,8 +266,6 @@ class ShakiraManager:
 
         related_issue_invalid = related_issue_key is not None and not related_issue_exists
 
-        priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email)
-
         should_post_to_slack = (
             channels is not None and not related_issue_invalid
         ) or post_to_slack_only
@@ -255,6 +273,10 @@ class ShakiraManager:
         issue_key = None
         issue_url = None
         if should_post_to_jira:
+            LOG.info(
+                f"Creating JIRA issue for project {project}, feature {feature}, summary {summary}"
+            )
+
             issue_key = self._jira_client.create_issue(
                 project=project,
                 feature=feature,
@@ -269,7 +291,6 @@ class ShakiraManager:
                 reporter_email=reporter_email,
                 pre_release=pre_release,
                 will_post_to_slack=should_post_to_slack,
-                priority=priority,
                 related_issue_exists=related_issue_exists,
             )
             if issue_key:
@@ -281,9 +302,12 @@ class ShakiraManager:
                         inward_issue_key=issue_key,
                     )
 
-                # add comment that priority is automatically generated
-                comment = f"Priority was automatically assigned {priority}. Please change any incorrect priorities so we can incorporate your feedback!"
-                self._jira_client.add_comment(project, issue_key, comment)
+                # Set priority based on summary and feature in a background task. Ignore any failures and do this as a best-effort.
+                with ThreadPoolExecutor() as executor:
+                    executor = app_registry(ThreadPoolExecutor)
+                    executor.submit(
+                        self._set_priority, project, issue_key, summary, feature, reporter_email
+                    )
 
             if not should_post_to_slack:
                 return (

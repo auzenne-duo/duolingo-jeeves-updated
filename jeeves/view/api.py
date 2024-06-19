@@ -645,6 +645,7 @@ def report_issue_v2():
             issue_data = json.loads(request.form["issueData"])
         LOG.info("Received issue data: %s", issue_data)
         LOG.info("Received files: %s", request.files)
+
         issue_status = app_registry(ShakiraManager).report_issue(
             project=issue_data["project"],
             feature=issue_data.get("feature"),
@@ -659,6 +660,8 @@ def report_issue_v2():
             release_blocker=issue_data.get("releaseBlocker", False),
             files=request.files,
         )
+        LOG.info("report_issue returned issue_status: %s", issue_status)
+
         if "error" in issue_status:
             message, code = issue_status["error"]
             abort(make_response(message, code))

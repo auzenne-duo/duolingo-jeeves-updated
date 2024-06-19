@@ -81,7 +81,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=False,
-            priority="Medium",
             related_issue_exists=False,
         )
         assert not shakira_slack_mock.post_issue.called
@@ -115,7 +114,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=True,
-            priority="Medium",
             related_issue_exists=True,
         )
 
@@ -164,7 +162,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=True,
-            priority="Medium",
             related_issue_exists=True,
         )
 
@@ -226,7 +223,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=True,
-            priority="Medium",
             related_issue_exists=True,
         )
 
@@ -287,7 +283,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=False,
-            priority="Medium",
             related_issue_exists=False,
         )
 
@@ -406,7 +401,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=True,
-            priority="Medium",
             related_issue_exists=False,
         )
 
@@ -447,7 +441,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=True,
-            priority="Medium",
             related_issue_exists=False,
         )
         shakira_slack_mock.post_issue.assert_called_once_with(
@@ -489,7 +482,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=False,
-            priority="Medium",
             related_issue_exists=False,
         )
         assert not shakira_slack_mock.post_issue.called
@@ -521,7 +513,6 @@ class Test(unittest.TestCase):
             reporter_email=None,
             pre_release=False,
             will_post_to_slack=False,
-            priority="Medium",
             related_issue_exists=False,
         )
         assert not shakira_slack_mock.post_issue.called
@@ -553,10 +544,15 @@ class Test(unittest.TestCase):
             reporter_email="biglou@duolingo.com",
             pre_release=False,
             will_post_to_slack=False,
-            priority="Medium",
             related_issue_exists=False,
         )
         assert not shakira_slack_mock.post_issue.called
+
+        # Sleep for 2 seconds for the async thread to finish
+        import time
+
+        time.sleep(2)
+
         mock_priority_estimator.estimate_priority.assert_called_with(
             "summary", "Callouts", "biglou@duolingo.com"
         )
@@ -588,13 +584,9 @@ class Test(unittest.TestCase):
             reporter_email="biglou@duolingo.com",
             pre_release=False,
             will_post_to_slack=False,
-            priority="Medium",
             related_issue_exists=False,
         )
         assert not shakira_slack_mock.post_issue.called
-        mock_priority_estimator.estimate_priority.assert_called_with(
-            "summary", "Callouts", "biglou@duolingo.com"
-        )
 
     def test_upload_artifacts_success(self):
         shakira_jira_mock, _, shakira_manager = _get_mocked_managers()

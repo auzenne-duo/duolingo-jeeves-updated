@@ -8,7 +8,7 @@ import os
 from typing import Dict, List, Optional, Union
 
 from duolingo_base.registry import inject
-from requests import get, post
+from requests import get, post, put
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 from werkzeug.datastructures import FileStorage
@@ -237,6 +237,28 @@ class ShakiraJiraApiClient:
         return _DESCRIPTION_FOR_ISSUES_SENT_TO_SLACK
 
     @traced_function()
+    def set_priority(self, project: str, issue_key: str, priority: JiraPriority):
+        """
+        Set the priority of an issue in JIRA.
+
+        parameters:
+            project: e.g. DLAA, DLAI, DLAW, LIT, DETBUG
+            issue_key: e.g. DLAA-1234
+            priority: e.g. Highest, High, Medium, Low, Lowest
+        """
+        url = f"{_HOST}/rest/api/2/issue/{issue_key}"
+        auth = self._get_jira_auth(project)
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        data = {"fields": {"priority": {"name": priority}}}
+
+        try:
+            r = put(url, auth=auth, headers=headers, data=json.dumps(data))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e, rollbar_level="error")
+            raise
+
+    @traced_function()
     def create_issue(
         self,
         project: str,
@@ -248,7 +270,6 @@ class ShakiraJiraApiClient:
         reporter_email: Optional[str],
         pre_release: bool,
         will_post_to_slack: Optional[bool],
-        priority: Optional[JiraPriority],
         related_issue_exists: Optional[bool],
     ) -> Optional[str]:
         """
@@ -301,9 +322,6 @@ class ShakiraJiraApiClient:
                 feature_value_id = issuetype.get_id_for_allowed_feature_value(feature)
                 if feature_field_key and feature_value_id:
                     fields[feature_field_key] = {"id": feature_value_id}
-
-            if priority:
-                fields["priority"] = {"name": priority}
 
             reporter_id = None
             if reporter_email:
