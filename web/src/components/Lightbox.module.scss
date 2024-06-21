@@ -11,8 +11,14 @@
   justify-content: center;
   left: 0;
   padding: var(--margin);
+  pointer-events: none;
   position: fixed;
   right: 0;
   top: 0;
   z-index: 1;
+}
+
+.wrap-visible {
+  composes: wrap;
+  pointer-events: auto;
 }
