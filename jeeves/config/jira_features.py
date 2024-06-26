@@ -310,8 +310,18 @@ JIRA_FEATURES = {
         "Mega": {
             "Mega": ["app promo", "accelerator"],
         },
-        "Math": {
-            "Math": [],
+        "Math Infrastructure": {
+            "Math - Generated Sessions": ["math content", "math session", "content accelerator"],
+            "Math - Localization": [],
+        },
+        "Math Motivation": {
+            "Math - Match Madness": [],
+            "Math - Puzzles & Games": ["math puzzles", "math paths", "CashDashNavigationVC"],
+            "Math - Word Problems": ["word problems"],
+            "Math - Life Skills": ["math stories"],
+        },
+        "Math Skills": {
+            "Math": ["equations", "algebra", "ratios", "coordinate grid"],
         },
         "Music": {
             "Music": [],
