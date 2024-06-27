@@ -82,7 +82,13 @@ JIRA_FEATURES = {
                 "friend recommendation",
             ],
             "Friends": ["friend", "invite"],
-            "Friends on Path": ["friends in path"],
+            "Friends Clash": [
+                "clash",
+                "competition",
+                "friendzy",
+                "duel",
+                "battle",
+            ],
             "Friends Quest": [
                 "partner",
                 "nudge",
@@ -360,6 +366,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Friend Streak": "Issues related to streaks shared with a friend (not personal streak)",
     "Friends": "Issues with Friends page, following people, friend updates",
     "Friends Quest": "Issues with the Friends Quest",
+    "Friends Clash": "Issues with the Friends Clash",
     "General performance issues": "App crashes, 4xx/5xx errors, freezes, slowness, etc.",
     "Generated Sessions": "Problems within exercises such as missing tap tokens, broken buttons, etc. Not for content issues such as wrong translation.",
     "Grading issue": "Issues with answers not being accepted, wrong grading results",
