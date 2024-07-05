@@ -45,7 +45,7 @@ def auth_before_request():
         return None
     elif request.path == "/api/1/shake_to_report_tokens":
         return requires_auth(permission="unlock-skill-tree", prompt_login=False)(lambda: None)()
-    elif request.path.startswith("/api/1/shakira/"):
+    elif "shakira" in request.path:
         return requires_auth(permission="shake-to-report", prompt_login=False)(lambda: None)()
     else:
         return requires_auth(permission="access-jeeves", prompt_login=False)(lambda: None)()
