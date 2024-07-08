@@ -179,8 +179,8 @@ test_cases = [
         "Broken",
         "Leaderboard, League, League, League. Skill tree, home, home. Streak, streak. Kudos.",
         "",
-        ["Leaderboard", "Skill tree", "Streak"],
-        ["Stories", "Kudos", "Shake-to-report"],
+        ["Leaderboard", "Skill tree", "Streak", "Kudos"],
+        ["Stories", "Shake-to-report"],
     ),
     # empty strings.
     (
@@ -211,7 +211,7 @@ test_cases = [
         "",
         "Test",
         "some lines of text\nMEGA Information:\n- Mega course: math\n\nother stuff: things",
-        ["Mega", "Music", "Math"],
+        ["Math - Generated Sessions", "Math - Localization", "Math"],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
     # mega feature is detected with iOS generated description.
@@ -219,7 +219,7 @@ test_cases = [
         "",
         "Test",
         "*System Information*:\n*app version*: 6.213.0.4\n*MEGA Information*:\n- *Mega course*: math\n\nother stuff: things",
-        ["Mega", "Music", "Math"],
+        ["Math - Generated Sessions", "Math - Localization", "Math"],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
 ]
@@ -233,8 +233,16 @@ test_cases = [
     mock_substrings_to_ignore_by_term,
 )
 @patch(
-    "jeeves.manager.jira_feature_manager._MEGA_FEATURES",
-    ["Mega", "Music", "Math"],
+    "jeeves.manager.jira_feature_manager._MATH_FEATURES",
+    [
+        "Math - Generated Sessions",
+        "Math - Localization",
+        "Math",
+    ],
+)
+@patch(
+    "jeeves.manager.jira_feature_manager._MUSIC_FEATURES",
+    ["Music"],
 )
 def test_get_suggested_features(
     summary, description, generated_description, expected_suggestions, expected_others
@@ -251,8 +259,8 @@ def test_get_suggested_features(
     )
 
     case = unittest.TestCase()
-    case.assertEqual(expected_suggestions, actual_result["suggested_features"])
-    case.assertCountEqual(expected_others, actual_result["other_features"])
+    case.assertEqual(sorted(expected_suggestions), sorted(actual_result["suggested_features"]))
+    case.assertCountEqual(sorted(expected_others), sorted(actual_result["other_features"]))
     case.assertEqual(mock_jira_features_descriptions, actual_result["feature_to_description"])
 
 

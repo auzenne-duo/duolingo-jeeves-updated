@@ -1,4 +1,5 @@
 import operator
+import random
 from collections import Counter
 from typing import Dict, List, Optional, Union
 
@@ -42,7 +43,21 @@ _SUBSTRINGS_TO_IGNORE_BY_TERM = {
     "USERNAME": ["USERNAME: "],
 }
 
-_MEGA_FEATURES = ["Mega", "Music", "Math"]
+# Note math and music will have more than 5 features because we include the math and music features as well as the
+# top suggested features for each. We limit the number of extra features to 2.
+SUGGESTED_FEATURES_LIMIT = 5
+EXTRA_SUGGESTED_FEATURES_LIMIT = 2
+
+_MATH_FEATURES = [
+    "Math - Generated Sessions",
+    "Math - Localization",
+    "Math - Match Madness",
+    "Math - Puzzles & Games",
+    "Math - Word Problems",
+    "Math - Life Skills",
+    "Math",
+]
+_MUSIC_FEATURES = ["Music"]
 
 
 @registry.bind(
@@ -201,11 +216,11 @@ class JiraFeatureManager:
         if generated_description:
             # Remove asterisks from generated description. iOS STR includes them, but they interfere with extracting metadata
             _, duolingo_metadata = extract_duolingo_metadata(generated_description.replace("*", ""))
-            if duolingo_metadata.get("mega_information", {}).get("mega_course", None) in [
-                "math",
-                "music",
-            ]:
-                suggested_features.extend(_MEGA_FEATURES)
+            mega_course = duolingo_metadata.get("mega_information", {}).get("mega_course", None)
+            if mega_course == "math":
+                suggested_features.extend(_MATH_FEATURES)
+            elif mega_course == "music":
+                suggested_features.extend(_MUSIC_FEATURES)
 
         for session_end_screen_label in ["Session end screen name: ", "Session End Screen Name: "]:
             if generated_description and session_end_screen_label in generated_description:
@@ -217,25 +232,23 @@ class JiraFeatureManager:
                 if screen_name in self._session_end_screen_to_feature:
                     suggested_features.append(self._session_end_screen_to_feature[screen_name])
 
-        if not suggested_features:
-            search_text_uppercase = summary.upper()
-            if description:
-                search_text_uppercase = search_text_uppercase + "\n" + description.upper()
-            if generated_description:
-                search_text_uppercase = search_text_uppercase + "\n" + generated_description.upper()
+        text_suggested_features = []
+        search_text_uppercase = summary.upper()
+        if description:
+            search_text_uppercase = search_text_uppercase + "\n" + description.upper()
+        if generated_description:
+            search_text_uppercase = search_text_uppercase + "\n" + generated_description.upper()
 
-            feature_count = Counter()
-            # Note: this counts substrings that are parts of words
-            for term, feature in self._uppercase_term_to_feature.items():
-                search_text_uppercase_clean = search_text_uppercase
-                substrings_to_ignore = _SUBSTRINGS_TO_IGNORE_BY_TERM.get(term)
-                if substrings_to_ignore is not None and len(substrings_to_ignore) > 0:
-                    for substring in substrings_to_ignore:
-                        search_text_uppercase_clean = search_text_uppercase_clean.replace(
-                            substring, ""
-                        )
+        feature_count = Counter()
+        # Note: this counts substrings that are parts of words
+        for term, feature in self._uppercase_term_to_feature.items():
+            search_text_uppercase_clean = search_text_uppercase
+            substrings_to_ignore = _SUBSTRINGS_TO_IGNORE_BY_TERM.get(term)
+            if substrings_to_ignore is not None and len(substrings_to_ignore) > 0:
+                for substring in substrings_to_ignore:
+                    search_text_uppercase_clean = search_text_uppercase_clean.replace(substring, "")
 
-                feature_count[feature] += search_text_uppercase_clean.count(term)
+            feature_count[feature] += search_text_uppercase_clean.count(term)
 
             sorted_features_to_counts = sorted(
                 feature_count.items(), key=operator.itemgetter(1), reverse=True
@@ -246,7 +259,14 @@ class JiraFeatureManager:
                 for (feature, count) in sorted_features_to_counts
                 if count > 0 and feature in valid_features
             ]
-            suggested_features = sorted_and_filtered_features[:3]
+            text_suggested_features = sorted_and_filtered_features[:SUGGESTED_FEATURES_LIMIT]
+
+        if len(suggested_features) == 0:
+            suggested_features = text_suggested_features
+        else:
+            suggested_features.extend(text_suggested_features[:EXTRA_SUGGESTED_FEATURES_LIMIT])
+        random.shuffle(suggested_features)
+
         other_features = [
             feature for feature in valid_features if feature not in suggested_features
         ]
