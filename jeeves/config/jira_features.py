@@ -294,7 +294,6 @@ JIRA_FEATURES = {
         "Mochi": {
             "Explain my Answer": ["EMA", "explanation"],
             "Lesson Coach": ["Coach"],
-            "On-call tips": ["OCT"],
             "Mistakes Inbox": [],
             "Practice Hub": [],
             "Family Plan": [],
@@ -461,7 +460,6 @@ DEBUG_TYPE_TO_FEATURES = {
     "Max features": [
         "Explain my Answer",
         "Lesson Coach",
-        "On-call tips",
         "Role Play",
     ]
 }
