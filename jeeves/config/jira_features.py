@@ -286,7 +286,6 @@ JIRA_FEATURES = {
             "Hearts / Unlimited Hearts": [
                 "heart",
             ],
-            "Magic Chests": ["chest game", "treasure chests", "pick a chest"],
             "Match madness": [],
             "Shop items": [],
             "Side Quests": ["side quest"],
