@@ -131,6 +131,7 @@ JIRA_FEATURES = {
                 "streak partner",
                 "streak friend",
                 "title: Streak",
+                "FriendStreak",
             ],
             "Lesson complete session end": ["complete"],
             "Streak": ["streak challenge", "vip", "society"],
