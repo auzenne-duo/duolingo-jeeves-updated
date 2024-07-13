@@ -265,6 +265,7 @@ class JiraFeatureManager:
             suggested_features = text_suggested_features
         else:
             suggested_features.extend(text_suggested_features[:EXTRA_SUGGESTED_FEATURES_LIMIT])
+        suggested_features = list(set(suggested_features))  # Remove duplicates
         random.shuffle(suggested_features)
 
         other_features = [
