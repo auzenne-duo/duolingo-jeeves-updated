@@ -11,6 +11,7 @@
         "hardLimit": 65535
     }],
     "environment": ${environment_vars},
+    "secrets": ${secrets},
     "command": ["python","./jeeves/scripts/index_pipeline_and_spike_detector/sqs_verify_worker.py"],
     "logConfiguration": {
       "logDriver": "awslogs",

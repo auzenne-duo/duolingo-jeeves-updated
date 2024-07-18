@@ -1,7 +1,7 @@
 """
 Manager for Zendesk documents.
 """
-
+import base64
 import json
 import os
 import time
@@ -21,7 +21,7 @@ from jeeves.util.error_util import print_request_exception
 from jeeves.util.sleep_check import sleep_check
 
 _USER = os.environ.get("ZENDESK_USER")
-_PASSWORD = os.environ.get("ZENDESK_PASSWORD")
+_ZENDESK_API_TOKEN = os.environ.get("ZENDESK_API_TOKEN")
 
 
 class ZendeskManager(JeevesManager):
@@ -56,7 +56,9 @@ class ZendeskManager(JeevesManager):
         urls = []
 
         with Session() as s:
-            s.auth = (_USER, _PASSWORD)
+            auth_str = f"{_USER}/token:{_ZENDESK_API_TOKEN}"
+            b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+            s.headers.update({"Authorization": f"Basic {b64_auth_str}"})
             while True:
                 sleep_check()
                 if len(urls) > 0:

@@ -1,6 +1,7 @@
 """
 Our model for a ticket from the Zendesk API
 """
+import base64
 import json
 import os
 import re
@@ -29,7 +30,7 @@ from jeeves.util.date_util import parse_external_datetime
 from jeeves.util.metadata_standardizer import MetaStdizer
 
 _USER = os.environ.get("ZENDESK_REPORTS_USER")
-_PASSWORD = os.environ.get("ZENDESK_REPORTS_PASSWORD")
+_ZENDESK_API_TOKEN = os.environ.get("ZENDESK_API_TOKEN")
 CONTRACTOR_EMAIL_DOMAIN = "@duolingocontractors.com"
 
 
@@ -101,7 +102,9 @@ class ZendeskDocument(JeevesDocument):
         email = None
         if channel == "web" or channel == "api":
             with Session() as s:
-                s.auth = (_USER, _PASSWORD)
+                auth_str = f"{_USER}/token:{_ZENDESK_API_TOKEN}"
+                b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+                s.headers.update({"Authorization": f"Basic {b64_auth_str}"})
                 user_url = f"https://duolingotest.zendesk.com/api/v2/users/{external_json['requester_id']}.json"
                 r = ZendeskDocument.rate_limited_get(s, user_url)
                 j = json.loads(r.text)
@@ -125,7 +128,9 @@ class ZendeskDocument(JeevesDocument):
         for attachment_link in external_json["attachments"]:
             if experiment_conditions_pattern.match(attachment_link):
                 with Session() as s:
-                    s.auth = (_USER, _PASSWORD)
+                    auth_str = f"{_USER}/token:{_ZENDESK_API_TOKEN}"
+                    b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+                    s.headers.update({"Authorization": f"Basic {b64_auth_str}"})
                     r = ZendeskDocument.rate_limited_get(s, attachment_link)
                     contents = r.text
                     for condition in re.findall("[a-zA-Z\d_]+: [a-zA-Z\d_]+", contents):

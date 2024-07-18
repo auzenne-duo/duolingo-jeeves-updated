@@ -151,6 +151,10 @@ module "duolingo-jeeves-s3-worker" {
     {
       name  = "REDDIT_PASSWORD"
       value = "REDDIT_PASSWORD/000000"
+    },
+    {
+      name  = "ZENDESK_API_TOKEN"
+      value = "zendesk_api_token/000000"
     }
   ]
 
@@ -162,10 +166,6 @@ module "duolingo-jeeves-s3-worker" {
     {
       name  = "ZENDESK_USER"
       value = "jeeves-automation@duolingo.com"
-    },
-    {
-      name  = "ZENDESK_PASSWORD"
-      value = data.aws_kms_secrets.secrets.plaintext["zendesk_password"]
     },
     {
       name  = "JIRA_USERNAME"
@@ -264,6 +264,13 @@ module "duolingo-jeeves-sqs-worker-1" {
   container_definition = "sqs-worker-1.json"
   release_version      = var.release_version
 
+  secrets = [
+    {
+      name  = "ZENDESK_API_TOKEN"
+      value = "zendesk_api_token/000000"
+    }
+  ]
+
   environment_vars = [
     {
       name  = "PYTHONPATH"
@@ -280,10 +287,6 @@ module "duolingo-jeeves-sqs-worker-1" {
     {
       name  = "ZENDESK_REPORTS_USER"
       value = "reports@duolingo.com"
-    },
-    {
-      name  = "ZENDESK_REPORTS_PASSWORD"
-      value = data.aws_kms_secrets.secrets.plaintext["zendesk_reports_password"]
     },
     {
       name  = "SENTRY_DSN"
