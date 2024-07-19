@@ -100,6 +100,23 @@ class JiraDocument(JeevesDocument):
         # Rich Text Type, so I can save on typing
         rtt = rich_text["type"]
 
+        # Check to verify that content is in rtt for the types that require it
+        if (
+            rtt
+            in {
+                "doc",
+                "paragraph",
+                "bulletList",
+                "orderedList",
+                "listItem",
+                "mediaGroup",
+                "mediaSingle",
+            }
+            and "content" not in rich_text
+        ):
+            print(f"No content in rich text {rich_text}. Skipping.")
+            return ""
+
         if rtt == "doc":
             return "\n".join([cls._compress_rich_text(node) for node in rich_text["content"]])
 
