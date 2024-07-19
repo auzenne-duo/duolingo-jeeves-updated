@@ -30,7 +30,7 @@ DATA_SOURCES_MAX_EXPECTED_AGE = {
     "Zendesk": timedelta(days=2),
 }
 
-SPIKE_WORD_MAX_AGE = timedelta(days=1)
+SPIKE_WORD_MAX_AGE = timedelta(days=2)
 
 
 def get_latest_document(data_source: str) -> None:
