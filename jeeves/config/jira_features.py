@@ -270,6 +270,9 @@ JIRA_FEATURES = {
                 "Did not receive XP",
             ],
         },
+        "Generated Translations": {
+            "Translation Issue": [],
+        },
     },
     "Monetization": {
         "Subscription Packaging": {
