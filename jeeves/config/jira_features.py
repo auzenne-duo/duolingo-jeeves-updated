@@ -101,7 +101,6 @@ JIRA_FEATURES = {
         },
         "Onboarding": {
             "Onboarding": ["new user", "on boarding", "funboarding"],
-            "Placement Test": [],
             "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
         },
         "Resurrection": {
@@ -253,11 +252,12 @@ JIRA_FEATURES = {
             "DuoRadio": [],
             "Adventures": [],
         },
-        "Experimental AI": {
-            "Facetime": [],
+        "AI Speaking": {
+            "Video Call": ["facetime"],
         },
-        "Mobile Language Test": {
-            "Mobile Language Test": [],
+        "B1/B2 English Success Team": {
+            "SMEC": ["Intermediate English"],
+            "Placement test": [],
         },
     },
     "Learning Scaling": {
