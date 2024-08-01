@@ -3,10 +3,12 @@ jobs:
   - name: "duolingo-jeeves"
     description: |
       Jenkins Job for Continuous Deployment
-    node: "ec2-jenkins-deployment-docker-cache-testing"
+    jenkins_cluster: "deployment-jenkins"
+    node: "ec2-jenkins-deployment-2023"
     push: true
     timeout: 120
     command: "bash -ex jenkins-build.sh prod"
+    dockerize_command: false
     slack:
       notify_aborted: true
       notify_back_to_normal: true
@@ -17,17 +19,20 @@ jobs:
   - name: "duolingo-jeeves-health"
     description: |
       Jenkins Job for checking CI Health
+    jenkins_cluster: "pr-jenkins"
     node: "ec2-jenkins-worker"
     days_to_keep: 15
     cron: "@weekly"
     timeout: 60
     command: "bash -ex jenkins-build.sh"
+    dockerize_command: false
     junit: "results.xml"
     cobertura: "cobertura.xml"
     record_coverage: true
   - name: "duolingo-jeeves-pr"
     description: |
       Jenkins Job for Continuous Integration
+    jenkins_cluster: "pr-jenkins"
     node: "ec2-jenkins-worker"
     concurrent_builds: true
     branch: "${sha1}"
@@ -36,6 +41,7 @@ jobs:
     trigger_phrase: "trigger ci"
     timeout: 60
     command: "bash -ex jenkins-build.sh"
+    dockerize_command: false
     junit: "results.xml"
     cobertura: "cobertura.xml"
     compare_coverage: true
@@ -43,7 +49,8 @@ jobs:
       ${ghprbActualCommitAuthorEmail}
   - name: "duolingo-jeeves-quick-deploy"
     description: ""
-    node: "ec2-jenkins-deployment-docker-cache-testing"
+    jenkins_cluster: "deployment-jenkins"
+    node: "ec2-jenkins-deployment-2023"
     log_rotator:
       days_to_keep: 60
     rebuild_settings:
@@ -94,6 +101,7 @@ jobs:
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_S3_WORKER" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
       echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE_WORKER_CRON" -v "$LAST_SUCCESS" -p "$TERRAFORM_PATH"
+    dockerize_command: false
   - name: "duolingo-jeeves-monitor-and-alarm"
     description: |-
       Pipeline that runs periodically to ensure Jeeves has up-to-date Opensearch documents.
@@ -170,7 +178,8 @@ jobs:
       Manually trigger this job to deploy to the `dev` Galaxy environment.
       <br>
       https://duolingo.atlassian.net/browse/OPS-15408
-    node: "ec2-jenkins-deployment-docker-cache-testing"
+    jenkins_cluster: "deployment-jenkins"
+    node: "ec2-jenkins-deployment-2023"
     log_rotator:
       days_to_keep: 60
     rebuild_settings:
