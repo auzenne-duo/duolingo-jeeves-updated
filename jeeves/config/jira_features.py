@@ -255,7 +255,7 @@ JIRA_FEATURES = {
         "AI Speaking": {
             "Video Call": ["facetime"],
         },
-        "B1/B2 English Success Team": {
+        "B1 B2 English Success Team": {
             "SMEC": ["Intermediate English"],
             "Placement test": [],
         },
