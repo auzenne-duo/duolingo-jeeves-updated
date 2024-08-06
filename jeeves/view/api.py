@@ -68,7 +68,7 @@ def get_query_params():
 
 
 @blueprint_api.route("/api/1/<lang>/tickets", methods=["GET"])
-def manage_tickets(lang):
+def manage_tickets(lang: str) -> Response:
     # TODO: implement `start_time` restriction instead of `page`
     # start_time = request.args.get('start_time')
 
@@ -137,7 +137,7 @@ def manage_tickets(lang):
 
 
 @blueprint_api.route("/api/1/<lang>/time_series")
-def get_time_series_data(lang):
+def get_time_series_data(lang: str) -> Response:
     if not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
     word = request.args.get("word")
@@ -172,10 +172,8 @@ def get_time_series_data(lang):
 
 
 @blueprint_api.route("/api/1/<lang>/spikes")
-def get_spike_data(lang):
-    if lang == "ALL":
-        lang = None
-    elif not _is_language_supported(lang):
+def get_spike_data(lang: str) -> Response:
+    if not _is_language_supported(lang):
         abort(make_response("Requested language not supported", 400))
 
     # I could only get around this call with an ugly conditional statement.
@@ -279,7 +277,7 @@ def send_beta_emails():
 
 
 @blueprint_api.route("/api/1/<lang>/spike_stats")
-def get_spike_stats(lang):
+def get_spike_stats(lang: str) -> Response:
     min_max_possible_dates = app_registry(SpikeIndexDAL).get_min_and_max_spike_dates()
     start_date = request.args.get("start_date", min_max_possible_dates["min"])
     end_date = request.args.get("end_date", min_max_possible_dates["max"])
@@ -911,5 +909,5 @@ def _get_status(lang):
     }
 
 
-def _is_language_supported(lang):
-    return lang in [lang_name for lang_name, _ in SUPPORTED_LANGUAGES.__members__.items()]
+def _is_language_supported(lang: str) -> bool:
+    return lang.lower() in [lang_name for lang_name, _ in SUPPORTED_LANGUAGES.__members__.items()]

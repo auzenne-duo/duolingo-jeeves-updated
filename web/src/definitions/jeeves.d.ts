@@ -148,6 +148,7 @@ declare namespace JSONAPI {
   }
 
   type LanguageId =
+    | "all"
     | "de"
     | "fr"
     | "en"

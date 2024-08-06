@@ -2,6 +2,7 @@ import * as React from "react";
 import { Select } from "web-ui";
 
 const LANGUAGES: Record<JSONAPI.LanguageId, string> = {
+  all: "ALL",
   de: "German",
   en: "English",
   es: "Spanish",

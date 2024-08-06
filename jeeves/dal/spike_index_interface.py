@@ -10,9 +10,9 @@ from opensearch_dsl import Mapping, Search
 from opensearchpy import OpenSearch
 from opensearchpy.helpers import bulk
 
-from jeeves.model.custom_types import JSON
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import date_to_str, str_to_date
 from jeeves.util.error_util import SearchUnsuccessfulException
 
@@ -143,7 +143,7 @@ class SpikeIndexDAL:
 
     def calculate_spike_stats(
         self,
-        lang: str,
+        lang: Optional[str],
         spike_category: SpikeCategory,
         spike_threshold: int = 3,
         start_date: Optional[str] = None,
@@ -198,13 +198,14 @@ class SpikeIndexDAL:
             }
         }
 
-        query = {
-            "bool": {
-                "filter": [{"term": {"lang": lang}}, {"term": {"spike_group": spike_category}}]
-            }
-        }
+        filters = [{"term": {"spike_group": spike_category}}]
+        if lang and not SUPPORTED_LANGUAGES.is_all(lang):
+            filters.append({"term": {"lang": lang}})
+
         if timestamp_dict:
-            query["bool"]["filter"].append({"range": {"date": timestamp_dict}})
+            filters.append({"range": {"date": timestamp_dict}})
+
+        query = {"bool": {"filter": filters}}
 
         response = self._es.search(index=self._spikename, body={"aggs": agg_spec, "query": query})
         confirm_and_total_count = []
@@ -222,14 +223,14 @@ class SpikeIndexDAL:
             )
 
         snow_stemmer = SnowballStemmer(language="english")
-        s = (
-            Search(using=self._es, index=self._spikename)
-            .filter("term", lang=lang)
-            .filter("term", spike_group=spike_category)
-        )
+        s = Search(using=self._es, index=self._spikename).filter("term", spike_group=spike_category)
+
+        if lang and not SUPPORTED_LANGUAGES.is_all(lang):
+            s = s.filter("term", lang=lang)
 
         if timestamp_dict:
             s = s.filter("range", date=timestamp_dict)
+
         word_to_dates = defaultdict(lambda: {"dates": [], "words": set()})
         for res in s.scan():
             stem = snow_stemmer.stem(res.word)
@@ -364,7 +365,7 @@ class SpikeIndexDAL:
             .sort("-score")
         )
 
-        if lang:
+        if lang and not SUPPORTED_LANGUAGES.is_all(lang):
             s = s.filter("term", lang=lang)
 
         timestamp_dict = {}

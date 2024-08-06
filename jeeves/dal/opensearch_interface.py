@@ -37,6 +37,7 @@ from jeeves.model.jira_document import JiraDocument
 from jeeves.model.matching_document import MatchingDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory as STRC
 from jeeves.model.spike_categories import SpikeCategory
+from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import (
     date_to_str,
     datetime_to_str,
@@ -229,7 +230,7 @@ class OpenSearchDAL:
 
     def get_recent_paginated_tickets(
         self,
-        lang: str,
+        lang: Optional[str],
         word: str,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
@@ -299,11 +300,10 @@ class OpenSearchDAL:
             if end_time:
                 timestamp_dict.update({"lte": end_time.date()})
 
-            s = (
-                s.filter("range", date_time=timestamp_dict)
-                .filter("term", language=lang)
-                .sort("-date_time")
-            )
+            s = s.filter("range", date_time=timestamp_dict).sort("-date_time")
+
+            if lang and not SUPPORTED_LANGUAGES.is_all(lang):
+                s = s.filter("term", language=lang)
 
             if word:
                 if lang == "en" and use_lemmas:
@@ -381,11 +381,12 @@ class OpenSearchDAL:
             date and an int representing a count of how many times the input
             term appeared on that date.
         """
-        s = (
-            Search(using=self._es, index=self._indexname)
-            .filter("term", language=lang)
-            .query("bool", must_not=[Q({"match": {"labels": JIRA_VIA_JEEVES_LABEL}})])
+        s = Search(using=self._es, index=self._indexname).query(
+            "bool", must_not=[Q({"match": {"labels": JIRA_VIA_JEEVES_LABEL}})]
         )
+
+        if lang and not SUPPORTED_LANGUAGES.is_all(lang):
+            s = s.filter("term", language=lang)
 
         if lang == "en" and use_lemmas:
             s = s.filter("term", lemmatized_terms=word)
@@ -578,7 +579,7 @@ class OpenSearchDAL:
             there were no tickets in OpenSearch.
         """
         s = Search(using=self._es, index=self._indexname).query("match_all")
-        if lang:
+        if lang and not SUPPORTED_LANGUAGES.is_all(lang):
             s = s.filter("term", language=lang)
         if data_source:
             s = s.filter("term", data_source=data_source)

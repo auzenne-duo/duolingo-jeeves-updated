@@ -8,6 +8,8 @@ from enum import Enum, auto
 class SUPPORTED_LANGUAGES(Enum):
     """Duolingo Jeeves supported languages"""
 
+    all = auto()  # All languages
+
     en = auto()  # English
     es = auto()  # Spanish
     de = auto()  # German
@@ -32,6 +34,19 @@ class SUPPORTED_LANGUAGES(Enum):
         that start with single underscores so I can't give it a private name.
         """
         return cls.xx.name
+
+    @classmethod
+    def is_all(cls, lang: str) -> bool:
+        """
+        Checks if a language is the "all" language category.
+
+        Parameters:
+            lang: The requested language code
+
+        Returns:
+            True if the language is the "all" language category, False otherwise.
+        """
+        return lang.lower() == cls.all.name
 
     @classmethod
     def filter_misc_languages(cls, lang: str) -> str:
