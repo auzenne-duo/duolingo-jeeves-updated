@@ -178,6 +178,7 @@ jobs:
       Manually trigger this job to deploy to the `dev` Galaxy environment.
       <br>
       https://duolingo.atlassian.net/browse/OPS-15408
+    dockerize_command: false
     jenkins_cluster: "deployment-jenkins"
     node: "ec2-jenkins-deployment-2023"
     log_rotator:
