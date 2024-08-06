@@ -99,14 +99,13 @@ JIRA_FEATURES = {
             "Profile Completion": [],
             "User Search": [],
         },
-        "Onboarding": {
+        "Reonboarding": {
             "Onboarding": ["new user", "on boarding", "funboarding"],
             "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
-        },
-        "Resurrection": {
-            "Resurrected user experiences": ["surr", "resurrected", "reactivated"],
             "Registration": ["sign up"],
             "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
+            "Resurrected user experiences": ["surr", "resurrected"],
+            "Reonboarding": ["old user", "re onboarding", "reonboard"],
             "Year in Review": [],
         },
         "Reengagement": {
