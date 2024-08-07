@@ -43,6 +43,7 @@ JIRA_FEATURES = {
                 "arm",
                 "leg",
             ],
+            "Rive": [],
         },
         "Design Systems": {
             "Progress Bar": [],
