@@ -146,6 +146,9 @@ def detect_spikes(dry_run: bool, target_date: Optional[date] = None) -> None:
     _PAGE_SIZE = 10 if target_date is not None else 100
 
     for lang in SUPPORTED_LANGUAGES.__members__:
+        if SUPPORTED_LANGUAGES.is_all(lang):
+            continue
+
         doc_batch = []
         sort_id = None
         count = 0
