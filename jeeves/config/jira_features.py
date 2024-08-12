@@ -378,7 +378,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Layout Issues: Romaji/Furigana/Pinyin": "Issues with transliterations in the challenge",
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
-    "Live Activities": "Problems with live activities on lock screen having bad UI, not starting, lasting too long, deeplinking wrong, etc",
+    "Live Activities": "Problems with live activities on lock screen having bad UI, not starting, lasting too long, deeplinking wrong, etc. Not for general session-related issues.",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Challenge": "Bugs with the monthly challenge",
     "Other": "Please try to use a specific feature if possible.",
