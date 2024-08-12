@@ -283,7 +283,7 @@ JIRA_FEATURES = {
             "Duo on Path": [],
         },
         "In-App Purchases (Poseidon)": {
-            "In-app purchases": ["shop"],
+            "In-app purchases": ["shop", "league repair", "refill", "timer boost", "row blaster"],
             "Ramp-up challenge": ["ramp up", "ramp-up"],
             "Gems / Lingots": ["gem", "lingot"],
             "Hard mode": [],
@@ -376,7 +376,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Guidebook": "Bugs on a guidebook page",
     "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
     "Hard mode": "Problems with hard mode lessons specifically",
-    "In-app purchases": "Problems with purchasing gems, row blaster, timer boosts, etc.",
+    "In-app purchases": "Problems with items purchased with gems (row blaster, timer boosts, xp boost refills, league repairs, etc.)",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
     "Layout Issues: Romaji/Furigana/Pinyin": "Issues with transliterations in the challenge",
     "Legendary": "Bugs with loading or doing legendary lessons",
