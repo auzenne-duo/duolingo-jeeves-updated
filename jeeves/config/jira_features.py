@@ -296,11 +296,9 @@ JIRA_FEATURES = {
         },
         "Mochi": {
             "Explain my Answer": ["EMA", "explanation"],
-            "Lesson Coach": ["Coach"],
             "Mistakes Inbox": [],
             "Practice Hub": [],
             "Family Plan": [],
-            "Family Quest": [],
             "Words List": ["Word list"],
             "Legendary": ["Legendarize"],
         },
@@ -363,7 +361,6 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Early Bird / Night Owl Chests": "Issues with the Early Bird or Night Owl chest rewards",
     "Explain my Answer": "Issues with the Explain my Answer tutor",
     "Family plan": "Problems with the family plan (any tier)",
-    "Family Quest": "Issues with the Family Quest",
     "Feed Tab": "Issues on the Feed page such as Kudos, nudges, gifting",
     "Friend Streak": "Issues related to streaks shared with a friend (not personal streak)",
     "Friends": "Issues with Friends page, following people, friend updates",
@@ -462,7 +459,6 @@ TEAM_TO_FEATURES = {
 DEBUG_TYPE_TO_FEATURES = {
     "Max features": [
         "Explain my Answer",
-        "Lesson Coach",
         "Role Play",
     ]
 }
