@@ -1,5 +1,6 @@
 import operator
 import re
+from typing import Any, Tuple
 
 from jeeves.dal.config.metadata import Config
 
@@ -27,7 +28,7 @@ _MDATA_REGEXES = {
 }
 
 
-def parse_metadata(txt):
+def parse_metadata(txt: str) -> Tuple[str, Any]:
     """
     Cuts and parses plaintext metadata out of string
 
