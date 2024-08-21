@@ -24,7 +24,7 @@ class SpikeIndexDAL:
         host = _config.get_nested(["opensearch", "host"])
         port = int(_config.get_nested(["opensearch", "port"]))
 
-        self._es = OpenSearch([host], port=port)
+        self._opensearch = OpenSearch([host], port=port)
 
         self._spikename = (
             f"jeeves_spikes_v_{_config.get_nested(['opensearch', 'data_version_identifier'])}"
@@ -35,14 +35,14 @@ class SpikeIndexDAL:
         Initialize OpenSearch index
         Should only be called once, during server startup
         """
-        if not self._es.indices.exists(index=self._spikename):
+        if not self._opensearch.indices.exists(index=self._spikename):
             print(f"Creating index {self._spikename}...", flush=True)
-            self._es.indices.create(index=self._spikename)
+            self._opensearch.indices.create(index=self._spikename)
 
             m = Mapping()
             m.field("lang", "keyword")
             m.field("spike_group", "keyword")
-            m.save(self._spikename, using=self._es)
+            m.save(self._spikename, using=self._opensearch)
             rollbar.report_message(f"Created index {self._spikename} with new mappings", "info")
 
     def bulk_index_spikes(self, spikes: List[SpikeWord]) -> None:
@@ -68,7 +68,9 @@ class SpikeIndexDAL:
             }
             for spike in spikes
         ]
-        (_, errors) = bulk(self._es, bulk_actions, raise_on_error=False, raise_on_exception=False)
+        (_, errors) = bulk(
+            self._opensearch, bulk_actions, raise_on_error=False, raise_on_exception=False
+        )
         if errors:
             error_message = (
                 f"Encountered {len(errors)} error{'' if len(errors) == 1 else 's'} "
@@ -86,7 +88,7 @@ class SpikeIndexDAL:
             spike_id: id string corresponding to a SpikeWord document
             user_id: number of a user's id
         """
-        response = self._es.update(  # pylint: disable=E1123
+        response = self._opensearch.update(  # pylint: disable=E1123
             index=self._spikename,
             id=spike_id,
             body={"doc": settings},
@@ -207,7 +209,9 @@ class SpikeIndexDAL:
 
         query = {"bool": {"filter": filters}}
 
-        response = self._es.search(index=self._spikename, body={"aggs": agg_spec, "query": query})
+        response = self._opensearch.search(
+            index=self._spikename, body={"aggs": agg_spec, "query": query}
+        )
         confirm_and_total_count = []
         for month_bucket in response["aggregations"]["spikes_by_month"]["buckets"]:
             num_confirmed = 0
@@ -223,7 +227,9 @@ class SpikeIndexDAL:
             )
 
         snow_stemmer = SnowballStemmer(language="english")
-        s = Search(using=self._es, index=self._spikename).filter("term", spike_group=spike_category)
+        s = Search(using=self._opensearch, index=self._spikename).filter(
+            "term", spike_group=spike_category
+        )
 
         if lang and not SUPPORTED_LANGUAGES.is_all(lang):
             s = s.filter("term", lang=lang)
@@ -282,7 +288,7 @@ class SpikeIndexDAL:
         This is just the same method as get_min_and_max_document_dates, but for
         spikes instead of documents.
         """
-        s = Search(using=self._es, index=self._spikename)
+        s = Search(using=self._opensearch, index=self._spikename)
         s.aggs.metric("min_date", "min", field="date", format="yyyy-MM-dd")
         s.aggs.metric("max_date", "max", field="date", format="yyyy-MM-dd")
 
@@ -360,7 +366,7 @@ class SpikeIndexDAL:
             format. Results are unsorted.
         """
         s = (
-            Search(using=self._es, index=self._spikename)
+            Search(using=self._opensearch, index=self._spikename)
             .filter("term", spike_group=spike_group)
             .sort("-score")
         )
@@ -401,7 +407,7 @@ class SpikeIndexDAL:
         Returns:
             A list of spike words that match the query criteria
         """
-        s = Search(using=self._es, index=self._spikename)
+        s = Search(using=self._opensearch, index=self._spikename)
         s = s.update_from_dict(jsn)
         response = s.execute()
         if not response.success():
@@ -414,7 +420,7 @@ class SpikeIndexDAL:
             return spike_results
 
     def get_spike_by_id(self, spike_id: str) -> SpikeWord:
-        s = Search(using=self._es, index=self._spikename).filter("term", _id=spike_id)
+        s = Search(using=self._opensearch, index=self._spikename).filter("term", _id=spike_id)
 
         response = s.execute()
         if response:

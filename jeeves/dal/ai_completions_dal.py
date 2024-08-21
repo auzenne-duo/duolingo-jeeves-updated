@@ -37,7 +37,6 @@ _EMBEDDING_MODEL = "text-embedding-ada-002"
 
 _CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions"
 _CHAT_COMPLETIONS_MODEL = "gpt-dv-duo"
-_CHAT_COMPLETIONS_JSON_MODEL_PREVIEW = "gpt-4-1106-preview"
 _BATCH_CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions-batch"
 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE = "/1/ai-completions/chat-completion-statuses"
 
@@ -57,7 +56,7 @@ class AICompletionsDAL:
         top_p: float = 1.0,
         use_json_mode: bool = False,
     ):
-        model = _CHAT_COMPLETIONS_JSON_MODEL_PREVIEW if use_json_mode else _CHAT_COMPLETIONS_MODEL
+        model = _CHAT_COMPLETIONS_MODEL
         body = {
             "messages": [
                 {"role": "system", "content": system_prompt},

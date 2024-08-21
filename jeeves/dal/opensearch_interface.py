@@ -53,7 +53,7 @@ _config = Config.load_config()
 LOG = logging.getLogger(__name__)
 
 # Default limit of 1000 must be increased to provide enough space for ~500 experiment conditions
-_MAX_FIELDS_LIMIT = 4000
+_MAX_FIELDS_LIMIT = 8000
 # If we ever change the duplicate detection model, make sure this value is
 # updated appropriately
 _SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
@@ -65,7 +65,7 @@ class OpenSearchDAL:
         host = _config.get_nested(["opensearch", "host"])
         port = int(_config.get_nested(["opensearch", "port"]))
 
-        self._es = OpenSearch([host], port=port)
+        self._opensearch = OpenSearch([host], port=port)
 
         self._indexname = (
             f"jeeves_tickets_v_{_config.get_nested(['opensearch', 'data_version_identifier'])}"
@@ -81,7 +81,7 @@ class OpenSearchDAL:
         Initialize OpenSearch index
         Should only be called once, during server startup
         """
-        if not self._es.indices.exists(index=self._indexname):
+        if not self._opensearch.indices.exists(index=self._indexname):
             print(f"Creating index {self._indexname}...", flush=True)
 
             # We need to explicitly set these types because OpenSearch will
@@ -128,7 +128,7 @@ class OpenSearchDAL:
                 "settings": settings_dict,
             }
 
-            self._es.indices.create(index=self._indexname, body=index_creation_structure)
+            self._opensearch.indices.create(index=self._indexname, body=index_creation_structure)
             message = f"Created index {self._indexname} with new mappings"
             print(message, flush=True)
             rollbar.report_message(message, "info")
@@ -189,11 +189,11 @@ class OpenSearchDAL:
         Returns:
             A list of documents that match the query criteria
         """
-        s = Search(using=self._es, index=self._indexname)
+        s = Search(using=self._opensearch, index=self._indexname)
         s = s.update_from_dict(jsn)
         return self._execute_search_for_documents(s)
 
-    def _handle_es_request_errors(self, e: RequestError) -> JSON:
+    def _handle_opensearch_request_errors(self, e: RequestError) -> JSON:
         """
         Interprets and gives response values for RequestErrors returned by
         OpenSearch. Currently, this is only expected to happen for malformed
@@ -288,7 +288,7 @@ class OpenSearchDAL:
             - sort_id (str): sort_id of the last doc in the batch
             - prev_sort_id (str): sort_id of the first doc in the batch
         """
-        s = Search(using=self._es, index=self._indexname)
+        s = Search(using=self._opensearch, index=self._indexname)
 
         if jeeves_id:
             s = s.filter("term", jeeves_uid=jeeves_id)
@@ -350,7 +350,7 @@ class OpenSearchDAL:
             return retval
 
         except RequestError as e:
-            return self._handle_es_request_errors(e)
+            return self._handle_opensearch_request_errors(e)
 
     def aggregate_time_series(
         self,
@@ -381,7 +381,7 @@ class OpenSearchDAL:
             date and an int representing a count of how many times the input
             term appeared on that date.
         """
-        s = Search(using=self._es, index=self._indexname).query(
+        s = Search(using=self._opensearch, index=self._indexname).query(
             "bool", must_not=[Q({"match": {"labels": JIRA_VIA_JEEVES_LABEL}})]
         )
 
@@ -422,7 +422,7 @@ class OpenSearchDAL:
             return response_buckets
 
         except RequestError as e:
-            return self._handle_es_request_errors(e)
+            return self._handle_opensearch_request_errors(e)
 
     def filter_text(self, text: str) -> str:
         """
@@ -554,7 +554,9 @@ class OpenSearchDAL:
             }
             for ticket in tickets
         ]
-        (_, errors) = bulk(self._es, bulk_actions, raise_on_error=False, raise_on_exception=False)
+        (_, errors) = bulk(
+            self._opensearch, bulk_actions, raise_on_error=False, raise_on_exception=False
+        )
         if errors:
             error_message = (
                 f"Encountered {len(errors)} error{'' if len(errors) == 1 else 's'} "
@@ -578,7 +580,7 @@ class OpenSearchDAL:
             Most recent UNIX timestamp across all searched tickets, or None if
             there were no tickets in OpenSearch.
         """
-        s = Search(using=self._es, index=self._indexname).query("match_all")
+        s = Search(using=self._opensearch, index=self._indexname).query("match_all")
         if lang and not SUPPORTED_LANGUAGES.is_all(lang):
             s = s.filter("term", language=lang)
         if data_source:
@@ -612,7 +614,7 @@ class OpenSearchDAL:
         date_str = datetime_to_str(datetime.fromtimestamp(timestamp))
 
         s = (
-            Search(using=self._es, index=self._indexname)
+            Search(using=self._opensearch, index=self._indexname)
             .filter("range", date_time={"gt": date_str})
             .filter("term", language=lang)
         )
@@ -649,7 +651,7 @@ class OpenSearchDAL:
             start_date_str = datetime_to_str(get_datetime_from_date(range_start))
         end_date_str = datetime_to_str(get_datetime_from_date(end_date))
 
-        s = Search(using=self._es, index=self._indexname).filter("term", language=lang)
+        s = Search(using=self._opensearch, index=self._indexname).filter("term", language=lang)
         s = s.filter("range", date_time={"gte": start_date_str, "lte": end_date_str})
         s = SpikeCategory.get_opensearch_transformer_for_category(spike_category)(s)
 
@@ -675,7 +677,7 @@ class OpenSearchDAL:
             return {sample["key_as_string"]: sample["doc_count"] for sample in response_buckets}
 
         except RequestError as e:
-            return self._handle_es_request_errors(e)
+            return self._handle_opensearch_request_errors(e)
 
     def generate_term_stats(self, start_date: datetime, only_shake_to_report: bool = False):
         """
@@ -709,7 +711,7 @@ class OpenSearchDAL:
                 {"terms": {"shake_to_report_category": [STRC.EXTERNAL.name, STRC.INTERNAL.name]}}
             )
 
-        resp = self._es.search(  # pylint: disable=unexpected-keyword-arg
+        resp = self._opensearch.search(  # pylint: disable=unexpected-keyword-arg
             index=self._indexname,
             body=query,
             scroll="2s",
@@ -739,7 +741,7 @@ class OpenSearchDAL:
                 if doc_count % 5000 == 0:
                     print("doc count", doc_count)
 
-            resp = self._es.scroll(  # pylint: disable=unexpected-keyword-arg
+            resp = self._opensearch.scroll(  # pylint: disable=unexpected-keyword-arg
                 scroll_id=old_scroll_id, scroll="2s"
             )
             old_scroll_id = resp["_scroll_id"]
@@ -773,7 +775,7 @@ class OpenSearchDAL:
         Returns:
             A generator of documents that match the query criteria
         """
-        resp = self._es.search(  # pylint: disable=unexpected-keyword-arg
+        resp = self._opensearch.search(  # pylint: disable=unexpected-keyword-arg
             index=self._indexname,
             body=jsn,
             scroll="2s",
@@ -783,7 +785,7 @@ class OpenSearchDAL:
 
         while len(resp["hits"]["hits"]):
             yield from resp["hits"]["hits"]
-            resp = self._es.scroll(  # pylint: disable=unexpected-keyword-arg
+            resp = self._opensearch.scroll(  # pylint: disable=unexpected-keyword-arg
                 scroll_id=old_scroll_id, scroll="2s"
             )
             old_scroll_id = resp["_scroll_id"]
@@ -816,7 +818,7 @@ class OpenSearchDAL:
         )
         print(f"query string: {query_string}")
         query_jsn = json.loads(query_string)
-        resp = self._es.search(  # pylint: disable=unexpected-keyword-arg
+        resp = self._opensearch.search(  # pylint: disable=unexpected-keyword-arg
             index=self._indexname,
             body=query_jsn,
             scroll="10s",
@@ -832,7 +834,7 @@ class OpenSearchDAL:
                     .get_managed_document_type()
                     .deserialize_from_internal_json(hit["_source"])
                 )
-            resp = self._es.scroll(  # pylint: disable=unexpected-keyword-arg
+            resp = self._opensearch.scroll(  # pylint: disable=unexpected-keyword-arg
                 scroll_id=old_scroll_id, scroll="2s"
             )
             old_scroll_id = resp["_scroll_id"]
@@ -873,7 +875,7 @@ class OpenSearchDAL:
             Set of strings, representing terms from the requested documents.
         """
         if lang == "en":
-            response = self._es.search(
+            response = self._opensearch.search(
                 index=self._indexname,
                 body={"query": {"ids": {"values": doc_ids_slice}}, "size": len(doc_ids_slice)},
             )
@@ -892,7 +894,7 @@ class OpenSearchDAL:
             request_body_params["per_field_analyzer"] = {"body_text": "smartcn"}
         request_body = {"ids": doc_ids_slice, "parameters": request_body_params}
 
-        m_term_vec_out = self._es.mtermvectors(body=request_body, index=self._indexname)
+        m_term_vec_out = self._opensearch.mtermvectors(body=request_body, index=self._indexname)
         try:
             terms_lists = [
                 list(d["term_vectors"]["body_text"]["terms"]) for d in m_term_vec_out["docs"]
@@ -940,7 +942,7 @@ class OpenSearchDAL:
             lang: Language to search tickets in.
             spike_category: The spike category whose documents we should search within.
         """
-        s = Search(using=self._es, index=self._indexname)
+        s = Search(using=self._opensearch, index=self._indexname)
         if lang:
             s = s.filter("term", language=lang)
         s = SpikeCategory.get_opensearch_transformer_for_category(spike_category)(s)
@@ -975,7 +977,7 @@ class OpenSearchDAL:
             JeevesDocument objects that represent records matching the
             specified criteria. Results are unordered due to the use of scan().
         """
-        s = Search(using=self._es, index=self._indexname)
+        s = Search(using=self._opensearch, index=self._indexname)
 
         for field, value in field_value_pairs.items():
             filter_params = {"term": {f"{field}": {"value": f"{value}"}}}
@@ -989,7 +991,7 @@ class OpenSearchDAL:
                 for hit in s.scan()
             ]
         except RequestError as e:
-            return self._handle_es_request_errors(e)
+            return self._handle_opensearch_request_errors(e)
 
     def count_by_arbitrary_keywords(self, field_value_pairs: Dict[str, str]) -> int:
         """
@@ -1004,7 +1006,7 @@ class OpenSearchDAL:
         Returns:
             A count of how many records match the specified criteria.
         """
-        s = Search(using=self._es, index=self._indexname)
+        s = Search(using=self._opensearch, index=self._indexname)
 
         for field, value in field_value_pairs.items():
             filter_params = {"term": {f"{field}": {"value": f"{value}"}}}
@@ -1021,7 +1023,7 @@ class OpenSearchDAL:
         Returns:
             True if a duplicate is found, False otherwise.
         """
-        s = Search(using=self._es, index=self._indexname)
+        s = Search(using=self._opensearch, index=self._indexname)
         s = s.filter("term", via__channel="twitter")
         # Restrict results to have the same twitter_id as the base document.
         s = s.filter(
@@ -1077,7 +1079,7 @@ class OpenSearchDAL:
         if base_document.data_source != "JIRA":
             raise Exception("Duplicate detection is currently only supported for JIRA issues!")
 
-        s = Search(using=self._es, index=self._indexname)
+        s = Search(using=self._opensearch, index=self._indexname)
         s = s.filter("term", data_source=base_document.data_source)
         s = s.filter("term", issue_type__keyword="Bug")
         if should_filter_project:
@@ -1247,7 +1249,7 @@ class OpenSearchDAL:
             },
         }
 
-        response = self._es.search(index=self._indexname, body=query_body)
+        response = self._opensearch.search(index=self._indexname, body=query_body)
         result_docs = [
             MatchingDocument.from_response_hit(hit).doc
             for hit in response["hits"]["hits"]
@@ -1343,7 +1345,7 @@ class OpenSearchDAL:
         if ids_only:
             query_body["_source"] = ["_id"]
 
-        response = self._es.search(  # pylint: disable=unexpected-keyword-arg
+        response = self._opensearch.search(  # pylint: disable=unexpected-keyword-arg
             index=self._indexname, body=query_body, request_timeout=request_timeout
         )
 
@@ -1381,7 +1383,7 @@ class OpenSearchDAL:
                 for doc_id in ids
             ]
         }
-        resp = self._es.mget(  # pylint: disable=unexpected-keyword-arg
+        resp = self._opensearch.mget(  # pylint: disable=unexpected-keyword-arg
             body=body, index=self._indexname, request_timeout=request_timeout
         )
         if not resp["docs"]:
@@ -1475,7 +1477,7 @@ class OpenSearchDAL:
         """
         # TODO use filters aggregation to get all of these stats at once!
         s = (
-            Search(using=self._es, index=self._indexname)
+            Search(using=self._opensearch, index=self._indexname)
             .query("match_all")
             .filter("term", shake_to_report_category="INTERNAL")
             .filter("term", language="en")
@@ -1538,7 +1540,7 @@ class OpenSearchDAL:
             A Dict of reporter_email to a list of JeevesDocuments.
         """
         s = (
-            Search(using=self._es, index=self._indexname)
+            Search(using=self._opensearch, index=self._indexname)
             .query("match_all")
             .filter("term", shake_to_report_category="INTERNAL")
             .filter("term", language="en")
