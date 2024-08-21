@@ -309,7 +309,13 @@ class OpenSearchDAL:
                 if lang == "en" and use_lemmas:
                     s = s.filter("term", lemmatized_terms=word)
                 else:
-                    s = s.query("query_string", default_field="body_text", query=word, lenient=True)
+                    s = s.query(
+                        "query_string",
+                        default_field="body_text",
+                        default_operator="AND",
+                        lenient=True,
+                        query=word,
+                    )
             else:
                 s = s.query("match_all")
 
@@ -391,7 +397,13 @@ class OpenSearchDAL:
         if lang == "en" and use_lemmas:
             s = s.filter("term", lemmatized_terms=word)
         else:
-            s = s.query("query_string", default_field="body_text", query=word, lenient=True)
+            s = s.query(
+                "query_string",
+                default_field="body_text",
+                default_operator="AND",
+                lenient=True,
+                query=word,
+            )
 
         if start_date:
             s = s.filter("range", date_time={"gte": start_date})
