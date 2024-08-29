@@ -265,9 +265,10 @@ class TopicSimilarityManager:
         random.shuffle(formatted_docs)  # Improves GPT results
         user_prompt += f"\n {DOCUMENT_SEPARATOR} \n".join(formatted_docs)
         response_text = self.ai_completions_dal.ask(
-            system_prompt=SIMILARITY_SYSTEM_PROMPT,
-            user_prompt=user_prompt,
             max_tokens=MAX_RESPONSE_TOKENS,
+            use_json_mode=True,
+            user_prompt=user_prompt,
+            system_prompt=SIMILARITY_SYSTEM_PROMPT,
         )
         response_data = json.loads(response_text)
 

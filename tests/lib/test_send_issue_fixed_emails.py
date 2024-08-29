@@ -59,7 +59,7 @@ class TestIssueFixedEmailSender(unittest.TestCase):
         self.mock_ai_completions_dal = MagicMock()
         expected_true_call = f"Description: {mock_description}\nText: {mock_true_body_text}"
         self.mock_ai_completions_dal.ask.side_effect = (
-            lambda _, x: "True" if x == expected_true_call else "False"
+            lambda **kwargs: "True" if kwargs.get("user_prompt") == expected_true_call else "False"
         )
 
         self.mock_publish_manager = MagicMock()

@@ -67,7 +67,9 @@ class ParentSummaryManager:
         user_prompt: str = f"\n{'-'*30}\n".join([doc.to_yaml() for doc in docs])
         # Generate a summary using OpenAI GPT.
         response_text = self.ai_completions_dal.ask(
-            system_prompt=SYSTEM_PROMPT, user_prompt=user_prompt, use_json_mode=True
+            system_prompt=SYSTEM_PROMPT,
+            use_json_mode=True,
+            user_prompt=user_prompt,
         )
 
         if response_text is None:

@@ -660,7 +660,11 @@ class GPTSearchManager:
         start_time = datetime.now()
         try:
             openai_resp = app_registry(AICompletionsDAL).ask(
-                sys_prompt, user_prompt, max_tokens=MAX_RESPONSE_TOKENS, raise_exceptions=True
+                max_tokens=MAX_RESPONSE_TOKENS,
+                raise_exceptions=True,
+                system_prompt=sys_prompt,
+                use_json_mode=True,
+                user_prompt=user_prompt,
             )
         except RequestException as e:
             raise JeevesException(

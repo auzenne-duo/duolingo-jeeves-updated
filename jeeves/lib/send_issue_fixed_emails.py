@@ -76,8 +76,8 @@ class IssueFixedEmailSender:
                 and doc.user_id not in sent_user_ids
             ):
                 response = self._ai_completions_dal.ask(
-                    USER_TEXT_SIMILAR_TO_DESCRIPTION,
-                    f"Description: {description}\nText: {doc.body_text}",
+                    system_prompt=USER_TEXT_SIMILAR_TO_DESCRIPTION,
+                    user_prompt=f"Description: {description}\nText: {doc.body_text}",
                 )
                 if response.lower().strip() == "true":
                     beta_user_ids.add(doc.user_id)

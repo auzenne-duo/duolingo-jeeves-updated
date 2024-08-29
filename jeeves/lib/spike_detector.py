@@ -261,11 +261,11 @@ def run_spike_detector_for_batch(
         try:
             user_prompt = f"{REQ_SPIKE_WORD}: {batch_spike_list[i].word}\n\n{prompt}"
             response = app_registry(AICompletionsDAL).ask(
-                system_prompt=SPIKE_SUMMARIZER_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
                 max_tokens=1024,
+                system_prompt=SPIKE_SUMMARIZER_SYSTEM_PROMPT,
                 top_p=0.8,
                 use_json_mode=True,
+                user_prompt=user_prompt,
             )
             # Parse the response as a JSON object
             response_json = json.loads(response)

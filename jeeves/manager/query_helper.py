@@ -165,7 +165,10 @@ class QueryHelper:
         """
         sys_prompt = get_system_prompt()
         gpt_response: str = self.ai_completions_dal.ask(
-            sys_prompt, query, raise_exceptions=raise_exceptions
+            raise_exceptions=raise_exceptions,
+            system_prompt=sys_prompt,
+            use_json_mode=True,
+            user_prompt=query,
         )
         gpt_response_json = json.loads(gpt_response)
 

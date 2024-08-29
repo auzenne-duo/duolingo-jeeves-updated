@@ -34,12 +34,13 @@ class GPTSentimentClassifier(SentimentAnalysisClassifier):
         Return "positive" for a positive document and "negative" for a negative document.
         Return a number on a scale of -5 to 5 to determine how positive or negative a document is.
 
-        Return the label and the number separated by a comma. For example, "positive, 5" or "negative, -3".
+        Return the label and the number separated by a comma and a space. For example, "positive, 5" or "negative, -3".
         """
         body = document.body_text.replace("\n", " ")
         header = document.header_text.replace("\n", " ")
         label, value = self.ai_completions_dal.ask(
-            SYSTEM_PROMPT, f"{user_prompt_prefix} \nDocument: {body} {header}"
+            system_prompt=SYSTEM_PROMPT,
+            user_prompt=f"{user_prompt_prefix} \nDocument: {body} {header}",
         ).split(", ")
         return label, int(value)
 
