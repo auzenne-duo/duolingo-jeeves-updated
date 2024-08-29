@@ -45,6 +45,7 @@ _COMMON_ZENDESK_META_HEADER_LIST = [
     "App version",
     "Course",
     "Courses",
+    "Current Course",
     "Device model",
     "Has Plus",
     "Learning language",
