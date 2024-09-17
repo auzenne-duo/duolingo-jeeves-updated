@@ -266,6 +266,14 @@ module "duolingo-jeeves-sqs-worker-1" {
 
   secrets = [
     {
+      name  = "DUOLINGO_USERNAME"
+      value = "DUOLINGO_USERNAME/000000"
+    },
+    {
+      name  = "DUOLINGO_PASSWORD"
+      value = "DUOLINGO_PASSWORD/000000"
+    },
+    {
       name  = "ZENDESK_API_TOKEN"
       value = "zendesk_api_token/000000"
     }
