@@ -14,6 +14,7 @@ from requests import Response, Session
 
 from jeeves import registry as app_registry
 from jeeves.dal.monolith_dal import MonolithDAL
+from jeeves.manager.user_search_manager import UserSearchManager
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.products import Products
@@ -113,15 +114,11 @@ class ZendeskDocument(JeevesDocument):
                 email = j["user"]["email"]
         elif channel == "email":
             email = external_json["via"]["source"]["from"].get("address")
-        user_id = None
-        if email:
-            user_id = app_registry(MonolithDAL).get_user_by_email_or_username(email)
-            if CONTRACTOR_EMAIL_DOMAIN in email:
-                is_shake_to_report = True
-        elif std_metadata["username"]:
-            user_id = app_registry(MonolithDAL).get_user_by_email_or_username(
-                username=std_metadata["username"]
-            )
+
+        # Check if the email is from a contractor
+        is_shake_to_report = is_shake_to_report or (email and CONTRACTOR_EMAIL_DOMAIN in email)
+        user_model = app_registry(UserSearchManager).get_user(email or std_metadata["username"])
+        user_id = None if user_model is None else user_model.get("user_id")
 
         experiment_conditions_pattern = re.compile("^.*experiment_conditions\.txt$")
         experiment_conditions = {}

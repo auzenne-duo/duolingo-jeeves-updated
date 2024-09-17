@@ -27,7 +27,7 @@ class TestMetricsDAL(unittest.TestCase):
     @patch("jeeves.dal.metrics_dal.MetricsDAL._get_experiments", mock_get_experiments)
     def __init__(self, *args, **kwargs):
         super(TestMetricsDAL, self).__init__(*args, **kwargs)
-        self.dal = MetricsDAL(mock_duolingo_api_client)
+        self.dal = MetricsDAL(MagicMock())
 
     def test_get_shared_conditions(self):
         """
@@ -72,7 +72,8 @@ class TestMetricsDAL(unittest.TestCase):
             ]
         }
 
-        result = self.dal.get_shared_conditions([1, 2, 3])
+        with patch.object(self.dal, "client", mock_duolingo_api_client):
+            result = self.dal.get_shared_conditions([1, 2, 3])
 
         # p of condition1 should be .05, so mean of .15, std of sqrt(0.1425) ~ 0.377, so spikiness of 2.85/(sqrt(0.1425)) ~ 7.6
         expected = {("experiment1"): 2.85 / (0.1425**0.5)}
@@ -102,7 +103,9 @@ class TestMetricsDAL(unittest.TestCase):
                 },
             ]
         }
-        result = self.dal.get_shared_conditions([100, 200, 300, 400], use_rollout=False)
+
+        with patch.object(self.dal, "client", mock_duolingo_api_client):
+            result = self.dal.get_shared_conditions([100, 200, 300, 400], use_rollout=False)
         # p of experiment2.condition2 should be .1, so mean of .4, std of sqrt(.36) ~ .6, so spikiness of 2.6/(.6) ~ 4.33
         expected = {("experiment2"): 2.6 / 0.6}
         self.assertEqual(result.keys(), expected.keys())

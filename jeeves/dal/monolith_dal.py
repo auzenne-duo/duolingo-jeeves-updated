@@ -18,15 +18,13 @@ class MonolithDAL:
             "User-Agent": "product-quality (DuolingoService)",
         }
 
-    def get_user_by_email_or_username(
+    def get_user_id_by_email_or_username(
         self, email: Optional[str] = None, username: Optional[str] = None
-    ) -> dict:
-        """Get a user object based on their email or username.
+    ) -> int:
+        """Get a user ID based on their email or username.
         Arguments:
             email (Optional[str]): User's email address (default: None)
             username (Optional[str]): User's username (default: None)
-        Returns:
-            User object
         """
         assert bool(email is not None) != bool(
             username is not None

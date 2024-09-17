@@ -3,34 +3,17 @@ DAL for accessing GPT-4 using the duolingo-ai-completions api.
 """
 
 import logging
-import os
 import time
 from typing import Iterable, List, Optional
 
 import requests
-from duolingo_base.dal import auth_api
 from duolingo_base.dal.duoapi import DuolingoApiClient
 from duolingo_base.util import registry
 
+from jeeves.dal.auth_dal import AuthDAL
 from jeeves.util.error_util import print_request_exception
 
 LOG = logging.getLogger(__name__)
-
-if os.environ.get("DUOLINGO_JWT"):
-    credentials = {"jwt": os.environ.get("DUOLINGO_JWT")}
-else:
-    credentials = {
-        "username": os.environ.get("DUOLINGO_USERNAME"),
-        "password": os.environ.get("DUOLINGO_PASSWORD"),
-    }
-
-AuthCredentials = registry.define(auth_api.AuthCredentials, **credentials)
-AuthAPI = registry.define(auth_api.AuthAPI, credentials=registry.reference(AuthCredentials))
-AICompletionsClient = registry.define(
-    DuolingoApiClient,
-    url="https://duolingo-ai-completions-prod.duolingo.com",
-    auth_api=registry.reference(AuthAPI),
-)
 
 _EMBEDDING_REQUEST_ROUTE = "/1/ai-completions/embeddings"
 _EMBEDDING_MODEL = "text-embedding-ada-002"
@@ -41,10 +24,13 @@ _BATCH_CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions-batch"
 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE = "/1/ai-completions/chat-completion-statuses"
 
 
-@registry.bind(api_client=registry.reference(AICompletionsClient))
+@registry.bind(auth_dal=registry.reference(AuthDAL))
 class AICompletionsDAL:
-    def __init__(self, api_client: DuolingoApiClient):
-        self.client = api_client
+    def __init__(self, auth_dal: AuthDAL):
+        self.client = DuolingoApiClient(
+            url="https://duolingo-ai-completions-prod.duolingo.com",
+            auth_api=auth_dal.auth_api,
+        )
 
     def ask(
         self,

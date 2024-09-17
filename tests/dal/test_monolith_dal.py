@@ -14,29 +14,29 @@ class TestMonolithDAL(unittest.TestCase):
         super(TestMonolithDAL, self).__init__(*args, **kwargs)
         self.dal = MonolithDAL()
 
-    def test_get_user_by_email_or_username(self):
+    def test_get_user_id_by_email_or_username(self):
         mock_requests.get.return_value.json.return_value = {"users": [{"id": 1010}]}
-        result = self.dal.get_user_by_email_or_username("anotherfake@fake.com")
+        result = self.dal.get_user_id_by_email_or_username("anotherfake@fake.com")
         expected = 1010
         self.assertEqual(result, expected)
 
-    def test_get_user_by_email_or_username_multiple_results(self):
+    def test_get_user_id_by_email_or_username_multiple_results(self):
         mock_requests.get.return_value.json.return_value = {"users": [{"id": 1010}, {"id": 2323}]}
-        result = self.dal.get_user_by_email_or_username("anotherfake@fake.com")
+        result = self.dal.get_user_id_by_email_or_username("anotherfake@fake.com")
         expected = None
         self.assertEqual(result, expected)
 
-    def test_get_user_by_email_or_username_no_results(self):
+    def test_get_user_id_by_email_or_username_no_results(self):
         mock_requests.get.return_value.json.return_value = {"users": []}
-        result = self.dal.get_user_by_email_or_username("fake_email@fake.com")
+        result = self.dal.get_user_id_by_email_or_username("fake_email@fake.com")
         expected = None
         self.assertEqual(result, expected)
 
-    def test_get_user_by_email_or_username_error(self):
+    def test_get_user_id_by_email_or_username_error(self):
         mock_requests.get.side_effect = requests.exceptions.RequestException
-        result = self.dal.get_user_by_email_or_username("fake_email@fake.com")
+        result = self.dal.get_user_id_by_email_or_username("fake_email@fake.com")
         expected = None
         self.assertEqual(result, expected)
 
-    def test_get_user_by_email_or_username_no_input(self):
-        self.assertRaises(AssertionError, self.dal.get_user_by_email_or_username)
+    def test_get_user_id_by_email_or_username_no_input(self):
+        self.assertRaises(AssertionError, self.dal.get_user_id_by_email_or_username)

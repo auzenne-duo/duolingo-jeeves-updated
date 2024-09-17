@@ -1,11 +1,10 @@
-import os
 from typing import Dict, List, Tuple
 
 import requests
-from duolingo_base.dal import auth_api
 from duolingo_base.dal.duoapi import DuolingoApiClient
 from duolingo_base.util import registry
 
+from jeeves.dal.auth_dal import AuthDAL
 from jeeves.util.error_util import print_request_exception
 
 EXPERIMENTS_ROUTE = "api/1/experiments"
@@ -15,26 +14,14 @@ STANDARD_DEVIATION_THRESHOLD = 3
 MIN_SHARED_USERS = 3
 TIMEOUT = 30  # in seconds
 
-if os.environ.get("DUOLINGO_JWT"):
-    credentials = {"jwt": os.environ.get("DUOLINGO_JWT")}
-else:
-    credentials = {
-        "username": os.environ.get("DUOLINGO_USERNAME"),
-        "password": os.environ.get("DUOLINGO_PASSWORD"),
-    }
-AuthCredentials = registry.define(auth_api.AuthCredentials, **credentials)
-AuthAPI = registry.define(auth_api.AuthAPI, credentials=registry.reference(AuthCredentials))
-MetricsClient = registry.define(
-    DuolingoApiClient,
-    url="https://metrics.duolingo.com/",
-    auth_api=registry.reference(AuthAPI),
-)
 
-
-@registry.bind(api_client=registry.reference(MetricsClient))
+@registry.bind(auth_dal=registry.reference(AuthDAL))
 class MetricsDAL:
-    def __init__(self, api_client: DuolingoApiClient):
-        self.client = api_client
+    def __init__(self, auth_dal: AuthDAL):
+        self.client = DuolingoApiClient(
+            url="https://metrics.duolingo.com/",
+            auth_api=auth_dal.auth_api,
+        )
         self._headers = {
             "Accept": "application/json",
             "User-Agent": "product-quality (DuolingoService)",
