@@ -27,26 +27,28 @@ terraform {
 # Create an internal service so that things stay behind the edge gateway.
 # See: https://docs.google.com/document/d/1tU7y9wWsBFwdnWFkz0bEosU7U_8lxs4N7h4NJ80CqfU/edit
 module "duolingo-jeeves-internal" {
-  source                               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_web_service"
-  version                              = "~> 1.0"
-  environment                          = var.environment
-  service                              = var.service
-  subservice                           = "internal"
-  health_check_path                    = "/health"
-  min_count                            = 2    # Minimum number of tasks to run in autoscaling group
-  max_count                            = 5    # Maximum number of tasks to run in autoscaling group
-  scale_out_cpu                        = 80   # Scale out at this cpu usage (percent)
-  memory                               = 8192 # Maximum memory (default: 128MB)
-  product                              = var.product
-  owner                                = var.owner       # The name of the owner for this service
-  ecs_cluster                          = var.ecs_cluster # Name of the ECS cluster to run on
-  container_port                       = 5000
-  internal                             = "true" # Create internal service. This handles traffic behind the edge gateway
-  enable_http_listener                 = "true"
-  http_listener_type                   = "redirect"
-  release_version                      = var.release_version
-  health_check_grace_period_seconds    = 120
-  latency_threshold                    = 1000
+  source                            = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_web_service"
+  version                           = "~> 1.0"
+  environment                       = var.environment
+  service                           = var.service
+  subservice                        = "internal"
+  health_check_path                 = "/health"
+  min_count                         = 2    # Minimum number of tasks to run in autoscaling group
+  max_count                         = 5    # Maximum number of tasks to run in autoscaling group
+  scale_out_cpu                     = 80   # Scale out at this cpu usage (percent)
+  memory                            = 8192 # Maximum memory (default: 128MB)
+  product                           = var.product
+  owner                             = var.owner       # The name of the owner for this service
+  ecs_cluster                       = var.ecs_cluster # Name of the ECS cluster to run on
+  container_port                    = 5000
+  internal                          = "true" # Create internal service. This handles traffic behind the edge gateway
+  enable_http_listener              = "true"
+  http_listener_type                = "redirect"
+  release_version                   = var.release_version
+  health_check_grace_period_seconds = 120
+  # Essentially disables cloudwatch latency trigger here since we cannot filter out specific routes for this.
+  # Latency alerts from Honeycomb is set up in https://ui.honeycomb.io/duolingo/environments/main/datasets/jeeves/triggers/r7rQMEAUzoR
+  latency_threshold                    = 10000
   latency_threshold_evaluation_periods = 10
 
   secrets = [
