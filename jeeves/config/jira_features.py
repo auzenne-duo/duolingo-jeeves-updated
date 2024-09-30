@@ -313,9 +313,6 @@ JIRA_FEATURES = {
         },
     },
     "New Subjects": {
-        "Mega": {
-            "Mega": ["app promo", "accelerator"],
-        },
         "Math Infrastructure": {
             "Math - Generated Sessions": ["math content", "math session", "content accelerator"],
             "Math - Localization": [],
