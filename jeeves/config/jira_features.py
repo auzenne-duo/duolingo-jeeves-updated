@@ -275,8 +275,10 @@ JIRA_FEATURES = {
         },
     },
     "Monetization": {
-        "Subscription Packaging": {
+        "Ads": {
             "Ads / rewarded ads": ["ads"],
+        },
+        "Subscription Packaging": {
             "Super": [],
             "New Years Promo": [],
             "Max Upsell": [],
