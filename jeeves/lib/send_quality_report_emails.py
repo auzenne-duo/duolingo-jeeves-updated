@@ -168,24 +168,19 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         "Ads": [
             ("kuo@duolingo.com", 504628953),
         ],
+        "Acquisition": [
+            ("evelyn@duolingo.com", 46472964),
+        ],
         "Subscription Packaging": [
             ("tower@duolingo.com", 290339876),
             ("joana@duolingo.com", 26339151),
             ("kuo@duolingo.com", 504628953),
         ],
-        "ABC": [("daniel@duolingo.com", 330486311)],
-        "In-App Purchases (Poseidon)": [
-            ("moses@duolingo.com", 57694070),
-            ("haifa@duolingo.com", 558570393),
+        "Max Immersion": [
+            ("sarahtracy@duolingo.com", 100396129),
+            ("jackhe@duolingo.com", 85992463),
         ],
-        "Max": [
-            ("megan.bednarczyk@duolingo.com", 111864136),
-            ("edwin@duolingo.com", 201732115),
-        ],
-        "Mochi": [
-            ("evelyn@duolingo.com", 46472964),
-            ("jtishler@duolingo.com", 120661234),
-        ],
+        "Max Engine": [("josh.isenstein@duolingo.com", 395014474)],
     },
     "New Subjects": {
         _AREA: [("colleen@duolingo.com", 591143118)],
