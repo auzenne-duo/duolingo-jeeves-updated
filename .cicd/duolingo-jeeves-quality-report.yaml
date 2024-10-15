@@ -1,0 +1,105 @@
+version: 2
+jobs:
+  - name: duolingo-jeeves-quality-report
+    scm: {}
+    timestamps: true
+    prebuild_cleanup: true
+    dockerize_command: false
+    description: |-
+      This job runs daily to generate quality reports for all teams and areas. The serialized reports are uploaded to s3.
+      <br>
+      Once per week, the job also triggers saving of a snapshot of issues used in the quality reports and sends emails.
+      <H3> Parameters
+      <H4>
+      dry_run=true => No emails to anyone. S3 not updated<br>
+      dry_run=true; dry_run_recipient set => Specified recipient gets emails. S3 not updated<br>
+      dry_run=false; save_snapshots=false => No emails. S3 is updated<br>
+      dry_run=false; save_snapshots=true => Emails sent. S3 updated<br>
+    log_rotator:
+      days_to_keep: 60
+      num_to_keep: -1
+      artifact_days_to_keep: -1
+      artifact_num_to_keep: -1
+    rebuild_settings:
+      auto_rebuild: false
+      rebuild_disabled: false
+    parameters:
+      - name: SAVE_SNAPSHOTS
+        description: Whether to save a snapshot of the data used in the quality reports and send emails.
+        type: boolean
+        default: false
+      - name: JIRA_USERNAME
+        description: ""
+        trim: false
+        type: string
+        default: jira-automation@duolingo.com
+      - type: choice
+        name: ENVIRONMENT
+        description: The target environment for which to create the quality reports
+        choices:
+          - dev
+          - prod
+      - name: DRY_RUN
+        description: Whether to run the script as a dry run. If set, reports will not be uploaded to S3 and the emails will only be sent to the recipient specified by DRY_RUN_RECIPIENT.
+        type: boolean
+        default: false
+      - name: DRY_RUN_RECIPIENT
+        description: The email to use for sending emails when running in dry run.
+        trim: true
+        type: string
+        default: ""
+      - name: BUILD_BRANCH
+        description: The Git branch to build with.
+        trim: false
+        type: string
+        default: master
+    throttle_job:
+      max_concurrent_per_node: 0
+      max_concurrent_total: 0
+      throttle_enabled: false
+      throttle_option: project
+      limit_one_job_with_matching_params: false
+      params_to_use_for_limit: ""
+    branch: ${BUILD_BRANCH}
+    node: ec2-jenkins-worker
+    disabled: false
+    cron:
+      - when: H 10 * * 2
+        vars:
+          SAVE_SNAPSHOTS: "true"
+          ENVIRONMENT: dev
+      - when: H 10 * * 1,3,4,5,6,7
+        vars:
+          SAVE_SNAPSHOTS: "false"
+          ENVIRONMENT: dev
+      - when: H 18 * * 2
+        vars:
+          SAVE_SNAPSHOTS: "true"
+          ENVIRONMENT: prod
+      - when: H 18 * * 1,3,4,5,6,7
+        vars:
+          SAVE_SNAPSHOTS: "false"
+          ENVIRONMENT: prod
+    concurrent_builds: false
+    command: bash -ex run_quality_reports.sh
+    slack:
+      room: "#pd-snow"
+      start_notification: false
+      notify_success: false
+      notify_aborted: true
+      notify_not_built: false
+      notify_unstable: true
+      notify_regression: false
+      notify_failure: true
+      notify_back_to_normal: true
+      notify_repeated_failure: true
+      include_test_summary: false
+      include_custom_message: true
+      custom_message: ""
+      commit_info: AUTHORS_AND_TITLES
+    timeout:
+      minutes: 60
+    bindings:
+      - credentials_id: DUOLINGO_JEEVES_JIRA_API_TOKEN
+        variable: JIRA_API_TOKEN
+        type: stringSecretBinding
