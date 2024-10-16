@@ -281,29 +281,33 @@ JIRA_FEATURES = {
         "Subscription Packaging": {
             "Super": [],
             "New Years Promo": [],
+            "Max Upsell": [],
+            "Duo on Path": [],
         },
-        "Acquisition": {
+        "In-App Purchases (Poseidon)": {
+            "In-app purchases": ["shop", "league repair", "refill", "timer boost", "row blaster"],
+            "Ramp-up challenge": ["ramp up", "ramp-up"],
+            "Gems / Lingots": ["gem", "lingot"],
+            "Hard mode": [],
             "Hearts / Unlimited Hearts": [
                 "heart",
             ],
-            "Family Plan": [],
-            "Plus / in-app purchases": [],
-        },
-        "Energy": {
-            "In-app purchases": ["shop", "league repair", "refill", "timer boost", "row blaster"],
+            "Match madness": [],
             "Shop items": [],
+            "Side Quests": ["side quest"],
+        },
+        "Mochi": {
+            "Explain my Answer": ["EMA", "explanation"],
+            "Family Plan": [],
         },
         "Max Immersion": {
+            "Mistakes Inbox": [],
             "Practice Hub": [],
             "Role Play": ["roleplay", "role-play"],
-            "Max": [],
-            "Max Upsell": [],
+            "Words List": ["Word list"],
             "Legendary": ["Legendarize"],
         },
-        "Max Engine": {
-            "Max Backend": [],
-            "Explain my Answer": ["EMA", "explanation"],
-        },
+        "Max Engine": {"Max Backend": []},
     },
     "New Initiatives": {
         "Schools": {
@@ -351,6 +355,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Course Switching": "Issues with switching courses or languages",
     "Daily Quests": "Problems with daily quest progress, rewards, or related text/layout ",
     "Drawers / home messages": "For general drawer issues. If possible, choose a more specific feature.",
+    "Duo on Path": "Issues with the animated Duo on path node feature for Super users",
     "DuoNews": "Issues with news cells in the Feed page",
     "Early Bird / Night Owl Chests": "Issues with the Early Bird or Night Owl chest rewards",
     "Explain my Answer": "Issues with the Explain my Answer tutor",
@@ -366,6 +371,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Grading Ribbon": "Issues with the grading ribbon that appears at the bottom of an exercise, specifically layout/formatting",
     "Guidebook": "Bugs on a guidebook page",
     "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
+    "Hard mode": "Problems with hard mode lessons specifically",
     "In-app purchases": "Problems with items purchased with gems (row blaster, timer boosts, xp boost refills, league repairs, etc.)",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
     "Layout Issues: Romaji/Furigana/Pinyin": "Issues with transliterations in the challenge",
@@ -385,6 +391,8 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Settings": "Problems specifically on the settings page.",
     "Settings Issues: Romaji/Furigana/Pinyin": "Issues with transliteration settings not being obeyed",
     "Shake-to-report": "Problems with shake-to-report itself",
+    "Shop items": "Bugs with the shop page, 'My Items' section of profile, purchasing shop items",
+    "Side Quests": "Issues with the 'Rapid Review' exercises",
     "Smart Tips": "Bugs with exercises that start with 'Here's a tip:'",
     "Streak": "Incorrect or buggy streak number or calendar",
     "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
