@@ -275,6 +275,16 @@ JIRA_FEATURES = {
         },
     },
     "Monetization": {
+        "Acquisition": {
+            "Crossgrades": ["upgrades", "downgrades"],
+            "Explain my Answer": ["EMA", "explanation"],
+            "Family Plan": [],
+            "Hearts / Unlimited Hearts": [
+                "heart",
+            ],
+            "Immersive subscriptions": ["immersive"],
+            "Subscription hooks": [],
+        },
         "Ads": {
             "Ads / rewarded ads": ["ads"],
         },
@@ -289,16 +299,9 @@ JIRA_FEATURES = {
             "Ramp-up challenge": ["ramp up", "ramp-up"],
             "Gems / Lingots": ["gem", "lingot"],
             "Hard mode": [],
-            "Hearts / Unlimited Hearts": [
-                "heart",
-            ],
             "Match madness": [],
             "Shop items": [],
             "Side Quests": ["side quest"],
-        },
-        "Mochi": {
-            "Explain my Answer": ["EMA", "explanation"],
-            "Family Plan": [],
         },
         "Max Immersion": {
             "Mistakes Inbox": [],
