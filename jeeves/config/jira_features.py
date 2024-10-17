@@ -277,13 +277,11 @@ JIRA_FEATURES = {
     "Monetization": {
         "Acquisition": {
             "Crossgrades": ["upgrades", "downgrades"],
-            "Explain my Answer": ["EMA", "explanation"],
             "Family Plan": [],
-            "Hearts / Unlimited Hearts": [
-                "heart",
-            ],
+            "Hearts / Unlimited Hearts": ["heart"],
             "Immersive subscriptions": ["immersive"],
             "Subscription hooks": [],
+            "Super Upsell": ["super hooks", "pay wall"],
         },
         "Ads": {
             "Ads / rewarded ads": ["ads"],
@@ -291,10 +289,10 @@ JIRA_FEATURES = {
         "Subscription Packaging": {
             "Super": [],
             "New Years Promo": [],
-            "Max Upsell": [],
             "Duo on Path": [],
+            "Student Plan": [],
         },
-        "In-App Purchases (Poseidon)": {
+        "Energy": {
             "In-app purchases": ["shop", "league repair", "refill", "timer boost", "row blaster"],
             "Ramp-up challenge": ["ramp up", "ramp-up"],
             "Gems / Lingots": ["gem", "lingot"],
@@ -309,8 +307,14 @@ JIRA_FEATURES = {
             "Role Play": ["roleplay", "role-play"],
             "Words List": ["Word list"],
             "Legendary": ["Legendarize"],
+            "Max Upsell": [],
+            "Max": ["max purchase flow", "max crossgrade"],
+            "Explain my Answer": ["EMA", "bad explanation", "wrong explanation", "explanation"],
         },
-        "Max Engine": {"Max Backend": []},
+        "Max Engine": {
+            "Purchasing": ["can't purchase"],
+            "Max Backend": [],
+        },
     },
     "New Initiatives": {
         "Schools": {
@@ -375,12 +379,15 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Guidebook": "Bugs on a guidebook page",
     "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
     "Hard mode": "Problems with hard mode lessons specifically",
+    "Immersive subscriptions": "Any temporary subscription won from opening a chest on the path, does not include free trials",
     "In-app purchases": "Problems with items purchased with gems (row blaster, timer boosts, xp boost refills, league repairs, etc.)",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
     "Layout Issues: Romaji/Furigana/Pinyin": "Issues with transliterations in the challenge",
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
     "Live Activities": "Problems with live activities on lock screen having bad UI, not starting, lasting too long, deeplinking wrong, etc. Not for general session-related issues.",
+    "Max": "Anything with Max dashboard, Max purchase flow, and upgrading to Max from Super or Free, or upgrading from Max individual to Max Family Plan",
+    "Max Upsell": "Anything related to 'Get Max' in the app",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Challenge": "Bugs with the monthly challenge",
     "Other": "Please try to use a specific feature if possible.",
@@ -389,6 +396,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Placement Test": "Issues with placement test in onboarding or when adding a new course",
     "Practice Hub": "Practice tab including speaking, listening, story, word, and personalized weekly practice",
     "Progress Bar": "Issues with the progress bar at the top of a lesson",
+    "Purchasing": "Anything related to the actual act of purchasing, like wrong prices, refund problems, or purchasing failing",
     "Registration": "Bugs with profile creation flow after onboarding",
     "Session end screens": "General session end screen issues. If possible, use a more specific feature",
     "Settings": "Problems specifically on the settings page.",
@@ -399,6 +407,8 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Smart Tips": "Bugs with exercises that start with 'Here's a tip:'",
     "Streak": "Incorrect or buggy streak number or calendar",
     "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
+    "Student Plan": "Anything related to the Get Student Plan, Student Plan verification, or Student Plan Prices",
+    "Super Upsell": "Anything related to 'Get Super' in the app, like running out of hearts or legendary start screens Get Super",
     "Weekly Lesson Goals": "Problems with weekly lesson goals",
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
