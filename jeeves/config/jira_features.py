@@ -251,6 +251,7 @@ JIRA_FEATURES = {
             "Pronunciation Bingo": [],
             "DuoRadio": [],
             "Adventures": [],
+            "Immersive Speak": [],
         },
         "AI Speaking": {
             "Video Call": ["facetime"],
@@ -379,6 +380,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Guidebook": "Bugs on a guidebook page",
     "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
     "Hard mode": "Problems with hard mode lessons specifically",
+    "Immersive Speak": "Issues with the Immersive Speak session type",
     "Immersive subscriptions": "Any temporary subscription won from opening a chest on the path, does not include free trials",
     "In-app purchases": "Problems with items purchased with gems (row blaster, timer boosts, xp boost refills, league repairs, etc.)",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
