@@ -1,9 +1,10 @@
+import json
 import logging
 import os
 import shutil
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import date, datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 import pytz
 from duolingo_base.util import registry
@@ -21,6 +22,7 @@ from jeeves.model.quality_report import (
     QualityScoreHistory,
     SerializedQualityReportData,
 )
+from jeeves.util.date_util import date_to_str, str_to_date
 from jeeves.util.quality_report_util import QUALITY_REPORT_OVERALL_KEY, QUALITY_REPORT_WINDOW_DAYS
 
 _AREAS_TO_EXCLUDE = ["Many", "New Initiatives", "None"]
@@ -45,6 +47,20 @@ class QualityReportOverview:
 class QualityReportManager:
     def __init__(self, quality_report_dal: QualityReportDAL) -> None:
         self.quality_report_dal = quality_report_dal
+
+    def _post_process_quality_scores(
+        self, score_history: List[List[Any]], start_date: date
+    ) -> List[List[Any]]:
+        """Given a list of quality scores, remove duplicates and sort by date, filter by start_date"""
+        score_history_as_dates = [(str_to_date(item[0]), item) for item in score_history]
+        # Filter based on start_date
+        filtered_scores = [item for item in score_history_as_dates if item[0] >= start_date]
+        # Remove duplicates
+        unique_scores = {item[0]: item for item in filtered_scores}.values()
+        # Sort by date
+        sorted_items = sorted(unique_scores, key=lambda x: x[0])
+
+        return [[date_to_str(item[0])] + item[1][1:] for item in sorted_items]
 
     def get_area_quality_overviews(self) -> List[QualityReportOverview]:
         """
@@ -148,6 +164,74 @@ class QualityReportManager:
             title: string name of area or team such as "Growth"
         """
         return self.quality_report_dal.get_latest_serialized_quality_report(title)
+
+    def get_quality_scores(self, title: str, start_date: date, end_date: date) -> JSON:
+        """
+        Returns quality scores for a specific area and date range
+
+        Params
+            title: string title of the area or team
+            start_date: first day of the quality score period
+            end_date: final day of the quality score period
+        """
+        if start_date > end_date:
+            raise ValueError("Start date must be before end date")
+        if end_date > datetime.now(tz=pytz.utc).date():
+            raise ValueError("End date must be before the current date")
+
+        android_score_history = []
+        ios_score_history = []
+        web_score_history = []
+        overall_score_history = []
+
+        quality_report_date = end_date
+
+        while True:
+            try:
+                quality_report_serialized = (
+                    self.quality_report_dal.get_latest_serialized_quality_report(
+                        title, date_to_str(quality_report_date)
+                    )
+                )
+            except:
+                # it is expected for this to fail if the start date is before the first quality report
+                LOG.info(
+                    f"Could not find quality report scores for title: {title} with date: {quality_report_date}"
+                )
+                break
+
+            quality_report = json.loads(quality_report_serialized)
+            scores = quality_report.get("scores")
+            if scores is None:
+                raise ValueError("Quality report does not contain scores")
+
+            # accumulate scores from all quality reports
+            android_score_history += scores.get("DLAA", [])
+            ios_score_history += scores.get("DLAI", [])
+            web_score_history += scores.get("DLAW", [])
+            overall_score_history += scores.get(QUALITY_REPORT_OVERALL_KEY, [])
+
+            # setup for next iteration
+            start_date_in_quality_report = quality_report.get("start_date")
+            quality_report_date = str_to_date(start_date_in_quality_report)
+
+            if quality_report_date <= start_date:
+                break
+
+        # post processing to filter, remove duplicates, and sort
+        android_score_history = self._post_process_quality_scores(android_score_history, start_date)
+        ios_score_history = self._post_process_quality_scores(ios_score_history, start_date)
+        web_score_history = self._post_process_quality_scores(web_score_history, start_date)
+        overall_score_history = self._post_process_quality_scores(overall_score_history, start_date)
+
+        return {
+            "scores": {
+                "DLAA": android_score_history,
+                "DLAI": ios_score_history,
+                "DLAW": web_score_history,
+                QUALITY_REPORT_OVERALL_KEY: overall_score_history,
+            }
+        }
 
     def generate_reports(
         self,

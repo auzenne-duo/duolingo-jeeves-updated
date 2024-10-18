@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from duolingo_base.util import registry
 
@@ -156,19 +156,24 @@ class QualityReportDAL:
             QUALITY_REPORT_S3_PATH, title, _QUALITY_REPORT_DATA_FOLDER, checkpoint_date
         )
 
-    def get_latest_serialized_quality_report(self, title: str) -> JSON:
+    def get_latest_serialized_quality_report(
+        self, title: str, checkpoint_date: Optional[str] = None
+    ) -> JSON:
         """
         Downloads the latest quality report
 
         Params
             title: string name for an area or team, such as "Growth"
+            checkpoint_date: string date of the checkpoint for the quality report (optional)
 
         Returns: JSON object of SerializedQualityReportData structure
         """
-        # get the checkpoint date for the latest quality report
-        checkpoint_date = json.loads(
-            download_from_jeeves_s3(self._get_quality_report_checkpoint_filepath(title))
-        )
+        if checkpoint_date is None:
+            # get the checkpoint date for the latest quality report
+            checkpoint_date = json.loads(
+                download_from_jeeves_s3(self._get_quality_report_checkpoint_filepath(title))
+            )
+
         return download_from_jeeves_s3(
             self._get_serialized_quality_report_filepath(title, checkpoint_date)
         )

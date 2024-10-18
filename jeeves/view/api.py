@@ -2,6 +2,7 @@
 APIs.
 """
 
+import html
 import logging
 import os
 from datetime import datetime
@@ -38,6 +39,7 @@ from jeeves.util.date_util import (
     date_to_str,
     datetime_to_str,
     get_utc_today,
+    str_to_date,
     time_series_str_to_datetime as str_to_datetime,
 )
 from jeeves.util.priority_estimator import PriorityEstimator
@@ -878,6 +880,38 @@ def quality_report_team():
         abort(make_response("Please provide a team parameter.", 400))
 
     return app_registry(QualityReportManager).get_serialized_quality_report(team)
+
+
+@blueprint_api.route("/api/3/quality_score_area", methods=["GET"])
+def quality_score_area():
+    """
+    Retrieves the quality scores for a specific area and a given date range
+    """
+    area = request.args.get("area")
+    if not area:
+        abort(make_response("Please provide an area parameter.", 400))
+
+    start_date_arg = request.args.get("start_date")
+    if not start_date_arg:
+        abort(make_response("Please provide a start_date parameter.", 400))
+    try:
+        start_date = str_to_date(start_date_arg)
+    except ValueError:
+        abort(
+            make_response(
+                f"Could not parse start date argument {html.escape(start_date_arg)}.", 400
+            )
+        )
+
+    end_date_arg = request.args.get("end_date")
+    if not end_date_arg:
+        abort(make_response("Please provide an end_date parameter.", 400))
+    try:
+        end_date = str_to_date(end_date_arg)
+    except ValueError:
+        abort(make_response(f"Could not parse end date argument {html.escape(end_date_arg)}.", 400))
+
+    return app_registry(QualityReportManager).get_quality_scores(area, start_date, end_date)
 
 
 @blueprint_api.route("/", defaults={"path": ""})
