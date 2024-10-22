@@ -253,8 +253,8 @@ JIRA_FEATURES = {
             "Adventures": [],
             "Immersive Speak": [],
         },
-        "AI Speaking": {
-            "Video Call": ["facetime"],
+        "Video Call": {
+            "Video Call": ["facetime", "videocall"],
         },
         "B1 B2 English Success Team": {
             "SMEC": ["Intermediate English"],
