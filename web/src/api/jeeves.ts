@@ -1,3 +1,5 @@
+import { toDateString } from "util";
+
 import { format, formatISO, parseISO } from "date-fns";
 
 import { get, patch, post } from "api/client";
@@ -44,6 +46,20 @@ export const getQualityReportForArea = (area: string) => {
   params.set("area", area);
   return get<JSONAPI.DetailedAreaQualityReport>(
     `/3/quality_report_area?${params.toString()}`,
+  );
+};
+
+export const getQualityScoreForAreaDateRange = (
+  area: string,
+  startDate: Date,
+  endDate: Date,
+) => {
+  const params = new URLSearchParams();
+  params.set("area", area);
+  params.set("start_date", toDateString(startDate));
+  params.set("end_date", toDateString(endDate));
+  return get<JSONAPI.QualityScoresHistory>(
+    `/3/quality_score_area?${params.toString()}`,
   );
 };
 

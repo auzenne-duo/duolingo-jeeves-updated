@@ -3,8 +3,12 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 
-import { formatReadableDate } from "../../util";
-import { getQualityReportForArea } from "api/jeeves";
+import { formatReadableDate, toDateString } from "../../util";
+import {
+  getQualityReportForArea,
+  getQualityScoreForAreaDateRange,
+} from "api/jeeves";
+import { type DateRangeChangeEvent } from "components/DateRangeInput";
 import NamedSection from "components/NamedSection";
 import Table from "components/Table";
 import TabsNav from "components/TabsNav";
@@ -48,6 +52,11 @@ const QualityReportForArea = ({ area, team }: Props) => {
   const { data, isLoading } = useQuery(["quality-report", area], () =>
     getQualityReportForArea(area),
   );
+
+  const [dateRange, setDateRange] = React.useState<{ from: Date; to: Date }>({
+    from: new Date(),
+    to: new Date(),
+  });
 
   const report = React.useMemo(
     () => (team ? data?.teams.find(t => t.title === team) : data),
@@ -97,6 +106,70 @@ const QualityReportForArea = ({ area, team }: Props) => {
     }
   };
 
+  const handleDateRangeChange = (e: DateRangeChangeEvent) => {
+    if (e.from && e.to) {
+      setDateRange({ from: e.from, to: e.to });
+    } else if (e.from) {
+      setDateRange({ ...dateRange, from: e.from });
+    } else if (e.to) {
+      setDateRange({ ...dateRange, to: e.to });
+    }
+  };
+
+  const isHistoricDateRangeSelected = (
+    range: { from: Date; to: Date },
+    rep: JSONAPI.DetailedQualityReport | undefined,
+  ): boolean => {
+    if (!rep) {
+      return false;
+    }
+
+    // converting to dates first to avoid time zone issues
+    const isDiffFromDate =
+      toDateString(range.from) !== toDateString(new Date(rep.start_date));
+    const isDiffToDate =
+      toDateString(range.to) !== toDateString(new Date(rep.end_date));
+    const isInitialFromDate =
+      toDateString(range.from) === toDateString(new Date());
+    const isInitialToDate = toDateString(range.to) === toDateString(new Date());
+
+    return (
+      !isInitialFromDate && !isInitialToDate && (isDiffFromDate || isDiffToDate)
+    );
+  };
+
+  const {
+    data: scoreHistory,
+    isLoading: isLoadingScoreHist,
+    isError: isErrorLoadingScoreHistory,
+  } = useQuery(
+    ["quality-score-history", area, team, dateRange, report],
+    () =>
+      getQualityScoreForAreaDateRange(
+        team ?? area,
+        dateRange.from,
+        dateRange.to,
+      ),
+    {
+      enabled: isHistoricDateRangeSelected(dateRange, report),
+    },
+  );
+
+  // is loading is true when enabled is false, so need to check if enabled is set with loading
+  // todo: v5 of react-query may make it unnecessary to check if the query is enabled, revisit then
+  const isLoadingScoreHistory =
+    isLoadingScoreHist && isHistoricDateRangeSelected(dateRange, report);
+
+  React.useEffect(() => {
+    // reset date range when report changes
+    if (report) {
+      setDateRange({
+        from: new Date(report.start_date),
+        to: new Date(report.end_date),
+      });
+    }
+  }, [report]);
+
   return report ? (
     <>
       <TabsNav
@@ -132,6 +205,10 @@ const QualityReportForArea = ({ area, team }: Props) => {
       </div>
       <QualityGraph
         className={styles.graph}
+        from={dateRange.from}
+        isErrorLoading={isErrorLoadingScoreHistory}
+        isLoading={isLoadingScoreHistory}
+        onChangeDateRange={handleDateRangeChange}
         onLegendClick={trace =>
           setVisibleTraces(
             visibleTraces.includes(trace)
@@ -139,8 +216,9 @@ const QualityReportForArea = ({ area, team }: Props) => {
               : visibleTraces.concat(trace),
           )
         }
-        scores={report.scores}
+        scores={scoreHistory?.scores ?? report.scores}
         title="Quality scores over time"
+        to={dateRange.to}
         visibleTraces={visibleTraces}
       />
       {report.recent_changes ? (

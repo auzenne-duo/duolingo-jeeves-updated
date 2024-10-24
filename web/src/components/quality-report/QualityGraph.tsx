@@ -3,6 +3,9 @@ import { parseISO } from "date-fns";
 import * as React from "react";
 import { Checkbox } from "web-ui/juicy";
 
+import DateRangeInput, {
+  type DateRangeChangeEvent,
+} from "components/DateRangeInput";
 import ResizableGraph, { usePlotState } from "components/ResizableGraph";
 import styles from "components/quality-report/QualityGraph.module.scss";
 
@@ -34,18 +37,28 @@ const PROJECTS = ["DLAA", "DLAI", "DLAW", "Overall"] as const;
 interface Props {
   className?: string;
   disableHover?: boolean;
+  from?: Date;
+  isErrorLoading?: boolean;
+  isLoading?: boolean;
+  onChangeDateRange?: (e: DateRangeChangeEvent) => void;
   onLegendClick?: (trace: string) => void;
   scores: JSONAPI.QualityReport["areas"][number]["scores"];
   title?: string;
+  to?: Date;
   visibleTraces: string[];
 }
 
 const QualityGraph = ({
   className,
   disableHover,
+  from,
+  isErrorLoading,
+  isLoading,
+  onChangeDateRange,
   onLegendClick,
   scores,
   title,
+  to,
   visibleTraces,
 }: Props) => {
   const [plotState, setPlotState] = usePlotState();
@@ -123,30 +136,46 @@ const QualityGraph = ({
     <div className={cn(styles.container, className)}>
       <ResizableGraph
         className={styles.graph}
+        isLoading={isLoading}
         onChange={setPlotState}
         state={plotState}
       />
       {onLegendClick ? (
-        <div className={styles.legend}>
-          {PROJECTS.map(p => (
-            <label
-              className={
-                visibleTraces.includes(p)
-                  ? styles["label-checked"]
-                  : styles.label
-              }
-              key={p}
-              style={{
-                ["--checkbox-color-override" as string]: COLOR_MAP[p],
-              }}
-            >
-              <Checkbox
-                checked={visibleTraces.includes(p)}
-                onClick={() => onLegendClick(p)}
-              />
-              <span>{LEGEND_MAP[p]}</span>
-            </label>
-          ))}
+        <div className={styles["legend-container"]}>
+          <div className={styles.legend}>
+            {PROJECTS.map(p => (
+              <label
+                className={
+                  visibleTraces.includes(p)
+                    ? styles["label-checked"]
+                    : styles.label
+                }
+                key={p}
+                style={{
+                  ["--checkbox-color-override" as string]: COLOR_MAP[p],
+                }}
+              >
+                <Checkbox
+                  checked={visibleTraces.includes(p)}
+                  onClick={() => onLegendClick(p)}
+                />
+                <span>{LEGEND_MAP[p]}</span>
+              </label>
+            ))}
+          </div>
+          <div className={styles["date-range-container"]}>
+            {isErrorLoading && (
+              <div className={styles["error-message"]}>
+                Error fetching new dates
+              </div>
+            )}
+            <DateRangeInput
+              alignPopover="end"
+              from={from}
+              onChange={onChangeDateRange}
+              to={to}
+            />
+          </div>
         </div>
       ) : null}
     </div>

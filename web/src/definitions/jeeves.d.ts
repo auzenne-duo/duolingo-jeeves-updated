@@ -196,6 +196,10 @@ declare namespace JSONAPI {
     Overall: [date: string, score: number][];
   }
 
+  interface QualityScoresHistory {
+    scores: QualityScores;
+  }
+
   interface SearchResult {
     datetime: string;
     origin: string;

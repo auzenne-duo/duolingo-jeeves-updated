@@ -2,6 +2,7 @@ import cn from "classnames";
 import Plotly from "plotly.js-basic-dist";
 import * as React from "react";
 import createPlotlyComponent from "react-plotly.js/factory";
+import { LoadingDots } from "web-ui";
 
 import styles from "components/ResizableGraph.module.scss";
 
@@ -37,6 +38,7 @@ export const usePlotState = () =>
 
 interface Props {
   className?: string;
+  isLoading?: boolean;
   onChange: React.Dispatch<React.SetStateAction<PlotState>>;
   onRelayout?: (e: RelayoutEvent) => void;
   state: PlotState;
@@ -44,6 +46,7 @@ interface Props {
 
 const ResizableGraph = ({
   className,
+  isLoading,
   onChange,
   onRelayout,
   state: plotState,
@@ -64,23 +67,27 @@ const ResizableGraph = ({
 
   return (
     <div className={cn(styles.container, className)} ref={containerRef}>
-      <div className={styles.inner}>
-        <Plot
-          className={styles.plot}
-          config={plotState.config}
-          data={plotState.data}
-          frames={plotState.frames}
-          layout={plotState.layout}
-          onInitialized={(figure: Partial<PlotState>) =>
-            onChange(value => ({ ...value, figure }))
-          }
-          onRelayout={onRelayout}
-          onUpdate={(figure: Partial<PlotState>) =>
-            onChange(value => ({ ...value, figure }))
-          }
-          ref={plotRef}
-        />
-      </div>
+      {isLoading ? (
+        <LoadingDots type="button" />
+      ) : (
+        <div className={styles.inner}>
+          <Plot
+            className={styles.plot}
+            config={plotState.config}
+            data={plotState.data}
+            frames={plotState.frames}
+            layout={plotState.layout}
+            onInitialized={(figure: Partial<PlotState>) =>
+              onChange(value => ({ ...value, figure }))
+            }
+            onRelayout={onRelayout}
+            onUpdate={(figure: Partial<PlotState>) =>
+              onChange(value => ({ ...value, figure }))
+            }
+            ref={plotRef}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -200,3 +200,5 @@ export const spikeToStrCategory = (
  * useful for guaranteeing all cases are handled in a switch statement.
  */
 export const staticAssertNever = (value: never) => value;
+
+export const toDateString = (date: Date) => format(date, "yyyy-MM-dd");
