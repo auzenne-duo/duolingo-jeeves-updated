@@ -2,7 +2,7 @@
 import json
 
 import boto3
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 
 _config = Config.load_config()
@@ -35,7 +35,7 @@ class PublishManager:
             qa_summary: A summary from QA about what was fixed.
         """
         if not self._initialized:
-            rollbar.report_message(
+            duo_logging.capture_message(
                 "SNS topic is not configured for this environment",
                 "warning",
             )

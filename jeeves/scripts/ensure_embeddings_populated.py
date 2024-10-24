@@ -1,6 +1,7 @@
 import sys
 
-import duo_logging.legacy as rollbar
+import duo_logging
+from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.config.config import GPT_EMBEDDING_MODEL
@@ -8,10 +9,11 @@ from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 
 _BULK_INDEX_BATCH_SIZE = 20
+_config = Config.load_config()
 
 
 if __name__ == "__main__":
-    apply_registry()
+    apply_registry(_config)
     try:
         print("Checking for missing embeddings")
         query = {"size": 1000, "query": {"range": {"date_time": {"gte": "now-6M"}}}}
@@ -33,6 +35,6 @@ if __name__ == "__main__":
         app_registry(OpenSearchDAL).bulk_index_tickets(document_list)
         print("Done checking for missing embeddings")
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

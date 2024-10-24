@@ -6,7 +6,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Optional
 
-import duo_logging.legacy as rollbar
+import duo_logging
+from duolingo_base.config import Config
 from duolingo_base.dal import s3
 
 from jeeves import apply_registry, close_registry
@@ -34,6 +35,7 @@ _HOLDOUT_SET_FILENAME = "holdout_set"
 _OVERRIDDEN_PRIORITIES_FILENAME = "overridden_priorities"
 _PRIORITY_ESTIMATOR_START_DATE = "2022-09-22"
 _PRIORITY_ESTIMATOR_MODEL_PATH = os.environ.get("PRIORITY_ESTIMATOR_MODEL")
+_config = Config.load_config()
 s3_client, s3_bucket_name = get_s3_client_and_bucket()
 
 
@@ -188,7 +190,7 @@ def update_priority_model(overridden_priorities) -> Dict[str, OverriddenPriority
     print(f"updating priority estimator with {len(training_priorities)} overridden priorities")
     print(training_priorities.keys())
     if len(training_priorities) == 0:
-        rollbar.report_message("No new overridden priorities found", "warning")
+        duo_logging.capture_message("No new overridden priorities found", "warning")
         return
     data, labels = zip(
         *[
@@ -349,7 +351,7 @@ def check_if_update_necessary() -> bool:
 
 if __name__ == "__main__":
     try:
-        apply_registry()
+        apply_registry(_config)
         print("running priority updater")
         update_necessary = check_if_update_necessary()
         print("update necessary?", update_necessary)
@@ -368,10 +370,10 @@ if __name__ == "__main__":
                 # upload the overridden priorities to reset the modified timestamp
                 # those not used in training are flagged for future use
                 upload_s3_overridden_priorities(overridden_priorities)
-                rollbar.report_message(
+                duo_logging.capture_message(
                     f"Model was not updated due to poor performance ({performance})", "warning"
                 )
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

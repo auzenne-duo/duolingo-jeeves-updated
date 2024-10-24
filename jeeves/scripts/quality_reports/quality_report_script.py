@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, registry as app_registry
@@ -14,12 +14,10 @@ _DRY_RUN_RECIPIENT = recipient if (recipient := os.environ.get("DRY_RUN_RECIPIEN
 
 
 config = Config.load_config()
-config.apply_logging()
-config.apply_rollbar()
 
 
 if __name__ == "__main__":
-    apply_registry()
+    apply_registry(config)
     try:
         start = time.time()
         app_registry(QualityReportManager).generate_reports(
@@ -31,7 +29,7 @@ if __name__ == "__main__":
         print(f"Quality Reports done in {(time.time() - start):.3f} sec.")
         print("=" * 100)
     except Exception as exc:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
         raise exc
     finally:
         close_registry()

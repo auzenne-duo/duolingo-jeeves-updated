@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, registry as app_registry
@@ -16,11 +16,7 @@ _DEFAULT_SLACK_CHANNEL_ID = "C0UDM7XA4"  # for #slack-test channel
 _SLACK_CHANNEL_ID = os.environ.get("SLACK_CHANNEL_ID", _DEFAULT_SLACK_CHANNEL_ID)
 _SLACK_API_TOKEN = os.environ.get("SLACK_API_TOKEN")
 
-
 config = Config.load_config()
-config.apply_logging()
-config.apply_rollbar()
-
 
 DATA_SOURCES_MAX_EXPECTED_AGE = {
     # Use larger stale threshold for AppFigures because we get them once for the whole day after they become available.
@@ -57,7 +53,7 @@ def get_latest_spike() -> SpikeWord:
 
 
 if __name__ == "__main__":
-    apply_registry()
+    apply_registry(config)
     slack_obj = SlackUtil(slack_channel_id=_SLACK_CHANNEL_ID, slack_api_token=_SLACK_API_TOKEN)
     try:
         print("Checking spike detector")
@@ -92,6 +88,6 @@ if __name__ == "__main__":
         print("Finished checking data sources.")
     except:
         print("Unexpected error:", sys.exc_info())
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

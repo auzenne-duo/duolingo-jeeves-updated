@@ -4,7 +4,7 @@ import sys
 from typing import List
 from urllib import parse
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 from requests import post
 from requests.exceptions import RequestException
@@ -19,8 +19,6 @@ from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
 from jeeves.util.error_util import SpikeReporterException, print_request_exception
 
 _config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
 
 _JEEVES_URL = "https://jeeves.duolingo.com"
 
@@ -179,7 +177,7 @@ def generate_slack_message(
 
 
 if __name__ == "__main__":
-    apply_registry()
+    apply_registry(_config)
     try:
         url = f"{_SLACK_API}/chat.postMessage"
         weekday = datetime.datetime.now().weekday()
@@ -223,8 +221,8 @@ if __name__ == "__main__":
                             r = post(url, headers=headers, data=json.dumps(data))
                             r.raise_for_status()
                         except RequestException as e:
-                            print_request_exception(e, rollbar_level="error")
+                            print_request_exception(e, log_level="error")
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

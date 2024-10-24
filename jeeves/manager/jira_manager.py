@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 from typing import List, Optional, Type
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.dal.s3 import S3Client, S3Exception
 
 from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS
@@ -38,26 +38,26 @@ class JiraManager(JeevesManager):
             if len(codebase_field_keys) == 1:
                 JiraDocument.set_codebase_field_key(codebase_field_keys.pop())
             else:
-                rollbar.report_message(
+                duo_logging.capture_message(
                     f"Expected one unique codebase field key, got {len(codebase_field_keys)}",
                     "warning",
                 )
             if len(team_field_keys) == 1:
                 JiraDocument.set_team_field_key(team_field_keys.pop())
             else:
-                rollbar.report_message(
+                duo_logging.capture_message(
                     f"Expected one unique team field key, got {len(team_field_keys)}", "warning"
                 )
             if len(feature_field_keys) == 1:
                 JiraDocument.set_feature_field_key(feature_field_keys.pop())
                 return True
             else:
-                rollbar.report_message(
+                duo_logging.capture_message(
                     f"Expected one unique feature field key, got {len(feature_field_keys)}", "error"
                 )
                 return False
         except:
-            rollbar.report_exc_info(sys.exc_info())
+            duo_logging.capture_exception(sys.exc_info())
             return False
 
     @staticmethod
@@ -70,7 +70,7 @@ class JiraManager(JeevesManager):
             doc.feature = feature_name
             return True
         except:
-            rollbar.report_exc_info(sys.exc_info())
+            duo_logging.capture_exception(sys.exc_info())
             return False
 
     @staticmethod

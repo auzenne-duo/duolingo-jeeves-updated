@@ -41,6 +41,7 @@ brotli==1.0.9
 certifi==2023.5.7
     # via
     #   opensearch-py
+    #   pinecone-client
     #   requests
     #   sentry-sdk
 cffi==1.15.1
@@ -74,17 +75,17 @@ deprecation==2.1.0
     # via
     #   duolingo-base
     #   duolingo-nlp
-duo-logging==0.4.4
+duo-logging==0.10.0
     # via
     #   -r requirements.in
     #   duolingo-base
-duolingo-base==1.11.1.1
+duolingo-base==1.29.1
     # via -r requirements.in
-duolingo-nlp==4.17.0
+duolingo-nlp==4.32.0
     # via -r requirements.in
 duolingo-notify==2.6.1
     # via -r requirements.in
-duolingo-proto==2023.6.14.1
+duolingo-proto==2024.10.22.1
     # via
     #   duolingo-base
     #   duolingo-nlp
@@ -98,7 +99,6 @@ filelock==3.9.0
 flask[async]==2.3.2
     # via
     #   -r requirements.in
-    #   duo-logging
     #   duolingo-base
     #   flask-cors
 flask-cors==3.0.10
@@ -134,7 +134,7 @@ importlib-metadata==6.8.0
     #   duolingo-nlp
     #   flask
     #   markdown
-importlib-resources==6.1.1
+importlib-resources==6.4.5
     # via matplotlib
 itsdangerous==2.1.2
     # via flask
@@ -352,8 +352,7 @@ pillow==10.1.0
     #   torchvision
     #   weasyprint
 pinecone-client==3.1.0
-    # via
-    #  -r requirements.in
+    # via -r requirements.in
 prometheus-client==0.17.0
     # via
     #   duolingo-base
@@ -432,16 +431,11 @@ requests==2.31.0
     #   huggingface-hub
     #   hvac
     #   opentelemetry-exporter-otlp-proto-http
-    #   rollbar
     #   tiktoken
     #   torchvision
     #   transformers
 retrying==1.3.4
     # via duolingo-notify
-rollbar==0.16.3
-    # via
-    #   duo-logging
-    #   duolingo-nlp
 s3transfer==0.10.0
     # via boto3
 safetensors==0.3.1
@@ -463,7 +457,7 @@ sentencepiece==0.1.97
     # via
     #   -r requirements.in
     #   sentence-transformers
-sentry-sdk==1.40.2
+sentry-sdk==2.0.0
     # via duo-logging
 simplejson==3.19.1
     # via
@@ -477,9 +471,10 @@ six==1.16.0
     #   opensearch-dsl
     #   python-dateutil
     #   retrying
-    #   rollbar
     #   thrift
 sly==0.5
+    # via duolingo-nlp
+soylemma==0.2.0
     # via duolingo-nlp
 sympy==1.12
     # via torch
@@ -508,6 +503,7 @@ tqdm==4.64.1
     #   -r requirements.in
     #   huggingface-hub
     #   nltk
+    #   pinecone-client
     #   sentence-transformers
     #   transformers
 transformers==4.30.2
@@ -521,6 +517,7 @@ typing-extensions==4.6.3
     #   duolingo-base
     #   huggingface-hub
     #   opentelemetry-sdk
+    #   pinecone-client
     #   torch
 tzdata==2023.3
     # via pandas
@@ -534,6 +531,7 @@ urllib3==1.26.16
     #   duolingo-base
     #   duolingo-nlp
     #   opensearch-py
+    #   pinecone-client
     #   requests
     #   sentry-sdk
 uwsgi==2.0.21
@@ -546,7 +544,9 @@ webencodings==0.5.1
     #   html5lib
     #   tinycss2
 werkzeug==2.3.6
-    # via flask
+    # via
+    #   duolingo-base
+    #   flask
 wheel==0.40.0
     # via duolingo-nlp
 wrapt==1.12.1

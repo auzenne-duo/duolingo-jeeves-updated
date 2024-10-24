@@ -22,14 +22,8 @@ service_registry = base_registry.initialize()
 T = TypeVar("T")
 
 
-def apply_registry_to_app(application: Flask):
-    apply_registry()
-    application.registry = service_registry
-
-
-def apply_registry():
-    config = Config.load_config()
-    config.apply_registry(registry=service_registry)
+def apply_registry(config: Config) -> None:
+    config.apply_all(registry=service_registry)
     service_registry.start()
 
     service_registry[JIRA_FEATURES_REGISTRY_KEY] = JIRA_FEATURES
@@ -39,7 +33,7 @@ def apply_registry():
     service_registry[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)
 
 
-def close_registry():
+def close_registry() -> None:
     executor = service_registry[ThreadPoolExecutor]
     executor.shutdown(wait=False)
     service_registry.close()
@@ -53,7 +47,7 @@ def registry(t_type: Type[T]) -> T:
     return service_registry[t_type]
 
 
-def register(key, value):
+def register(key, value) -> None:
     service_registry[key] = value
 
 

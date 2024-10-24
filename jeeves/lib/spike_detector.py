@@ -9,7 +9,7 @@ from datetime import date, datetime, time
 from random import shuffle
 from typing import Dict, List, Optional, Tuple, Union
 
-import duo_logging.legacy as rollbar
+import duo_logging
 import numpy as np
 
 from jeeves import registry as app_registry
@@ -273,9 +273,9 @@ def run_spike_detector_for_batch(
             batch_spike_list[i].is_bug = response_json[RESP_IS_BUG]
             batch_spike_list[i].is_social_trend = response_json[RESP_IS_SOCIAL_TREND]
         except TimeoutError as e:
-            rollbar.report_message(f"Spike summary request timed out: {e}", "warning")
+            duo_logging.capture_message(f"Spike summary request timed out: {e}", "warning")
         except Exception as e:
-            rollbar.report_message(f"Spike summary request failed: {e}", "warning")
+            duo_logging.capture_message(f"Spike summary request failed: {e}", "warning")
 
     if batch_spike_list:
         if not dry_run:

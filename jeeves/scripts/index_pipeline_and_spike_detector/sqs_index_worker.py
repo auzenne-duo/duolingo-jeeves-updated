@@ -1,7 +1,7 @@
 import json
 import sys
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 
@@ -12,8 +12,6 @@ from jeeves.manager.jeeves_duplicate_manager import JeevesDuplicateManager
 from jeeves.util.sleep_check import sleep_check
 
 _config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
 
 _BATCH_GROUP_SIZE = 100
 
@@ -33,7 +31,7 @@ def _message_to_document(message):
 
 
 if __name__ == "__main__":
-    apply_registry()
+    apply_registry(_config)
     try:
         sqs_client = sqs.SQSClient(
             _config.get_nested(["sqs_verify_index_pipeline", "queue_url"]),
@@ -45,7 +43,7 @@ if __name__ == "__main__":
 
         batch_list = []
         while True:
-            sleep_check()
+            sleep_check(_config)
             messages = sqs_client.receive_messages()
             print(f"Received {len(messages)} messages in batch", flush=True)
             documents = [_message_to_document(m) for m in messages]
@@ -63,6 +61,6 @@ if __name__ == "__main__":
                 tc.perform_checkpoint(batch_list)
                 batch_list = []
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

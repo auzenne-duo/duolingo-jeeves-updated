@@ -8,7 +8,7 @@ import codecs
 import sys
 from typing import Dict, List
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 from duolingo_notify.api import RequestBuilder
 
@@ -21,8 +21,6 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shakira_stat import ShakiraStat
 
 _config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
 
 _UNSUBSCRIBED = [
     "jake@duolingo.com",
@@ -106,7 +104,7 @@ def _get_email_body_html(
 
 
 if __name__ == "__main__":
-    apply_registry()
+    apply_registry(_config)
     try:
         stats_per_reporter = app_registry(ShakiraStatsManager).get_all_stats_per_reporter_email()
         stats_per_reporter_to_send_emails_to = {
@@ -131,6 +129,6 @@ if __name__ == "__main__":
             )
             rb.send_medium_priority()
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

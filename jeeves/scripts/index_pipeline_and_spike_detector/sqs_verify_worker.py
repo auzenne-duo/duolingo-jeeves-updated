@@ -4,10 +4,11 @@ import random
 import sys
 from typing import List
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 
+from jeeves import apply_registry
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.util.json_encoder import JeevesJSONEncoder
 from jeeves.util.sleep_check import sleep_check
@@ -15,8 +16,7 @@ from jeeves.util.sleep_check import sleep_check
 LOG = logging.getLogger("process document")
 
 _config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
+_config.apply_all()
 
 
 """
@@ -53,6 +53,7 @@ def _check_for_data_source(messages: List[sqs.SQSMessage]) -> bool:
 
 if __name__ == "__main__":
     try:
+        apply_registry(_config)
         logging.basicConfig()
         LOG.setLevel(logging.INFO)
         sqs_client_input = sqs.SQSClient(
@@ -67,7 +68,7 @@ if __name__ == "__main__":
         )
 
         while True:
-            sleep_check()
+            sleep_check(_config)
             messages = sqs_client_input.receive_messages(MessageAttributeNames=["All"])
 
             # If one or more received messages are missing their data_source,
@@ -113,4 +114,4 @@ if __name__ == "__main__":
             if messages:
                 sqs_client_input.delete_messages(messages)
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
