@@ -51,5 +51,5 @@ class UserSearchManager:
             else:
                 return None
         except Exception as e:
-            print_request_exception(e, log_level="warning")
+            print_request_exception(e, rollbar_level="warning")
             return None

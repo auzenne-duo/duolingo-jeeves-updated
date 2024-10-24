@@ -11,7 +11,7 @@ from duolingo_base.view.auth import auth_after_request, requires_auth
 from flask import Flask, request
 from flask_cors import CORS
 
-from jeeves import apply_registry, close_registry, registry as app_registry
+from jeeves import apply_registry_to_app, close_registry, registry as app_registry
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
@@ -54,9 +54,11 @@ def auth_before_request():
 application.before_request(auth_before_request)
 application.after_request(auth_after_request)
 
+apply_registry_to_app(application)
+
 # Register blueprints
-apply_registry(config)
-config.apply_flask(flask_app=application)
+
+config.apply_all(registry=application.registry, flask_app=application)
 
 
 @application.route("/error", methods=["GET", "POST", "PATCH", "PUT"])

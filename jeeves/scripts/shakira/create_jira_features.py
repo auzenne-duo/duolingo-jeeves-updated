@@ -6,17 +6,15 @@ Requires the env vars SHAKIRA_JIRA_USERNAME_WEB and SHAKIRA_JIRA_API_TOKEN_WEB t
 
 import sys
 
-from duolingo_base.config import Config
-
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 
 _PROJECTS = ["DLAA", "DLAI", "DLAW"]
-_config = Config.load_config()
+
 
 if __name__ == "__main__":
-    apply_registry(_config)
+    apply_registry()
     try:
         jira_client = app_registry(ShakiraJiraApiClient)
 

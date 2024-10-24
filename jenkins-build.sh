@@ -66,6 +66,12 @@ fi
 TERRAFORM_PATH="galaxy/$TERRAFORM_ENV"
 echo "TERRAFORM_ENV: $TERRAFORM_PATH"
 if [[ $TERRAFORM_ENV == "prod" ]]; then
+  # --- report deployment to rollbar ---
+  curl https://api.rollbar.com/api/1/deploy/ \
+    -F access_token="9dbf3ebbc6824576aa085ffe831d303e" \
+    -F environment="production" \
+    -F revision="$GIT_COMMIT" \
+    -F local_username="jenkins-ci"
 
   # --- deploy Docker images ---
   echo "$IMAGE_HASH" | deploy-galaxy -c -m "$MODULE" -v "$BUILD_NUMBER" -p "$TERRAFORM_PATH"

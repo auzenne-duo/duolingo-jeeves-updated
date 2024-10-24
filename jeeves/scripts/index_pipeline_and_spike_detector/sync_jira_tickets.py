@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-import duo_logging
+import duo_logging.legacy as rollbar
 from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, registry as app_registry
@@ -13,7 +13,10 @@ from jeeves.manager.jira_manager import JiraManager
 _DEFAULT_REFRESH_WINDOW_HOURS = 1
 _REFRESH_HOURS = os.environ.get("REFRESH_HOURS", _DEFAULT_REFRESH_WINDOW_HOURS)
 
+
 config = Config.load_config()
+config.apply_logging()
+config.apply_rollbar()
 
 
 def refresh_updated_jira_tickets() -> None:
@@ -55,7 +58,7 @@ def refresh_updated_jira_tickets() -> None:
 
 
 if __name__ == "__main__":
-    apply_registry(config)
+    apply_registry()
     try:
         start = time.time()
         refresh_updated_jira_tickets()
@@ -63,6 +66,6 @@ if __name__ == "__main__":
         print(f"Jira sync done in {(time.time() - start):.3f} sec.")
         print("=" * 100)
     except:
-        duo_logging.capture_exception(sys.exc_info())
+        rollbar.report_exc_info(sys.exc_info())
     finally:
         close_registry()

@@ -42,4 +42,4 @@ class SlackUtil:
             if not r.json().get("ok", False):
                 raise RequestException(f"Slack POST failed with error: {r.json()['error']}")
         except RequestException as e:
-            print_request_exception(e, log_level="error")
+            print_request_exception(e, rollbar_level="error")

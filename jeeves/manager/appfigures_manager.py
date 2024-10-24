@@ -151,7 +151,7 @@ class AppfiguresManager(JeevesManager):
                 r = s.get(template_url, params=url_params)
                 r.raise_for_status()
             except RequestException as e:
-                print_request_exception(e, log_level="error")
+                print_request_exception(e, rollbar_level="error")
                 return checkpoint_date
             j = json.loads(r.text)
             LOG.info(
@@ -198,7 +198,7 @@ class AppfiguresManager(JeevesManager):
                         )
 
                 except RequestException as e:
-                    print_request_exception(e, log_level="error")
+                    print_request_exception(e, rollbar_level="error")
                     break
 
         return checkpoint_date

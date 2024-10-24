@@ -85,8 +85,17 @@ resource "pagerduty_service_integration" "pingdom" {
   vendor  = data.pagerduty_vendor.pingdom.id
 }
 
+# Rollbar
 
+data "pagerduty_vendor" "rollbar" {
+  name = "Rollbar"
+}
 
+resource "pagerduty_service_integration" "rollbar" {
+  name    = data.pagerduty_vendor.rollbar.name
+  service = pagerduty_service.service.id
+  vendor  = data.pagerduty_vendor.rollbar.id
+}
 
 # Slack
 data "pagerduty_vendor" "slack" {

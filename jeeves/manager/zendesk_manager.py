@@ -9,7 +9,6 @@ from collections import Counter
 from datetime import datetime
 from typing import Type
 
-from duolingo_base.config import Config
 from duolingo_base.dal.s3 import S3Client
 from requests import RequestException, Session
 
@@ -23,8 +22,6 @@ from jeeves.util.sleep_check import sleep_check
 
 _USER = os.environ.get("ZENDESK_USER")
 _ZENDESK_API_TOKEN = os.environ.get("ZENDESK_API_TOKEN")
-
-_config = Config.load_config()
 
 
 class ZendeskManager(JeevesManager):
@@ -63,7 +60,7 @@ class ZendeskManager(JeevesManager):
             b64_auth_str = base64.b64encode(auth_str.encode()).decode()
             s.headers.update({"Authorization": f"Basic {b64_auth_str}"})
             while True:
-                sleep_check(_config)
+                sleep_check()
                 if len(urls) > 0:
                     print("Sleeping", flush=True)
                     time.sleep(10)

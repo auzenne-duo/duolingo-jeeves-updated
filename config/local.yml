@@ -9,9 +9,9 @@ opensearch:
   port: 9200
 
 sns:
-  jeeves_beta_feedback_arn:
-  region:
-  endpoint:
+  jeeves_beta_feedback_arn: ~
+  region: ~
+  endpoint: ~
 
 sqs_download_verify_pipeline:
   queue_url: http://localstack:4566/queue/us-east-1/000000000000/jeeves-pipeline-break-download-verify-local
@@ -34,3 +34,7 @@ s3_public_static:
 s3_internal_static:
   bucket_name: internal-static-local
   endpoint_url: http://localstack:4566
+
+rollbar:
+  access_token: null
+  enabled: False

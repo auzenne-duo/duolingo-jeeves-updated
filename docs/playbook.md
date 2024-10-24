@@ -7,7 +7,9 @@
 - [Grafana](https://grafana.duolingo.com/d/jiS6nriZz/duolingo-jeeves-prod-api?orgId=1&refresh=1m)
 - [Sentry](https://duolingo-sentry.sentry.io/projects/duolingo-jeeves/?issuesType=all&project=4506582948184064)
 
-### Sentry - Encountered X errors when bulk indexing tickets ...
+- [Rollbar (deprecated)](https://rollbar.com/duolingo/all/items/?sort=%5Bobject%20Object%5D&status=active&date_from=&date_to=&environments=production&activated_to=&framework=&levels=10&levels=20&levels=30&levels=40&levels=50&activated_from=&offset=0&timezone=America%2FNew_York&assigned_user=&date_filtering=seen&projects=524144&query=&enc_query=)
+
+### ROLLBAR - Encountered X errors when bulk indexing tickets ...
 
 'reason': 'Indexing knn vector fields is rejected as circuit breaker triggered. Check \_opendistro/\_knn/stats for detailed state'
 

@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import date
 from typing import Any, Dict, Iterator, List, Optional
 
-import duo_logging
+import duo_logging.legacy as rollbar
 from duolingo_base.config import Config
 from nltk.stem.snowball import SnowballStemmer
 from opensearch_dsl import Mapping, Search
@@ -43,9 +43,7 @@ class SpikeIndexDAL:
             m.field("lang", "keyword")
             m.field("spike_group", "keyword")
             m.save(self._spikename, using=self._opensearch)
-            duo_logging.capture_message(
-                f"Created index {self._spikename} with new mappings", "info"
-            )
+            rollbar.report_message(f"Created index {self._spikename} with new mappings", "info")
 
     def bulk_index_spikes(self, spikes: List[SpikeWord]) -> None:
         """
@@ -78,7 +76,7 @@ class SpikeIndexDAL:
                 f"Encountered {len(errors)} error{'' if len(errors) == 1 else 's'} "
                 + f"when bulk indexing spikes: {errors}"
             )
-            duo_logging.capture_exception(sys.exc_info())
+            rollbar.report_exc_info(sys.exc_info())
             raise Exception(error_message)
 
     def _update_settings(self, settings: Dict[str, Any], spike_id: str) -> None:
