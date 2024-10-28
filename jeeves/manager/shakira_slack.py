@@ -6,7 +6,7 @@ import json
 import os
 from typing import Optional
 
-import duo_logging
+import duo_logging.legacy as rollbar  # type: ignore[import]
 from requests import post
 from requests.exceptions import RequestException
 
@@ -63,12 +63,12 @@ class ShakiraSlackApiClient:
             if response_json["ok"]:
                 return response_json["ts"]
             else:
-                duo_logging.capture_message(
+                rollbar.report_message(
                     f"Could not post message to Slack: {response_json['error']}", "error"
                 )
                 return None
         except RequestException as e:
-            print_request_exception(e, log_level="error")
+            print_request_exception(e, rollbar_level="error")
 
     def _post_screenshot(
         self,
@@ -120,12 +120,12 @@ class ShakiraSlackApiClient:
                 if len(public_shares) > 0:
                     return public_shares[0]["ts"]
             else:
-                duo_logging.capture_message(
+                rollbar.report_message(
                     f"Could not post screenshot to Slack: {response_json['error']}", "error"
                 )
                 return None
         except RequestException as e:
-            print_request_exception(e, log_level="error")
+            print_request_exception(e, rollbar_level="error")
             return None
 
     def post_issue(
@@ -217,4 +217,4 @@ class ShakiraSlackApiClient:
             )
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, log_level="error")
+            print_request_exception(e, rollbar_level="error")

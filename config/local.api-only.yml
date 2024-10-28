@@ -5,6 +5,10 @@ memcached:
   port: 11211
 
 sns:
-  jeeves_beta_feedback_arn:
-  region:
-  endpoint:
+  jeeves_beta_feedback_arn: ~
+  region: ~
+  endpoint: ~
+
+rollbar:
+  access_token: null
+  enabled: False

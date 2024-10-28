@@ -2,20 +2,20 @@ import logging
 import sys
 from typing import Optional
 
-import duo_logging
+import duo_logging.legacy as rollbar
 from opensearch_dsl.response import Response
 from requests.exceptions import RequestException
 
 LOG = logging.getLogger(__name__)
 
 
-def print_request_exception(e: RequestException, log_level: Optional[str] = None) -> None:
+def print_request_exception(e: RequestException, rollbar_level: Optional[str] = None):
     """Print information about a RequestException.
 
     Parameters:
         e: The RequestException, probably raised by .raise_for_status()
-        log_level: "critical", "error", "warning", "info", "debug", or None. (Only "critical" and "error"
-            will be reported to Sentry.)
+        rollbar_level: "critical", "error", "warning", "info", "debug", or None. If None,
+            the error will not be reported to rollbar.
     """
     method = e.request.method if e.request is not None else None
     url = e.request.url if e.request is not None else None
@@ -31,19 +31,22 @@ def print_request_exception(e: RequestException, log_level: Optional[str] = None
         Returned headers: {headers}
         Returned body: {body}
         """
-    if log_level == "error" or log_level == "critical":
+    if rollbar_level == "error" or rollbar_level == "critical":
         LOG.error(error_str)
-        duo_logging.capture_exception(
+    elif rollbar_level == "warning":
+        LOG.warning(error_str)
+    else:
+        LOG.info(error_str)
+
+    if rollbar_level:
+        rollbar.report_exc_info(
             sys.exc_info(),
             extra_data={
                 "headers": headers,
                 "body": body,
             },
+            payload_data={"level": rollbar_level},
         )
-    elif log_level == "warning":
-        LOG.warning(error_str)
-    else:
-        LOG.info(error_str)
 
 
 class SearchUnsuccessfulException(Exception):

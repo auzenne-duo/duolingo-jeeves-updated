@@ -67,7 +67,7 @@ class AICompletionsDAL:
             response.raise_for_status()
             return response.json()["message"]["content"]
         except requests.exceptions.RequestException as e:
-            print_request_exception(e, log_level="warning")
+            print_request_exception(e, rollbar_level="warning")
             if raise_exceptions:
                 raise e
             return None
@@ -82,7 +82,7 @@ class AICompletionsDAL:
             response.raise_for_status()
             return response.json()["embeddingVector"]
         except requests.exceptions.RequestException as e:
-            print_request_exception(e, log_level="warning")
+            print_request_exception(e, rollbar_level="warning")
             if raise_exceptions:
                 raise e
             return None
@@ -123,7 +123,7 @@ class AICompletionsDAL:
             )
             batch_response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            print_request_exception(e, log_level="warning")
+            print_request_exception(e, rollbar_level="warning")
             return None
         LOG.debug(f"AI completions responded with status code {batch_response.status_code}")
         request_hashes = [request["requestHash"] for request in batch_response.json()["responses"]]

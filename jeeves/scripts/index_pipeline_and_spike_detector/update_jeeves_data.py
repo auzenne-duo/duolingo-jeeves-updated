@@ -1,17 +1,19 @@
 import sys
 import time
 
-import duo_logging
+import duo_logging.legacy as rollbar
 from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry
 from jeeves.lib.ticket_crawler import crawl_tickets
 
 config = Config.load_config()
+config.apply_logging()
+config.apply_rollbar()
 
 
 if __name__ == "__main__":
-    apply_registry(config)
+    apply_registry()
     try:
         start = time.time()
         crawl_tickets()
@@ -19,6 +21,6 @@ if __name__ == "__main__":
         print(f"Batch done in {(time.time() - start):.3f} sec.")
         print("=" * 100)
     except:
-        duo_logging.capture_exception(sys.exc_info())
+        rollbar.report_exc_info(sys.exc_info())
     finally:
         close_registry()
