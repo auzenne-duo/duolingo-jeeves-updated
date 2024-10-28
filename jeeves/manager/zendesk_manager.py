@@ -137,7 +137,7 @@ class ZendeskManager(JeevesManager):
         checkpoint_timestamp = int(
             s3_client.download(bucket_name, ZendeskManager.get_checkpoint_file_name())
         )
-        return datetime.fromtimestamp(checkpoint_timestamp)
+        return datetime.utcfromtimestamp(checkpoint_timestamp)
 
     @staticmethod
     def process_document(doc_json: JSON) -> JeevesDocument:

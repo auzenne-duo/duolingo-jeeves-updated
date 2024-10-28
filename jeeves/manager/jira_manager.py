@@ -189,7 +189,7 @@ class JiraManager(JeevesManager):
         checkpoint_timestamp = (
             int(s3_client.download(bucket_name, JiraManager.get_checkpoint_file_name())) // 1000
         )
-        return datetime.fromtimestamp(checkpoint_timestamp)
+        return datetime.utcfromtimestamp(checkpoint_timestamp)
 
     @staticmethod
     def process_document(doc_json: JSON) -> Optional[JeevesDocument]:
