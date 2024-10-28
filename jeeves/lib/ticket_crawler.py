@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Any, DefaultDict, List, Tuple
 from uuid import uuid4
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 from duolingo_base.dal import s3, sqs
 
@@ -168,7 +168,7 @@ def _crawl_documents_for_data_source(
             + f"Will index documents starting from {date_to_str(_THRESHOLD_DATE)}"
         )
         print(message, flush=True)
-        rollbar.report_message(message, "warning")
+        duo_logging.capture_message(message, "warning")
         latest_timestamp = get_datetime_from_date(_THRESHOLD_DATE).timestamp()
 
     print(

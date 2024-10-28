@@ -43,7 +43,7 @@ class MonolithDAL:
             response = requests.get(full_url, params=params, headers=self._headers)
             response.raise_for_status()
         except Exception as e:
-            print_request_exception(e, rollbar_level="warning")
+            print_request_exception(e, log_level="warning")
             return None
 
         # Parse user ID from response

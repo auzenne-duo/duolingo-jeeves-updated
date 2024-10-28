@@ -8,7 +8,7 @@ import asyncio
 from collections import Counter
 from typing import Dict, Iterable, List, Optional, Set, Tuple, TypedDict
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.util import registry
 
 from jeeves.dal.jira_dal import JiraApiDAL
@@ -96,7 +96,7 @@ class DuplicateGraphResolver:
                 for issue_key in not_fetched:
                     unvisited.discard(issue_key)
                     missing_issues.add(issue_key)
-                    rollbar.report_message(f"Couldn't fetch Jira issue {issue_key}", "warning")
+                    duo_logging.capture_message(f"Couldn't fetch Jira issue {issue_key}", "warning")
 
                 docs_to_fetch = set()
                 if target_key in not_fetched:
@@ -139,7 +139,7 @@ class DuplicateGraphResolver:
 
     def disconnect_duplicates_remote(self, issue_key: str) -> DuplicateGraphOperationResults:
         duplicate_graph = self.get_duplicate_graph([issue_key])
-        edges_to_ids: dict[Tuple[str, str], str] = {}
+        edges_to_ids: Dict[Tuple[str, str], str] = {}
         for outward_key, inward_key in duplicate_graph.existing_issue_links:
             for permutation in ((outward_key, inward_key), (inward_key, outward_key)):
                 issue_link = self._get_duplicate_issue_link(duplicate_graph, *permutation)

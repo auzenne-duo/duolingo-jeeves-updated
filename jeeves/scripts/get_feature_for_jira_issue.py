@@ -19,12 +19,16 @@ to the $DUPLICATE_DETECTOR_MODEL file path:
 
 import sys
 
+from duolingo_base.config import Config
+
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
 from jeeves.manager.jira_manager import JiraManager
 
+_config = Config.load_config()
+
 if __name__ == "__main__":
-    apply_registry()
+    apply_registry(_config)
     try:
         jira_doc = JiraManager.download_specific_issue(sys.argv[1])
 

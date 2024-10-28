@@ -1,7 +1,7 @@
 import json
 from typing import Any, Dict, List, Optional
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.dal.s3 import S3Client, S3DownloadException
 
 _EMPLOYEES_JSON_FILE_BUCKET = "internal-static.duolingo.com"
@@ -34,10 +34,10 @@ class EmployeesDAL:
             for employee in employees:
                 if employee["email"] == email:
                     return employee
-        except S3DownloadException:
-            rollbar.report_exc_info()
+        except S3DownloadException as e:
+            duo_logging.capture_exception(e)
             return None
         except KeyError:
-            rollbar.report_message("Could not parse employees.json", "error")
+            duo_logging.capture_message("Could not parse employees.json", "error")
             return None
         return None

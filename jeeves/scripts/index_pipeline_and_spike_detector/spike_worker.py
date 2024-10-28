@@ -2,7 +2,7 @@ import json
 import sys
 from datetime import datetime, timedelta, timezone
 
-import duo_logging.legacy as rollbar
+import duo_logging
 from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, register, registry as app_registry
@@ -17,8 +17,6 @@ from jeeves.util.date_util import date_to_str, get_utc_today, str_to_date, yield
 from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 _config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
 
 _FORCE_SPIKE_REFRESH_FILE = "force_spike_refresh_flag"
 _SPIKE_CALCULATOR_LOCK_FILE = "spike_calculator_lock"
@@ -165,11 +163,11 @@ def run_spike_worker(dry_run: bool) -> None:
 
 if __name__ == "__main__":
     try:
-        apply_registry()
+        apply_registry(_config)
         dry_run = sys.argv[1] == "True" if len(sys.argv) > 1 else True
         run_spike_worker(dry_run)
     except Exception as e:
         print(f"Exception occurred while running spike worker: {e}", flush=True)
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()
