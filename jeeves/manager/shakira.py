@@ -2,10 +2,12 @@
 Interface for interacting with the Slack and JIRA managers for shakira routes.
 """
 
+import io
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional, Tuple, Union
 
+from duolingo_base.user_agent import DuolingoUserAgent, DuoPlatform
 from duolingo_base.util import registry
 from requests.exceptions import RequestException
 
@@ -13,6 +15,7 @@ from jeeves import registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
+from jeeves.manager.shakira_loki import ShakiraLokiApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.slack_channel import (
     ForwardedSlackChannel,
@@ -50,6 +53,8 @@ _SLACK_CHANNELS_TO_JIRA_LABELS = {
     SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS: "design-quality",
     SlackChannel.LITERACY_TESTING: "shakira",
 }
+
+_IOS_LOG_FILENAME = "logs.txt"
 
 
 @registry.bind(
@@ -364,11 +369,19 @@ class ShakiraManager:
                 else {"error": ("There was a problem reporting the issue.", 500)}
             )
 
+    def _upload_to_loki(self, jira_issue_key: str, text_stream: io.TextIOWrapper):
+        loki_client = ShakiraLokiApiClient()
+        try:
+            loki_client.upload_to_loki(self._jira_client, jira_issue_key, text_stream)
+        except Exception as e:
+            LOG.error(f"Error uploading to Loki: {type(e).__name__}: {e}")
+
     @traced_function()
     def upload_artifacts(
         self,
         jira_issue_key: str,
         files: Dict[str, "FileStorage"],
+        user_agent: Optional["DuolingoUserAgent"] = None,
     ) -> Dict[str, Union[str, Tuple[str, int]]]:
         """
         Attach files to a Jira issue.
@@ -388,6 +401,24 @@ class ShakiraManager:
             return {"issueKey": jira_issue_key, "jiraUrl": issue_url}
 
         project = jira_issue_key.split("-")[0]
+
+        text_stream = None
+        if user_agent and user_agent.platform == DuoPlatform.IOS:
+            for f in files.values():
+                if hasattr(f, "filename") and f.filename == _IOS_LOG_FILENAME:
+                    file_contents = f.read()
+                    # Move the pointer back to the beginning since we're going to read it again later
+                    f.seek(0)
+                    file_stream = io.BytesIO(file_contents)
+                    text_stream = io.TextIOWrapper(file_stream, encoding="utf-8")
+                    # Assume we only have one `logs.txt` file
+                    break
+
+        with ThreadPoolExecutor() as executor:
+            # Only iOS logs are supported for now
+            if text_stream:
+                executor = app_registry(ThreadPoolExecutor)
+                executor.submit(self._upload_to_loki, jira_issue_key, text_stream)
 
         try:
             self._jira_client.upload_attachments(project, jira_issue_key, files)

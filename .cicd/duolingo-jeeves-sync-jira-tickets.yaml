@@ -1,60 +1,44 @@
 version: 2
 jobs:
-  - name: duolingo-jeeves-sync-jira-tickets
+  - name: "duolingo-jeeves-sync-jira-tickets"
     scm: {}
-    timestamps: true
-    prebuild_cleanup: true
     dockerize_command: false
-    description: This job runs every three hour to sync Jira documents in Jeeves with any updates to Jira tickets.
+    description: "This job runs every three hour to sync Jira documents in Jeeves with any updates to Jira tickets."
     log_rotator:
       days_to_keep: 60
-      num_to_keep: -1
-      artifact_days_to_keep: -1
-      artifact_num_to_keep: -1
     rebuild_settings:
       auto_rebuild: false
-      rebuild_disabled: false
     parameters:
-      - type: choice
-        name: ENVIRONMENT
-        description: The target environment for which to sync Jira documents
+      - type: "choice"
+        name: "ENVIRONMENT"
+        description: "The target environment for which to sync Jira documents"
         choices:
-          - dev
-          - prod
-      - name: REFRESH_HOURS
-        description: Jira tickets updated within the past X hours will be synced.
-        trim: true
-        type: string
+          - "dev"
+          - "prod"
+      - name: "REFRESH_HOURS"
+        description: "Jira tickets updated within the past X hours will be synced."
+        type: "string"
         default: "12"
-      - name: JIRA_USERNAME
-        description: ""
+      - name: "JIRA_USERNAME"
         trim: false
-        type: string
-        default: jira-automation@duolingo.com
+        type: "string"
+        default: "jira-automation@duolingo.com"
     throttle_job:
       max_concurrent_per_node: 0
       max_concurrent_total: 0
       throttle_enabled: false
-      throttle_option: project
-      limit_one_job_with_matching_params: false
-      params_to_use_for_limit: ""
-    branch: master
-    node: ec2-jenkins-worker
-    disabled: false
+    node: "ec2-jenkins-worker"
     cron:
-      - when: H 6,18 * * *
+      - when: "H 6,18 * * *"
         vars:
           REFRESH_HOURS: "24"
-          ENVIRONMENT: dev
-      - when: H 3,9,15,21 * * *
+          ENVIRONMENT: "dev"
+      - when: "H 3,9,15,21 * * *"
         vars:
           REFRESH_HOURS: "24"
-          ENVIRONMENT: prod
-    concurrent_builds: false
-    command: bash -ex sync_jira_tickets.sh
-    timeout:
-      minutes: 30
+          ENVIRONMENT: "prod"
+    command: "bash -ex sync_jira_tickets.sh"
+    timeout: {}
     bindings:
-      - credentials_id: DUOLINGO_JEEVES_JIRA_API_TOKEN
-        variable: JIRA_API_TOKEN
-        type: stringSecretBinding
+      - credentials_id: "DUOLINGO_JEEVES_JIRA_API_TOKEN"
+        variable: "JIRA_API_TOKEN"

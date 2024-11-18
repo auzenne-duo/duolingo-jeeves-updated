@@ -10,3 +10,4 @@ pytest-mock
 pytest-xdist
 responses==0.17.0
 types-python-dateutil
+yq

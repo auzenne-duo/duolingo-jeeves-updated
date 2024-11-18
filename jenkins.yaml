@@ -68,7 +68,6 @@ jobs:
     throttle_job:
       max_concurrent_per_node: 0
       max_concurrent_total: 0
-      categories: []
       throttle_enabled: false
     refspec: |-
       +refs/heads/*:refs/remotes/origin/*
@@ -122,7 +121,6 @@ jobs:
     branch: "${BUILD_BRANCH}"
     scm:
       clone_option:
-        shallow_clone: true
         depth: 100
     # Runs every 6 hours
     cron: "H */6 * * *"
@@ -149,8 +147,8 @@ jobs:
           The target environment for which to refresh documents
         name: "ENVIRONMENT"
         choices:
-          - dev
-          - prod
+          - "dev"
+          - "prod"
       - type: "string"
         trim: false
         name: "BUILD_BRANCH"
@@ -168,7 +166,6 @@ jobs:
     throttle_job:
       max_concurrent_per_node: 0
       max_concurrent_total: 0
-      categories: []
       throttle_enabled: false
     branch: "${BUILD_BRANCH}"
     command: "bash -ex force_refresh_job.sh"
@@ -223,7 +220,6 @@ jobs:
     throttle_job:
       max_concurrent_per_node: 0
       max_concurrent_total: 0
-      categories: []
       throttle_enabled: false
     branch: "${BUILD_BRANCH}"
     timeout: 120

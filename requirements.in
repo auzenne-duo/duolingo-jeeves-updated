@@ -7,7 +7,7 @@ blinker
 click
 cssselect2==0.4.1
 duo-logging<1.0.0
-duolingo-base==1.11.1.1
+duolingo-base==1.16.3
 duolingo-notify
 duolingo-nlp==4.17.0
 filelock==3.9.0

@@ -8,6 +8,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict
 
+from duolingo_base.user_agent import DuolingoUserAgent
 from duolingo_base.view.auth import requires_auth
 from flask import Blueprint, Response, abort, g, json, make_response, request, send_from_directory
 from opentelemetry import trace
@@ -677,10 +678,11 @@ def upload_artifacts():
     Upload artifacts to attach to a JIRA issue.
     """
     LOG.info("Uploading artifacts to %s: %s", request.form["jiraIssueKey"], request.files)
+    user_agent = DuolingoUserAgent.parse(request.headers.get("User-Agent", ""))
     issue_status = app_registry(ShakiraManager).upload_artifacts(
-        jira_issue_key=request.form["jiraIssueKey"],
-        files=request.files,
+        jira_issue_key=request.form["jiraIssueKey"], files=request.files, user_agent=user_agent
     )
+
     if "error" in issue_status:
         message, code = issue_status["error"]
         abort(make_response(message, code))

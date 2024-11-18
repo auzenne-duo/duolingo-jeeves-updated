@@ -1,0 +1,1254 @@
+{
+    "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations,customfield_10500.requestTypePractice,customfield_11022.cmdb.label,customfield_11022.cmdb.objectKey,customfield_11022.cmdb.attributes,customfield_10942.properties,customfield_11183.cmdb.label,customfield_11183.cmdb.objectKey,customfield_11183.cmdb.attributes",
+    "id": "373597",
+    "self": "https://duolingo.atlassian.net/rest/api/3/issue/373597",
+    "key": "DLAI-48586",
+    "fields": {
+        "customfield_10990": null,
+        "customfield_10991": null,
+        "customfield_10992": null,
+        "resolution": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/resolution/10000",
+            "id": "10000",
+            "description": "Work has been completed on this issue.",
+            "name": "Done"
+        },
+        "customfield_10993": [],
+        "customfield_10994": null,
+        "customfield_11039": null,
+        "customfield_10984": null,
+        "customfield_10500": null,
+        "customfield_10985": null,
+        "customfield_10986": null,
+        "customfield_10987": null,
+        "customfield_10988": null,
+        "customfield_10989": null,
+        "lastViewed": "2024-11-08T16:36:04.978-0500",
+        "customfield_11030": null,
+        "customfield_11033": null,
+        "customfield_11035": null,
+        "customfield_10980": null,
+        "customfield_11036": null,
+        "customfield_10981": null,
+        "customfield_10982": null,
+        "customfield_11038": null,
+        "customfield_10983": null,
+        "labels": [
+            "rc-shakira"
+        ],
+        "customfield_11028": null,
+        "customfield_10973": null,
+        "customfield_11029": null,
+        "customfield_10974": null,
+        "customfield_10975": null,
+        "customfield_10977": null,
+        "aggregatetimeoriginalestimate": null,
+        "customfield_10978": null,
+        "customfield_10979": null,
+        "issuelinks": [],
+        "assignee": null,
+        "components": [
+            {
+                "self": "https://duolingo.atlassian.net/rest/api/3/component/13050",
+                "id": "13050",
+                "name": "Retention"
+            }
+        ],
+        "customfield_11021": null,
+        "customfield_11022": [],
+        "customfield_11023": null,
+        "customfield_11024": null,
+        "customfield_10970": null,
+        "customfield_11146": null,
+        "customfield_11026": null,
+        "customfield_10971": null,
+        "customfield_11027": null,
+        "customfield_10972": null,
+        "customfield_10962": null,
+        "customfield_11138": null,
+        "customfield_10963": null,
+        "customfield_10600": null,
+        "customfield_10964": null,
+        "customfield_10601": null,
+        "customfield_10965": null,
+        "customfield_10966": null,
+        "customfield_10967": null,
+        "customfield_10968": null,
+        "customfield_10969": null,
+        "subtasks": [],
+        "customfield_11010": null,
+        "reporter": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5ce2d554f593d10d74a713dd",
+            "accountId": "5ce2d554f593d10d74a713dd",
+            "emailAddress": "nancy@duolingo.com",
+            "avatarUrls": {
+                "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/5ce2d554f593d10d74a713dd/70845fc7-5267-4f3a-9e58-d5c982563199/48",
+                "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/5ce2d554f593d10d74a713dd/70845fc7-5267-4f3a-9e58-d5c982563199/24",
+                "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/5ce2d554f593d10d74a713dd/70845fc7-5267-4f3a-9e58-d5c982563199/16",
+                "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/5ce2d554f593d10d74a713dd/70845fc7-5267-4f3a-9e58-d5c982563199/32"
+            },
+            "displayName": "Nancy Zhang",
+            "active": true,
+            "timeZone": "America/New_York",
+            "accountType": "atlassian"
+        },
+        "customfield_11011": null,
+        "customfield_11012": null,
+        "customfield_11135": null,
+        "customfield_11015": null,
+        "customfield_10960": null,
+        "customfield_11136": null,
+        "customfield_10961": null,
+        "customfield_11137": null,
+        "customfield_11006": null,
+        "customfield_10951": null,
+        "customfield_11008": null,
+        "customfield_11009": null,
+        "progress": {
+            "progress": 0,
+            "total": 0
+        },
+        "votes": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/issue/DLAI-48586/votes",
+            "votes": 0,
+            "hasVoted": false
+        },
+        "worklog": {
+            "startAt": 0,
+            "maxResults": 20,
+            "total": 0,
+            "worklogs": []
+        },
+        "issuetype": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/issuetype/10003",
+            "id": "10003",
+            "description": "",
+            "iconUrl": "https://duolingo.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+            "name": "Bug",
+            "subtask": false,
+            "avatarId": 10303,
+            "hierarchyLevel": 0
+        },
+        "project": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/project/10005",
+            "id": "10005",
+            "key": "DLAI",
+            "name": "Duolingo Learning App iOS",
+            "projectTypeKey": "software",
+            "simplified": false,
+            "avatarUrls": {
+                "48x48": "https://duolingo.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/13250",
+                "24x24": "https://duolingo.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/13250?size=small",
+                "16x16": "https://duolingo.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/13250?size=xsmall",
+                "32x32": "https://duolingo.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/13250?size=medium"
+            }
+        },
+        "customfield_11120": null,
+        "customfield_11000": null,
+        "customfield_11121": null,
+        "customfield_11001": null,
+        "customfield_11122": null,
+        "customfield_11002": null,
+        "customfield_11123": null,
+        "customfield_11124": null,
+        "customfield_11125": null,
+        "customfield_11005": null,
+        "customfield_10027": null,
+        "customfield_10940": "",
+        "customfield_11117": null,
+        "customfield_10941": 0.0,
+        "customfield_11118": null,
+        "customfield_10942": null,
+        "customfield_10943": null,
+        "customfield_11119": null,
+        "customfield_10944": null,
+        "customfield_10945": null,
+        "resolutiondate": "2024-11-06T14:50:52.533-0500",
+        "customfield_10947": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/customFieldOption/10314",
+            "value": "duolingo-ios",
+            "id": "10314"
+        },
+        "customfield_10949": null,
+        "watches": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/issue/DLAI-48586/watchers",
+            "watchCount": 2,
+            "isWatching": false
+        },
+        "customfield_10024": null,
+        "customfield_11105": null,
+        "customfield_11106": null,
+        "customfield_11107": null,
+        "customfield_10931": null,
+        "customfield_11108": null,
+        "customfield_10932": null,
+        "customfield_10933": null,
+        "customfield_10934": null,
+        "customfield_10935": null,
+        "customfield_10936": null,
+        "customfield_10938": null,
+        "updated": "2024-11-06T14:50:52.556-0500",
+        "timeoriginalestimate": null,
+        "description": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Test report"
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "—"
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "System Information:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "app version",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": 7.49.0.0"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "iOS version",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": 18.0"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "device model",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": iPhone"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "platform",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": Simulator"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "raw platform",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": arm64"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "ui language",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": en-us"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "screen",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": 375 W x 667 H"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "environment",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": Simulator (com.duolingo.DuolingoMobile.berrybus01)"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "jail broken",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": false"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "User Information:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "id",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": 504909438"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "diagnostic page",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": "
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": "https://diagnostics.duolingo.com/user-summary/504909438?show_activity=true",
+                                            "marks": [
+                                                {
+                                                    "type": "link",
+                                                    "attrs": {
+                                                        "href": "https://diagnostics.duolingo.com/user-summary/504909438?show_activity=true"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "email",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": nancy@duolingo.com"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "username",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": berrybus01"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "current course",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": MUSIC_MT (none <- English)"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "time zone",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": America/New_York"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "service mappings",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": none"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Session Information:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "none"
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Story Information:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "none"
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Max Information:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Tutors server",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": Production"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Subscription status",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": Super"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "MEGA Information:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Mega course",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": music"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "debug tools fab created",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": true"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Report method:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "shake"
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "View Controller Name:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "PathTabVC"
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "View Controller Based Extra Data:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "none"
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "FullStory:",
+                            "marks": [
+                                {
+                                    "type": "strong"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "session url",
+                                            "marks": [
+                                                {
+                                                    "type": "strong"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": ": No session recorded"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "—"
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "Reported with shake-to-report"
+                        }
+                    ]
+                }
+            ]
+        },
+        "customfield_11100": null,
+        "customfield_10011": "{}",
+        "customfield_11103": null,
+        "customfield_11104": null,
+        "timetracking": {},
+        "customfield_10007": null,
+        "customfield_10008": "1|i06az3:",
+        "customfield_10921": null,
+        "customfield_10922": null,
+        "customfield_10009": null,
+        "customfield_10923": null,
+        "customfield_10924": null,
+        "customfield_10925": null,
+        "customfield_10926": null,
+        "summary": "Nancy test",
+        "customfield_10000": "2024-11-06T14:50:16.833-0500",
+        "customfield_10001": "6_*:*_1_*:*_0_*|*_10400_*:*_1_*:*_36859",
+        "customfield_10002": {
+            "hasEpicLinkFieldDependency": true,
+            "showField": true
+        },
+        "customfield_10003": null,
+        "environment": null,
+        "duedate": null,
+        "customfield_10914": null,
+        "customfield_10915": null,
+        "customfield_10916": null,
+        "comment": {
+            "comments": [
+                {
+                    "self": "https://duolingo.atlassian.net/rest/api/3/issue/373597/comment/398473",
+                    "id": "398473",
+                    "author": {
+                        "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5e4c40f44befbd0c96c932f0",
+                        "accountId": "5e4c40f44befbd0c96c932f0",
+                        "emailAddress": "jira-automation@duolingo.com",
+                        "avatarUrls": {
+                            "48x48": "https://secure.gravatar.com/avatar/b35df446929e86769c25a26d7bfa1d9c?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJA-5.png",
+                            "24x24": "https://secure.gravatar.com/avatar/b35df446929e86769c25a26d7bfa1d9c?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJA-5.png",
+                            "16x16": "https://secure.gravatar.com/avatar/b35df446929e86769c25a26d7bfa1d9c?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJA-5.png",
+                            "32x32": "https://secure.gravatar.com/avatar/b35df446929e86769c25a26d7bfa1d9c?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJA-5.png"
+                        },
+                        "displayName": "Jira Automation",
+                        "active": true,
+                        "timeZone": "America/New_York",
+                        "accountType": "atlassian"
+                    },
+                    "body": {
+                        "type": "doc",
+                        "version": 1,
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": "Priority was automatically assigned Medium. Please change any incorrect priorities so we can incorporate your feedback!"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "updateAuthor": {
+                        "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5e4c40f44befbd0c96c932f0",
+                        "accountId": "5e4c40f44befbd0c96c932f0",
+                        "emailAddress": "jira-automation@duolingo.com",
+                        "avatarUrls": {
+                            "48x48": "https://secure.gravatar.com/avatar/b35df446929e86769c25a26d7bfa1d9c?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJA-5.png",
+                            "24x24": "https://secure.gravatar.com/avatar/b35df446929e86769c25a26d7bfa1d9c?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJA-5.png",
+                            "16x16": "https://secure.gravatar.com/avatar/b35df446929e86769c25a26d7bfa1d9c?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJA-5.png",
+                            "32x32": "https://secure.gravatar.com/avatar/b35df446929e86769c25a26d7bfa1d9c?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJA-5.png"
+                        },
+                        "displayName": "Jira Automation",
+                        "active": true,
+                        "timeZone": "America/New_York",
+                        "accountType": "atlassian"
+                    },
+                    "created": "2024-11-06T14:50:16.833-0500",
+                    "updated": "2024-11-06T14:50:16.833-0500",
+                    "jsdPublic": true
+                }
+            ],
+            "self": "https://duolingo.atlassian.net/rest/api/3/issue/373597/comment",
+            "maxResults": 1,
+            "total": 1,
+            "startAt": 0
+        },
+        "customfield_10917": null,
+        "customfield_10918": null,
+        "customfield_10919": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/customFieldOption/10221",
+            "value": "UXR study",
+            "id": "10221"
+        },
+        "statuscategorychangedate": "2024-11-06T14:50:52.562-0500",
+        "fixVersions": [],
+        "customfield_10900": null,
+        "customfield_10901": null,
+        "customfield_10903": [],
+        "customfield_10904": null,
+        "customfield_10905": {
+            "hasEpicLinkFieldDependency": true,
+            "showField": true
+        },
+        "customfield_10906": null,
+        "customfield_10907": null,
+        "customfield_10908": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/customFieldOption/10100",
+            "value": "Achievements",
+            "id": "10100"
+        },
+        "customfield_10909": null,
+        "priority": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/priority/3",
+            "iconUrl": "https://files.slack.com/files-pri/T0299K8L0-F43PH6AQ0/noun_196764_cc.svg?pub_secret=bc75c2b36c",
+            "name": "Medium",
+            "id": "3"
+        },
+        "timeestimate": null,
+        "versions": [],
+        "status": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/status/6",
+            "description": "The issue is considered finished, the resolution is correct. Issues which are closed can be reopened.",
+            "iconUrl": "https://duolingo.atlassian.net/images/icons/statuses/closed.png",
+            "name": "Closed",
+            "id": "6",
+            "statusCategory": {
+                "self": "https://duolingo.atlassian.net/rest/api/3/statuscategory/3",
+                "id": 3,
+                "key": "done",
+                "colorName": "green",
+                "name": "Done"
+            }
+        },
+        "aggregatetimeestimate": null,
+        "customfield_11090": null,
+        "creator": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5ea05e381a2cf60c0f9fb690",
+            "accountId": "5ea05e381a2cf60c0f9fb690",
+            "emailAddress": "ios-shake-feedback@duolingo.com",
+            "avatarUrls": {
+                "48x48": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                "24x24": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                "16x16": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                "32x32": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png"
+            },
+            "displayName": "iOS Shake Feedback",
+            "active": true,
+            "timeZone": "America/New_York",
+            "accountType": "atlassian"
+        },
+        "customfield_11091": null,
+        "customfield_11092": null,
+        "customfield_11093": null,
+        "customfield_11094": null,
+        "customfield_11095": null,
+        "customfield_11096": null,
+        "customfield_11097": null,
+        "customfield_11098": null,
+        "customfield_11099": null,
+        "aggregateprogress": {
+            "progress": 0,
+            "total": 0
+        },
+        "customfield_10200": {
+            "id": "786599f4-3be0-4ae0-b321-9fef75617158-88",
+            "name": "Retention",
+            "avatarUrl": "",
+            "isVisible": true,
+            "title": "Retention",
+            "isShared": true
+        },
+        "customfield_11081": null,
+        "timespent": null,
+        "customfield_11085": null,
+        "customfield_11086": null,
+        "customfield_11087": null,
+        "customfield_11088": null,
+        "customfield_11089": null,
+        "aggregatetimespent": null,
+        "workratio": -1,
+        "issuerestriction": {
+            "issuerestrictions": {},
+            "shouldDisplay": false
+        },
+        "customfield_11190": null,
+        "customfield_11191": null,
+        "customfield_11192": null,
+        "customfield_11194": null,
+        "created": "2024-11-06T14:50:15.697-0500",
+        "customfield_10300": [],
+        "customfield_11061": null,
+        "customfield_11183": [],
+        "customfield_11184": null,
+        "customfield_11186": null,
+        "customfield_11065": null,
+        "customfield_11187": null,
+        "customfield_11188": {
+            "self": "https://duolingo.atlassian.net/rest/api/3/customFieldOption/11269",
+            "value": "Not Urgent",
+            "id": "11269"
+        },
+        "customfield_11069": null,
+        "security": null,
+        "attachment": [
+            {
+                "self": "https://duolingo.atlassian.net/rest/api/3/attachment/289986",
+                "id": "289986",
+                "filename": "experiment_conditions.txt",
+                "author": {
+                    "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5ea05e381a2cf60c0f9fb690",
+                    "accountId": "5ea05e381a2cf60c0f9fb690",
+                    "emailAddress": "ios-shake-feedback@duolingo.com",
+                    "avatarUrls": {
+                        "48x48": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "24x24": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "16x16": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "32x32": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png"
+                    },
+                    "displayName": "iOS Shake Feedback",
+                    "active": true,
+                    "timeZone": "America/New_York",
+                    "accountType": "atlassian"
+                },
+                "created": "2024-11-06T14:50:19.421-0500",
+                "size": 12462,
+                "content": "https://duolingo.atlassian.net/rest/api/3/attachment/content/289986"
+            },
+            {
+                "self": "https://duolingo.atlassian.net/rest/api/3/attachment/289985",
+                "id": "289985",
+                "filename": "logs_excess.txt",
+                "author": {
+                    "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5ea05e381a2cf60c0f9fb690",
+                    "accountId": "5ea05e381a2cf60c0f9fb690",
+                    "emailAddress": "ios-shake-feedback@duolingo.com",
+                    "avatarUrls": {
+                        "48x48": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "24x24": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "16x16": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "32x32": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png"
+                    },
+                    "displayName": "iOS Shake Feedback",
+                    "active": true,
+                    "timeZone": "America/New_York",
+                    "accountType": "atlassian"
+                },
+                "created": "2024-11-06T14:50:18.617-0500",
+                "size": 243627,
+                "content": "https://duolingo.atlassian.net/rest/api/3/attachment/content/289985"
+            },
+            {
+                "self": "https://duolingo.atlassian.net/rest/api/3/attachment/289984",
+                "id": "289984",
+                "filename": "logs.txt",
+                "author": {
+                    "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5ea05e381a2cf60c0f9fb690",
+                    "accountId": "5ea05e381a2cf60c0f9fb690",
+                    "emailAddress": "ios-shake-feedback@duolingo.com",
+                    "avatarUrls": {
+                        "48x48": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "24x24": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "16x16": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "32x32": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png"
+                    },
+                    "displayName": "iOS Shake Feedback",
+                    "active": true,
+                    "timeZone": "America/New_York",
+                    "accountType": "atlassian"
+                },
+                "created": "2024-11-06T14:50:17.436-0500",
+                "size": 165964,
+                "content": "https://duolingo.atlassian.net/rest/api/3/attachment/content/289984"
+            },
+            {
+                "self": "https://duolingo.atlassian.net/rest/api/3/attachment/289987",
+                "id": "289987",
+                "filename": "music_rocks.json",
+                "author": {
+                    "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5ea05e381a2cf60c0f9fb690",
+                    "accountId": "5ea05e381a2cf60c0f9fb690",
+                    "emailAddress": "ios-shake-feedback@duolingo.com",
+                    "avatarUrls": {
+                        "48x48": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "24x24": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "16x16": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "32x32": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png"
+                    },
+                    "displayName": "iOS Shake Feedback",
+                    "active": true,
+                    "timeZone": "America/New_York",
+                    "accountType": "atlassian"
+                },
+                "created": "2024-11-06T14:50:20.038-0500",
+                "size": 138849,
+                "content": "https://duolingo.atlassian.net/rest/api/3/attachment/content/289987"
+            },
+            {
+                "self": "https://duolingo.atlassian.net/rest/api/3/attachment/289983",
+                "id": "289983",
+                "filename": "screenshot.jpeg",
+                "author": {
+                    "self": "https://duolingo.atlassian.net/rest/api/3/user?accountId=5ea05e381a2cf60c0f9fb690",
+                    "accountId": "5ea05e381a2cf60c0f9fb690",
+                    "emailAddress": "ios-shake-feedback@duolingo.com",
+                    "avatarUrls": {
+                        "48x48": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "24x24": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "16x16": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png",
+                        "32x32": "https://secure.gravatar.com/avatar/0834f35da193a6786facc3d10623c229?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIF-3.png"
+                    },
+                    "displayName": "iOS Shake Feedback",
+                    "active": true,
+                    "timeZone": "America/New_York",
+                    "accountType": "atlassian"
+                },
+                "created": "2024-11-06T14:50:16.682-0500",
+                "size": 231372,
+                "content": "https://duolingo.atlassian.net/rest/api/3/attachment/content/289983",
+                "thumbnail": "https://duolingo.atlassian.net/rest/api/3/attachment/thumbnail/289983"
+            }
+        ],
+        "customfield_11056": null,
+        "customfield_11057": null,
+        "customfield_11059": null,
+        "customfield_10400": null,
+        "customfield_10995": null,
+        "customfield_10996": null,
+        "customfield_10997": null,
+        "customfield_10998": null
+    }
+}
