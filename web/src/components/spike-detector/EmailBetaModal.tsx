@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import Modal from "react-modal";
+import { ThemeProvider } from "web-ui";
 import { TextArea } from "web-ui/juicy";
 import { LegacyButton } from "web-ui/legacy";
 
@@ -55,66 +56,72 @@ const EmailBetaModal = ({ closeModal, isOpen, spike }: Props) => {
   );
 
   return (
-    <Modal
-      ariaHideApp={false}
-      className={styles["modal-content"]}
-      isOpen={isOpen}
-      onRequestClose={closeModal}
-      portalClassName={styles["modal"]}
-    >
-      <IconButton
-        className={styles["btn-close"]}
-        icon={imageClose}
-        onClick={closeModal}
-      />
-      <div className={styles.header}>
-        <strong>
-          This will send an email to beta learners who reported the following
-          spike:
-        </strong>
-      </div>
-      <div className={styles["text-block"]}>
-        &quot;<strong>{spike.word}</strong>: {spike.summary}&quot;
-      </div>
-      <div className={styles["text-block"]}>
-        <strong>Please describe the bug that was fixed:</strong>
-      </div>
-      <form
-        className={styles.form}
-        noValidate={true}
-        onKeyDown={handleKeyDown}
-        onSubmit={handleSubmit}
-      >
-        <TextArea
-          maxLength={250}
-          onChange={e => {
-            setDescription(e.target.value);
-            setCharacterCount(e.target.value.length);
-          }}
-          placeholder="Longer description of issue and what has been fixed (500 char max.)"
-          required={true}
-          rows={5}
-          state={submitting ? "disabled" : "enabled"}
-          value={description}
-        />
-        {maxCharacters - characterCount <= remainingCharactersThreshold && (
-          <div className={styles["remaining-characters"]}>
-            {maxCharacters - characterCount} characters remaining
-          </div>
-        )}
-        <LegacyButton
-          color="owl"
-          disabled={
-            !description.trim() || description.trim() === descriptionPlaceholder
-          }
-          submitting={submitting}
-          type="submit"
-          variant="solid"
+    <ThemeProvider theme="light">
+      {({ style }) => (
+        <Modal
+          ariaHideApp={false}
+          className={styles["modal-content"]}
+          isOpen={isOpen}
+          onRequestClose={closeModal}
+          portalClassName={styles["modal"]}
+          style={{ overlay: style }}
         >
-          Submit
-        </LegacyButton>
-      </form>
-    </Modal>
+          <IconButton
+            className={styles["btn-close"]}
+            icon={imageClose}
+            onClick={closeModal}
+          />
+          <div className={styles.header}>
+            <strong>
+              This will send an email to beta learners who reported the
+              following spike:
+            </strong>
+          </div>
+          <div className={styles["text-block"]}>
+            &quot;<strong>{spike.word}</strong>: {spike.summary}&quot;
+          </div>
+          <div className={styles["text-block"]}>
+            <strong>Please describe the bug that was fixed:</strong>
+          </div>
+          <form
+            className={styles.form}
+            noValidate={true}
+            onKeyDown={handleKeyDown}
+            onSubmit={handleSubmit}
+          >
+            <TextArea
+              maxLength={250}
+              onChange={e => {
+                setDescription(e.target.value);
+                setCharacterCount(e.target.value.length);
+              }}
+              placeholder="Longer description of issue and what has been fixed (500 char max.)"
+              required={true}
+              rows={5}
+              state={submitting ? "disabled" : "enabled"}
+              value={description}
+            />
+            {maxCharacters - characterCount <= remainingCharactersThreshold && (
+              <div className={styles["remaining-characters"]}>
+                {maxCharacters - characterCount} characters remaining
+              </div>
+            )}
+            <LegacyButton
+              color="owl"
+              disabled={
+                !description.trim() ||
+                description.trim() === descriptionPlaceholder
+              }
+              submitting={submitting}
+              type="submit"
+              variant="solid"
+            >
+              Submit
+            </LegacyButton>
+          </form>
+        </Modal>
+      )}
+    </ThemeProvider>
   );
 };
 
