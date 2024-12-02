@@ -15,6 +15,15 @@ resource "aws_s3_bucket" "jeeves-document-cache-dev" {
       }
     }
   }
+
+  # Lifecycle rules managed in lifecycle configuration resource below
+  # Needed to prevent conflicts with the stand-alone lifecycle config per the terraform docs:
+  # https://registry.terraform.io/providers/hashicorp/aws/3.76.1/docs/resources/s3_bucket_lifecycle_configuration#usage-notes
+  lifecycle {
+    ignore_changes = [
+      lifecycle_rule,
+    ]
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "jeeves-document-cache-dev" {
