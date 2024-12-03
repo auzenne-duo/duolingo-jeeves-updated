@@ -1,7 +1,6 @@
 # The AWS region. This is normally us-east-1
 provider "aws" {
-  region  = "us-east-1"
-  version = "~> 3.0"
+  region = "us-east-1"
 
   default_tags {
     tags = {
@@ -21,14 +20,27 @@ terraform {
     dynamodb_table = "infra-galaxy-lock"
   }
 
-  required_version = "0.12.31"
+  required_version = "1.5.5"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+    pagerduty = {
+      source = "pagerduty/pagerduty"
+    }
+    sentry = {
+      source  = "jianyuan/sentry"
+      version = "~> 0.11.2"
+    }
+  }
 }
 
 # Create an internal service so that things stay behind the edge gateway.
 # See: https://docs.google.com/document/d/1tU7y9wWsBFwdnWFkz0bEosU7U_8lxs4N7h4NJ80CqfU/edit
 module "duolingo-jeeves-internal" {
   source                            = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_web_service"
-  version                           = "~> 1.0"
+  version                           = "~> 2.0"
   environment                       = var.environment
   service                           = var.service
   subservice                        = "internal"
@@ -123,7 +135,7 @@ module "duolingo-jeeves-internal" {
 
 module "duolingo-jeeves-s3-worker" {
   source                             = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version                            = "~> 1.0"
+  version                            = "~> 2.0"
   environment                        = var.environment
   service                            = var.service
   subservice                         = "s3-worker"
@@ -208,7 +220,7 @@ module "duolingo-jeeves-s3-worker" {
 
 module "duolingo-jeeves-worker-cron" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 1.0"
+  version              = "~> 2.0"
   environment          = var.environment
   service              = var.service
   subservice           = "worker-cron"
@@ -251,7 +263,7 @@ module "duolingo-jeeves-worker-cron" {
 
 module "duolingo-jeeves-sqs-worker-1" {
   source                      = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version                     = "~> 1.0"
+  version                     = "~> 2.0"
   environment                 = var.environment
   service                     = var.service
   subservice                  = "sqs-worker-1"
@@ -318,7 +330,7 @@ module "duolingo-jeeves-sqs-worker-1" {
 
 module "duolingo-jeeves-sqs-worker-2" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 1.0"
+  version              = "~> 2.0"
   environment          = var.environment
   service              = var.service
   subservice           = "sqs-worker-2"
@@ -368,7 +380,7 @@ module "duolingo-jeeves-sqs-worker-2" {
 
 module "duolingo-jeeves-spike-worker" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 1.0"
+  version              = "~> 2.0"
   environment          = var.environment
   service              = var.service
   subservice           = "spike-worker"
@@ -411,7 +423,7 @@ module "duolingo-jeeves-spike-worker" {
 
 module "duolingo-jeeves-email-sender" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 1.0"
+  version              = "~> 2.0"
   environment          = var.environment
   service              = var.service
   subservice           = "email-sender"
@@ -432,7 +444,7 @@ module "duolingo-jeeves-email-sender" {
 
 module "duolingo-jeeves-ensure-embeddings-worker" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 1.0"
+  version              = "~> 2.0"
   environment          = var.environment
   service              = var.service
   subservice           = "ensure-embeddings-worker"
