@@ -291,6 +291,7 @@ JIRA_FEATURES = {
         },
         "Subscription Packaging": {
             "Super": [],
+            "Purchase Flow": ["purchase page", "purchase screen", "purchase step"],
             "New Years Promo": [],
             "Duo on Path": [],
             "Student Plan": [],
@@ -303,6 +304,7 @@ JIRA_FEATURES = {
             "Match madness": [],
             "Shop items": [],
             "Side Quests": ["side quest"],
+            "Energy Mechanism": ["energy"],
         },
         "Max Immersion": {
             "Mistakes Inbox": [],
@@ -413,7 +415,8 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Streak": "Incorrect or buggy streak number or calendar",
     "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
     "Student Plan": "Anything related to the Get Student Plan, Student Plan verification, or Student Plan Prices",
-    "Super Upsell": "Anything related to 'Get Super' in the app, like running out of hearts or legendary start screens Get Super",
+    "Super Upsell": "Anything related to when you see super upsell, super hooks, or pay wall",
+    "Purchase Flow": "Anything that happens after you enters the subscripton purchase flow",
     "Weekly Lesson Goals": "Problems with weekly lesson goals",
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
