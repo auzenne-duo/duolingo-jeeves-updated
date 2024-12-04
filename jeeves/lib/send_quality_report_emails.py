@@ -103,7 +103,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         _AREA: [("peter@duolingo", 97197056)],
         "Engineering Studio": [
             ("becky@duolingo.com", 614576367),
-            ("sharanya@duolingo.com", 105463277),
         ],
         "Stability and Performance": [
             ("leon@duolingo.com", 233506),
@@ -205,13 +204,9 @@ RECEIVE_ALL_AREA_REPORTS = [
 ]
 
 RECEIVE_ALL_REPORTS = [
-    ("blanca@duolingo.com", 36291958),
     ("caleb.noble@duolingo.com", 23133309),
     ("britni@duolingo.com", 875832803),
     ("rwagner@duolingo.com", 105023805),
-    ("sharanya@duolingo.com", 105463277),
-    ("aaron.wang@duolingo.com", 959205988),
-    ("david.sawicki@duolingo.com", 334534112),
 ]
 
 
