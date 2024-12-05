@@ -73,13 +73,22 @@ class QualityReportManager:
                 continue
             # get the latest quality scores from s3
             past_project_to_scores = self.quality_report_dal.get_past_quality_scores(area)
+
             # to help frontend display the current overall score, we will isolate it from the score history
-            overall_score = past_project_to_scores.get(QUALITY_REPORT_OVERALL_KEY, [None])[-1][1]
+            overall_score_history: QualityScoreHistory = past_project_to_scores.get(
+                QUALITY_REPORT_OVERALL_KEY, None
+            )
+            if not overall_score_history or not overall_score_history[-1]:
+                LOG.warning(f"Could not find overall score for area: {area}")
+                continue
+
+            overall_score = overall_score_history[-1][1]
             area_overviews.append(
                 QualityReportOverview(
                     scores=past_project_to_scores, title=area, overall_score=overall_score
                 )
             )
+
         return area_overviews
 
     def get_team_quality_report(
