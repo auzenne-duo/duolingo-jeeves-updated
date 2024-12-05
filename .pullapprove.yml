@@ -1,12 +1,19 @@
 # https://duo.fyi/pullapprove
 groups:
   repo-checkers:
+    suggested_users:
+      - caleb.noble@duolingo.com
+      - david.sawicki@duolingo.com
+      - josh@duolingo.com
+      - shelby@duolingo.com
     users:
+      - aaron.wang@duolingo.com
       - caleb.noble@duolingo.com
       - david.sawicki@duolingo.com
       - hideki@duolingo.com # Backup repo-checker
       - josh@duolingo.com
       - peter@duolingo.com
+      - shelby@duolingo.com
       - yijin@duolingo.com
   feature-watchers:
     conditions:
