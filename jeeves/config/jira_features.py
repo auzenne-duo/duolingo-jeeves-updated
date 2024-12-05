@@ -277,15 +277,6 @@ JIRA_FEATURES = {
             "Translation Issue": [],
         },
     },
-    "LLM Team": {
-        "Bookshelf": {
-            "Story Content": [],
-            "Books Home": [],
-            "Table of Contents": [],
-            "Notify Me": ["notifications"],
-            "Book Continuation": [],
-        }
-    },
     "Monetization": {
         "Acquisition": {
             "Crossgrades": ["upgrades", "downgrades"],
@@ -361,6 +352,15 @@ JIRA_FEATURES = {
     },
     "Many": {
         # Features should be added to the relevant team
+    },
+    "Severin": {
+        "LLM Team": {
+            "Story Content": [],
+            "Books Home": [],
+            "Table of Contents": [],
+            "Notify Me": ["notifications"],
+            "Book Continuation": [],
+        },
     },
 }
 
