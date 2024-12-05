@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "s3-rw-duolingo-jeeves" {
     ]
 
     resources = [
-      aws_sns_topic.jeeves-beta-feedback.arn,
+      data.aws_sns_topic.jeeves-beta-feedback.arn,
     ]
   }
 }
