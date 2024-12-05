@@ -306,7 +306,7 @@ JIRA_FEATURES = {
             "Side Quests": ["side quest"],
             "Energy Mechanism": ["energy"],
         },
-        "Max Immersion": {
+        "Max": {
             "Mistakes Inbox": [],
             "Practice Hub": [],
             "Role Play": ["roleplay", "role-play"],
