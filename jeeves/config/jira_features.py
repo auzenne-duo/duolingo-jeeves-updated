@@ -277,6 +277,15 @@ JIRA_FEATURES = {
             "Translation Issue": [],
         },
     },
+    "LLM Team": {
+        "Bookshelf": {
+            "Story Content": [],
+            "Books Home": [],
+            "Table of Contents": [],
+            "Notify Me": ["notifications"],
+            "Book Continuation": [],
+        }
+    },
     "Monetization": {
         "Acquisition": {
             "Crossgrades": ["upgrades", "downgrades"],
