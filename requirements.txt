@@ -75,17 +75,19 @@ deprecation==2.1.0
     # via
     #   duolingo-base
     #   duolingo-nlp
-duo-logging==0.4.4
+duo-logging==0.10.1
     # via
     #   -r requirements.in
     #   duolingo-base
-duolingo-base==1.16.3
+duo-metrics-core==0.2.0
+    # via duolingo-base
+duolingo-base==1.32.0
     # via -r requirements.in
-duolingo-nlp==4.17.0
+duolingo-nlp==4.32.0
     # via -r requirements.in
 duolingo-notify==2.6.1
     # via -r requirements.in
-duolingo-proto==2023.6.14.1
+duolingo-proto==2024.12.4.0
     # via
     #   duolingo-base
     #   duolingo-nlp
@@ -101,7 +103,6 @@ flask-cors==3.0.10
 flask[async]==2.3.2
     # via
     #   -r requirements.in
-    #   duo-logging
     #   duolingo-base
     #   flask-cors
 fonttools[woff]==4.27.1
@@ -356,6 +357,7 @@ pinecone-client==3.1.0
     # via -r requirements.in
 prometheus-client==0.17.0
     # via
+    #   duo-metrics-core
     #   duolingo-base
     #   duolingo-nlp
     #   duolingo-notify
@@ -439,9 +441,7 @@ requests==2.31.0
 retrying==1.3.4
     # via duolingo-notify
 rollbar==0.16.3
-    # via
-    #   duo-logging
-    #   duolingo-nlp
+    # via -r requirements.in
 s3transfer==0.10.0
     # via boto3
 safetensors==0.3.1
@@ -463,7 +463,7 @@ sentencepiece==0.1.97
     # via
     #   -r requirements.in
     #   sentence-transformers
-sentry-sdk==1.40.2
+sentry-sdk==2.0.0
     # via duo-logging
 simplejson==3.19.1
     # via
@@ -480,6 +480,8 @@ six==1.16.0
     #   rollbar
     #   thrift
 sly==0.5
+    # via duolingo-nlp
+soylemma==0.2.0
     # via duolingo-nlp
 sympy==1.12
     # via torch
