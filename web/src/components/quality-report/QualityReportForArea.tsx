@@ -272,7 +272,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
           bordered={false}
           onClick={ticket => handleClick(ticket, "priority")}
           selectedId={listIdOfSelection === "priority" ? id : undefined}
-          showTags={["priority", "issue_key", "status", "date"]}
+          showTags={["priority", "issue_key", "status", "assignee", "date"]}
           tickets={highestPriority ?? []}
         />
       </NamedSection>
@@ -286,7 +286,14 @@ const QualityReportForArea = ({ area, team }: Props) => {
           bordered={false}
           onClick={ticket => handleClick(ticket, "design")}
           selectedId={listIdOfSelection === "design" ? id : undefined}
-          showTags={["priority", "issue_key", "child_issues", "status", "date"]}
+          showTags={[
+            "priority",
+            "issue_key",
+            "child_issues",
+            "status",
+            "assignee",
+            "date",
+          ]}
           tickets={topDesign ?? []}
         />
       </NamedSection>

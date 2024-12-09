@@ -305,6 +305,8 @@ declare namespace JSONAPI {
   }
 
   interface Ticket extends DuolingoMetadata {
+    /** The user who is assigned to the ticket. */
+    assignee?: string;
     /** URLs to file attachments. Currently only available for Jira tickets. */
     attachments?: string[];
     /** Review author for AppFigures tickets. */

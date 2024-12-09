@@ -20,6 +20,7 @@ import styles from "components/TicketListItem.module.scss";
 import useIsTablet from "components/useIsTablet";
 
 export type RenderableTag =
+  | "assignee"
   | "app_version"
   | "child_issues"
   | "course"
@@ -88,7 +89,7 @@ const TicketListItem = (
   const showTags: RenderableTag[] =
     _showTags ??
     (isParentBug
-      ? ["issue_key", "child_issues", "status", "platform", "date"]
+      ? ["issue_key", "child_issues", "status", "assignee", "platform", "date"]
       : isTablet
         ? [
             "issue_key",
@@ -116,6 +117,15 @@ const TicketListItem = (
           <React.Fragment key={tag}>
             {(() => {
               switch (tag) {
+                case "assignee":
+                  return t.assignee ? (
+                    <TagFilterOrTag
+                      field="assignee"
+                      text={t.assignee}
+                      useFilter={supportsTicketQuery}
+                      value={t.assignee}
+                    />
+                  ) : null;
                 case "app_version":
                   return t.app_version ? (
                     <TagFilterOrTag

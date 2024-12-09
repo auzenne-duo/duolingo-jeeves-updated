@@ -138,6 +138,19 @@ const Ticket = ({
           </div>
         </section>
       ) : null}
+      {ticket.assignee ? (
+        <section className={styles.section}>
+          <span className={styles.label}>Assignee</span>
+          <div>
+            <TagFilterOrTag
+              className={styles.tag}
+              field="assignee"
+              useFilter={supportsTicketQuery}
+              value={ticket.assignee}
+            />
+          </div>
+        </section>
+      ) : null}
       {imageAttachments?.length ||
       urlAttachments?.length ||
       ticket.fullstory_url ? (
