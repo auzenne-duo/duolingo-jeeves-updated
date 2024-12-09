@@ -80,7 +80,9 @@ class ShakiraLokiApiClient:
                 for item in section["content"]:
                     if item["type"] == "listItem":
                         bulleted_item = item["content"][0]["content"]
-                        mappings.append([obj["text"].replace(": ", "") for obj in bulleted_item])
+                        mappings.append(
+                            [obj.get("text", "").replace(": ", "") for obj in bulleted_item]
+                        )
 
         return mappings
 
