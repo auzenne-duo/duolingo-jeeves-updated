@@ -1,6 +1,7 @@
 """
 Manager for JIRA documents.
 """
+
 import json
 import logging
 import re

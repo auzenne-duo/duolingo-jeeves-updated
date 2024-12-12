@@ -1,6 +1,7 @@
 """
 Our model for sentiment analysis using a SVM
 """
+
 import pickle
 from typing import Dict, List, Tuple
 

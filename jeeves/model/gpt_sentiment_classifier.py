@@ -1,6 +1,7 @@
 """
 Model for sentiment classifier using GPT
 """
+
 from typing import List, Tuple
 
 from duolingo_base.util import registry

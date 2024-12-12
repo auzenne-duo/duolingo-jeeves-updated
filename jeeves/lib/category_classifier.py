@@ -1,6 +1,7 @@
 """
 A library for classifying tickets into categories.
 """
+
 import re
 
 from jeeves.dal.support_tickets import SupportTicketDAL

@@ -3,6 +3,7 @@ DAL for accessing category annotation data.
 
 TODO: Implement a function that exports labeled dataset that machine learning libraries can use.
 """
+
 import requests
 
 

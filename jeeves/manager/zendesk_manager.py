@@ -1,6 +1,7 @@
 """
 Manager for Zendesk documents.
 """
+
 import base64
 import json
 import os

@@ -1,4 +1,5 @@
 """Managers for publishing events."""
+
 import json
 
 import boto3

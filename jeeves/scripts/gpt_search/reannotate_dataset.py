@@ -2,6 +2,7 @@
 This script allows you to re-annotate someone else's dataset that was annotated using the generate_sentiment_dataset
 script. It will create a folder with the new annotations and a dataset summary.
 """
+
 import datetime
 import os
 

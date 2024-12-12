@@ -1,6 +1,7 @@
 """
 Unit test for cleanup util.
 """
+
 import unittest
 from typing import Dict, Tuple
 

@@ -1,6 +1,7 @@
 """
 A manager for the Jeeves GPT Search functionality.
 """
+
 from __future__ import annotations
 
 import hashlib

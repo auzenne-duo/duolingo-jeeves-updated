@@ -450,19 +450,19 @@ class OpenSearchDAL:
         url_pattern = "https?://[\w./0-9-?=_]+"
         filter_pattern = re.compile(
             f"{email_pattern}|{emote_pattern}|{url_pattern}|["
-            "\U0001F600-\U0001F64F"  # emoticons
-            "\U0001F300-\U0001F5FF"  # symbols & pictographs
-            "\U0001F680-\U0001F6FF"  # transport & map symbols
-            "\U0001F1E0-\U0001F1FF"  # flags (iOS)
-            "\U0001F1F2-\U0001F1F4"  # Macau flag
-            "\U0001F1E6-\U0001F1FF"  # flags
-            "\U0001F600-\U0001F64F"
-            "\U00002702-\U000027B0"
-            "\U000024C2-\U0001F251"
+            "\U0001f600-\U0001f64f"  # emoticons
+            "\U0001f300-\U0001f5ff"  # symbols & pictographs
+            "\U0001f680-\U0001f6ff"  # transport & map symbols
+            "\U0001f1e0-\U0001f1ff"  # flags (iOS)
+            "\U0001f1f2-\U0001f1f4"  # Macau flag
+            "\U0001f1e6-\U0001f1ff"  # flags
+            "\U0001f600-\U0001f64f"
+            "\U00002702-\U000027b0"
+            "\U000024c2-\U0001f251"
             "\U0001f926-\U0001f937"
-            "\U0001F1F2"
-            "\U0001F1F4"
-            "\U0001F620"
+            "\U0001f1f2"
+            "\U0001f1f4"
+            "\U0001f620"
             "\u200d"
             "\u2640-\u2642"
             "]+",
@@ -809,7 +809,7 @@ class OpenSearchDAL:
         Scroll is used since these queries may exceed the 10,000 document maximum.
         """
         twitter_only = False
-        if "data_source" in filters.keys() and filters["data_source"].lower() == "twitter":
+        if "data_source" in filters and filters["data_source"].lower() == "twitter":
             filters["data_source"] = "Zendesk"
             twitter_only = True
         fields_list = [f'{{"term": {{"{"language"}": "{"en"}"}}}}']

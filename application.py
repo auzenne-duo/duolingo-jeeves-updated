@@ -1,6 +1,7 @@
 """
 Main entry point for running the service, through command line or mod_wsgi.
 """
+
 import io
 import logging
 import os

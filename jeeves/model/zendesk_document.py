@@ -1,6 +1,7 @@
 """
 Our model for a ticket from the Zendesk API
 """
+
 import base64
 import json
 import os

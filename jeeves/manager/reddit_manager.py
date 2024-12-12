@@ -2,7 +2,6 @@
 Manager for Reddit documents.
 """
 
-
 import json
 import os
 from datetime import datetime
@@ -144,7 +143,7 @@ class RedditManager(JeevesManager):
             print_request_exception(e, rollbar_level="warning")
             return
         TOKEN = res.json()["access_token"]
-        headers = {**_HEADERS, **{"Authorization": f"bearer {TOKEN}"}}
+        headers = {**_HEADERS, "Authorization": f"bearer {TOKEN}"}
         checkpoint_file = RedditManager.get_checkpoint_file_name()
         if not list(s3_client.yield_filenames(bucket_name, path_prefix=checkpoint_file)):
             # Create checkpoint file using default timestamp

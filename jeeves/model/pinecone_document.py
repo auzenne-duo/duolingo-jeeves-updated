@@ -1,6 +1,7 @@
 """
 Our model for inserting Jeeves Documents into Pinecone
 """
+
 import logging
 from abc import ABC
 from typing import List, Optional
@@ -39,7 +40,7 @@ class PineconeDocument(ABC):
 
     @staticmethod
     def convert_jeeves_docs_to_pinecone_docs(
-        tickets: List[JeevesDocument]
+        tickets: List[JeevesDocument],
     ) -> List["PineconeDocument"]:
         """
         Convert a list of JeevesDocuments to a format Pinecone accepts.

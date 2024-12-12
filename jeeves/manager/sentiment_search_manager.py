@@ -2,7 +2,6 @@
 A manager for the Jeeves sentiment analysis functionality.
 """
 
-
 import datetime
 import logging
 from dataclasses import asdict, dataclass

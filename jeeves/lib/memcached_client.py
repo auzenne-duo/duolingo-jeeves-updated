@@ -1,6 +1,7 @@
 """
 A Memcached client based on an implementation at duolingo-chatbot.
 """
+
 import logging
 from threading import Lock
 from typing import Dict

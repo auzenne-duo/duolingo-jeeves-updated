@@ -1,6 +1,7 @@
 """
 Our model for an app store review from the Reddit Pushshift API
 """
+
 from datetime import datetime
 
 import attr

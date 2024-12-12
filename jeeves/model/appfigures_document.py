@@ -1,6 +1,7 @@
 """
 Our model for an app store review from the AppFigures API
 """
+
 import attr
 
 from jeeves.model.custom_types import JSON

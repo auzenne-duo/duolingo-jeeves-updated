@@ -1,6 +1,7 @@
 """
 Our model for a general, abstract document
 """
+
 from __future__ import annotations
 
 import datetime

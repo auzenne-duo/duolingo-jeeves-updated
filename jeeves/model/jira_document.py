@@ -1,6 +1,7 @@
 """
 Our model for a JIRA issue from the JIRA API
 """
+
 from __future__ import annotations
 
 import datetime

@@ -128,8 +128,7 @@ def find_text_placement(score, scores: List[int]) -> int:
         for score in scores:
             if 0 <= placement - score < bottom_margin or 0 <= score - placement < top_margin:
                 placement = score + bottom_margin
-        else:
-            return placement
+        return placement
     return placement
 
 

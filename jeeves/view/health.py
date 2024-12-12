@@ -1,6 +1,7 @@
 """
 Health check view to ensure service is alive.
 """
+
 from flask import Blueprint
 
 blueprint_health = Blueprint("health", __name__)

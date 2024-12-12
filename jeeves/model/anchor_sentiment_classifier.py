@@ -4,6 +4,7 @@ A sentiment classifier that creates an anchor embedding for sentiment analysis.
 For each class, we create an anchor embedding by averaging the embeddings of training documents in that class.
 We classify a document as being in the class with the closest anchor embedding.
 """
+
 from typing import List, Tuple
 
 import attr

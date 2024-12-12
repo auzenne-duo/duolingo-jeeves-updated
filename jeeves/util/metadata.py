@@ -49,8 +49,7 @@ def parse_metadata(txt: str) -> Tuple[str, Any]:
                     d[fld] = val
                 return match.span(), d
         # if none of the parsers find metadata
-        else:
-            return (0, 0), {}
+        return (0, 0), {}
 
     # TODO: Post-process the metadata dictionaries by platform to
     # - enforce datatype conversions

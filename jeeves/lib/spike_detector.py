@@ -2,6 +2,7 @@
 A script for finding spikes of word occurrences in all Jeeves documents.
 Candidate words are batched together by date, language, and spike category.
 """
+
 import json
 import timeit
 from collections import defaultdict

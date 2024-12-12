@@ -20,6 +20,7 @@ Sent: Tuesday, May 22, 2018 12:58:47 AM
 
 TODO: consider using 3rd party tool or machine learning (sequential tagging).
 """
+
 import re
 
 _CLOSING = re.compile(

@@ -4,6 +4,7 @@ It uses the actual app store rating AND an SVM classifier trained only on AppFig
 
 1-2 stars is negative, 3 stars is neutral, 4-5 stars is positive
 """
+
 from typing import List, Tuple
 
 import attr

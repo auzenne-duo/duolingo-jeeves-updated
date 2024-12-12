@@ -1,6 +1,7 @@
 """
 DAL for retrieving a trained sentiment classifier from s3
 """
+
 import pickle
 from enum import Enum, auto
 

@@ -1,6 +1,7 @@
 """
 A utility for calculating vector functions related to polarity
 """
+
 from typing import List
 
 import numpy as np

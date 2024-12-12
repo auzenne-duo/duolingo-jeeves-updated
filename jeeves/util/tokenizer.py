@@ -4,6 +4,7 @@ Decompose text into a list of words.
 TODO: Support non-English languages.
 TODO: Use existing 3rd party tokenizers.
 """
+
 import json
 
 import requests

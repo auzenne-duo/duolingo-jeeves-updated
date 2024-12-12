@@ -156,7 +156,7 @@ def get_updated_jira_priorities(
 
 
 def get_training_priorities(
-    overridden_priorities: Dict[str, OverriddenPriorityIssue]
+    overridden_priorities: Dict[str, OverriddenPriorityIssue],
 ) -> Dict[str, OverriddenPriorityIssue]:
     """
     Finds new overridden priorities and combines them with old data that hasn't been trained on. Newest data is used in the even
@@ -207,7 +207,7 @@ def update_priority_model(overridden_priorities) -> Dict[str, OverriddenPriority
 
 
 def upload_priority_model_and_data(
-    overridden_priorities: Dict[str, OverriddenPriorityIssue]
+    overridden_priorities: Dict[str, OverriddenPriorityIssue],
 ) -> None:
     """
     Uploads overridden priorities and the updated model to s3

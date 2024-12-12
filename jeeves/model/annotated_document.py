@@ -1,6 +1,7 @@
 """
 Model for a JeevesDocument annotated with its sentiment and potentially a sentiment score as well
 """
+
 from typing import List
 
 import attr

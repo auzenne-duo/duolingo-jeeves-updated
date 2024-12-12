@@ -2,7 +2,6 @@
 Manager for Appfigures documents.
 """
 
-
 import json
 import logging
 import os

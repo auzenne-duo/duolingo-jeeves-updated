@@ -62,7 +62,7 @@ def _get_jeeves_urls_for_stats(
         stat: app_registry(ShakiraStatsManager).get_jeeves_url_for_reporter_email_shakira_stat(
             reporter, stat
         )
-        for stat in stats_dict.keys()
+        for stat in stats_dict
     }
 
 

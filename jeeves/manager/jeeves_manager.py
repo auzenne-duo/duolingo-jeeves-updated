@@ -4,7 +4,6 @@ A manager controls a class of documents, in particular, it contains functionalit
 to download such documents from an external source.
 """
 
-
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import List, Optional, Type
