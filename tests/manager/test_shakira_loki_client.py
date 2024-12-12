@@ -79,3 +79,103 @@ def test_parse_ios_log():
     parsed_values = client.parse_logs_ios(text_stream)
 
     assert expected_values == parsed_values
+
+
+def test_parse_jira_issue_android():
+    """
+    Tests that the parser correctly extracts the relevant information from the Jira issue description
+    """
+    file_path = os.path.join(os.path.dirname(__file__), "jira_api_response_android.json")
+
+    with open(file_path) as f:
+        client = ShakiraLokiApiClient()
+        jira_issue = json.load(f)
+        summary = jira_issue["fields"]["description"]["content"]
+        expected_response = [
+            ["Platform", " Android"],
+            ["App version code", " 6.10.0d (2009) play"],
+            ["API Level", " 34"],
+            ["OS Version", " 6.1.23-android14-4-00257-g7e35917775b8-ab9964412 (12077443)"],
+            ["Host (Device)", " r-d3d21742fc70d910-p10v (emu64a)"],
+            ["Model (Product)", " sdk_gphone64_arm64 (sdk_gphone64_arm64)"],
+            ["Screen", " 1440x2891, 560dpi"],
+            ["Config", " Internal, 192 | 576"],
+            ["Device language", " zh_CN"],
+            ["Default device language", " en_US"],
+            ["Performance mode", " MIDDLE"],
+            ["CourseId", " DUOLINGO_FR_ZH-CN"],
+            ["Username", " GuanhuaLi1"],
+            ["Tags", " BET40189 PS6T3BRN"],
+            ["CourseSubject", " language"],
+            ["Course", " French <- Chinese"],
+            ["User ID", " 909564076"],
+            ["Diagnostics page", " "],
+            ["url", "https://diagnostics.duolingo.com/user-summary/909564076?show_activity=true"],
+            ["Build Type", " BETRC40190"],
+            [
+                "FullStory Session if recording",
+                " FullStory link is unavailable because we're not sure why actually",
+            ],
+            ["Activity", " com.duolingo.splash.LaunchActivity"],
+        ]
+        actual_response = client.extract_android_reporter_information(summary)
+        assert actual_response == expected_response
+
+
+def test_parse_android_log():
+    log = """2024-12-05 18:16:45.728-0500 [INFO | Platform - Application Stability and Performance]: Tracking timer event lesson_start with duration of 2433 ms
+2024-12-05 18:16:45.725-0500 [INFO | Platform - Application Stability and Performance]: endAsyncSection: splash_to_ready
+2024-12-05 18:16:45.725-0500 [INFO | Platform - Application Stability and Performance]: endAsyncSection: lesson_start
+2024-12-05 18:16:45.724-0500 [INFO | Platform - Application Stability and Performance]: endAsyncSection: prefetch_lesson_start
+2024-12-05 18:16:45.529-0500 [INFO | Platform - Application Stability and Performance]: endSection: api_call https://android-api.duolingo.com/users/192897876/daily-quests?timezone=America%2FNew_York
+2024-12-05 18:16:45.505-0500 [INFO | Platform - Application Stability and Performance]: endAsyncSection: challenge_continue
+2024-12-05 18:16:45.505-0500 [VERBOSE | Platform - Application Stability and Performance]: Resumed: MathPatternTableFragment
+2024-12-05 18:16:45.504-0500 [VERBOSE | Platform - Application Stability and Performance]: Resumed: GradingRibbonFragment
+2024-12-05 18:16:45.504-0500 [VERBOSE | Platform - Application Stability and Performance]: Resumed: ChallengeButtonsFragment"""
+
+    expected_values = [
+        [
+            "1733440605728000000",
+            "[INFO | Platform - Application Stability and Performance]: Tracking timer event lesson_start with duration of 2433 ms",
+        ],
+        [
+            "1733440605724999936",
+            "[INFO | Platform - Application Stability and Performance]: endAsyncSection: splash_to_ready",
+        ],
+        [
+            "1733440605724999936",
+            "[INFO | Platform - Application Stability and Performance]: endAsyncSection: lesson_start",
+        ],
+        [
+            "1733440605724000000",
+            "[INFO | Platform - Application Stability and Performance]: endAsyncSection: prefetch_lesson_start",
+        ],
+        [
+            "1733440605528999936",
+            "[INFO | Platform - Application Stability and Performance]: endSection: api_call https://android-api.duolingo.com/users/192897876/daily-quests?timezone=America%2FNew_York",
+        ],
+        [
+            "1733440605505000192",
+            "[INFO | Platform - Application Stability and Performance]: endAsyncSection: challenge_continue",
+        ],
+        [
+            "1733440605505000192",
+            "[VERBOSE | Platform - Application Stability and Performance]: Resumed: MathPatternTableFragment",
+        ],
+        [
+            "1733440605504000000",
+            "[VERBOSE | Platform - Application Stability and Performance]: Resumed: GradingRibbonFragment",
+        ],
+        [
+            "1733440605504000000",
+            "[VERBOSE | Platform - Application Stability and Performance]: Resumed: ChallengeButtonsFragment",
+        ],
+    ]
+    client = ShakiraLokiApiClient()
+
+    file_stream = io.BytesIO(str.encode(log))
+    text_stream = io.TextIOWrapper(file_stream, encoding="utf-8")
+
+    parsed_values = client.parse_logs_android(text_stream)
+
+    assert expected_values == parsed_values
