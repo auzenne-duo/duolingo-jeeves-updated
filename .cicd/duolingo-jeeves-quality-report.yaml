@@ -13,6 +13,7 @@ jobs:
       dry_run=true; dry_run_recipient set => Specified recipient gets emails. S3 not updated<br>
       dry_run=false; save_snapshots=false => No emails. S3 is updated<br>
       dry_run=false; save_snapshots=true => Emails sent. S3 updated<br>
+    jenkins_cluster: "script-runner-jenkins"
     log_rotator:
       days_to_keep: 60
     rebuild_settings:

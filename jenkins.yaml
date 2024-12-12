@@ -136,6 +136,7 @@ jobs:
       duolingo-jeeves-refresh-tickets
     description: |-
       Manually trigger this job to force refresh jeeves tickets
+    jenkins_cluster: "script-runner-jenkins"
     node: "ec2-jenkins-worker"
     log_rotator:
       days_to_keep: 60
@@ -169,6 +170,7 @@ jobs:
       throttle_enabled: false
     branch: "${BUILD_BRANCH}"
     command: "bash -ex force_refresh_job.sh"
+    dockerize_command: false
   - name: |-
       duolingo-jeeves-deploy-galaxy-dev
     description: |-

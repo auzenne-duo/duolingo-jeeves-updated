@@ -133,7 +133,7 @@ sqs-worker-2.json | sqs_index_worker.py | Calls `check_should_index_document()` 
 
 ## Force Refresh
 
-To force refresh all tickets in jeeves, build this job: [https://jenkins-ci.duolingo.com/job/duolingo-jeeves-refresh-tickets](https://jenkins-ci.duolingo.com/job/duolingo-jeeves-refresh-tickets).
+To force refresh all tickets in jeeves, build this job: [https://script-runner-jenkins.duolingo.com/job/duolingo-jeeves-refresh-tickets/](https://script-runner-jenkins.duolingo.com/job/duolingo-jeeves-refresh-tickets/).
 
 To force refresh all spikes, set the `force_spike_refresh_flag` to 1 in aws bucket `jeeves-document-cache`.
 

@@ -4,6 +4,7 @@ jobs:
     scm: {}
     dockerize_command: false
     description: "This job runs every three hour to sync Jira documents in Jeeves with any updates to Jira tickets."
+    jenkins_cluster: "script-runner-jenkins"
     log_rotator:
       days_to_keep: 60
     rebuild_settings:
