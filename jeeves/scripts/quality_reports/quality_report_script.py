@@ -3,7 +3,6 @@ import sys
 import time
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.manager.quality_report_manager import QualityReportManager
@@ -11,11 +10,6 @@ from jeeves.manager.quality_report_manager import QualityReportManager
 _SAVE_SNAPSHOTS = os.environ.get("SAVE_SNAPSHOTS", "false").lower() == "true"
 _IS_DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 _DRY_RUN_RECIPIENT = recipient if (recipient := os.environ.get("DRY_RUN_RECIPIENT")) else None
-
-
-config = Config.load_config()
-config.apply_logging()
-config.apply_rollbar()
 
 
 if __name__ == "__main__":

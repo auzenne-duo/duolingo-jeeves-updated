@@ -6,11 +6,12 @@ import logging
 from threading import Lock
 from typing import Dict
 
-from duolingo_base.config import Config
 from duolingo_base.dal.caching import CachingDAL
 from duolingo_base.dal.memcache import MemcacheClient
 
-_config = Config.load_config()
+from jeeves.config.config import get_config
+
+_config = get_config()
 _memcached_clients: Dict[str, CachingDAL] = {}
 _memcached_creation_lock = Lock()
 

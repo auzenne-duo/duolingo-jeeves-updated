@@ -3,7 +3,6 @@ import sys
 from datetime import datetime, timedelta, timezone
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.dal.opensearch_interface import OpenSearchDAL
@@ -15,11 +14,6 @@ from jeeves.util.slack_util import SlackUtil
 _DEFAULT_SLACK_CHANNEL_ID = "C0UDM7XA4"  # for #slack-test channel
 _SLACK_CHANNEL_ID = os.environ.get("SLACK_CHANNEL_ID", _DEFAULT_SLACK_CHANNEL_ID)
 _SLACK_API_TOKEN = os.environ.get("SLACK_API_TOKEN")
-
-
-config = Config.load_config()
-config.apply_logging()
-config.apply_rollbar()
 
 
 DATA_SOURCES_MAX_EXPECTED_AGE = {

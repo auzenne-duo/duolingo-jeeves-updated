@@ -7,22 +7,20 @@ Add your @duolingo.com email address to the _UNSUBSCRIBED list in order to unsub
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from duolingo_base.config import Config
 from duolingo_notify.api import RequestBuilder
 from jinja2 import Environment, FileSystemLoader
 
 from jeeves import registry as app_registry
+from jeeves.config.config import get_config
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.dal.employees import EmployeesDAL
 from jeeves.model.quality_report import QualityReport, QualityReportArea
 from jeeves.util.quality_report_util import TEMPLATE_DIRECTORY
 
-config = Config.load_config()
-
 LOG = logging.getLogger(__name__)
 
 _UNSUBSCRIBED = ["example@duolingo.com"]
-_IS_PRODUCTION_ENV = config.get_nested(["environment"]) == "prod"
+_IS_PRODUCTION_ENV = get_config().get_nested(["environment"]) == "prod"
 
 _AREA = "AREA"
 _RECEIVE_ALL = "RECEIVE_ALL"

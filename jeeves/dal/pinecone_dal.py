@@ -7,13 +7,11 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
-from duolingo_base.config import Config
 from pinecone import Pinecone, PineconeException
 
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.pinecone_document import PineconeDocument
 
-_config = Config.load_config()
 LOG = logging.getLogger(__name__)
 
 

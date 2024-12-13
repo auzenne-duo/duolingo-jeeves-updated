@@ -6,9 +6,8 @@ from typing import Any, Dict
 from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np
-from duolingo_base.config import Config
 
-from jeeves.config.config import SENTENCE_TRANSFORMER_MODEL
+from jeeves.config.config import SENTENCE_TRANSFORMER_MODEL, get_config
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.model.jira_document import JiraDocument
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
@@ -20,9 +19,7 @@ failed_response = {"_shards": {"total": 2, "successful": 1}}
 mock_opensearch = MagicMock()
 mock_search = MagicMock()
 
-_config = Config.load_config()
-
-data_version_identifier = _config.get_nested(["opensearch", "data_version_identifier"])
+data_version_identifier = get_config().get_nested(["opensearch", "data_version_identifier"])
 spikename = f"jeeves_spikes_v_{data_version_identifier}"
 
 now_datetime = datetime.now()

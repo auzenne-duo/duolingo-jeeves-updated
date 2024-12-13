@@ -5,11 +5,11 @@ from typing import List
 from urllib import parse
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 from requests import post
 from requests.exceptions import RequestException
 
 from jeeves import apply_registry, close_registry, registry as app_registry
+from jeeves.config.config import get_config
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.manager.shakira_slack import SlackChannel
 from jeeves.model.slack_bot import SlackBot
@@ -17,10 +17,6 @@ from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
 from jeeves.util.date_util import date_to_str, get_eastern_today, get_n_days_ago
 from jeeves.util.error_util import SpikeReporterException, print_request_exception
-
-_config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
 
 _JEEVES_URL = "https://jeeves.duolingo.com"
 
@@ -195,7 +191,7 @@ if __name__ == "__main__":
 
             slack_channels = (
                 [_DEV_SLACK_CHANNEL]
-                if _config.get_nested(["environment"]) == "dev"
+                if get_config().get_nested(["environment"]) == "dev"
                 else slack_channels
             )  # Only post to the dev channel in the dev environment
 

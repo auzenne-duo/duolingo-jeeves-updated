@@ -2,15 +2,9 @@ import sys
 import time
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry
 from jeeves.lib.ticket_crawler import force_refresh_tickets
-
-config = Config.load_config()
-config.apply_logging()
-config.apply_rollbar()
-
 
 if __name__ == "__main__":
     apply_registry()

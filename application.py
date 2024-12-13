@@ -7,12 +7,12 @@ import logging
 import os
 import sys
 
-from duolingo_base.config import Config
 from duolingo_base.view.auth import auth_after_request, requires_auth
 from flask import Flask, request
 from flask_cors import CORS
 
-from jeeves import apply_registry_to_app, close_registry, registry as app_registry
+from jeeves import apply_registry, close_registry, registry as app_registry
+from jeeves.config.config import get_config
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
@@ -23,7 +23,7 @@ logging.basicConfig(stream=sys.stdout, encoding="utf-8", level=logging.INFO)
 
 LOG = logging.getLogger("application")
 
-config = Config.load_config()
+config = get_config()
 
 application = Flask(__name__)
 
@@ -55,11 +55,8 @@ def auth_before_request():
 application.before_request(auth_before_request)
 application.after_request(auth_after_request)
 
-apply_registry_to_app(application)
-
-# Register blueprints
-
-config.apply_all(registry=application.registry, flask_app=application)
+# Register blueprints and Flask app
+apply_registry(flask_app=application)
 
 
 @application.route("/error", methods=["GET", "POST", "PATCH", "PUT"])

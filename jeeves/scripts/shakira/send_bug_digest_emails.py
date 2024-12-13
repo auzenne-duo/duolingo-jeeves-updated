@@ -9,7 +9,6 @@ import sys
 from typing import Dict, List
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 from duolingo_notify.api import RequestBuilder
 
 # TODO use duostache
@@ -19,10 +18,6 @@ from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.manager.shakira_stats_manager import ShakiraStatsManager
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shakira_stat import ShakiraStat
-
-_config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
 
 _UNSUBSCRIBED = [
     "jake@duolingo.com",

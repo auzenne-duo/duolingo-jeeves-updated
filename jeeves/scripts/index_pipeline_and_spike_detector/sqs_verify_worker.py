@@ -5,18 +5,17 @@ import sys
 from typing import List
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 
+from jeeves import apply_registry
+from jeeves.config.config import get_config
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.util.json_encoder import JeevesJSONEncoder
 from jeeves.util.sleep_check import sleep_check
 
 LOG = logging.getLogger("process document")
 
-_config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
+_config = get_config()
 
 
 """
@@ -53,6 +52,7 @@ def _check_for_data_source(messages: List[sqs.SQSMessage]) -> bool:
 
 if __name__ == "__main__":
     try:
+        apply_registry()
         logging.basicConfig()
         LOG.setLevel(logging.INFO)
         sqs_client_input = sqs.SQSClient(

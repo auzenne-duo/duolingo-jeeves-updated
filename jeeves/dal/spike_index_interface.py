@@ -4,19 +4,19 @@ from datetime import date
 from typing import Any, Dict, Iterator, List, Optional
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 from nltk.stem.snowball import SnowballStemmer
 from opensearch_dsl import Mapping, Search
 from opensearchpy import OpenSearch
 from opensearchpy.helpers import bulk
 
+from jeeves.config.config import get_config
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.spike_word import SpikeWord
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.date_util import date_to_str, str_to_date
 from jeeves.util.error_util import SearchUnsuccessfulException
 
-_config = Config.load_config()
+_config = get_config()
 
 
 class SpikeIndexDAL:

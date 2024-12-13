@@ -1,14 +1,14 @@
-"""
-A utility that cleans up logs by reducing the rate of api calls when running the repo locally
-"""
-
 import time
 
-from duolingo_base.config import Config
-
-config = Config.load_config()
+from jeeves.config.config import get_config
 
 
-def sleep_check():
-    if config.get_nested(["environment"]) == "local":
-        time.sleep(1)
+def sleep_check(num_sec: int = 1) -> None:
+    """
+    A utility to help slow down services when running Jeeves locally. This makes debugging and logging more manageable.
+    Sleeps for num_sec seconds (default: 1) only if the environment is "local".
+
+    :param num_sec: Number of seconds to sleep for
+    """
+    if get_config().get_nested(["environment"]) == "local":
+        time.sleep(num_sec)

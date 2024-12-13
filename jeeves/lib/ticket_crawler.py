@@ -5,11 +5,10 @@ from typing import Any, DefaultDict, List, Tuple
 from uuid import uuid4
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 from duolingo_base.dal import s3, sqs
 
 from jeeves import registry as app_registry
-from jeeves.config.config import CRAWL_WINDOW_SIZE
+from jeeves.config.config import CRAWL_WINDOW_SIZE, get_config
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.manager.jeeves_manager import JeevesManager
@@ -36,8 +35,7 @@ _REFRESH_END_DATE = os.environ.get("REFRESH_END_DATE")  # String in ISO format
 # title/description of the ticket.
 _INDEX_LINE_LENGTH_LIMIT = 3500
 
-
-_config = Config.load_config()
+_config = get_config()
 
 
 def count_tickets(ticket_dict: DefaultDict[str, List[Any]]) -> DefaultDict[str, int]:

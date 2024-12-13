@@ -1,3 +1,8 @@
+from duolingo_base.config import Config
+
+# A singleton instance of duolingo_base.config.Config
+CONFIG = Config.load_config()
+
 # On the target day, the word has to occur at least this many times to be considered as a spike.
 COUNT_THRESHOLD = 3
 
@@ -32,7 +37,14 @@ QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY = (
 # For spikes, occurrences should be at least five-sigma away from historical values.
 SPIKE_THRESHOLD = 5
 
-
 SENTENCE_TRANSFORMER_MODEL = "SentenceTransformers"
 
 GPT_EMBEDDING_MODEL = "GPT_text-embedding-ada-002"
+
+
+def get_config() -> Config:
+    """
+    Exposes a way to get a singleton instance of duolingo_base.config.Config
+    so that we only have to call Config.load_config() once.
+    """
+    return CONFIG

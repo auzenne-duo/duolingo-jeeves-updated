@@ -2,18 +2,16 @@ import json
 import sys
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 from duolingo_base.dal import sqs
 
 import jeeves.lib.ticket_crawler as tc
 from jeeves import apply_registry, close_registry, registry as app_registry
+from jeeves.config.config import get_config
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
 from jeeves.manager.jeeves_duplicate_manager import JeevesDuplicateManager
 from jeeves.util.sleep_check import sleep_check
 
-_config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
+_config = get_config()
 
 _BATCH_GROUP_SIZE = 100
 

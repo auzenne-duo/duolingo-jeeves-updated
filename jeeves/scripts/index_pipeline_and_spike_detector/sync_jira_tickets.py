@@ -3,7 +3,6 @@ import sys
 import time
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.dal.opensearch_interface import OpenSearchDAL
@@ -12,11 +11,6 @@ from jeeves.manager.jira_manager import JiraManager
 
 _DEFAULT_REFRESH_WINDOW_HOURS = 1
 _REFRESH_HOURS = os.environ.get("REFRESH_HOURS", _DEFAULT_REFRESH_WINDOW_HOURS)
-
-
-config = Config.load_config()
-config.apply_logging()
-config.apply_rollbar()
 
 
 def refresh_updated_jira_tickets() -> None:

@@ -11,7 +11,6 @@ from typing import Any, Dict, Generator, Iterator, List, Optional, Set, Union, c
 
 import duo_logging.legacy as rollbar
 import numpy as np
-from duolingo_base.config import Config
 from duolingo_nlp.annotations import AnnotationKind, Language, Text
 from duolingo_nlp.annotators.text.client.nlp import TextNLPBackendClient
 from duolingo_nlp.models.annotations.text.word import WordProperty
@@ -28,6 +27,7 @@ from jeeves.config.config import (
     HISTORY_WINDOW_SIZE,
     MIN_SAMPLES_THRESHOLD,
     SENTENCE_TRANSFORMER_MODEL,
+    get_config,
 )
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
 from jeeves.lib.identifier_manager_mapping import IDManagerMap
@@ -48,7 +48,7 @@ from jeeves.util.error_util import SearchUnsuccessfulException
 from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 from jeeves.util.sleep_check import sleep_check
 
-_config = Config.load_config()
+_config = get_config()
 
 LOG = logging.getLogger(__name__)
 

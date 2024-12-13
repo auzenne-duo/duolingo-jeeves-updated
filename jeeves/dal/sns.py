@@ -4,9 +4,10 @@ import json
 
 import boto3
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 
-_config = Config.load_config()
+from jeeves.config.config import get_config
+
+_config = get_config()
 
 
 class PublishManager:

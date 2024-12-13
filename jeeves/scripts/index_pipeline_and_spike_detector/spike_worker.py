@@ -3,7 +3,6 @@ import sys
 from datetime import datetime, timedelta, timezone
 
 import duo_logging.legacy as rollbar
-from duolingo_base.config import Config
 
 from jeeves import apply_registry, close_registry, register, registry as app_registry
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
@@ -15,10 +14,6 @@ from jeeves.lib.spike_detector import (
 )
 from jeeves.util.date_util import date_to_str, get_utc_today, str_to_date, yield_intermediate_dates
 from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
-
-_config = Config.load_config()
-_config.apply_logging()
-_config.apply_rollbar()
 
 _FORCE_SPIKE_REFRESH_FILE = "force_spike_refresh_flag"
 _SPIKE_CALCULATOR_LOCK_FILE = "spike_calculator_lock"

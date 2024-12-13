@@ -1,7 +1,8 @@
-from duolingo_base.config import Config
 from duolingo_base.dal import s3
 
-_config = Config.load_config()
+from jeeves.config.config import get_config
+
+_config = get_config()
 
 
 def get_s3_client_and_bucket():
