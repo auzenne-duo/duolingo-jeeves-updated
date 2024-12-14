@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from timeit import default_timer
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 from requests import RequestException, Response, Session, delete, get, post, put
 from requests.auth import HTTPBasicAuth
 
@@ -91,7 +91,7 @@ class JiraApiDAL:
             status_code = e.response.status_code if e.response is not None else None
             reason = e.response.reason if e.response is not None else None
 
-            rollbar.report_message(
+            duo_logging.capture_message(
                 f"Feature url {url} returned {status_code} {reason}. Falling back to feature {doc.feature}",
                 "warning",
             )
@@ -143,7 +143,7 @@ class JiraApiDAL:
             response_json = json.loads(r.text, object_hook=_add_attachments_to_issue_json)
             return response_json
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             raise
 
     def paginate_search_issues(self, url_params) -> Iterator[JSON]:
@@ -216,7 +216,7 @@ class JiraApiDAL:
             r.raise_for_status()
             return r.text
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             raise
 
     def update_issue(
@@ -253,7 +253,7 @@ class JiraApiDAL:
             r = put(url, headers=headers, auth=self._auth, data=json.dumps(data_operation))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             raise
 
     def close_issue_as_duplicate(self, issue_key: str):
@@ -272,7 +272,7 @@ class JiraApiDAL:
             r = post(url, headers=headers, auth=self._auth, data=json.dumps(data_operation))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             raise
 
     def create_bug_issue(self, project: str, summary: str, description_json: JSON) -> str:
@@ -312,7 +312,7 @@ class JiraApiDAL:
             response_JSON = json.loads(r.text)
             return response_JSON["key"]
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             raise
 
     @traced_function()
@@ -340,7 +340,7 @@ class JiraApiDAL:
             r = post(url, auth=self._auth, headers=headers, data=json.dumps(data))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             return (outward_key, inward_key, False)
         return (outward_key, inward_key, True)
 
@@ -381,7 +381,7 @@ class JiraApiDAL:
             r = delete(url, auth=self._auth, headers=headers)
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             return (link_id, False)
         return (link_id, True)
 

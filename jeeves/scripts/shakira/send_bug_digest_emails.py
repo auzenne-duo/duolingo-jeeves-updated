@@ -8,7 +8,7 @@ import codecs
 import sys
 from typing import Dict, List
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 from duolingo_notify.api import RequestBuilder
 
 # TODO use duostache
@@ -126,6 +126,6 @@ if __name__ == "__main__":
             )
             rb.send_medium_priority()
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

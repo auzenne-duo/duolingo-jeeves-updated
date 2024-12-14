@@ -4,7 +4,7 @@ import random
 import sys
 from typing import List
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 from duolingo_base.dal import sqs
 
 from jeeves import apply_registry
@@ -113,4 +113,4 @@ if __name__ == "__main__":
             if messages:
                 sqs_client_input.delete_messages(messages)
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())

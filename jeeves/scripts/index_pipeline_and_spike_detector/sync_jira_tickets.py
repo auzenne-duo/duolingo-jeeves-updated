@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.dal.opensearch_interface import OpenSearchDAL
@@ -60,6 +60,6 @@ if __name__ == "__main__":
         print(f"Jira sync done in {(time.time() - start):.3f} sec.")
         print("=" * 100)
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

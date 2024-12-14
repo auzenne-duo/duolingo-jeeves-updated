@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.dal.opensearch_interface import OpenSearchDAL
@@ -86,6 +86,6 @@ if __name__ == "__main__":
         print("Finished checking data sources.")
     except:
         print("Unexpected error:", sys.exc_info())
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

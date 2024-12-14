@@ -2,7 +2,7 @@ import json
 import sys
 from datetime import datetime, timedelta, timezone
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 
 from jeeves import apply_registry, close_registry, register, registry as app_registry
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
@@ -165,6 +165,6 @@ if __name__ == "__main__":
         run_spike_worker(dry_run)
     except Exception as e:
         print(f"Exception occurred while running spike worker: {e}", flush=True)
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

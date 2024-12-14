@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Optional
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 from duolingo_base.dal import s3
 
 from jeeves import apply_registry, close_registry
@@ -188,7 +188,7 @@ def update_priority_model(overridden_priorities) -> Dict[str, OverriddenPriority
     print(f"updating priority estimator with {len(training_priorities)} overridden priorities")
     print(training_priorities.keys())
     if len(training_priorities) == 0:
-        rollbar.report_message("No new overridden priorities found", "warning")
+        duo_logging.capture_message("No new overridden priorities found", "warning")
         return
     data, labels = zip(
         *[
@@ -368,10 +368,10 @@ if __name__ == "__main__":
                 # upload the overridden priorities to reset the modified timestamp
                 # those not used in training are flagged for future use
                 upload_s3_overridden_priorities(overridden_priorities)
-                rollbar.report_message(
+                duo_logging.capture_message(
                     f"Model was not updated due to poor performance ({performance})", "warning"
                 )
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

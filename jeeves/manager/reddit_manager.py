@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from typing import Dict, Optional, Tuple, Type
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 import pytz
 import requests
 from duolingo_base.dal.s3 import S3Client
@@ -120,7 +120,7 @@ class RedditManager(JeevesManager):
                     return ""
                 return checkpoint_id
             except RequestException as e:
-                print_request_exception(e, rollbar_level="warning")
+                print_request_exception(e, log_level="warning")
                 return ""
 
     @staticmethod
@@ -140,7 +140,7 @@ class RedditManager(JeevesManager):
             )
             res.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="warning")
+            print_request_exception(e, log_level="warning")
             return
         TOKEN = res.json()["access_token"]
         headers = {**_HEADERS, "Authorization": f"bearer {TOKEN}"}
@@ -176,12 +176,12 @@ class RedditManager(JeevesManager):
                 )
                 response.raise_for_status()
             except RequestException as e:
-                print_request_exception(e, rollbar_level="warning")
+                print_request_exception(e, log_level="warning")
                 return
             response_json = response.json()
 
             if response_json.get("data", {}).get("children", None) is None:
-                rollbar.report_message(
+                duo_logging.capture_message(
                     f"Reddit response missing data and children keys {response_json}", "warning"
                 )
                 break

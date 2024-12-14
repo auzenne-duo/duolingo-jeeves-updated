@@ -152,7 +152,7 @@ class ShakiraJiraApiClient:
                 }.values()
             )
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             return []
 
     def get_features(self, projects: Union[str, List[str]]) -> List[str]:
@@ -182,7 +182,7 @@ class ShakiraJiraApiClient:
             response_json = json.loads(r.text)
             return [context["id"] for context in response_json["values"]]
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
 
     def _get_create_url_for_field_and_context(self, field_key: str, context_id: str) -> str:
         return f"{_HOST}/rest/api/2/field/{field_key}/context/{context_id}/option"
@@ -197,7 +197,7 @@ class ShakiraJiraApiClient:
             r = post(url, auth=auth, headers=headers, data=json.dumps(data))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             raise
 
     def _get_metadata_for_specific_issuetype(
@@ -216,7 +216,7 @@ class ShakiraJiraApiClient:
                     return JiraIssueTypeMetaData.from_json(issuetypes[0])
             return None
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             return None
 
     def _get_id_for_user(self, email: str) -> Optional[str]:
@@ -226,9 +226,7 @@ class ShakiraJiraApiClient:
                 return None
             return employee.get("atlassianId")
         except KeyError:
-            print_request_exception(
-                Exception("No Atlassian ID found for user"), rollbar_level="error"
-            )
+            print_request_exception(Exception("No Atlassian ID found for user"), log_level="error")
             return None
 
     def _get_slack_channel_description(self, project: str):
@@ -255,7 +253,7 @@ class ShakiraJiraApiClient:
             r = put(url, auth=auth, headers=headers, data=json.dumps(data))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             raise
 
     @traced_function()
@@ -349,7 +347,7 @@ class ShakiraJiraApiClient:
                 response_json = json.loads(r.text)
                 return response_json["key"]
             except RequestException as e:
-                print_request_exception(e, rollbar_level="error")
+                print_request_exception(e, log_level="error")
                 return None
 
     def add_comment(self, project: str, issue_key: str, comment: str) -> None:
@@ -361,7 +359,7 @@ class ShakiraJiraApiClient:
             r = post(url, auth=auth, headers=headers, data=json.dumps(request))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             return None
 
     def get_issue_details(self, issue_key: str) -> Optional[Dict]:
@@ -383,7 +381,7 @@ class ShakiraJiraApiClient:
             response = json.loads(r.text)
             return response
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             return None
 
     def link_issues(
@@ -412,7 +410,7 @@ class ShakiraJiraApiClient:
             r = post(url, auth=auth, headers=headers, data=json.dumps(data))
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
 
     @traced_function()
     def upload_attachments(self, project: str, issue_key: str, files: Dict[str, "FileStorage"]):
@@ -450,5 +448,5 @@ class ShakiraJiraApiClient:
             r = post(url, auth=auth, headers=headers, files=jira_files)
             r.raise_for_status()
         except RequestException as e:
-            print_request_exception(e, rollbar_level="error")
+            print_request_exception(e, log_level="error")
             raise e

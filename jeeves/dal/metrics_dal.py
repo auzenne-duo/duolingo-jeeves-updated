@@ -59,7 +59,7 @@ class MetricsDAL:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             print(f"Request to /{SHARED_CONDITIONS_ROUTE} failed with exception: {e}", flush=True)
-            print_request_exception(e, rollbar_level="warning")
+            print_request_exception(e, log_level="warning")
             return {}
 
         # Return top X shared conditions that are not in the control condition
@@ -103,6 +103,6 @@ class MetricsDAL:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             print(f"Request to /{EXPERIMENTS_ROUTE} failed with exception: {e}", flush=True)
-            print_request_exception(e, rollbar_level="warning")
+            print_request_exception(e, log_level="warning")
             return []
         return response.json()

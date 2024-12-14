@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
 from typing import Any, Dict, Generator, Iterator, List, Optional, Set, Union, cast
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 import numpy as np
 from duolingo_nlp.annotations import AnnotationKind, Language, Text
 from duolingo_nlp.annotators.text.client.nlp import TextNLPBackendClient
@@ -131,7 +131,7 @@ class OpenSearchDAL:
             self._opensearch.indices.create(index=self._indexname, body=index_creation_structure)
             message = f"Created index {self._indexname} with new mappings"
             print(message, flush=True)
-            rollbar.report_message(message, "info")
+            duo_logging.capture_message(message, "info")
 
     def _execute_search_for_documents(self, s: Search) -> List[JeevesDocument]:
         """
@@ -574,7 +574,7 @@ class OpenSearchDAL:
                 f"Encountered {len(errors)} error{'' if len(errors) == 1 else 's'} "
                 + f"when bulk indexing tickets: {errors}"
             )
-            rollbar.report_exc_info(sys.exc_info())
+            duo_logging.capture_exception(sys.exc_info())
             raise Exception(error_message)
 
     def get_most_recent_timestamp(

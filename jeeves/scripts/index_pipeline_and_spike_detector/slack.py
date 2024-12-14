@@ -4,7 +4,7 @@ import sys
 from typing import List
 from urllib import parse
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 from requests import post
 from requests.exceptions import RequestException
 
@@ -219,8 +219,8 @@ if __name__ == "__main__":
                             r = post(url, headers=headers, data=json.dumps(data))
                             r.raise_for_status()
                         except RequestException as e:
-                            print_request_exception(e, rollbar_level="error")
+                            print_request_exception(e, log_level="error")
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

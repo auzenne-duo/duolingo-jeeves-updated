@@ -3,7 +3,7 @@
 import json
 
 import boto3
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 
 from jeeves.config.config import get_config
 
@@ -37,7 +37,7 @@ class PublishManager:
             qa_summary: A summary from QA about what was fixed.
         """
         if not self._initialized:
-            rollbar.report_message(
+            duo_logging.capture_message(
                 "SNS topic is not configured for this environment",
                 "warning",
             )

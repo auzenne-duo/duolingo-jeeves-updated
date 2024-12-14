@@ -1,6 +1,6 @@
 import sys
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 
 from jeeves import apply_registry, close_registry, registry as app_registry
 from jeeves.config.config import GPT_EMBEDDING_MODEL
@@ -33,6 +33,6 @@ if __name__ == "__main__":
         app_registry(OpenSearchDAL).bulk_index_tickets(document_list)
         print("Done checking for missing embeddings")
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()

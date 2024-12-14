@@ -1,7 +1,7 @@
 import json
 import sys
 
-import duo_logging.legacy as rollbar
+import duo_logging  # type: ignore[import]
 from duolingo_base.dal import sqs
 
 import jeeves.lib.ticket_crawler as tc
@@ -61,6 +61,6 @@ if __name__ == "__main__":
                 tc.perform_checkpoint(batch_list)
                 batch_list = []
     except:
-        rollbar.report_exc_info(sys.exc_info())
+        duo_logging.capture_exception(sys.exc_info())
     finally:
         close_registry()
