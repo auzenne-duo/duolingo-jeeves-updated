@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Pattern, Tuple
+from typing import Dict, List, Optional, Pattern, Tuple
 
 from jeeves.model.custom_types import JSON
 from jeeves.util.metadata import parse_metadata
@@ -146,19 +146,19 @@ def filter_lines(lines: List[str]) -> List[str]:
     ]
 
 
-def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
+def _extract_duolingo_metadata(body_text: str) -> Optional[Tuple[dict, int, int]]:
     """
-    Separates beta feedback metadata from the downloaded body text of a record
-    and returns them as separate objects.
+    Extracts beta feedback metadata from the downloaded body text of a record
+    and returns and returns it.
 
     Parameters:
         body_text: Description section of a document that we wish to clean
 
     Returns:
-        A two-tuple where the first element is the body text with the metadata
-        removed and the second element is the metadata as JSON. If a problem
-        occurs during parsing, instead return the body text untouched and an
-        empty tuple.
+        A 3-tuple where the first element is the metadata as JSON, the second
+        element is the line index of the first header found, and the third
+        element is the line index of the last header found. If a problem occurs
+        during parsing, return None.
     """
     extracted_metadata: Dict[str, JSON] = {}
 
@@ -181,12 +181,13 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
         if line in known_headers:
             if line in present_headers:
                 print(f"Header {line} appeared twice, aborting.")
-                return body_text, {}
+                return None
             present_headers.append(line)
 
     if not present_headers:
-        return body_text, {}
+        return None
 
+    min_data_idx = 0
     max_data_idx = 0
 
     # Now we collect the data for each header. For multi-value headers,
@@ -194,6 +195,8 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
     # a line consisting only of hyphens, or the end of the document.
     for header in present_headers:
         header_idx = body_lines.index(header)
+        if min_data_idx == 0:
+            min_data_idx = header_idx
         # The header names as I have them hard-coded include a colon at the end,
         # but we don't want that colon included in the OpenSearch field name.
         processed_field_name = header[:-1].replace(" ", "_").lower()
@@ -246,10 +249,39 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
 
             extracted_metadata[processed_field_name] = sub_dict
 
+    return extracted_metadata, min_data_idx, max_data_idx
+
+
+def extract_duolingo_metadata(body_text: str) -> dict:
+    extracted = _extract_duolingo_metadata(body_text)
+    return {} if extracted is None else extracted[0]
+
+
+def extract_duolingo_metadata_and_body(body_text: str) -> Tuple[str, dict]:
+    """
+    Separates beta feedback metadata from the downloaded body text of a record
+    and returns them as separate objects.
+
+    Parameters:
+        body_text: Description section of a document that we wish to clean
+
+    Returns:
+        A two-tuple where the first element is the body text with the metadata
+        removed and the second element is the metadata as JSON. If a problem
+        occurs during parsing, instead return the body text untouched and an
+        empty dictionary.
+    """
+    extracted = _extract_duolingo_metadata(body_text)
+    if extracted is None:
+        return body_text, {}
+    extracted_metadata, first_header_idx, last_header_idx = extracted
+
+    body_lines = [line.strip() for line in body_text.split("\n")]
+
     # To separate off the actual body text, take the earliest header and work
     # backward until we find a line of all hyphens. The line before that is the
     # last line of body text.
-    rover_idx = body_lines.index(present_headers[0]) - 1
+    rover_idx = first_header_idx - 1
     line = body_lines[rover_idx]
     while rover_idx >= 0 and not _HYPHEN_LINE_PATTERN.match(line):
         rover_idx -= 1
@@ -261,15 +293,15 @@ def extract_duolingo_metadata(body_text: str) -> Tuple[str, JSON]:
         filtered_body_text_prologue = "\n".join(filter_lines(body_lines[:rover_idx])).strip()
 
     filtered_body_text_epilogue = ""
-    if max_data_idx < len(body_lines):
-        epilogue_start_index = max_data_idx + 1
+    if last_header_idx < len(body_lines):
+        epilogue_start_index = last_header_idx + 1
         filtered_body_text_epilogue = "\n".join(
             filter_lines(body_lines[epilogue_start_index:])
         ).strip()
 
     filtered_body_text = f"{filtered_body_text_prologue}\n{filtered_body_text_epilogue}"
 
-    end_idx = max_data_idx + 1
+    end_idx = last_header_idx + 1
     raw_metadata_text = "\n".join(body_lines[rover_idx:end_idx])
     extracted_metadata["raw"] = raw_metadata_text
 

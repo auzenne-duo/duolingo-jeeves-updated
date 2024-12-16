@@ -19,7 +19,7 @@ from jeeves.model.quality_score_params import QualityScoreParams
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 from jeeves.util.classify import detect_language
-from jeeves.util.cleanup import extract_duolingo_metadata
+from jeeves.util.cleanup import extract_duolingo_metadata_and_body
 from jeeves.util.date_util import parse_external_datetime
 from jeeves.util.metadata_standardizer import MetaStdizer
 from jeeves.util.quality_report_util import CODEBASE_TO_PLATFORM, PROJECT_TO_PLATFORM
@@ -272,7 +272,7 @@ class JiraDocument(JeevesDocument):
 
         duolingo_metadata = {}
         if is_shake_to_report or is_birds_eye_report:
-            body_text, duolingo_metadata = extract_duolingo_metadata(body_text)
+            body_text, duolingo_metadata = extract_duolingo_metadata_and_body(body_text)
 
         std_metadata = MetaStdizer.get_standardized_metadata(duolingo_metadata)
 

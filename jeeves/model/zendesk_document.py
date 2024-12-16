@@ -27,6 +27,7 @@ from jeeves.util.cleanup import (
     clean_and_parse_description,
     extract_common_zendesk_headers,
     extract_duolingo_metadata,
+    extract_duolingo_metadata_and_body,
 )
 from jeeves.util.date_util import parse_external_datetime
 from jeeves.util.metadata_standardizer import MetaStdizer
@@ -34,6 +35,7 @@ from jeeves.util.metadata_standardizer import MetaStdizer
 _USER = os.environ.get("ZENDESK_REPORTS_USER")
 _ZENDESK_API_TOKEN = os.environ.get("ZENDESK_API_TOKEN")
 CONTRACTOR_EMAIL_DOMAIN = "@duolingocontractors.com"
+_DUOLINGO_DEBUG_METADATA_ZENDESK_FIELD_ID = 32069071921677
 
 
 @attr.s(kw_only=True)
@@ -56,7 +58,43 @@ class ZendeskDocument(JeevesDocument):
         return "Zendesk"
 
     @classmethod
-    def deserialize_from_external_json(cls, external_json: JSON) -> JeevesDocument:
+    def _get_channel_and_email(cls, external_json: dict):
+        channel = external_json["via"]["channel"]
+        email = None
+        if channel == "web" or channel == "api":
+            with Session() as s:
+                auth_str = f"{_USER}/token:{_ZENDESK_API_TOKEN}"
+                b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+                s.headers.update({"Authorization": f"Basic {b64_auth_str}"})
+                user_url = f"https://duolingotest.zendesk.com/api/v2/users/{external_json['requester_id']}.json"
+                r = ZendeskDocument.rate_limited_get(s, user_url)
+                j = json.loads(r.text)
+                if "error" in j:
+                    raise Exception("Error returned from Zendesk")
+                email = j["user"]["email"]
+        elif channel == "email":
+            email = external_json["via"]["source"]["from"].get("address")
+        return channel, email
+
+    @classmethod
+    def _get_experiment_conditions(cls, external_json: dict) -> dict:
+        experiment_conditions_pattern = re.compile("^.*experiment_conditions\.txt$")
+        experiment_conditions = {}
+        for attachment_link in external_json["attachments"]:
+            if experiment_conditions_pattern.match(attachment_link):
+                with Session() as s:
+                    auth_str = f"{_USER}/token:{_ZENDESK_API_TOKEN}"
+                    b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+                    s.headers.update({"Authorization": f"Basic {b64_auth_str}"})
+                    r = ZendeskDocument.rate_limited_get(s, attachment_link)
+                    contents = r.text
+                    for condition in re.findall("[a-zA-Z\d_]+: [a-zA-Z\d_]+", contents):
+                        key, value = condition.split(": ")
+                        experiment_conditions[key] = value
+        return experiment_conditions
+
+    @classmethod
+    def deserialize_from_external_json(cls, external_json: dict) -> JeevesDocument:
         """
         Please see parent class for documentation
         """
@@ -72,8 +110,18 @@ class ZendeskDocument(JeevesDocument):
 
         body_text = external_json["description"]
         duolingo_metadata = {}
+        metadata_field = next(
+            (
+                d
+                for d in external_json["custom_fields"]
+                if d.get("id") == _DUOLINGO_DEBUG_METADATA_ZENDESK_FIELD_ID
+            ),
+            None,
+        )
+        if metadata_field and metadata_field["value"]:
+            duolingo_metadata = extract_duolingo_metadata(metadata_field["value"])
         if is_shake_to_report or check_for_hyphen_line(body_text):
-            body_text, duolingo_metadata = extract_duolingo_metadata(body_text)
+            body_text, duolingo_metadata = extract_duolingo_metadata_and_body(body_text)
         if not duolingo_metadata:
             body_text, duolingo_metadata = extract_common_zendesk_headers(body_text)
 
@@ -100,40 +148,14 @@ class ZendeskDocument(JeevesDocument):
             duolingo_metadata, aux_platform_information
         )
 
-        channel = external_json["via"]["channel"]
-        email = None
-        if channel == "web" or channel == "api":
-            with Session() as s:
-                auth_str = f"{_USER}/token:{_ZENDESK_API_TOKEN}"
-                b64_auth_str = base64.b64encode(auth_str.encode()).decode()
-                s.headers.update({"Authorization": f"Basic {b64_auth_str}"})
-                user_url = f"https://duolingotest.zendesk.com/api/v2/users/{external_json['requester_id']}.json"
-                r = ZendeskDocument.rate_limited_get(s, user_url)
-                j = json.loads(r.text)
-                if "error" in j:
-                    raise Exception("Error returned from Zendesk")
-                email = j["user"]["email"]
-        elif channel == "email":
-            email = external_json["via"]["source"]["from"].get("address")
+        channel, email = cls._get_channel_and_email(external_json)
 
         # Check if the email is from a contractor
         is_shake_to_report = is_shake_to_report or (email and CONTRACTOR_EMAIL_DOMAIN in email)
         user_model = app_registry(UserSearchManager).get_user(email or std_metadata["username"])
         user_id = None if user_model is None else user_model.get("user_id")
 
-        experiment_conditions_pattern = re.compile("^.*experiment_conditions\.txt$")
-        experiment_conditions = {}
-        for attachment_link in external_json["attachments"]:
-            if experiment_conditions_pattern.match(attachment_link):
-                with Session() as s:
-                    auth_str = f"{_USER}/token:{_ZENDESK_API_TOKEN}"
-                    b64_auth_str = base64.b64encode(auth_str.encode()).decode()
-                    s.headers.update({"Authorization": f"Basic {b64_auth_str}"})
-                    r = ZendeskDocument.rate_limited_get(s, attachment_link)
-                    contents = r.text
-                    for condition in re.findall("[a-zA-Z\d_]+: [a-zA-Z\d_]+", contents):
-                        key, value = condition.split(": ")
-                        experiment_conditions[key] = value
+        experiment_conditions = cls._get_experiment_conditions(external_json)
 
         return cls(
             data_source=cls.get_data_source_identifier(),

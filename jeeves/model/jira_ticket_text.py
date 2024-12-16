@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from jeeves.model.jira_document import JiraDocument
-from jeeves.util.cleanup import extract_duolingo_metadata
+from jeeves.util.cleanup import extract_duolingo_metadata_and_body
 from jeeves.util.parent_jira_issue_util import strip_parent_description
 
 # Components of the request format (in YAML)
@@ -34,7 +34,7 @@ class JiraTicketText:
     def from_jira_doc(cls, doc: JiraDocument) -> JiraTicketText:
         # Remove Shake-to-Report metadata and parent issue descriptions from the child ticket descriptions
         # before sending to ai-completions-backend.
-        description = strip_parent_description(extract_duolingo_metadata(doc.body_text)[0])
+        description = strip_parent_description(extract_duolingo_metadata_and_body(doc.body_text)[0])
 
         return cls(description=description, id=doc.issue_key, title=doc.header_text)
 

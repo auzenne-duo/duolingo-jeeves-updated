@@ -14,7 +14,7 @@ from jeeves.config.jira_features import (
 from jeeves.manager.shakira import _SHAKIRA_FEATURES_TO_SLACK_CHANNEL
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.model.custom_types import AreaWithTeamList
-from jeeves.util.cleanup import extract_duolingo_metadata
+from jeeves.util.cleanup import extract_duolingo_metadata_and_body
 
 _SUBSTRINGS_TO_IGNORE_BY_TERM = {
     "ADS": ["READS"],
@@ -215,7 +215,9 @@ class JiraFeatureManager:
         suggested_features = []
         if generated_description:
             # Remove asterisks from generated description. iOS STR includes them, but they interfere with extracting metadata
-            _, duolingo_metadata = extract_duolingo_metadata(generated_description.replace("*", ""))
+            _, duolingo_metadata = extract_duolingo_metadata_and_body(
+                generated_description.replace("*", "")
+            )
             mega_course = duolingo_metadata.get("mega_information", {}).get("mega_course", None)
             if mega_course == "math":
                 suggested_features.extend(_MATH_FEATURES)
