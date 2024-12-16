@@ -111,16 +111,9 @@ JIRA_FEATURES = {
         },
         "Reengagement": {
             "Practice reminders / notifications": ["reminder", "notification"],
-            "Weekly Lesson Goals": [
-                "weekly goal",
-                "lesson goal",
-                "WeeklyGoalSelection",
-                "WeeklyGoalSelectionFragment",
-                "WeeklyGoalCompleted",
-                "WeeklyGoalCompletedFragment",
-            ],
             "Widget": [],
             "XP Happy Hour": [],
+            "Live Activities": ["live", "activity", "activities", "lock screen", "dynamic island"],
         },
         "Retention": {
             "Achievements": ["achievement"],
@@ -136,7 +129,6 @@ JIRA_FEATURES = {
             "Streak": ["streak challenge", "vip", "society"],
             "Streak freeze / repair": ["streak freeze", "streak repair"],
             "Haptic Feedback": ["haptics", "vibrations", "buzz"],
-            "Live Activities": ["live", "activity", "activities", "lock screen", "dynamic island"],
         },
         "Time Spent Learning": {
             "Early Bird / Night Owl Chests": ["early bird", "night owl"],
@@ -404,7 +396,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Layout Issues: Romaji/Furigana/Pinyin": "Issues with transliterations in the challenge",
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
-    "Live Activities": "Problems with live activities on lock screen having bad UI, not starting, lasting too long, deeplinking wrong, etc. Not for general session-related issues.",
+    "Live Activities": "NOT for Session-related issues! Bugs for Live Activity *Notifications* on the Lock Screen (bad UI, not starting, lasting too long, deeplinking wrong, etc.)",
     "Max": "Anything with Max dashboard, Max purchase flow, and upgrading to Max from Super or Free, or upgrading from Max individual to Max Family Plan",
     "Max Upsell": "Anything related to 'Get Max' in the app",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
@@ -429,7 +421,6 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Student Plan": "Anything related to the Get Student Plan, Student Plan verification, or Student Plan Prices",
     "Super Upsell": "Anything related to when you see super upsell, super hooks, or pay wall",
     "Purchase Flow": "Anything that happens after you enters the subscripton purchase flow",
-    "Weekly Lesson Goals": "Problems with weekly lesson goals",
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
 }
