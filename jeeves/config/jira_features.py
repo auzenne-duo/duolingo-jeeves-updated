@@ -327,6 +327,9 @@ JIRA_FEATURES = {
         },
     },
     "New Subjects": {
+        "Chess": {
+            "Chess": ["board", "piece"],
+        },
         "Math Infrastructure": {
             "Math - Generated Sessions": ["math content", "math session", "content accelerator"],
             "Math - Localization": [],
