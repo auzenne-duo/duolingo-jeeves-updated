@@ -34,7 +34,3 @@ s3_public_static:
 s3_internal_static:
   bucket_name: internal-static-local
   endpoint_url: http://localstack:4566
-
-rollbar:
-  access_token: null
-  enabled: False

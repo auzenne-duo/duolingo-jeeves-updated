@@ -38,9 +38,3 @@ s3_public_static:
 
 s3_internal_static:
   bucket_name: internal-static.duolingo.com
-
-rollbar:
-  enabled: False
-  environment: development
-  scrub_fields:
-    - net_credentials

@@ -564,7 +564,6 @@ requests==2.31.0
     #   hvac
     #   opentelemetry-exporter-otlp-proto-http
     #   responses
-    #   rollbar
     #   tiktoken
     #   torchvision
     #   transformers
@@ -574,8 +573,6 @@ retrying==1.3.4
     # via
     #   -r requirements.txt
     #   duolingo-notify
-rollbar==0.16.3
-    # via -r requirements.txt
 s3transfer==0.10.0
     # via
     #   -r requirements.txt
@@ -619,7 +616,6 @@ six==1.16.0
     #   python-dateutil
     #   responses
     #   retrying
-    #   rollbar
     #   thrift
 sly==0.5
     # via
