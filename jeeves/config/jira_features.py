@@ -141,8 +141,9 @@ JIRA_FEATURES = {
         },
         "Growth Score": {
             "Score": ["duolingo score", "scores"],
-            # TODO: Need to move "In Lesson Delight" to a proper team when team structure is more clear.
+            # TODO: Need to move below features to proper teams when team structure is more clear.
             "In Lesson Delight": ["in lesson", "delight", "lightning", "flurry", "pulse"],
+            "Hard Exercises": ["hard", "mislabel"],
         },
     },
     "Infra Platform": {
@@ -387,6 +388,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Grading Ribbon": "Issues with the grading ribbon that appears at the bottom of an exercise, specifically layout/formatting",
     "Guidebook": "Bugs on a guidebook page",
     "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
+    "Hard Exercises": "Use this if you think the exercise is mislabeled as hard",
     "Hard mode": "Problems with hard mode lessons specifically",
     "Immersive Speak": "Issues with the Immersive Speak session type",
     "Immersive subscriptions": "Any temporary subscription won from opening a chest on the path, does not include free trials",
