@@ -329,6 +329,9 @@ class ShakiraJiraApiClient:
             else:
                 labels.append("bug-triage")
 
+            # From TRI-4563. Teams can remove this label after they've reviewed the GPT-estimated priority.
+            labels.append("prioritized-by-gpt")
+
             if pre_release:
                 labels.append("rc-shakira")
 
@@ -357,6 +360,30 @@ class ShakiraJiraApiClient:
         auth = self._get_jira_auth("DLAW")
         try:
             r = post(url, auth=auth, headers=headers, data=json.dumps(request))
+            r.raise_for_status()
+        except RequestException as e:
+            print_request_exception(e, log_level="error")
+            return None
+
+    def add_label(
+        self,
+        issue_key: str,
+        label: str,
+        project: str,
+    ) -> None:
+        """
+        Adds a label to an existing Jira ticket.
+
+        :param issue_key: ID of the Jira issue to add a label to.
+        :param label: Label to add to the Jira issue.
+        :param project: Project of this Jira issue.
+        """
+        auth = self._get_jira_auth(project)
+        body = {"update": {"labels": [{"add": label}]}}
+        headers = {"Content-Type": "application/json"}
+        url = f"{_API}/issue/{issue_key}"
+        try:
+            r = put(url, auth=auth, headers=headers, json=json.dumps(body))
             r.raise_for_status()
         except RequestException as e:
             print_request_exception(e, log_level="error")

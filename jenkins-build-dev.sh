@@ -18,13 +18,11 @@ DOCKER_FILE="Dockerfile.dev"
 
 S3_FILE_STORAGE="s3://jeeves-document-cache-dev"
 DUPLICATE_DETECTOR_REMOTE_PATH="$S3_FILE_STORAGE/duplicate-detector-model"
-PRIORITY_ESTIMATOR_REMOTE_PATH="$S3_FILE_STORAGE/priority_estimator_model"
 
 # ----- build -----
 
 mkdir ./duplicate-detector-model
 aws s3 sync --quiet "$DUPLICATE_DETECTOR_REMOTE_PATH" ./duplicate-detector-model/
-aws s3 sync --quiet "$PRIORITY_ESTIMATOR_REMOTE_PATH" ./priority_estimator_model/
 echo "DOCKER_FILE: $DOCKER_FILE"
 IMAGE_HASH="$(docker build --build-arg JENKINS_BUILD_NUMBER=$BUILD_NUMBER -q -f "$DOCKER_FILE" . | head -1)"
 

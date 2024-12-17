@@ -14,11 +14,11 @@ from flask import Blueprint, Response, abort, g, json, make_response, request, s
 from opentelemetry import trace
 
 from jeeves import registry as app_registry
-from jeeves.config.config import JIRA_PRIORITY_STR_TO_INT
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.lib.send_issue_fixed_emails import IssueFixedEmailSender
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
+from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator
 from jeeves.manager.gpt_search_manager import (
     GPTSearchManager,
     GPTSearchStartedResponse,
@@ -29,13 +29,10 @@ from jeeves.manager.quality_report_manager import QualityReportManager
 from jeeves.manager.query_helper import QueryHelper
 from jeeves.manager.sentiment_search_manager import SentimentSearchManager
 from jeeves.manager.shakira import ShakiraManager
+from jeeves.model.jira_ticket_text import JiraTicketText
 from jeeves.model.shake_to_report_category import ShakeToReportCategory
 from jeeves.model.spike_categories import SpikeCategory
 from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
-from jeeves.scripts.update_priority_estimator import (
-    get_s3_overridden_priorities,
-    upload_s3_overridden_priorities,
-)
 from jeeves.util.date_util import (
     date_to_str,
     datetime_to_str,
@@ -43,7 +40,6 @@ from jeeves.util.date_util import (
     str_to_date,
     time_series_str_to_datetime as str_to_datetime,
 )
-from jeeves.util.priority_estimator import PriorityEstimator
 
 # This is being referenced by the application.py
 blueprint_api = Blueprint("api", __name__)
@@ -690,67 +686,32 @@ def upload_artifacts():
         return json.jsonify(issue_status)
 
 
-@blueprint_api.route("/api/2/shakira/estimate_priority")
-def get_estimate_priority():
+@blueprint_api.route("/api/3/shakira/estimate_priority", methods=["POST"])
+def get_estimate_priority() -> Response:
     """
-    Endpoint for estimating priority for a Jira bug report.
+    Ask GPT to estimate the priority for an admin Jira bug report.
 
-    Parameters:
-        summary (str): The summary of the issue.
-        feature (str): The jira feature of the issue.
-        reporter_email (str): email address of the reporter such as duo@duolingo.com
+    Accepts a POST request with a JSON body containing the following fields:
+    - title (str): The title of the issue.
+    - description (Optional[str]): The description of the issue (optional).
 
-    Returns:
-        priority (str): Jira priority as Low, Medium, or High
-    """
-    summary = request.args.get("summary")
-    feature = request.args.get("feature", "")
-    reporter_email = request.args.get("reporter_email", "")
-    if not summary:
-        abort(make_response("Please provide `summary` parameter.", 400))
-    priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email)
-    return json.jsonify(priority)
-
-
-@blueprint_api.route("/api/2/shakira/update_priority_estimator", methods=["POST"])
-def update_priority_estimator():
-    """
-    Endpoint for updating the priority estimator model given true data
-
-    Parameters:
-        issue_key (str): Jira issue key
-        summary (str): The summary of the issue.
-        feature (str): The jira feature of the issue.
-        reporter_email (str): email address of the reporter such as duo@duolingo.com
-        priority (str): true priority
-    """
-    issue_key = request.form.get("issue_key")
-    if not issue_key:
-        abort(make_response("Please provide the issue key.", 400))
-    summary = request.form.get("summary")
-    feature = request.form.get("feature", "")
-    reporter_email = request.form.get("reporter_email", "")
-    priority = request.form.get("priority")
-    if priority not in JIRA_PRIORITY_STR_TO_INT:
-        abort(make_response(f"Invalid `priority` parameter: {priority}.", 400))
-
-    overridden_priorities = get_s3_overridden_priorities()
-    if issue_key in overridden_priorities:
-        return f"Model already updated with issue {issue_key}."
-    updated_priority = {
-        issue_key: {
-            "summary": summary,
-            "feature": feature,
-            "reporter_email": reporter_email,
-            "priority": priority,
-            "date_stored": date_to_str(datetime.now()),
-        }
+    Returns a JSON response with the estimated Jira priority, which is one of:
+      ["Highest", "High", "Medium", "Low", "Lowest", "Unprioritized"]
+    along with the reason that GPT gave for the priority. For example:
+    {
+        "priority": "High",
+        "reason": "Account registration process potentially broken."
     }
-    data = [PriorityEstimator.format_data(summary, feature, reporter_email)]
-    PriorityEstimator.fit_to_data(data, [JIRA_PRIORITY_STR_TO_INT[priority]])
-    overridden_priorities.update(updated_priority)
-    upload_s3_overridden_priorities(overridden_priorities)
-    return f"Done fitting {data} to {priority}"
+    """
+    body = request.get_json()
+    title = body.get("title")
+    description = body.get("description", "")
+    if not title:
+        abort(make_response("Please provide `title` parameter.", 400))
+
+    ticket = JiraTicketText(title=title, description=description)
+    priority_resp = app_registry(GPTPriorityEstimator).estimate_priority(ticket)
+    return json.jsonify(priority_resp)
 
 
 @blueprint_api.route("/api/1/spike_categories")

@@ -87,11 +87,6 @@ ENV AWS_ACCESS_KEY_ID $aws_access_key
 ENV AWS_SECRET_ACCESS_KEY $aws_secret_key
 RUN aws s3 sync "$DUPLICATE_DETECTOR_REMOTE_PATH" $DUPLICATE_DETECTOR_MODEL
 
-# Import priority estimator model
-ENV PRIORITY_ESTIMATOR_MODEL=/opt/jeeves/priority_estimator_model/
-ENV PRIORITY_ESTIMATOR_REMOTE_PATH="$S3_FILE_STORAGE/priority_estimator_model"
-RUN aws s3 sync "$PRIORITY_ESTIMATOR_REMOTE_PATH" $PRIORITY_ESTIMATOR_MODEL
-
 COPY . .
 COPY --from=web-builder /code/dist ./web/dist
 

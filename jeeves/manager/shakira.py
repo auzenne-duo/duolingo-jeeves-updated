@@ -15,15 +15,17 @@ from requests.exceptions import RequestException
 from jeeves import registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.profiling import traced_function
+from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_loki import ShakiraLokiApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
+from jeeves.model.jira_priorities import JiraPriority
+from jeeves.model.jira_ticket_text import JiraTicketText
 from jeeves.model.slack_channel import (
     ForwardedSlackChannel,
     SlackChannel,
     area_design_quality_channel,
 )
-from jeeves.util.priority_estimator import PriorityEstimator
 from jeeves.util.shakira import (
     JIRA_PROJ_TO_PLATFORM,
     JIRA_RELEASE_BLOCKER_LABEL,
@@ -55,16 +57,25 @@ _SLACK_CHANNELS_TO_JIRA_LABELS = {
     SlackChannel.LITERACY_TESTING: "shakira",
 }
 
+PRIORITIZED_BY_GPT_LABEL = "prioritized-by-gpt"
+
 _IOS_LOG_FILENAME = "logs.txt"
 ANDROID_LOG_FILE_PATTERN = re.compile(r"^log\d+\.txt$")
 
 
 @registry.bind(
+    gpt_priority_estimator=registry.reference(GPTPriorityEstimator),
     jira_client=registry.reference(ShakiraJiraApiClient),
     slack_client=registry.reference(ShakiraSlackApiClient),
 )
 class ShakiraManager:
-    def __init__(self, jira_client: ShakiraJiraApiClient, slack_client: ShakiraSlackApiClient):
+    def __init__(
+        self,
+        gpt_priority_estimator: GPTPriorityEstimator,
+        jira_client: ShakiraJiraApiClient,
+        slack_client: ShakiraSlackApiClient,
+    ):
+        self._gpt_priority_estimator = gpt_priority_estimator
         self._jira_client = jira_client
         self._slack_client = slack_client
 
@@ -163,22 +174,50 @@ class ShakiraManager:
 
         return channels
 
-    def _set_priority(self, project, issue_key, summary, feature, reporter_email):
+    def _set_priority(
+        self,
+        issue_key: str,
+        project: str,
+        ticket_text: JiraTicketText,
+    ) -> None:
         """
-        Set the priority of the Jira issue based on the project, summary, features, and reporter_email.
+        Set the priority of the Jira issue based on the textual content of the ticket
 
         parameters:
-            project: e.g. DLAA, DLAI, DLAW
-            issue_key: e.g. DLAA-1234
-            summary: e.g. "Achievements: Issue with achievements"
-            features: e.g. Achievements
-            reporter_email: e.g. "
+            issue_key (str): The Jira key for which we want to set the priority (e.g. "DLAA-1234")
+            project (str): The project of the Jira issue ("DLAA", "DLAI" or "DLAW")
+            ticket_text (JiraTicketText): The text content provided by the user in the bug report
+                (summary and description).
         """
-        priority = PriorityEstimator.estimate_priority(summary, feature, reporter_email)
-        LOG.info(f"Setting priority {priority} for {issue_key}")
+        comment = "Could not estimate the priority with GPT. Please set the priority manually."
+        try:
+            priority_resp = self._gpt_priority_estimator.estimate_priority(ticket_text)
+            priority = priority_resp.priority
+            reason = priority_resp.reason
+            reason = reason.strip().strip(".!?") if reason else ""
 
-        self._jira_client.set_priority(project, issue_key, priority)
-        comment = f"Priority was automatically assigned {priority}. Please change any incorrect priorities so we can incorporate your feedback!"
+            if priority == JiraPriority.UNPRIORITIZED and not reason:
+                raise ValueError("Invalid response from GPT")
+
+            if priority != JiraPriority.UNPRIORITIZED:
+                LOG.info(f"Setting priority {priority} for {issue_key} for the reason: {reason}")
+                self._jira_client.set_priority(project, issue_key, priority)
+
+            comment = (
+                f"The priority was automatically assigned to {priority} by GPT for the reason: {reason}. "
+                "Please change any incorrect priorities and report any major issues to #proj-jeeves."
+            )
+
+            # Adds a label to the issue to indicate that the priority was estimated by GPT.
+            # There are automation rules in place to remove this label if the priority is manually changed.
+            self._jira_client.add_label(
+                issue_key=issue_key, label=PRIORITIZED_BY_GPT_LABEL, project=project
+            )
+        except Exception as e:
+            LOG.error(f"Error estimating priority for {issue_key}: {e}")
+            self._jira_client.add_comment(project, issue_key, comment)
+            return
+
         self._jira_client.add_comment(project, issue_key, comment)
 
     @traced_function()
@@ -309,12 +348,11 @@ class ShakiraManager:
                         inward_issue_key=issue_key,
                     )
 
-                # Set priority based on summary and feature in a background task. Ignore any failures and do this as a best-effort.
+                # Set priority based on summary and feature in a background task.
+                ticket_text = JiraTicketText(title=summary, description=f"{description}")
                 with ThreadPoolExecutor() as executor:
                     executor = app_registry(ThreadPoolExecutor)
-                    executor.submit(
-                        self._set_priority, project, issue_key, summary, feature, reporter_email
-                    )
+                    executor.submit(self._set_priority, issue_key, project, ticket_text)
 
             if not should_post_to_slack:
                 return (
