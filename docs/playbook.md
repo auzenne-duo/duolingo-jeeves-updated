@@ -42,3 +42,11 @@ curl -X PUT "https://vpc-duolingo-jeeves-es-prod-eg2rc47wen2dsgmzunu4whvfju.us-e
 }
 '
 ```
+
+## Secrets Management
+
+[duolingo-jeeves Doppler project](https://dashboard.doppler.com/workplace/043ab88427eb7d8c605b/projects/duolingo-jeeves)
+
+For more information on how secrets are managed at Duolingo, please refer to the following documentation: [Doppler](https://duolingo.atlassian.net/wiki/x/MQD9w)
+
+<div align="right"><a href="#table-of-contents">back to top ⬆</a></div>

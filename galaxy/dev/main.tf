@@ -68,20 +68,6 @@ module "duolingo-jeeves" {
   release_version                   = var.release_version
   health_check_grace_period_seconds = 120
 
-  secrets = [
-    {
-      name  = "DUOLINGO_USERNAME"
-      value = "DUOLINGO_USERNAME/000001"
-    },
-    {
-      name  = "DUOLINGO_PASSWORD"
-      value = "DUOLINGO_PASSWORD/000000"
-    },
-    {
-      name  = "SHAKIRA_SLACK_API_TOKEN"
-      value = "SHAKIRA_SLACK_API_TOKEN/000000"
-    }
-  ]
 
   environment_vars = [
     {
@@ -89,40 +75,20 @@ module "duolingo-jeeves" {
       value = "jira-automation@duolingo.com"
     },
     {
-      name  = "JIRA_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["jira_api_token_general"]
-    },
-    {
       name  = "SHAKIRA_JIRA_USERNAME_IOS"
       value = "ios-shake-feedback@duolingo.com"
-    },
-    {
-      name  = "SHAKIRA_JIRA_API_TOKEN_IOS"
-      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_ios"]
     },
     {
       name  = "SHAKIRA_JIRA_USERNAME_ANDROID"
       value = "android-shake-feedback@duolingo.com"
     },
     {
-      name  = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
-      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_android"]
-    },
-    {
       name  = "SHAKIRA_JIRA_USERNAME_WEB"
       value = "jira-automation@duolingo.com"
     },
     {
-      name  = "SHAKIRA_JIRA_API_TOKEN_WEB"
-      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_web"]
-    },
-    {
       name  = "SHAKIRA_JIRA_USERNAME_LITERACY"
       value = "jira-automation@duolingo.com"
-    },
-    {
-      name  = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
-      value = data.aws_kms_secrets.secrets.plaintext["shakira_jira_api_token_literacy"]
     },
     {
       name  = "SENTRY_DSN"
@@ -133,6 +99,32 @@ module "duolingo-jeeves" {
       value = var.environment
     }
   ]
+
+  doppler_secrets = [{
+    doppler_key = "JIRA_API_TOKEN_GENERAL"
+    env_var     = "JIRA_API_TOKEN"
+    }, {
+    doppler_key = "SHAKIRA_JIRA_API_TOKEN_IOS"
+    env_var     = "SHAKIRA_JIRA_API_TOKEN_IOS"
+    }, {
+    doppler_key = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
+    env_var     = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
+    }, {
+    doppler_key = "SHAKIRA_JIRA_API_TOKEN_WEB"
+    env_var     = "SHAKIRA_JIRA_API_TOKEN_WEB"
+    }, {
+    doppler_key = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
+    env_var     = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
+    }, {
+    doppler_key = "DUOLINGO_USERNAME"
+    env_var     = "DUOLINGO_USERNAME"
+    }, {
+    doppler_key = "DUOLINGO_PASSWORD"
+    env_var     = "DUOLINGO_PASSWORD"
+    }, {
+    doppler_key = "SHAKIRA_SLACK_API_TOKEN"
+    env_var     = "SHAKIRA_SLACK_API_TOKEN"
+  }]
 }
 
 module "duolingo-jeeves-s3-worker" {
@@ -152,20 +144,6 @@ module "duolingo-jeeves-s3-worker" {
   ecs_cluster                        = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition               = "s3-worker.json"
 
-  secrets = [
-    {
-      name  = "REDDIT_SECRET_TOKEN"
-      value = "REDDIT_SECRET_TOKEN/000000"
-    },
-    {
-      name  = "REDDIT_PASSWORD"
-      value = "REDDIT_PASSWORD/000000"
-    },
-    {
-      name  = "ZENDESK_API_TOKEN"
-      value = "zendesk_api_token/000000"
-    }
-  ]
 
   environment_vars = [
     {
@@ -181,20 +159,8 @@ module "duolingo-jeeves-s3-worker" {
       value = "jira-automation@duolingo.com"
     },
     {
-      name  = "JIRA_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["jira_api_token"]
-    },
-    {
       name  = "APPFIGURES_USER"
       value = "jeeves-automation@duolingo.com"
-    },
-    {
-      name  = "APPFIGURES_PASSWORD"
-      value = data.aws_kms_secrets.secrets.plaintext["appfigures_password"]
-    },
-    {
-      name  = "APPFIGURES_CLIENT_KEY"
-      value = data.aws_kms_secrets.secrets.plaintext["appfigures_client_key"]
     },
     {
       name  = "REDDIT_CLIENT_ID"
@@ -215,6 +181,26 @@ module "duolingo-jeeves-s3-worker" {
   ]
 
   release_version = var.release_version
+
+  doppler_secrets = [{
+    doppler_key = "JIRA_API_TOKEN"
+    env_var     = "JIRA_API_TOKEN"
+    }, {
+    doppler_key = "APPFIGURES_PASSWORD"
+    env_var     = "APPFIGURES_PASSWORD"
+    }, {
+    doppler_key = "APPFIGURES_CLIENT_KEY"
+    env_var     = "APPFIGURES_CLIENT_KEY"
+    }, {
+    doppler_key = "REDDIT_SECRET_TOKEN"
+    env_var     = "REDDIT_SECRET_TOKEN"
+    }, {
+    doppler_key = "REDDIT_PASSWORD"
+    env_var     = "REDDIT_PASSWORD"
+    }, {
+    doppler_key = "ZENDESK_API_TOKEN"
+    env_var     = "ZENDESK_API_TOKEN"
+  }]
 }
 
 module "duolingo-jeeves-worker-cron" {
@@ -236,25 +222,23 @@ module "duolingo-jeeves-worker-cron" {
       name  = "PYTHONPATH"
       value = "/code"
     },
-    {
-      name  = "BETA_FEEDBACK_SPIKE_REPORTER_SLACK_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["beta_feedback_spike_reporter_slack_api_token"]
-    },
-    {
-      name  = "BUG_SPIKE_REPORTER_SLACK_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["bug_spike_reporter_slack_api_token"]
-    },
-    {
-      name  = "SOCIAL_TRENDS_SPIKE_REPORTER_SLACK_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["social_trends_spike_reporter_slack_api_token"]
-    },
-    {
-      name  = "SPIKE_REPORTER_SLACK_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["spike_reporter_slack_api_token"]
-    }
   ]
   schedule_expression = "cron(* * * * ? 1970)" # "cron(0/20 * * * ? *)"
   release_version     = var.release_version
+
+  doppler_secrets = [{
+    doppler_key = "BETA_FEEDBACK_SPIKE_REPORTER_SLACK_API_TOKEN"
+    env_var     = "BETA_FEEDBACK_SPIKE_REPORTER_SLACK_API_TOKEN"
+    }, {
+    doppler_key = "BUG_SPIKE_REPORTER_SLACK_API_TOKEN"
+    env_var     = "BUG_SPIKE_REPORTER_SLACK_API_TOKEN"
+    }, {
+    doppler_key = "SOCIAL_TRENDS_SPIKE_REPORTER_SLACK_API_TOKEN"
+    env_var     = "SOCIAL_TRENDS_SPIKE_REPORTER_SLACK_API_TOKEN"
+    }, {
+    doppler_key = "SPIKE_REPORTER_SLACK_API_TOKEN"
+    env_var     = "SPIKE_REPORTER_SLACK_API_TOKEN"
+  }]
 }
 
 module "duolingo-jeeves-sqs-worker-1" {
@@ -273,20 +257,6 @@ module "duolingo-jeeves-sqs-worker-1" {
   container_definition = "sqs-worker-1.json"
   release_version      = var.release_version
 
-  secrets = [
-    {
-      name  = "DUOLINGO_USERNAME"
-      value = "DUOLINGO_USERNAME/000001"
-    },
-    {
-      name  = "DUOLINGO_PASSWORD"
-      value = "DUOLINGO_PASSWORD/000000"
-    },
-    {
-      name  = "ZENDESK_API_TOKEN"
-      value = "zendesk_api_token/000000"
-    }
-  ]
 
   environment_vars = [
     {
@@ -296,10 +266,6 @@ module "duolingo-jeeves-sqs-worker-1" {
     {
       name  = "JIRA_USERNAME"
       value = "jira-automation@duolingo.com"
-    },
-    {
-      name  = "JIRA_API_TOKEN"
-      value = data.aws_kms_secrets.secrets.plaintext["jira_api_token_sqs_worker_1"]
     },
     {
       name  = "ZENDESK_REPORTS_USER"
@@ -318,6 +284,20 @@ module "duolingo-jeeves-sqs-worker-1" {
   sqs_uri             = aws_sqs_queue.jeeves-pipeline-break-download-verify-dev.id
   scale_out_sqs       = 250
   scale_out_count_sqs = 16
+
+  doppler_secrets = [{
+    doppler_key = "JIRA_API_TOKEN_SQS_WORKER_1"
+    env_var     = "JIRA_API_TOKEN"
+    }, {
+    doppler_key = "DUOLINGO_USERNAME"
+    env_var     = "DUOLINGO_USERNAME"
+    }, {
+    doppler_key = "DUOLINGO_PASSWORD"
+    env_var     = "DUOLINGO_PASSWORD"
+    }, {
+    doppler_key = "ZENDESK_API_TOKEN"
+    env_var     = "ZENDESK_API_TOKEN"
+  }]
 }
 
 module "duolingo-jeeves-sqs-worker-2" {
@@ -355,16 +335,14 @@ module "duolingo-jeeves-sqs-worker-2" {
   scale_out_sqs       = 2500
   scale_out_count_sqs = 16
 
-  secrets = [
-    {
-      name  = "DUOLINGO_USERNAME"
-      value = "DUOLINGO_USERNAME/000001"
-    },
-    {
-      name  = "DUOLINGO_PASSWORD"
-      value = "DUOLINGO_PASSWORD/000000"
-    }
-  ]
+
+  doppler_secrets = [{
+    doppler_key = "DUOLINGO_USERNAME"
+    env_var     = "DUOLINGO_USERNAME"
+    }, {
+    doppler_key = "DUOLINGO_PASSWORD"
+    env_var     = "DUOLINGO_PASSWORD"
+  }]
 }
 
 module "duolingo-jeeves-spike-worker" {
@@ -384,16 +362,6 @@ module "duolingo-jeeves-spike-worker" {
   schedule_expression  = "rate(15 minutes)"
   release_version      = var.release_version
 
-  secrets = [
-    {
-      name  = "DUOLINGO_USERNAME"
-      value = "DUOLINGO_USERNAME/000001"
-    },
-    {
-      name  = "DUOLINGO_PASSWORD"
-      value = "DUOLINGO_PASSWORD/000000"
-    }
-  ]
 
   environment_vars = [
     {
@@ -405,6 +373,14 @@ module "duolingo-jeeves-spike-worker" {
       value = var.environment
     }
   ]
+
+  doppler_secrets = [{
+    doppler_key = "DUOLINGO_USERNAME"
+    env_var     = "DUOLINGO_USERNAME"
+    }, {
+    doppler_key = "DUOLINGO_PASSWORD"
+    env_var     = "DUOLINGO_PASSWORD"
+  }]
 }
 
 # this task should never run in dev
@@ -457,14 +433,12 @@ module "duolingo-jeeves-ensure-embeddings-worker" {
     }
   ]
 
-  secrets = [
-    {
-      name  = "DUOLINGO_USERNAME"
-      value = "DUOLINGO_USERNAME/000001"
-    },
-    {
-      name  = "DUOLINGO_PASSWORD"
-      value = "DUOLINGO_PASSWORD/000000"
-    }
-  ]
+
+  doppler_secrets = [{
+    doppler_key = "DUOLINGO_USERNAME"
+    env_var     = "DUOLINGO_USERNAME"
+    }, {
+    doppler_key = "DUOLINGO_PASSWORD"
+    env_var     = "DUOLINGO_PASSWORD"
+  }]
 }

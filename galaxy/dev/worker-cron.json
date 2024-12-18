@@ -1,25 +1,31 @@
 [
   {
-    "name": "${service}",
-    "image": "${ecr_repo}:${version}",
+    "command": [
+      "python",
+      "./jeeves/scripts/index_pipeline_and_spike_detector/slack.py"
+    ],
     "cpu": ${cpu},
-    "memory": ${memory},
-    "essential": true,
-    "ulimits": [{
-        "name": "nofile",
-        "softLimit": 65535,
-        "hardLimit": 65535
-    }],
-    "command": ["python","./jeeves/scripts/index_pipeline_and_spike_detector/slack.py"],
     "environment": ${environment_vars},
+    "essential": true,
+    "image": "${ecr_repo}:${version}",
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
-        "awslogs-region": "${region}",
         "awslogs-group": "${service}",
+        "awslogs-region": "${region}",
         "awslogs-stream-prefix": "${service}",
         "mode": "non-blocking"
       }
-    }
+    },
+    "memory": ${memory},
+    "name": "${service}",
+    "secrets": ${secrets},
+    "ulimits": [
+      {
+        "hardLimit": 65535,
+        "name": "nofile",
+        "softLimit": 65535
+      }
+    ]
   }
 ]
