@@ -6,7 +6,7 @@ import requests
 
 from jeeves.dal.employees import EmployeesDAL
 from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator, GPTPriorityResponse
-from jeeves.manager.shakira import ShakiraManager
+from jeeves.manager.shakira import SLACK_CHANNEL_MD, ShakiraManager
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.jira_priorities import JiraPriority
@@ -571,8 +571,8 @@ class Test(unittest.TestCase):
         shakira_jira_mock.add_comment.assert_called_once_with(
             "DLAI",
             "DLAI-1",
-            f"The priority was automatically assigned to {priority_str} by GPT for the reason: {reason.strip('.')}. "
-            "Please change any incorrect priorities and report any major issues to #proj-jeeves.",
+            f"The priority was automatically set to {{{{{priority_str}}}}} by GPT for the reason: {{{{{reason.strip('.')}}}}}."
+            f"\n\nPlease change any incorrect priorities and report any major issues to {SLACK_CHANNEL_MD}.",
         )
 
     def test_set_priority_no_priority(self) -> None:
@@ -592,8 +592,8 @@ class Test(unittest.TestCase):
         shakira_jira_mock.add_comment.assert_called_once_with(
             "DLAI",
             "DLAI-1",
-            f"The priority was automatically assigned to {priority_str} by GPT for the reason: {reason}. "
-            "Please change any incorrect priorities and report any major issues to #proj-jeeves.",
+            f"The priority was automatically set to {{{{{priority_str}}}}} by GPT for the reason: {{{{{reason}}}}}."
+            f"\n\nPlease change any incorrect priorities and report any major issues to {SLACK_CHANNEL_MD}.",
         )
 
     def test_set_priority_jira_error(self) -> None:

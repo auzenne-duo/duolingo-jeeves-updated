@@ -58,6 +58,9 @@ _SLACK_CHANNELS_TO_JIRA_LABELS = {
 }
 
 PRIORITIZED_BY_GPT_LABEL = "prioritized-by-gpt"
+SLACK_CHANNEL_NAME = "#proj-shake-to-report-improvements"
+SLACK_CHANNEL_URL = "https://duolingo.slack.com/archives/C0727H848P3"
+SLACK_CHANNEL_MD = f"[{SLACK_CHANNEL_NAME}|{SLACK_CHANNEL_URL}]"
 
 _IOS_LOG_FILENAME = "logs.txt"
 ANDROID_LOG_FILE_PATTERN = re.compile(r"^log\d+\.txt$")
@@ -203,9 +206,13 @@ class ShakiraManager:
                 LOG.info(f"Setting priority {priority} for {issue_key} for the reason: {reason}")
                 self._jira_client.set_priority(project, issue_key, priority)
 
+            # Jira API expects "{{...}}" for fixed-width text in markdown, but with an f-string we need to escape each;
+            # Five curly braces for one string is a little crazy, though, so I'm avoiding an f-string here.
+            priority_md = "{{" + priority + "}}"
+            reason_md = "{{" + reason + "}}"
             comment = (
-                f"The priority was automatically assigned to {priority} by GPT for the reason: {reason}. "
-                "Please change any incorrect priorities and report any major issues to #proj-jeeves."
+                f"The priority was automatically set to {priority_md} by GPT for the reason: {reason_md}.\n\n"
+                f"Please change any incorrect priorities and report any major issues to {SLACK_CHANNEL_MD}."
             )
 
             # Adds a label to the issue to indicate that the priority was estimated by GPT.
