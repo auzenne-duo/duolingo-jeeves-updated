@@ -141,7 +141,8 @@ JIRA_FEATURES = {
         },
         "Growth Score": {
             "Score": ["duolingo score", "scores"],
-            # TODO: Need to move below features to proper teams when team structure is more clear.
+        },
+        "Growth Delight": {
             "In Lesson Delight": ["in lesson", "delight", "lightning", "flurry", "pulse"],
             "Hard Exercises": ["hard", "mislabel"],
         },
