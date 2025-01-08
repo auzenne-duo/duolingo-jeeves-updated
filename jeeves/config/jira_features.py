@@ -24,25 +24,6 @@ team in charge of Jeeves know that their documents have to be refreshed.
 JIRA_FEATURES = {
     "Design Accelerator": {
         "Animation Accelerator": {
-            "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
-            "World characters": [
-                "world character",
-                "character animation",
-                "lily",
-                "zari",
-                "lin",
-                "junior",
-                "oscar",
-                "eddy",
-                "bea",
-                "vikram",
-                "lucy",
-                "miguel",
-                "face",
-                "eye",
-                "arm",
-                "leg",
-            ],
             "Rive": [],
         },
         "Design Systems": {
@@ -142,9 +123,28 @@ JIRA_FEATURES = {
         "Growth Score": {
             "Score": ["duolingo score", "scores"],
         },
-        "Growth Delight": {
+        "Delight": {
             "In Lesson Delight": ["in lesson", "delight", "lightning", "flurry", "pulse"],
             "Hard Exercises": ["hard", "mislabel"],
+            "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
+            "World characters": [
+                "world character",
+                "character animation",
+                "lily",
+                "zari",
+                "lin",
+                "junior",
+                "oscar",
+                "eddy",
+                "bea",
+                "vikram",
+                "lucy",
+                "miguel",
+                "face",
+                "eye",
+                "arm",
+                "leg",
+            ],
         },
         "Notifications": {
             "Notifications - Timing": ["notification", "practice reminder"],
