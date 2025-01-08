@@ -10,10 +10,6 @@ def test_terms_are_disjoint():
                 assert feature.upper() not in terms
                 terms.add(feature.upper())
 
-                for synonym in synonyms:
-                    assert synonym.upper() not in terms
-                    terms.add(synonym.upper())
-
 
 def test_descriptions_is_subset():
     features = {

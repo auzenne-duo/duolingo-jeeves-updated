@@ -110,7 +110,7 @@ JIRA_FEATURES = {
             "Year in Review": [],
         },
         "Reengagement": {
-            "Practice reminders / notifications": ["reminder", "notification"],
+            "Notifications - Copy": ["reminder", "notification"],
             "Widget": [],
             "XP Happy Hour": [],
             "Live Activities": ["live", "activity", "activities", "lock screen", "dynamic island"],
@@ -145,6 +145,9 @@ JIRA_FEATURES = {
         "Growth Delight": {
             "In Lesson Delight": ["in lesson", "delight", "lightning", "flurry", "pulse"],
             "Hard Exercises": ["hard", "mislabel"],
+        },
+        "Notifications": {
+            "Notifications - Timing": ["notification", "practice reminder"],
         },
     },
     "Infra Platform": {
@@ -404,6 +407,8 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Max Upsell": "Anything related to 'Get Max' in the app",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Challenge": "Bugs with the monthly challenge",
+    "Notifications - Copy": "Bugs with the text or layout of the notification, or the notification settings.",
+    "Notifications - Timing": "Bugs related to the timing, duplication, or frequency of notifications.",
     "Other": "Please try to use a specific feature if possible.",
     "Path": "Problems with the main path page, such as tiles not completing properly. Callouts on path fall under this feature.",
     "Path Sections": "Bugs with the section header, section cards, etc.",
