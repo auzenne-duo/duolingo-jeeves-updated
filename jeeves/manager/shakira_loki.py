@@ -30,7 +30,7 @@ _CATEGORY_LABEL_MAPPING = {
     "Model (Product)": "device_model",
 }
 _BILLION = 1_000_000_000
-_BATCH_SIZE = 200
+_BATCH_SIZE = 500
 _BATCH_SLEEP_TIME = 1
 
 
@@ -75,7 +75,7 @@ class ShakiraLokiApiClient:
             lines.append([current_date, current_line])
         return lines
 
-    def extract_iOS_reporter_information(self, ticket_content):
+    def extract_iOS_reporter_information(self, ticket_content) -> dict:
         """
         This extracts information about the original reporter in a Jira ticket.
         This is used to add information to the labels when we submit to Loki.
@@ -117,13 +117,7 @@ class ShakiraLokiApiClient:
 
         log_values = self.parse_logs_ios(text_file)
 
-        if not log_values:
-            raise Exception(f"unable to upload any logs for jira ticket: {jira_issue_key}")
-
-        body = {"streams": [{"stream": stream_labels, "values": log_values}]}
-
-        response = post(_API, headers={"Content-Type": "application/json"}, json=body)
-        response.raise_for_status()
+        self._push_logs_to_loki(stream_labels, log_values, jira_issue_key)
 
     @traced_function()
     def parse_logs_android(self, text_file: io.TextIOWrapper) -> List[List[str]]:
@@ -184,7 +178,7 @@ class ShakiraLokiApiClient:
         return lines
 
     @traced_function()
-    def extract_android_reporter_information(self, ticket_content):
+    def extract_android_reporter_information(self, ticket_content) -> dict:
         """
         This extracts information about the original reporter in a Jira ticket.
         This is used to add information to the labels when we submit to Loki.
@@ -231,26 +225,40 @@ class ShakiraLokiApiClient:
                 stream_labels[_CATEGORY_LABEL_MAPPING[mapping[0]]] = mapping[1]
 
         log_values = self.parse_logs_android(text_file)
+
+        self._push_logs_to_loki(stream_labels, log_values, jira_issue_key)
+
+    @traced_function()
+    def _push_logs_to_loki(self, stream_labels, log_values, issue_key):
+        """
+        This function is used to batch push logs to Loki.
+        """
         if not log_values:
-            raise Exception(f"unable to upload any logs for jira ticket: {jira_issue_key}")
+            raise Exception(
+                f"Unable to upload any Loki logs for jira ticket: {issue_key} due to missing log values"
+            )
 
-        patched_logs = []
-        subbody = {}
-        for i, log_value in enumerate(log_values):
-            patched_logs.append(log_value)
-            # The URL parse to loki have maximum character limit, so batch the logs
-            if i % _BATCH_SIZE == 0 and i != 0:
-                try:
-                    subbody = {"streams": [{"stream": stream_labels, "values": patched_logs}]}
-                    response = post(
-                        _API, headers={"Content-Type": "application/json"}, json=subbody
+        if not stream_labels:
+            raise Exception(
+                f"Unable to upload any Loki logs for jira ticket: {issue_key} due to missing stream labels"
+            )
+
+        log_values.sort(key=lambda x: x[0])
+
+        for i in range(0, len(log_values), _BATCH_SIZE):
+            body = {
+                "streams": [{"stream": stream_labels, "values": log_values[i : i + _BATCH_SIZE]}]
+            }
+            try:
+                response = post(_API, headers={"Content-Type": "application/json"}, json=body)
+                response.raise_for_status()
+            except Exception as e:
+                if response is not None:
+                    LOG.error(
+                        f"Error uploading logs to Loki push route: {e}, Response Content: {response.content}"
                     )
-                    response.raise_for_status()
-                except Exception as e:
-                    LOG.error(f"Error uploading logs to Loki: {e}")
-                patched_logs = []
-                time.sleep(_BATCH_SLEEP_TIME)
-
-        subbody = {"streams": [{"stream": stream_labels, "values": patched_logs}]}
-        response = post(_API, headers={"Content-Type": "application/json"}, json=subbody)
-        response.raise_for_status()
+                else:
+                    LOG.error(
+                        f"Error uploading logs to Loki push route: {e}, No response received."
+                    )
+            time.sleep(_BATCH_SLEEP_TIME)
