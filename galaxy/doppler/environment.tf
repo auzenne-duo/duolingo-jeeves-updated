@@ -15,7 +15,7 @@ module "duolingo-jeeves-dev" {
       tags = {
         github-repo = "duolingo-jeeves"
         pd-rotation = "none"
-        team        = "tri-team@duolingo.com"
+        team        = "observability-team@duolingo.com"
       }
     }
   }]
@@ -38,7 +38,7 @@ module "duolingo-jeeves-prod" {
       tags = {
         github-repo = "duolingo-jeeves"
         pd-rotation = "snow"
-        team        = "tri-team@duolingo.com"
+        team        = "observability-team@duolingo.com"
       }
     }
   }]

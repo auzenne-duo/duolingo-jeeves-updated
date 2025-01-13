@@ -31,5 +31,5 @@ variable "github_repository" {
 }
 
 variable "team" {
-  default = "tri-team@duolingo.com"
+  default = "observability-team@duolingo.com"
 }

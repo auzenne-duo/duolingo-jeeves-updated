@@ -37,5 +37,5 @@ variable "pagerduty_rotation" {
 }
 
 variable "team" {
-  default = "tri-team@duolingo.com"
+  default = "observability-team@duolingo.com"
 }
