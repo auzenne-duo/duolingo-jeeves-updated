@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ex
 
+# Docker image is sometimes too big and will cause error on transfer from the remote builder
+# This line will force the builds to happen locally instead of on the remote builder
+export DOCKER_BUILD_OPT_OUT="true"
 # ----- environment variables definitions -----
 
 DOCKER_FILE="Dockerfile.quality_reports"
