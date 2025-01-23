@@ -3,6 +3,13 @@ PROJECT_TO_PLATFORM = {
     "DLAA": "Android",
     "DLAI": "iOS",
     "DLAW": "Web",
+    # Video Call technically isn't a platform, but we'll add these here
+    # in case we need to show them as a category with the other platforms
+    "VCCF": "Video Call",
+    "VCBF": "Video Call",
+    "EXAI": "Video Call",
+    "VCS": "Video Call",
+    "VCG": "Video Call",
 }
 CODEBASE_TO_PLATFORM = {
     "duolingo-android": "Android",

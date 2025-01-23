@@ -14,7 +14,17 @@ from tests.testutil.test_util_quality_report import (
     REPORT_ISSUE_10,
 )
 
-mock_score_history = {QUALITY_REPORT_OVERALL_KEY: [], "DLAA": [], "DLAI": [], "DLAW": []}
+mock_score_history = {
+    QUALITY_REPORT_OVERALL_KEY: [],
+    "DLAA": [],
+    "DLAI": [],
+    "DLAW": [],
+    "VCCF": [],
+    "VCBF": [],
+    "EXAI": [],
+    "VCS": [],
+    "VCG": [],
+}
 
 
 class TestQualityReport(unittest.TestCase):

@@ -13,6 +13,7 @@ import duo_logging  # type: ignore[import]
 from duolingo_base.dal.s3 import S3Client, S3Exception
 
 from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS
+from jeeves.config.jira_features import ALL_CUSTOM_PROJECTS
 from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.model.custom_types import JSON
@@ -32,7 +33,12 @@ class JiraManager(JeevesManager):
         if JiraDocument.get_feature_field_key() is not None:
             return True
         try:
-            issuetypes = JiraDAL.get_issuetype_metadata(JIRA_PROJECTS, JIRA_ISSUE_TYPE_BUG)
+            projects_to_set = JIRA_PROJECTS
+            # The custom projects might not have feature fields
+            for project in ALL_CUSTOM_PROJECTS:
+                projects_to_set.remove(project)
+
+            issuetypes = JiraDAL.get_issuetype_metadata(projects_to_set, JIRA_ISSUE_TYPE_BUG)
             codebase_field_keys = {issuetype.codebase_field_key() for issuetype in issuetypes}
             feature_field_keys = {issuetype.feature_field_key() for issuetype in issuetypes}
             team_field_keys = {issuetype.team_field_key() for issuetype in issuetypes}

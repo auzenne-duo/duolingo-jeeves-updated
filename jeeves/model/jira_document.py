@@ -11,7 +11,11 @@ from typing import Any, Optional, Union
 import attr
 
 from jeeves.config.config import SENTENCE_TRANSFORMER_MODEL
-from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
+from jeeves.config.jira_features import (
+    JIRA_FEATURE_TO_TEAM,
+    JIRA_TEAM_TO_AREA,
+    JIRA_TEAM_TO_PROJECT,
+)
 from jeeves.lib.duplicate_detector import DuplicateIssueDetector
 from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
@@ -32,6 +36,7 @@ PARENT_BUG_LABEL = "parent_bug"
 
 @attr.s(kw_only=True)
 class JiraDocument(JeevesDocument):
+    _codebase_field_key = None
     _feature_field_key = None
     _team_field_key = None
     _duplicate_detector = None
@@ -299,6 +304,15 @@ class JiraDocument(JeevesDocument):
         team = (
             team_field["name"] if team_field is not None else JIRA_FEATURE_TO_TEAM.get(feature, "")
         )
+
+        # If the team is still not set, we can infer it from the project prefix
+        if not team:
+            jira_prefix = external_json.get("key", "").split("-")[0]
+            for possible_team, prefixes in JIRA_TEAM_TO_PROJECT.items():
+                if jira_prefix in prefixes:
+                    team = possible_team
+                    break
+
         area = JIRA_TEAM_TO_AREA.get(team, "")
 
         platform = std_metadata["platform"] or cls.guess_platform(

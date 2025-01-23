@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 from duolingo_base.util import registry
 
-from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, QUALITY_REPORT_S3_PATH
+from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS, QUALITY_REPORT_S3_PATH
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_manager import JiraManager
@@ -71,10 +71,20 @@ class QualityReportDAL:
                 "DLAA": ...
         """
         try:
-            return json.loads(download_from_jeeves_s3(self._get_quality_scores_filepath(title)))
+            past_scores = json.loads(
+                download_from_jeeves_s3(self._get_quality_scores_filepath(title))
+            )
+            # If a project's scores don't exist, add an empty default
+            for project in JIRA_PROJECTS:
+                if project not in past_scores:
+                    past_scores[project] = []
+            return past_scores
         except:
             LOG.warning(f"Could not find quality report scores for {title}")
-            return {QUALITY_REPORT_OVERALL_KEY: [], "DLAA": [], "DLAI": [], "DLAW": []}
+            blank_scores = {QUALITY_REPORT_OVERALL_KEY: []}
+            for project in JIRA_PROJECTS:
+                blank_scores[project] = []
+            return blank_scores
 
     def upload_quality_scores_to_s3(self, quality_report: QualityReport):
         """

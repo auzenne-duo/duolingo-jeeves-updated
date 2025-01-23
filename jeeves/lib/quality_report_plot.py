@@ -13,6 +13,7 @@ from jeeves.config.config import (
     QUALITY_REPORT_PLOTS_DIRECTORY,
     QUALITY_REPORT_PLOTS_EXTERNAL_DIRECTORY,
 )
+from jeeves.config.jira_features import ALL_CUSTOM_PROJECTS
 from jeeves.model.quality_report_base import QualityReportBase
 from jeeves.util.date_util import date_to_str
 from jeeves.util.quality_report_util import PROJECT_TO_PLATFORM, QUALITY_REPORT_OVERALL_KEY
@@ -196,6 +197,13 @@ def create_plot(
             date_to_scores[date].append(score)
 
     for index, (title, scores) in enumerate(project_to_scores.items()):
+        if not scores:
+            continue
+
+        # Don't graph custom project bugs because not all teams care about them
+        if title in ALL_CUSTOM_PROJECTS:
+            continue
+
         dates, y = zip(*[(date, score) for date, score in scores if date > plot_start_date.date()])
         marker = ""
         # add text labels to the plot if only one project is being plotted
@@ -211,7 +219,7 @@ def create_plot(
                     text_height,
                     "%d" % value,
                     ha="center",
-                    color=_TITLE_TO_COLOR.get(title, _COLOR_LIST[index]),
+                    color=_TITLE_TO_COLOR.get(title, _COLOR_LIST[index % len(_COLOR_LIST)]),
                     fontsize=15,
                 )
         plt.plot(
@@ -221,7 +229,7 @@ def create_plot(
             linewidth=3,
             marker=marker,
             label=PROJECT_TO_PLATFORM.get(title, title),
-            color=_TITLE_TO_COLOR.get(title, _COLOR_LIST[index]),
+            color=_TITLE_TO_COLOR.get(title, _COLOR_LIST[index % len(_COLOR_LIST)]),
         )
     if legend:
         box = ax.get_position()
