@@ -305,13 +305,14 @@ class JiraDocument(JeevesDocument):
             team_field["name"] if team_field is not None else JIRA_FEATURE_TO_TEAM.get(feature, "")
         )
 
-        # If the team is still not set, we can infer it from the project prefix
-        if not team:
-            jira_prefix = external_json.get("key", "").split("-")[0]
-            for possible_team, prefixes in JIRA_TEAM_TO_PROJECT.items():
-                if jira_prefix in prefixes:
-                    team = possible_team
-                    break
+        # The below is Video Call quality report specific logic.
+        # We override the team if the project is in the list of video call projects and the label field contains `vc-triaged`.
+        jira_prefix = external_json.get("key", "").split("-")[0]
+        for possible_team, prefixes in JIRA_TEAM_TO_PROJECT.items():
+            labelsField = external_fields.get("labels", [])
+            if jira_prefix in prefixes and "vc-triaged" in labelsField:
+                team = possible_team
+                break
 
         area = JIRA_TEAM_TO_AREA.get(team, "")
 
