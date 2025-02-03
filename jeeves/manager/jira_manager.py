@@ -33,10 +33,10 @@ class JiraManager(JeevesManager):
         if JiraDocument.get_feature_field_key() is not None:
             return True
         try:
-            projects_to_set = JIRA_PROJECTS
-            # The custom projects might not have feature fields
-            for project in ALL_CUSTOM_PROJECTS:
-                projects_to_set.remove(project)
+            # The custom projects might not have feature fields so don't check them
+            projects_to_set = [
+                project for project in JIRA_PROJECTS if project not in ALL_CUSTOM_PROJECTS
+            ]
 
             issuetypes = JiraDAL.get_issuetype_metadata(projects_to_set, JIRA_ISSUE_TYPE_BUG)
             codebase_field_keys = {issuetype.codebase_field_key() for issuetype in issuetypes}
