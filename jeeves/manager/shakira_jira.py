@@ -152,7 +152,6 @@ class ShakiraJiraApiClient:
             if cache_key in _CACHE:
                 cached_data, timestamp = _CACHE[cache_key]
                 if current_time - timestamp < _CACHE_EXPIRATION:
-                    LOG.info("Get features from cache")
                     response_json = cached_data
                 else:
                     del _CACHE[cache_key]
