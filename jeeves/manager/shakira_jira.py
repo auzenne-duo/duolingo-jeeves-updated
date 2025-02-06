@@ -5,6 +5,7 @@ Manager for interacting with the JIRA API for shakira.
 import json
 import logging
 import os
+import time
 from typing import Dict, List, Optional, Union
 
 from duolingo_base.registry import inject
@@ -23,6 +24,7 @@ LOG = logging.getLogger(__name__)
 
 _HOST = "https://duolingo.atlassian.net"
 _API = f"{_HOST}/rest/api/2"
+
 
 _USERNAME_ANDROID = os.environ.get("SHAKIRA_JIRA_USERNAME_ANDROID")
 _API_TOKEN_ANDROID = os.environ.get("SHAKIRA_JIRA_API_TOKEN_ANDROID")
@@ -50,6 +52,9 @@ _DESCRIPTION_FOR_LITERACY_ISSUES_SENT_TO_SLACK = (
 )
 
 _DESCRIPTION_FOR_ISSUES_WITH_RELATED_TICKET = "This issue is linked to another issue."
+
+_CACHE = {}
+_CACHE_EXPIRATION = 60 * 60 * 24  # 24 hours in seconds
 
 
 @inject.bind(
@@ -131,17 +136,38 @@ class ShakiraJiraApiClient:
             projects: e.g. DLAA, DLAI, DLAW
         """
         url, params = self._get_metadata_url_and_params(projects, _ALL_ISSUE_TYPES)
+        current_time = time.time()
+        cache_key = tuple([url, json.dumps(params)])  # Use url and params as the cache key
+        response_json = None
+
         headers = {"Accept": "application/json"}
         # TODO: The DLAW service account is the only one with which retrieving
         #  features for all projects has been tested. It has too much permissions
         #  so should be swapped out with a single service account with the correct
         #  permissions that works for all projects.
         auth = self._get_jira_auth("DLAW")
-        try:
-            r = get(url, auth=auth, headers=headers, params=params)
-            r.raise_for_status()
 
-            response_json = json.loads(r.text)
+        # Check cache first, if not, call the Jira API
+        try:
+            if cache_key in _CACHE:
+                cached_data, timestamp = _CACHE[cache_key]
+                if current_time - timestamp < _CACHE_EXPIRATION:
+                    LOG.info("Get features from cache")
+                    response_json = cached_data
+                else:
+                    del _CACHE[cache_key]
+                    r = get(url, auth=auth, headers=headers, params=params)
+                    r.raise_for_status()
+
+                    response_json = json.loads(r.text)
+                    _CACHE[cache_key] = (response_json, current_time)
+            else:
+                r = get(url, auth=auth, headers=headers, params=params)
+                r.raise_for_status()
+
+                response_json = json.loads(r.text)
+                _CACHE[cache_key] = (response_json, current_time)
+
             return list(
                 {
                     JiraIssueTypeMetaData.from_json(issuetype).id: JiraIssueTypeMetaData.from_json(
@@ -163,6 +189,7 @@ class ShakiraJiraApiClient:
             projects: e.g. DLAA, DLAI, DLAW
         """
         issuetypes = self.get_issuetype_metadata(projects)
+
         return list(
             {name for issuetype in issuetypes for name in issuetype.allowed_feature_values()}
         )

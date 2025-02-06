@@ -43,6 +43,7 @@ _SUBSTRINGS_TO_IGNORE_BY_TERM = {
     "USERNAME": ["USERNAME: "],
 }
 
+
 # Note math and music will have more than 5 features because we include the math and music features as well as the
 # top suggested features for each. We limit the number of extra features to 2.
 SUGGESTED_FEATURES_LIMIT = 5
