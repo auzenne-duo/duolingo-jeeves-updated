@@ -114,7 +114,11 @@ class ZendeskManager(JeevesManager):
             LOG.info(f"Jira ticket created: {issue_status}")
 
         if issue_status:
-            ZendeskManager.attach_files(project, issue_status["issueKey"], files)
+            if "issueKey" not in issue_status:
+                LOG.info(
+                    f"Jira ticket doesn't contain issue key: {issue_status} for ticket: {summary} and project: {project}"
+                )
+            ZendeskManager.attach_files(project, issue_status.get("issueKey", ""), files)
         return issue_status
 
     @staticmethod
@@ -133,6 +137,9 @@ class ZendeskManager(JeevesManager):
 
     @staticmethod
     def attach_files(project, issue_key, files) -> None:
+        if not issue_key:
+            return
+
         url = f"{_API}/issue/{issue_key}/attachments"
         headers = {"X-Atlassian-Token": "no-check"}  # header required by JIRA API
         auth = app_registry(ShakiraJiraApiClient)._get_jira_auth(project)
@@ -170,6 +177,7 @@ class ZendeskManager(JeevesManager):
             if "id" in part.lower():
                 user_id = part.split(": ")[-1].strip()
                 if ZendeskManager.is_localization_contractor(user_id):
+                    LOG.info(f"Ticket description info for this user {user_id} : {description}")
                     file_dict = {}
                     for attachment in ticket_json["attachments"]:
                         file, name = ZendeskManager._url_to_filestorage(attachment)

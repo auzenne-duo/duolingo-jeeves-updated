@@ -270,6 +270,7 @@ class JiraManager(JeevesManager):
     @staticmethod
     def check_duplicates_jira(project: str, summary: str) -> bool:
         # Check if jira ticket already exists based on project and summary
+        LOG.info(f"Checking for duplicate Jira tickets for {summary}")
 
         if not project or not summary:
             return False
