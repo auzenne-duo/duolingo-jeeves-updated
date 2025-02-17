@@ -242,6 +242,7 @@ class ShakiraManager:
         pre_release: bool,
         release_blocker: bool,
         files: Dict[str, "FileStorage"],
+        localization_contractor: bool = False,
     ) -> Dict[str, Union[str, Tuple[str, int]]]:
         """
         Create an issue in JIRA and/or post the issue to Slack, depending on the client_specified_slack_channel_name, feature, and slack_report_type fields.
@@ -345,6 +346,7 @@ class ShakiraManager:
                 pre_release=pre_release,
                 will_post_to_slack=should_post_to_slack,
                 related_issue_exists=related_issue_exists,
+                localization_contractor=localization_contractor,
             )
             if issue_key:
                 issue_url = self._jira_client.issue_url(issue_key)

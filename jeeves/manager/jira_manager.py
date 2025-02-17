@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import sys
+import time
 from datetime import datetime
 from typing import List, Optional, Type
 
@@ -265,3 +266,22 @@ class JiraManager(JeevesManager):
                 print(f"Paginating jira issues; at {i}", flush=True)
         print("finished paginating")
         return issues
+
+    @staticmethod
+    def check_duplicates_jira(project: str, summary: str) -> bool:
+        # Check if jira ticket already exists based on project and summary
+
+        if not project or not summary:
+            return False
+        url_params = {
+            "fields": "*all",
+            "maxResults": 100,
+            "startAt": 0,
+            "jql": f'project = {project} AND summary ~ "{summary}"',
+        }
+
+        for issue in JiraDAL.paginate_search_issues(url_params):
+            time.sleep(10)
+            print(f"duplicate Jira tickets detected: {summary}, stop creating Jira", flush=True)
+            return False
+        return True

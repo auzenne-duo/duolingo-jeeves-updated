@@ -28,3 +28,10 @@ class AuthDAL:
         Returns AuthAPI
         """
         return self._auth_api
+
+    @property
+    def beta_user_security_roles(self) -> str:
+        """
+        Returns security roles for the beta user.
+        """
+        return "ios-builds-download"

@@ -200,6 +200,12 @@ module "duolingo-jeeves-s3-worker" {
     }, {
     doppler_key = "ZENDESK_API_TOKEN"
     env_var     = "ZENDESK_API_TOKEN"
+    }, {
+    doppler_key = "DUOLINGO_USERNAME"
+    env_var     = "DUOLINGO_USERNAME"
+    }, {
+    doppler_key = "DUOLINGO_PASSWORD"
+    env_var     = "DUOLINGO_PASSWORD"
   }]
 }
 
