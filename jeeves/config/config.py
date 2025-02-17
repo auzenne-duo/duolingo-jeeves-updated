@@ -18,6 +18,9 @@ VIDEO_CALL_PROJECTS = ["VCCF", "VCBF", "EXAI", "VCS", "VCG"]
 # Jira projects that are used for bug reporting
 JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"] + VIDEO_CALL_PROJECTS
 
+# Localization contractors label
+JIRA_LOCALIZATION_CONTRACTORS_LABEL = "localization-contractor"
+
 # Jira issue type label for bugs
 JIRA_ISSUE_TYPE_BUG = "Bug"
 
