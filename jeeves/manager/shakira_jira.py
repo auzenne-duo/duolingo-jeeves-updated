@@ -295,7 +295,6 @@ class ShakiraJiraApiClient:
         pre_release: bool,
         will_post_to_slack: Optional[bool],
         related_issue_exists: Optional[bool],
-        localization_contractor: bool = False,
     ) -> Optional[str]:
         """
         Create an issue in JIRA.
@@ -353,8 +352,6 @@ class ShakiraJiraApiClient:
                 reporter_id = self._get_id_for_user(reporter_email)
             if reporter_id:
                 fields["reporter"] = {"id": reporter_id}
-            elif localization_contractor:
-                labels.append("localization-contractor")
             else:
                 labels.append("bug-triage")
 

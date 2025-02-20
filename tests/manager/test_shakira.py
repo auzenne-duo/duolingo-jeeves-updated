@@ -75,7 +75,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -89,7 +88,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=False,
             related_issue_exists=False,
-            localization_contractor=False,
         )
         assert not shakira_slack_mock.post_issue.called
 
@@ -110,7 +108,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -124,7 +121,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=True,
             related_issue_exists=True,
-            localization_contractor=False,
         )
 
         shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
@@ -160,7 +156,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -174,7 +169,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=True,
             related_issue_exists=True,
-            localization_contractor=False,
         )
 
         shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
@@ -223,7 +217,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -237,7 +230,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=True,
             related_issue_exists=True,
-            localization_contractor=False,
         )
 
         shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
@@ -285,7 +277,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -299,7 +290,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=False,
             related_issue_exists=False,
-            localization_contractor=False,
         )
 
         shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
@@ -321,7 +311,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_slack_mock.post_issue.assert_called_once_with(
@@ -350,7 +339,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_slack_mock.post_issue.assert_called_once_with(
@@ -379,7 +367,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_slack_mock.post_issue.assert_called_once_with(
@@ -408,7 +395,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -422,7 +408,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=True,
             related_issue_exists=False,
-            localization_contractor=False,
         )
 
         shakira_slack_mock.post_issue.assert_called_once_with(
@@ -450,7 +435,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -464,7 +448,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=True,
             related_issue_exists=False,
-            localization_contractor=False,
         )
         shakira_slack_mock.post_issue.assert_called_once_with(
             project="DLAA",
@@ -493,7 +476,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -507,7 +489,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=False,
             related_issue_exists=False,
-            localization_contractor=False,
         )
         assert not shakira_slack_mock.post_issue.called
 
@@ -526,7 +507,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=False,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -540,7 +520,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=False,
             related_issue_exists=False,
-            localization_contractor=False,
         )
         assert not shakira_slack_mock.post_issue.called
 
@@ -559,7 +538,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             release_blocker=True,
             files={},
-            localization_contractor=False,
         )
 
         shakira_jira_mock.create_issue.assert_called_once_with(
@@ -573,7 +551,6 @@ class Test(unittest.TestCase):
             pre_release=False,
             will_post_to_slack=False,
             related_issue_exists=False,
-            localization_contractor=False,
         )
         assert not shakira_slack_mock.post_issue.called
 

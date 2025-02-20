@@ -6,18 +6,13 @@ import json
 import logging
 import re
 import sys
-import time
 from datetime import datetime
 from typing import List, Optional, Type
 
 import duo_logging  # type: ignore[import]
 from duolingo_base.dal.s3 import S3Client, S3Exception
 
-from jeeves.config.config import (
-    JIRA_ISSUE_TYPE_BUG,
-    JIRA_LOCALIZATION_CONTRACTORS_LABEL,
-    JIRA_PROJECTS,
-)
+from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS
 from jeeves.config.jira_features import ALL_CUSTOM_PROJECTS
 from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.jeeves_manager import JeevesManager
@@ -247,7 +242,6 @@ class JiraManager(JeevesManager):
             f"project IN ({','.join(JIRA_PROJECTS)}) "
             + f"AND updated >= {start_datetime_string} "
             + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
-            + f"AND labels NOT IN ('{JIRA_LOCALIZATION_CONTRACTORS_LABEL}') "
             + "ORDER BY updated asc"
         )
 
@@ -266,23 +260,3 @@ class JiraManager(JeevesManager):
                 print(f"Paginating jira issues; at {i}", flush=True)
         print("finished paginating")
         return issues
-
-    @staticmethod
-    def check_duplicates_jira(project: str, summary: str) -> bool:
-        # Check if jira ticket already exists based on project and summary
-        LOG.info(f"Checking for duplicate Jira tickets for {summary}")
-
-        if not project or not summary:
-            return False
-        url_params = {
-            "fields": "*all",
-            "maxResults": 100,
-            "startAt": 0,
-            "jql": f'project = {project} AND summary ~ "{summary}"',
-        }
-
-        for issue in JiraDAL.paginate_search_issues(url_params):
-            time.sleep(10)
-            print(f"duplicate Jira tickets detected: {summary}, stop creating Jira", flush=True)
-            return False
-        return True
