@@ -12,7 +12,11 @@ from typing import List, Optional, Type
 import duo_logging  # type: ignore[import]
 from duolingo_base.dal.s3 import S3Client, S3Exception
 
-from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS
+from jeeves.config.config import (
+    JIRA_ISSUE_TYPE_BUG,
+    JIRA_LOCALIZATION_CONTRACTORS_LABEL,
+    JIRA_PROJECTS,
+)
 from jeeves.config.jira_features import ALL_CUSTOM_PROJECTS
 from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.jeeves_manager import JeevesManager
@@ -242,6 +246,7 @@ class JiraManager(JeevesManager):
             f"project IN ({','.join(JIRA_PROJECTS)}) "
             + f"AND updated >= {start_datetime_string} "
             + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
+            + f"AND labels NOT IN ('{JIRA_LOCALIZATION_CONTRACTORS_LABEL}') "
             + "ORDER BY updated asc"
         )
 
