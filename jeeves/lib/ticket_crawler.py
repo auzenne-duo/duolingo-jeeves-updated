@@ -226,7 +226,13 @@ def crawl_tickets() -> None:
     """
     s3_client, s3_bucket_name, sqs_client = get_s3_client_buckets_and_sqs()
     for manager in IDManagerMap.get_all_managers():
-        _crawl_documents_for_data_source(s3_client, s3_bucket_name, sqs_client, manager)
+        # Do a try-catch here so that we can continue processing other
+        # data sources. Log the error to stdout and Sentry.
+        try:
+            _crawl_documents_for_data_source(s3_client, s3_bucket_name, sqs_client, manager)
+        except Exception as e:
+            print(f"ERROR crawling tickets: {e}. Continue for next data source...", flush=True)
+            duo_logging.capture_exception(e)
 
 
 def force_refresh_tickets() -> None:
