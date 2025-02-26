@@ -32,11 +32,10 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
     "Design Accelerator": {
         _AREA: [
             ("colombo@duolingo.com", 65494655),
-            ("peter@duolingo", 97197056),
+            ("shawn.buessing@duolingo.com", 18288193),
         ],
         "Design Systems": [
-            ("ash@duolingo.com", 1252195),
-            ("shawn.buessing@duolingo.com", 18288193),
+            ("chris.lock@duolingo.com", 576224004),
         ],
     },
     "Growth": {
@@ -99,7 +98,10 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         ],
     },
     "Infra Platform": {
-        _AREA: [("peter@duolingo", 97197056)],
+        _AREA: [
+            ("fabio@duolingo.com", 606042449),
+            ("peter@duolingo", 97197056),
+        ],
         "Engineering Studio": [
             ("becky@duolingo.com", 614576367),
         ],
@@ -111,15 +113,17 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
     "Learning R&D": {
         _AREA: [
             ("ang@duolingo.com", 8676371),
-            ("natalia@duolingo.com", 357062),
-            ("joseph@duolingo.com", 47061),
-            ("seun@duolingo.com", 448224015),
-            ("tony@duolingo.com", 4),
-            ("jenna@duolingo.com", 139182230),
+            ("colombo@duolingo.com", 65494655),
             ("hoshi@duolingo.com", 35950076),
+            ("jenna@duolingo.com", 139182230),
+            ("jessica@duolingo.com", 521621716),
+            ("joseph@duolingo.com", 47061),
             ("liz@duolingo.com", 461557793),
             ("matt.long@duolingo.com", 1742400),
-            ("colombo@duolingo.com", 65494655),
+            ("natalia@duolingo.com", 357062),
+            ("peng@duolingo.com", 450156231),
+            ("seun@duolingo.com", 448224015),
+            ("tony@duolingo.com", 4),
         ],
         _RECEIVE_ALL: [],
         "Path": [
@@ -139,27 +143,28 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
     },
     "Learning Scaling": {
         _AREA: [
-            ("joseph@duolingo.com", 47061),
-            ("jessica@duolingo.com", 521621716),
-            ("williams@duolingo.com", 402101620),
+            ("anand@duolingo.com", 1008909),
             ("colombo@duolingo.com", 65494655),
+            ("jessica@duolingo.com", 521621716),
+            ("matt.long@duolingo.com", 1742400),
         ],
         "Generated Content": [("dominic@duolingo.com", 542060447)],
     },
     "Monetization": {
         _AREA: [
-            ("itai@duolingo.com", 2200982),
-            ("vicky@duolingo.com", 241673612),
             ("cem@duolingo.com", 194829322),
-            ("jay@duolingo.com", 605332),
-            ("wes@duolingo.com", 803633967),
-            ("jonathan.duxbury@duolingo.com", 446774430),
-            ("hai@duolingo.com", 825435186),
-            ("mopewa@duolingo.com", 347408),
-            ("hoshi@duolingo.com", 35950076),
-            ("evelyn@duolingo.com", 46472964),
-            ("kuo@duolingo.com", 504628953),
             ("colombo@duolingo.com", 65494655),
+            ("evelyn@duolingo.com", 46472964),
+            ("hai@duolingo.com", 825435186),
+            ("hoshi@duolingo.com", 35950076),
+            ("itai@duolingo.com", 2200982),
+            ("jay@duolingo.com", 605332),
+            ("jonathan.duxbury@duolingo.com", 446774430),
+            ("kuo@duolingo.com", 504628953),
+            ("mopewa@duolingo.com", 347408),
+            ("natalia@duolingo.com", 357062),
+            ("vicky@duolingo.com", 241673612),
+            ("wes@duolingo.com", 803633967),
         ],
         _RECEIVE_ALL: [
             ("aspen@duolingo.com", 787642145),
@@ -190,7 +195,11 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         ],
     },
     "New Subjects": {
-        _AREA: [("colleen@duolingo.com", 591143118)],
+        _AREA: [
+            ("colleen@duolingo.com", 591143118),
+            ("lizn@duolingo.com", 288283957),
+            ("vanessa@duolingo.com", 160465455),
+        ],
         _RECEIVE_ALL: [("tianyu@duolingo.com", 919037599)],
         "Math": [("colleen@duolingo.com", 591143118)],
     },
