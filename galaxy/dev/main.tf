@@ -177,6 +177,14 @@ module "duolingo-jeeves-s3-worker" {
     {
       name  = "SENTRY_ENVIRONMENT"
       value = var.environment
+    },
+    {
+      name  = "SHAKIRA_JIRA_USERNAME_IOS"
+      value = "ios-shake-feedback@duolingo.com"
+    },
+    {
+      name  = "SHAKIRA_JIRA_USERNAME_ANDROID"
+      value = "android-shake-feedback@duolingo.com"
     }
   ]
 
@@ -200,6 +208,18 @@ module "duolingo-jeeves-s3-worker" {
     }, {
     doppler_key = "ZENDESK_API_TOKEN"
     env_var     = "ZENDESK_API_TOKEN"
+    }, {
+    doppler_key = "DUOLINGO_USERNAME"
+    env_var     = "DUOLINGO_USERNAME"
+    }, {
+    doppler_key = "DUOLINGO_PASSWORD"
+    env_var     = "DUOLINGO_PASSWORD"
+    }, {
+    doppler_key = "SHAKIRA_JIRA_API_TOKEN_IOS"
+    env_var     = "SHAKIRA_JIRA_API_TOKEN_IOS"
+    }, {
+    doppler_key = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
+    env_var     = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
   }]
 }
 

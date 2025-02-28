@@ -295,6 +295,7 @@ class ShakiraJiraApiClient:
         pre_release: bool,
         will_post_to_slack: Optional[bool],
         related_issue_exists: Optional[bool],
+        localization_contractor: bool = False,
     ) -> Optional[str]:
         """
         Create an issue in JIRA.
@@ -354,6 +355,9 @@ class ShakiraJiraApiClient:
                 fields["reporter"] = {"id": reporter_id}
             else:
                 labels.append("bug-triage")
+                # If the reporter has ios-downloads-role, add the localization-contractor label
+                if localization_contractor:
+                    labels.append("localization-contractor")
 
             # From TRI-4563. Teams can remove this label after they've reviewed the GPT-estimated priority.
             labels.append("prioritized-by-gpt")
