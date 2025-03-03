@@ -19,6 +19,7 @@ from requests import RequestException, Session, post
 from werkzeug.datastructures import FileStorage
 
 from jeeves import registry as app_registry
+from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM
 from jeeves.dal.auth_dal import AuthDAL
 from jeeves.manager.jeeves_manager import JeevesManager
 from jeeves.manager.jira_manager import JiraManager
@@ -84,8 +85,14 @@ class ZendeskManager(JeevesManager):
     @staticmethod
     def create_jira_ticket(ticket_json: JSON, files: Dict[str, "FileStorage"]) -> str:
         description = ticket_json.get("description", "")
-        feature = ticket_json.get("feature", "")
+        feature = ticket_json.get("feature", "Other")
         tags = ticket_json.get("tags", [])
+
+        for candidate in tags:
+            if candidate in JIRA_FEATURE_TO_TEAM:
+                feature = candidate
+                break
+
         project = None
         if "bug_report_ios" in tags or "iOS" in description:
             project = "DLAI"
