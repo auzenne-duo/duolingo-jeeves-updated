@@ -89,8 +89,9 @@ class ZendeskManager(JeevesManager):
         tags = ticket_json.get("tags", [])
 
         for candidate in tags:
-            if candidate in JIRA_FEATURE_TO_TEAM:
-                feature = candidate
+            format_candidate = candidate.replace("_", " ")
+            if format_candidate in JIRA_FEATURE_TO_TEAM:
+                feature = format_candidate
                 break
 
         project = None
