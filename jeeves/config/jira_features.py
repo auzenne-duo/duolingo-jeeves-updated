@@ -343,6 +343,10 @@ JIRA_FEATURES = {
         "Music": {
             "Music": [],
         },
+        "Music Instruments": {
+            "Music - Instrument Mode": ["instrument", "piano", "midi", "pitch"],
+            "Music - Practice Tab": ["song library", "music library", "daily song"],
+        },
     },
     "None": {
         "None": {
@@ -412,6 +416,8 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Max Upsell": "Anything related to 'Get Max' in the app",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Challenge": "Bugs with the monthly challenge",
+    "Music - Instrument Mode": "Problems with using a real instrument with the music course, either via pitch detection or MIDI.",
+    "Music - Practice Tab": "Problems with the songs practice tab in the music course.",
     "Notifications - Copy": "Bugs with the text or layout of the notification, or the notification settings.",
     "Notifications - Timing": "Bugs related to the timing, duplication, or frequency of notifications.",
     "Other": "Please try to use a specific feature if possible.",
