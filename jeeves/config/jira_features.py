@@ -293,6 +293,7 @@ JIRA_FEATURES = {
             "New Years Promo": [],
             "Duo on Path": [],
             "Student Plan": [],
+            "Streak Society Promo": [],
         },
         "Energy": {
             "In-app purchases": ["shop", "league repair", "refill", "timer boost", "row blaster"],
@@ -437,6 +438,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Smart Tips": "Bugs with exercises that start with 'Here's a tip:'",
     "Streak": "Incorrect or buggy streak number or calendar",
     "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
+    "Streak Society Promo": "Anything related to the Streak Society Promotion subscription discount",
     "Student Plan": "Anything related to the Get Student Plan, Student Plan verification, or Student Plan Prices",
     "Super Upsell": "Anything related to when you see super upsell, super hooks, or pay wall",
     "Purchase Flow": "Anything that happens after you enters the subscripton purchase flow",
