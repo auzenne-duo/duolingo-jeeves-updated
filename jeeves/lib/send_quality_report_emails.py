@@ -59,12 +59,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("kevinyang@duolingo.com", 3057357),
             ("tao@duolingo.com", 515653291),
         ],
-        "Connections": [
-            ("connections-engineering@duolingo.com", None),
-            ("lilly@duolingo.com", 425432603),
-            ("maha@duolingo.com", 20528629),
-            ("nico@duolingo.com", 614168902),
-        ],
         "Delight": [
             ("delight-team@duolingo.com", None),
         ],
@@ -91,10 +85,10 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             ("retention-engineering@duolingo.com", None),
             ("retention-pm@duolingo.com", None),
         ],
-        "Time Spent Learning": [
-            ("mouad@duolingo.com", 241083014),
+        "Social Engagement": [
+            ("lilly@duolingo.com", 425432603),
             ("rsalvador@duolingo.com", 591913431),
-            ("tsl-team-engineering@duolingo.com", None),
+            ("social-engagement-engineering@duolingo.com", None),
         ],
     },
     "Infra Platform": {
