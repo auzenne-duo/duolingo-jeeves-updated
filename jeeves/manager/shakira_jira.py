@@ -351,13 +351,15 @@ class ShakiraJiraApiClient:
             reporter_id = None
             if reporter_email:
                 reporter_id = self._get_id_for_user(reporter_email)
+
             if reporter_id:
                 fields["reporter"] = {"id": reporter_id}
             else:
                 labels.append("bug-triage")
-                # If the reporter has ios-downloads-role, add the localization-contractor label
-                if localization_contractor:
-                    labels.append("localization-contractor")
+
+            # If the reporter has ios-downloads-role, add the localization-contractor label
+            if localization_contractor:
+                labels.append("localization-contractor")
 
             # From TRI-4563. Teams can remove this label after they've reviewed the GPT-estimated priority.
             labels.append("prioritized-by-gpt")

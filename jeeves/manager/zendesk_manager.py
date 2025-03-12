@@ -6,6 +6,7 @@ import base64
 import json
 import logging
 import os
+import re
 import time
 from collections import Counter
 from datetime import datetime, timedelta
@@ -82,6 +83,17 @@ class ZendeskManager(JeevesManager):
 
         return False
 
+    # This is a private function that should only be used in this class
+    # to email truncate and clean for localization contractors
+    @staticmethod
+    def _clean_email(email):
+        # Split the email into local and domain parts at the first '@'
+        local_part, domain = email.split("@", 1)
+        # Remove all occurrences of "+" followed by digits in the local part
+        cleaned_local = re.sub(r"\+\d+", "", local_part)
+        # Combine the cleaned local part with the domain
+        return f"{cleaned_local}@{domain}"
+
     @staticmethod
     def create_jira_ticket(ticket_json: JSON, files: Dict[str, "FileStorage"]) -> str:
         description = ticket_json.get("description", "")
@@ -106,6 +118,18 @@ class ZendeskManager(JeevesManager):
             summary = summary.replace("\n", " ")
 
         email = ticket_json.get("recipient", "")
+
+        if email == "":
+            description_list = description.split("\n")
+            for line in description_list:
+                part = line.split("email:")
+                if len(part) == 2 and "duolingocontractors" in part[-1]:
+                    email = ZendeskManager._clean_email(part[-1].strip())
+                    LOG.info(f"email extracting: {email}")
+                    break
+
+        if email:
+            description = description + "\n root_email: " + email
 
         issue_status = None
 
