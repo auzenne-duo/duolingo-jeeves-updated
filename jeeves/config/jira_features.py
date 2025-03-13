@@ -342,6 +342,12 @@ JIRA_FEATURES = {
         "Music": {
             "Music": [],
         },
+        "Music Songs": {
+            "Music - Licensed Songs": ["licensed"],
+            "Music - Public Domain Songs": ["pd", "public"],
+            "Music - Song Prep": ["prep"],
+            "Music - World Character Songs": [],
+        },
         "Music Instruments": {
             "Music - Instrument Mode": ["instrument", "piano", "midi", "pitch"],
             "Music - Practice Tab": ["song library", "music library", "daily song"],
@@ -416,7 +422,11 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Monthly Challenge": "Bugs with the monthly challenge",
     "Music - Instrument Mode": "Problems with using a real instrument with the music course, either via pitch detection or MIDI.",
+    "Music - Licensed Songs": "Problems with the song play experience for any licensed song.",
     "Music - Practice Tab": "Problems with the songs practice tab in the music course.",
+    "Music - Public Domain Songs": "Problems with the song play experience for any public domain song.",
+    "Music - Song Prep": "Problems with any song prep node.",
+    "Music - World Character Songs": "Problems with the song play experience for any world character song.",
     "Notifications - Copy": "Bugs with the text or layout of the notification, or the notification settings.",
     "Notifications - Timing": "Bugs related to the timing, duplication, or frequency of notifications.",
     "Other": "Please try to use a specific feature if possible.",
