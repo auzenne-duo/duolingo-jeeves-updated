@@ -23,7 +23,7 @@ variable "ecs_cluster" {
 }
 
 variable "pagerduty_rotation" {
-  default = "snow"
+  default = "grizzly"
 }
 
 variable "github_repository" {

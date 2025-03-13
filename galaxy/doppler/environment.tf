@@ -37,7 +37,7 @@ module "duolingo-jeeves-prod" {
       service     = "jeeves"
       tags = {
         github-repo = "duolingo-jeeves"
-        pd-rotation = "snow"
+        pd-rotation = "grizzly"
         team        = "observability-team@duolingo.com"
       }
     }
