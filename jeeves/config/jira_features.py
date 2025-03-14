@@ -311,6 +311,12 @@ JIRA_FEATURES = {
             "Max Upsell": [],
             "Max": ["max purchase flow", "max crossgrade"],
             "Explain my Answer": ["EMA", "bad explanation", "wrong explanation", "explanation"],
+            "Video Call Tab": [
+                "video-call tab",
+                "videocall tab",
+                "video call history",
+                "lily video message",
+            ],
         },
         "Max Engine": {
             "Purchasing": ["can't purchase"],
@@ -452,6 +458,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Purchase Flow": "Anything that happens after you enters the subscripton purchase flow",
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
+    "Video Call Tab": "Anything related to the Video Call tab, call history list, or Lily's video message",
 }
 
 JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY = "jira_features_descriptions"
