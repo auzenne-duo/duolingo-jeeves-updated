@@ -1,4 +1,4 @@
-# The AWS region. This is normally us-east-1
+# The AWS region. This is normally us-east-1.
 provider "aws" {
   region = "us-east-1"
 
