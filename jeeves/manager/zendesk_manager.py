@@ -100,10 +100,12 @@ class ZendeskManager(JeevesManager):
         feature = ticket_json.get("feature", "Other")
         tags = ticket_json.get("tags", [])
 
+        lowercase_feature_map = {k.lower(): k for k in JIRA_FEATURE_TO_TEAM}
+
         for candidate in tags:
-            format_candidate = candidate.replace("_", " ")
-            if format_candidate in JIRA_FEATURE_TO_TEAM:
-                feature = format_candidate
+            format_candidate = candidate.replace("_", " ").lower()
+            if format_candidate in lowercase_feature_map:
+                feature = lowercase_feature_map[format_candidate]
                 break
 
         project = None
@@ -131,6 +133,9 @@ class ZendeskManager(JeevesManager):
         if email:
             description = description + "\n root_email: " + email
 
+        if feature == "Other":
+            LOG.warning(f"Unknown feature for ticket: {summary}")
+
         issue_status = None
 
         # Only prod env can create jira tickets from Zendesk
@@ -142,6 +147,10 @@ class ZendeskManager(JeevesManager):
             )
             and JiraManager.check_duplicates_jira(project, summary)
         ):
+            LOG.info(
+                f"Creating Jira ticket for Zendesk ticket with {summary} and feature {feature}"
+            )
+
             issue_status = app_registry(ShakiraManager).report_issue(
                 project=project,
                 feature=feature,
@@ -246,7 +255,7 @@ class ZendeskManager(JeevesManager):
                 user_id = part.split(": ")[-1].strip()
                 if ZendeskManager._is_localization_contractor(user_id):
                     file_dict = {}
-                    for attachment in ticket_json["attachments"]:
+                    for attachment in ticket_json.get("attachments", []):
                         file, name = ZendeskManager._url_to_filestorage(attachment)
                         file_dict[name] = file
                     ZendeskManager.create_jira_ticket(ticket_json, file_dict)
