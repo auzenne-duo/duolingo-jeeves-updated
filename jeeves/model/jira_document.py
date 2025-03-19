@@ -15,6 +15,7 @@ from jeeves.config.jira_features import (
     JIRA_FEATURE_TO_TEAM,
     JIRA_TEAM_TO_AREA,
     JIRA_TEAM_TO_PROJECT,
+    TEAM_TO_FEATURES,
 )
 from jeeves.lib.duplicate_detector import DuplicateIssueDetector
 from jeeves.model.custom_types import JSON
@@ -300,10 +301,7 @@ class JiraDocument(JeevesDocument):
         codebase = codebase_field["value"] if codebase_field is not None else ""
         # If the feature field is not set, we have no fallback and simply use an empty string
         feature = feature_field["value"] if feature_field is not None else ""
-        # If the team field is not set, we can fall back to inferring the team from the feature
-        team = (
-            team_field["name"] if team_field is not None else JIRA_FEATURE_TO_TEAM.get(feature, "")
-        )
+        team = None
 
         # The below is Video Call quality report specific logic.
         # We override the team if the project is in the list of video call projects and the label field contains `vc-triaged`.
@@ -313,6 +311,14 @@ class JiraDocument(JeevesDocument):
             if jira_prefix in prefixes and "vc-triaged" in labelsField:
                 team = possible_team
                 break
+
+        # Regular logic if team did not already get set in the special block above
+        if not team:
+            if team_field and team_field.get("name", "") in TEAM_TO_FEATURES:
+                team = team_field.get("name", "")
+            else:
+                # If the team field is not valid, we can fall back to inferring the team from the feature
+                team = JIRA_FEATURE_TO_TEAM.get(feature, "")
 
         area = JIRA_TEAM_TO_AREA.get(team, "")
 

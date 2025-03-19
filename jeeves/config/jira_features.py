@@ -508,6 +508,7 @@ AREA_TO_FEATURES = {
     area: {feature for features in teams.values() for feature in features}
     for area, teams in JIRA_FEATURES.items()
 }
+
 TEAM_TO_FEATURES = {
     team: {feature for feature in features.keys()}
     for teams in JIRA_FEATURES.values()

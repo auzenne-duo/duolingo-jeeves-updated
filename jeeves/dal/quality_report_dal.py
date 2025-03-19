@@ -144,7 +144,7 @@ class QualityReportDAL:
             json.dumps(
                 [
                     dataset.serialize()
-                    for dataset in quality_report.issue_datasets[:_NUM_PAST_DATASETS_TO_STORE]
+                    for dataset in quality_report.issue_datasets[-_NUM_PAST_DATASETS_TO_STORE:]
                 ],
                 cls=JeevesJSONEncoder,
             ),
