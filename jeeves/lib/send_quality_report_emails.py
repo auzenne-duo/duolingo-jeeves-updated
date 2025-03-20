@@ -78,8 +78,8 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         ],
         "Reonboarding": [
             ("allen.wang@duolingo.com", 975446875),
-            ("kevinwang@duolingo.com", 100911545),
-            ("tao@duolingo.com", 515653291),
+            ("elriczhong@duolingo.com", 338612774),
+            ("xiao@duolingo.com", 15625523),
         ],
         "Retention": [
             ("retention-engineering@duolingo.com", None),
