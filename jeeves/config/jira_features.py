@@ -278,7 +278,6 @@ JIRA_FEATURES = {
             "Family Plan": [],
             "Hearts / Unlimited Hearts": ["heart"],
             "Immersive subscriptions": ["immersive"],
-            "Legendary": ["Legendarize"],
             "Subscription hooks": [],
             "Super Upsell": ["super hooks", "pay wall"],
         },
@@ -292,6 +291,7 @@ JIRA_FEATURES = {
             "Duo on Path": [],
             "Student Plan": [],
             "Streak Society Promo": [],
+            "Legendary": ["Legendarize"],
         },
         "Energy": {
             "In-app purchases": ["shop", "league repair", "refill", "timer boost", "row blaster"],
