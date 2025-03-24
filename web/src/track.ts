@@ -34,7 +34,6 @@ interface TrackingEvents {
     utc_offset: number;
   };
   quality_reports_view: {
-    quality_report_pillar?: string;
     quality_report_area?: string;
     quality_report_team?: string;
     utm_source?: string;

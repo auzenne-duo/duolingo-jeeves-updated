@@ -12,7 +12,6 @@ import attr
 
 from jeeves.config.config import SENTENCE_TRANSFORMER_MODEL
 from jeeves.config.jira_features import (
-    JIRA_AREA_TO_PILLAR,
     JIRA_FEATURE_TO_TEAM,
     JIRA_TEAM_TO_AREA,
     JIRA_TEAM_TO_PROJECT,
@@ -71,7 +70,6 @@ class JiraDocument(JeevesDocument):
     is_dev_related: bool = attr.ib()
     area: Optional[str] = attr.ib()
     team: Optional[str] = attr.ib()
-    pillar: Optional[str] = attr.ib(default="")
     codebase: Optional[str] = attr.ib()
 
     # non-indexed fields
@@ -324,8 +322,6 @@ class JiraDocument(JeevesDocument):
 
         area = JIRA_TEAM_TO_AREA.get(team, "")
 
-        pillar = JIRA_AREA_TO_PILLAR.get(area, "")
-
         platform = std_metadata["platform"] or cls.guess_platform(
             external_fields, codebase, body_text
         )
@@ -414,7 +410,6 @@ class JiraDocument(JeevesDocument):
             is_dev_related=False,
             area=area,
             team=team,
-            pillar=pillar,
         )
 
     @classmethod
@@ -503,7 +498,6 @@ class JiraDocument(JeevesDocument):
             is_dev_related=internal_json.get("is_dev_related", False),
             area=internal_json.get("area"),
             team=internal_json.get("team"),
-            pillar=internal_json.get("pillar", ""),
         )
 
     @classmethod

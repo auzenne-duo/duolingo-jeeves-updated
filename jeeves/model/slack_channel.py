@@ -31,16 +31,11 @@ class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
 
 
 AREA_NAME_TO_SLACK_CHANNEL = {
-    "no_area_monetization": SlackChannel.DESIGN_QUALITY_MONETIZATION,
-    "International Growth": SlackChannel.DESIGN_QUALITY_GROWTH,
-    "Area - Retention": SlackChannel.DESIGN_QUALITY_GROWTH,
-    "no_area_growth": SlackChannel.DESIGN_QUALITY_GROWTH,
-    "Learning Experience": SlackChannel.DESIGN_QUALITY_LEARNING,
+    "Monetization": SlackChannel.DESIGN_QUALITY_MONETIZATION,
+    "Growth": SlackChannel.DESIGN_QUALITY_GROWTH,
+    "Learning R&D": SlackChannel.DESIGN_QUALITY_LEARNING,
     "Learning Scaling": SlackChannel.DESIGN_QUALITY_LEARNING,
-    "Video Call": SlackChannel.DESIGN_QUALITY_LEARNING,
-    "Math": SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS,
-    "Music": SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS,
-    "no_area_new_subjects": SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS,
+    "New Subjects": SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS,
 }
 
 

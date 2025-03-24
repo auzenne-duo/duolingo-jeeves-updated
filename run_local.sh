@@ -80,7 +80,6 @@ if ! command -v yq > /dev/null 2>&1; then
 fi
 
 get_config_value ".opensearch.data_version_identifier"
-
 if [ -z "${result}" ]; then
   echo "Error: Could not get the value of 'data_version_identifier' from either ${DUOLINGO_CONFIG} or ${DUOLINGO_CONFIG_BASE}."
   exit 1

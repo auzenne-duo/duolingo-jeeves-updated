@@ -38,25 +38,8 @@ export const getInfo = async (
   };
 };
 
-export const getQualityReportTeam = (pillar: string, area: string) => {
-  const params = new URLSearchParams();
-  params.set("pillar", pillar);
-  params.set("area", area);
-  return get<JSONAPI.QualityReportOverviewTeam>(
-    `/3/quality_report_overview_team?${params.toString()}`,
-  );
-};
-
-export const getQualityReport = (pillar: string) => {
-  const params = new URLSearchParams();
-  params.set("pillar", pillar);
-  return get<JSONAPI.QualityReport>(
-    `/3/quality_report_overview_area?${params.toString()}`,
-  );
-};
-
-export const getQualityReportOverview = () =>
-  get<JSONAPI.QualityReportOverviewPillar>("/3/quality_report_overview");
+export const getQualityReport = () =>
+  get<JSONAPI.QualityReport>("/3/quality_report");
 
 export const getQualityReportForArea = (area: string) => {
   const params = new URLSearchParams();

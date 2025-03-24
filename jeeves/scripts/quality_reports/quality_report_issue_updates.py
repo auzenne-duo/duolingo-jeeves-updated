@@ -76,34 +76,29 @@ def check_quality_report_updates(since_date: datetime = None):
 
     """
     team_to_stats = {}
-    for pillar in JIRA_FEATURES:
-        for _, TEAM_TO_FEATURES in JIRA_FEATURES[pillar].items():
-            for team in TEAM_TO_FEATURES:
-                issue_datasets = app_registry(QualityReportDAL).get_past_quality_issue_datasets(
-                    team
-                )
-                if issue_datasets == []:
-                    print(team, "no data")
-                    continue
-                index = -1
-                if since_date:
-                    for i in range(len(issue_datasets) - 1, -1, -1):
-                        report_date = issue_datasets[i].date
-                        if report_date <= since_date:
-                            index = i
-                            break
-                issue_data = issue_datasets[index]
-                issue_keys = issue_data.max_priority_issue_keys + issue_data.max_dupes_issue_keys
-                if issue_keys:
-                    updated_issues, update_actions = check_issue_updates(
-                        issue_keys, issue_data.date
-                    )
-                    score = len(updated_issues) / len(issue_keys)
-                    team_to_stats[team] = {
-                        "score": score,
-                        "num_issues": len(issue_keys),
-                        "update_actions": update_actions,
-                    }
+    for _, TEAM_TO_FEATURES in JIRA_FEATURES.items():
+        for team in TEAM_TO_FEATURES:
+            issue_datasets = app_registry(QualityReportDAL).get_past_quality_issue_datasets(team)
+            if issue_datasets == []:
+                print(team, "no data")
+                continue
+            index = -1
+            if since_date:
+                for i in range(len(issue_datasets) - 1, -1, -1):
+                    report_date = issue_datasets[i].date
+                    if report_date <= since_date:
+                        index = i
+                        break
+            issue_data = issue_datasets[index]
+            issue_keys = issue_data.max_priority_issue_keys + issue_data.max_dupes_issue_keys
+            if issue_keys:
+                updated_issues, update_actions = check_issue_updates(issue_keys, issue_data.date)
+                score = len(updated_issues) / len(issue_keys)
+                team_to_stats[team] = {
+                    "score": score,
+                    "num_issues": len(issue_keys),
+                    "update_actions": update_actions,
+                }
 
     date_now = date_to_str(datetime.now())
     upload_to_jeeves_s3(

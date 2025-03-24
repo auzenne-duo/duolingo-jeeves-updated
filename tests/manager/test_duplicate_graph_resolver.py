@@ -81,7 +81,6 @@ def _jira_document(
         parent_issue=None,
         child_issues=[],
         is_dev_related=False,
-        pillar="",
         area="",
         team="",
         codebase="",

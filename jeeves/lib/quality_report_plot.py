@@ -1,4 +1,3 @@
-import logging
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -18,8 +17,6 @@ from jeeves.config.jira_features import ALL_CUSTOM_PROJECTS
 from jeeves.model.quality_report_base import QualityReportBase
 from jeeves.util.date_util import date_to_str
 from jeeves.util.quality_report_util import PROJECT_TO_PLATFORM, QUALITY_REPORT_OVERALL_KEY
-
-LOG = logging.getLogger(__name__)
 
 # day of the month to start the monthly plots. 26 provides a buffer since the
 # data is plotted on the 1st of the month
@@ -207,16 +204,7 @@ def create_plot(
         if title in ALL_CUSTOM_PROJECTS:
             continue
 
-        try:
-            dates, y = zip(
-                *[(date, score) for date, score in scores if date > plot_start_date.date()]
-            )
-        except ValueError:
-            LOG.error(
-                f"Plot for {report.title}, {title}, {scores} is out of date for {plot_start_date.date()}"
-            )
-            continue
-
+        dates, y = zip(*[(date, score) for date, score in scores if date > plot_start_date.date()])
         marker = ""
         # add text labels to the plot if only one project is being plotted
         # or if the overall plot is being plotted

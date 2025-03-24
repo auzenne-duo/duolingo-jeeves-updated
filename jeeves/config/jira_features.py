@@ -12,18 +12,6 @@ Format:
     },
 }
 
-
-Format:
-{
-    "Pillar": {
-        "Area": {
-            "Team": {
-                "Feature": ["Synonym"],
-            }
-        }
-    }
-}
-
 Notes:
 - Feature names and synonyms are /not/ case-sensitive.
 - The detector will match on substrings, so "notifications" will detect the term "notification".
@@ -34,377 +22,359 @@ team in charge of Jeeves know that their documents have to be refreshed.
 """
 
 JIRA_FEATURES = {
-    "Monetization": {
-        "no_area_monetization": {
-            "Acquisition": {
-                "Immersive subscriptions": ["immersive"],
-                "Hearts / Unlimited Hearts": ["heart"],
-                "Subscription hooks": [],
-                "Super Upsell": [],
-                "Crossgrades": ["upgrades", "downgrades"],
-                "Family Plan": [],
-            },
-            "Subscription Packaging": {
-                "Purchase Flow": ["purchase page", "purchase screen", "purchase step"],
-                "Duo on Path": [],
-                "Super": [],
-                "New Years Promo": [],
-                "Student Plan": [],
-                "Ads / rewarded ads": ["ads"],
-                "Streak Society Promo": [],
-                "Legendary": ["Legendarize"],
-            },
-            "Max": {
-                "Mistakes Inbox": [],
-                "Practice Hub": [],
-                "Max": ["max purchase flow", "max crossgrade"],
-                "Role Play": ["roleplay", "role-play"],
-                "Words List": ["word list"],
-                "Max Upsell": [],
-                "Explain my Answer": ["EMA", "bad explanation", "wrong explanation", "explanation"],
-            },
-            "Energy": {
-                "Gems / Lingots": ["gem", "lingot"],
-                "Energy mechanism": ["energy"],
-                "Hard mode": [],
-                "Match madness": [],
-                "Side Quests": ["side quest"],
-                "In-app purchases": [
-                    "shop",
-                    "league repair",
-                    "refill",
-                    "timer boost",
-                    "row blaster",
-                ],
-                "Shop items": [],
-                "Ramp-up challenge": ["ramp up", "ramp-up"],
-            },
-            "Monetization Engine": {
-                "Max Backend": [],
-                "Purchasing": ["can't purchase"],
-            },
+    "Design Accelerator": {
+        "Animation Accelerator": {
+            "World characters": [
+                "world character",
+                "character animation",
+                "lily",
+                "zari",
+                "lin",
+                "junior",
+                "oscar",
+                "eddy",
+                "bea",
+                "vikram",
+                "lucy",
+                "miguel",
+                "face",
+                "eye",
+                "arm",
+                "leg",
+            ],
+            "Rive": [],
+        },
+        "Design Systems": {
+            "Progress Bar": [],
+            "Grading Ribbon": [
+                "grading message",
+                "incorrect drawer",
+                "correct drawer",
+                "incorrect bottom sheet",
+                "correct bottom sheet",
+                "grading drawer",
+            ],
+            "Drawers / home messages": ["drawer", "home message"],
         },
     },
     "Growth": {
-        "International Growth": {
-            "China": {
-                "China Compliances": [],
-                "China Android Super": [],
-                "WeChat": ["wechat registration", "wechat login", "wechat sharing"],
-            },
-            "Momentum": {},
-            "Re-Onboarding": {
-                "Onboarding": ["new user", "on boarding", "funboarding"],
-                "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
-                "Registration": ["sign up"],
-                "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
-                "Resurrected user experiences": ["surr", "resurrected"],
-                "Reonboarding": ["old user", "re onboarding", "reonboard"],
-                "Year in Review": [],
-            },
-            "Score": {
-                "Score": ["duolingo score", "scores"],
-            },
+        "China": {
+            "China Compliances": [],
+            "China Android Super": [],
+            "WeChat": ["wechat registration", "wechat login", "wechat sharing"],
         },
-        "Area - Retention": {
-            "Notifications": {
-                "Notifications - Timing": ["notification", "practice reminder"],
-            },
-            "Reengagement": {
-                "Notifications - Copy": ["reminder", "notification"],
-                "Widget": [],
-                "XP Happy Hour": [],
-                "Live Activities": [
-                    "live",
-                    "activity",
-                    "activities",
-                    "lock screen",
-                    "dynamic island",
-                ],
-            },
-            "Retention": {
-                "Achievements": ["achievement"],
-                "Friend Streak": [
-                    "friends streak",
-                    "shared streak",
-                    "streak partner",
-                    "streak friend",
-                    "title: Streak",
-                    "FriendStreak",
-                ],
-                "Haptic Feedback": ["haptics", "vibrations", "buzz"],
-                "Lesson complete session end": ["complete"],
-                "Monthly Challenge": ["month"],
-                "Streak": ["streak challenge", "vip", "society"],
-                "Streak freeze / repair": ["streak freeze", "streak repair"],
-            },
+        "Reonboarding": {
+            "Onboarding": ["new user", "on boarding", "funboarding"],
+            "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
+            "Registration": ["sign up"],
+            "Login / Logout": ["login", "log in", "logout", "log out", "sign in", "sign out"],
+            "Resurrected user experiences": ["surr", "resurrected"],
+            "Reonboarding": ["old user", "re onboarding", "reonboard"],
+            "Year in Review": [],
         },
-        "no_area_growth": {
-            "Social Engagement": {
-                "Avatar Builder": ["avatar creator"],
-                "Contact Sync": ["contact"],
-                "DuoNews": ["duo news", "news"],
-                "Feed Tab": [
-                    "kudos feed",
-                    "feature card",
-                    "nudge on feed",
-                    "gifting on feed",
-                    "sharing sentence to feed",
-                    "share sentence to feed",
-                    "share to feed",
-                ],
-                "Follow Suggestions": [
-                    "follow suggestion",
-                    "friend suggestion",
-                    "friend recommendation",
-                ],
-                "Friends": ["friend", "invite"],
-                "Friends Clash": [
-                    "clash",
-                    "competition",
-                    "friendzy",
-                    "duel",
-                    "battle",
-                ],
-                "Friends Quest": [
-                    "partner",
-                    "nudge",
-                    "say hi",
-                ],
-                "Kudos": ["congrats", "high five"],
-                "Profile": [],
-                "Profile Completion": [],
-                "User Search": [],
-                "Early Bird / Night Owl Chests": ["early bird", "night owl"],
-                "Leaderboards": ["leaderboard", "tournament", "league", "context"],
-                "Daily Quests": ["quests", "daily quest"],
-                "XP boost": ["double xp", "2x"],
-                "Quests Tab": [],
-                "Power Chests": ["timed chest"],
-            },
-            "Delight": {
-                "In Lesson Delight": ["in lesson", "delight", "lightning", "flurry", "pulse"],
-                "Hard Exercises": ["hard", "mislabel"],
-                "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
-            },
+        "Reengagement": {
+            "Notifications - Copy": ["reminder", "notification"],
+            "Widget": [],
+            "XP Happy Hour": [],
+            "Live Activities": ["live", "activity", "activities", "lock screen", "dynamic island"],
+        },
+        "Retention": {
+            "Achievements": ["achievement"],
+            "Daily Quests": ["quests", "daily quest"],
+            "Friend Streak": [
+                "friends streak",
+                "shared streak",
+                "streak partner",
+                "streak friend",
+                "title: Streak",
+                "FriendStreak",
+            ],
+            "Haptic Feedback": ["haptics", "vibrations", "buzz"],
+            "Lesson complete session end": ["complete"],
+            "Monthly Challenge": ["month"],
+            "Quests Tab": [],
+            "Streak": ["streak challenge", "vip", "society"],
+            "Streak freeze / repair": ["streak freeze", "streak repair"],
+        },
+        "Social Engagement": {
+            "Avatar Builder": ["avatar creator"],
+            "Contact Sync": ["contact"],
+            "DuoNews": ["duo news", "news"],
+            "Early Bird / Night Owl Chests": ["early bird", "night owl"],
+            "Feed Tab": [
+                "kudos feed",
+                "feature card",
+                "nudge on feed",
+                "gifting on feed",
+                "sharing sentence to feed",
+                "share sentence to feed",
+                "share to feed",
+            ],
+            "Follow Suggestions": [
+                "follow suggestion",
+                "friend suggestion",
+                "friend recommendation",
+            ],
+            "Friends": ["friend", "invite"],
+            "Friends Clash": [
+                "clash",
+                "competition",
+                "friendzy",
+                "duel",
+                "battle",
+            ],
+            "Friends Quest": [
+                "partner",
+                "nudge",
+                "say hi",
+            ],
+            "Kudos": ["congrats", "high five"],
+            "Leaderboards": ["leaderboard", "tournament", "league", "context"],
+            "Power Chests": ["timed chest"],
+            "Profile": [],
+            "Profile Completion": [],
+            "User Search": [],
+            "XP boost": ["double xp", "2x"],
+        },
+        "Growth Score": {
+            "Score": ["duolingo score", "scores"],
+        },
+        "Delight": {
+            "In Lesson Delight": ["in lesson", "delight", "lightning", "flurry", "pulse"],
+            "Hard Exercises": ["hard", "mislabel"],
+            "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
+        },
+        "Notifications": {
+            "Notifications - Timing": ["notification", "practice reminder"],
         },
     },
-    "Language Learning": {
-        "Learning Experience": {
-            "Intermediate English": {
-                "SMEC": ["Intermediate English"],
-                "Placement test": [],
-            },
-            "Longform Content": {
-                "DuoShorts": ["duo shorts"],
-                "Stories": ["story"],
-                "Pronunciation Bingo": [],
-                "DuoRadio": [],
-                "Adventures": [],
-                "Immersive Speak": [],
-            },
-            "Unowned Learning": {
-                "Generated sessions": [],
-                "Challenge layout issues": [
-                    "exercise",
-                    "question",
-                    "problem",
-                    "speech bubble",
-                    "speaking bubble",
-                    "tap token",
-                    "token",
-                    "word bank",
-                ],
-                "Smart tips": ["smart tip"],
-                "Path": [
-                    "course",
-                    "level up",
-                    "home page",
-                    "home tab",
-                    "tree",
-                    "trophy",
-                    "trophies",
-                    "unit complete",
-                    "unit review",
-                ],
-                "Guidebook": [],
-                "Path Sections": ["daily refresh", "sections"],
-                "Skill tree migration": ["course update"],
-                "Character Bingo": [
-                    "drawing",
-                    "tracing",
-                    "Session type: alphabet_lesson",
-                    "*session type*: alphabet_lesson",
-                ],
-                "Layout Issues: Romaji/Furigana/Pinyin": ["Transliteration"],
-                "Settings Issues: Romaji/Furigana/Pinyin": [],
-            },
+    "Infra Platform": {
+        "Engineering Studio": {
+            "Settings": ["toggle", "admin", "menu", "account"],
+            "Password Reset": [
+                "reset password",
+                "reset my password",
+                "change password",
+                "change my password",
+            ],
+            "Top Bar Navigation": ["toolbar", "tool bar", "stat bar", "stats bar"],
+            "Course Switching": [
+                "course pick",
+                "course selection",
+                "language pick",
+                "language selection",
+                "switching courses",
+                "switching languages",
+            ],
+            "Shake-to-report": ["shakira", "bug report", "shake to report"],
+            "Offline support": ["prefetch", "offline", "zombie", "airplane"],
+            "Session end screens": [
+                "session end card",
+                "session end message",
+                "session end page",
+                "session end screen",
+                "session end slide",
+                "SE card",
+                "SE message",
+                "SE page",
+                "SE screen",
+                "SE slide",
+            ],
         },
-        "Learning Scaling": {
-            "Shared Content": {},
-            "Translations": {},
-            "Automation Platform": {},
-            "Curriculum Generation & Infrastructure": {},
-            "Exercises": {},
+        "Stability and Performance": {
+            "App startup": ["startup", "restart"],
+            "General performance issues": [
+                "crash",
+                "error",
+                "freeze",
+                "frozen",
+                "slow",
+                "lag",
+                "latency",
+                "jank",
+                "loading",
+                "session bundle",
+                "4xx",
+                "5xx",
+            ],
+        },
+    },
+    "Learning R&D": {
+        "Learning R&D Infrastructure": {
+            "Generated sessions": [],
+        },
+        "Personalized Sessions": {
+            "Challenge layout issues": [
+                "exercise",
+                "question",
+                "problem",
+                "speech bubble",
+                "speaking bubble",
+                "tap token",
+                "token",
+                "word bank",
+            ],
+            "Smart tips": ["smart tip"],
+        },
+        "New Writing Systems": {
+            "Character Bingo": [
+                "drawing",
+                "tracing",
+                "Session type: alphabet_lesson",
+                "*session type*: alphabet_lesson",
+            ],
+            "Layout Issues: Romaji/Furigana/Pinyin": ["Transliteration"],
+            "Settings Issues: Romaji/Furigana/Pinyin": [],
+        },
+        "Path": {
+            "Path": [
+                "course",
+                "level up",
+                "home page",
+                "home tab",
+                "tree",
+                "trophy",
+                "trophies",
+                "unit complete",
+                "unit review",
+            ],
+            "Guidebook": [],
+            "Path Sections": ["daily refresh", "sections"],
+            "Skill tree migration": ["course update"],
+        },
+        "Media Learning": {
+            "DuoShorts": ["duo shorts"],
+            "Stories": ["story"],
+            "Pronunciation Bingo": [],
+            "DuoRadio": [],
+            "Adventures": [],
+            "Immersive Speak": [],
         },
         "Video Call": {
-            "Video Call Backend Foundations": {},
-            "Video Call Experience": {"Video Call": ["facetime", "videocall"]},
-            "Video Call Growth": {},
-            "Video Call Scaffolding": {
-                "Video Call Tab": [
-                    "video-call tab",
-                    "videocall tab",
-                    "video call history",
-                    "lily video message",
-                ],
-            },
+            "Video Call": ["facetime", "videocall"],
+        },
+        "B1 B2 English Success Team": {
+            "SMEC": ["Intermediate English"],
+            "Placement test": [],
+        },
+    },
+    "Learning Scaling": {
+        "Learning Infrastructure": {},
+        "Generated Content": {
+            "Grading issue": [
+                "grading",
+                "Did not earn XP",
+                "Didn't receive XP",
+                "Did not receive XP",
+            ],
+        },
+        "Generated Translations": {
+            "Translation Issue": [],
+        },
+    },
+    "Monetization": {
+        "Acquisition": {
+            "Crossgrades": ["upgrades", "downgrades"],
+            "Family Plan": [],
+            "Hearts / Unlimited Hearts": ["heart"],
+            "Immersive subscriptions": ["immersive"],
+            "Subscription hooks": [],
+            "Super Upsell": ["super hooks", "pay wall"],
+        },
+        "Ads": {
+            "Ads / rewarded ads": ["ads"],
+        },
+        "Subscription Packaging": {
+            "Super": [],
+            "Purchase Flow": ["purchase page", "purchase screen", "purchase step"],
+            "New Years Promo": [],
+            "Duo on Path": [],
+            "Student Plan": [],
+            "Streak Society Promo": [],
+            "Legendary": ["Legendarize"],
+        },
+        "Energy": {
+            "In-app purchases": ["shop", "league repair", "refill", "timer boost", "row blaster"],
+            "Ramp-up challenge": ["ramp up", "ramp-up"],
+            "Gems / Lingots": ["gem", "lingot"],
+            "Hard mode": [],
+            "Match madness": [],
+            "Shop items": [],
+            "Side Quests": ["side quest"],
+            "Energy Mechanism": ["energy"],
+        },
+        "Max": {
+            "Mistakes Inbox": [],
+            "Practice Hub": [],
+            "Role Play": ["roleplay", "role-play"],
+            "Words List": ["Word list"],
+            "Max Upsell": [],
+            "Max": ["max purchase flow", "max crossgrade"],
+            "Explain my Answer": ["EMA", "bad explanation", "wrong explanation", "explanation"],
+            "Video Call Tab": [
+                "video-call tab",
+                "videocall tab",
+                "video call history",
+                "lily video message",
+            ],
+        },
+        "Max Engine": {
+            "Purchasing": ["can't purchase"],
+            "Max Backend": [],
+        },
+    },
+    "New Initiatives": {
+        "Schools": {
+            "Schools": [],
         },
     },
     "New Subjects": {
-        "Math": {
-            "Math Curriculum Scaling": {
-                "Math - Localization": [],
-                "Math - Generated Sessions": [
-                    "math content",
-                    "math session",
-                    "content accelerator",
-                ],
-                "Math": [],
-            },
-            "Math Navigation": {
-                "Math - Match Madness": ["math match"],
-                "Math - Puzzles & Games": ["math puzzles", "math paths", "CashDashNavigationVC"],
-            },
-            "Math Component Scaling": {
-                "Math - Word Problems": ["word problems"],
-                "Math - Life Skills": ["math stories"],
-            },
+        "Chess": {
+            "Chess": ["board", "piece"],
+        },
+        "Math Infrastructure": {
+            "Math - Generated Sessions": ["math content", "math session", "content accelerator"],
+            "Math - Localization": [],
+        },
+        "Math Motivation": {
+            "Math - Match Madness": [],
+            "Math - Puzzles & Games": ["math puzzles", "math paths", "CashDashNavigationVC"],
+            "Math - Word Problems": ["word problems"],
+            "Math - Life Skills": ["math stories"],
+        },
+        "Math Skills": {
+            "Math": ["equations", "algebra", "ratios", "coordinate grid"],
         },
         "Music": {
-            "Music Instruments": {
-                "Music - Instrument Mode": ["instrument", "piano", "midi", "pitch"],
-                "Music - Practice Tab": ["song library", "music library", "daily song"],
-                "Music": [],
-            },
-            "Music Motivation": {},
-            "Music Songs": {
-                "Music - Licensed Songs": ["licensed"],
-                "Music - Public Domain Songs": ["pd", "public"],
-                "Music - Song Prep": ["prep"],
-                "Music - World Character Songs": [],
-            },
+            "Music": [],
         },
-        "no_area_new_subjects": {
-            "Chess": {
-                "Chess": ["edwin"],
-            },
+        "Music Songs": {
+            "Music - Licensed Songs": ["licensed"],
+            "Music - Public Domain Songs": ["pd", "public"],
+            "Music - Song Prep": ["prep"],
+            "Music - World Character Songs": [],
+        },
+        "Music Instruments": {
+            "Music - Instrument Mode": ["instrument", "piano", "midi", "pitch"],
+            "Music - Practice Tab": ["song library", "music library", "daily song"],
         },
     },
-    "Platform": {
-        "Design Accelerator": {
-            "Design Systems": {
-                "Progress Bar": [],
-                "Grading Ribbon": [
-                    "grading message",
-                    "incorrect drawer",
-                    "correct drawer",
-                    "incorrect bottom sheet",
-                    "correct bottom sheet",
-                    "grading drawer",
-                ],
-                "Drawers / home messages": ["drawer", "home message"],
-            },
-            "Animation Accelerator": {
-                "World characters": [
-                    "world character",
-                    "character animation",
-                    "lily",
-                    "zari",
-                    "lin",
-                    "junior",
-                    "oscar",
-                    "eddy",
-                    "bea",
-                    "vikram",
-                    "lucy",
-                    "miguel",
-                    "face",
-                    "eye",
-                    "arm",
-                    "leg",
-                ],
-                "Rive": [],
-            },
-        },
-        "Infrastructure Platform": {
-            "App Stability and Performance": {
-                "App startup": ["startup", "restart"],
-                "General performance issues": [
-                    "crash",
-                    "error",
-                    "freeze",
-                    "frozen",
-                    "slow",
-                    "lag",
-                    "latency",
-                    "jank",
-                    "loading",
-                    "session bundle",
-                    "4xx",
-                    "5xx",
-                ],
-            },
-            "Engineering Studio": {
-                "Settings": ["toggle", "admin", "menu", "account"],
-                "Password Reset": [
-                    "reset password",
-                    "reset my password",
-                    "change password",
-                    "change my password",
-                ],
-                "Top Bar Navigation": ["toolbar", "tool bar", "stat bar", "stats bar"],
-                "Course Switching": [
-                    "course pick",
-                    "course selection",
-                    "language pick",
-                    "language selection",
-                    "switching courses",
-                    "switching languages",
-                ],
-                "Shake-to-report": ["shakira", "bug report", "shake to report"],
-                "Offline support": ["prefetch", "offline", "zombie", "airplane"],
-                "Session end screens": [
-                    "session end card",
-                    "session end message",
-                    "session end page",
-                    "session end screen",
-                    "session end slide",
-                    "SE card",
-                    "SE message",
-                    "SE page",
-                    "SE screen",
-                    "SE slide",
-                ],
-            },
+    "None": {
+        "None": {
+            "Feature request / feedback": [],
+            "Other": [],
         },
     },
-    "Other": {
-        "Severin": {
-            "LLM Team": {
-                "Story Content": [],
-                "Books Home": [],
-                "Table of Contents": [],
-                "Notify Me": [],
-                "Book Continuation": [],
-            }
-        },
-        "Misc": {
-            "Misc Team": {
-                "Feature request / feedback": [],
-                "Schools": [],
-                "Translation Issue": [],
-            }
+    "Many": {
+        # Features should be added to the relevant team
+    },
+    "Severin": {
+        "LLM Team": {
+            "Story Content": [],
+            "Books Home": [],
+            "Table of Contents": [],
+            "Notify Me": ["notifications"],
+            "Book Continuation": [],
         },
     },
 }
@@ -438,6 +408,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Friends Clash": "Issues with the Friends Clash",
     "General performance issues": "App crashes, 4xx/5xx errors, freezes, slowness, etc.",
     "Generated Sessions": "Problems within exercises such as missing tap tokens, broken buttons, etc. Not for content issues such as wrong translation.",
+    "Grading issue": "Issues with answers not being accepted, wrong grading results",
     "Grading Ribbon": "Issues with the grading ribbon that appears at the bottom of an exercise, specifically layout/formatting",
     "Guidebook": "Bugs on a guidebook page",
     "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
@@ -464,6 +435,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Music - World Character Songs": "Problems with the song play experience for any world character song.",
     "Notifications - Copy": "Bugs with the text or layout of the notification, or the notification settings.",
     "Notifications - Timing": "Bugs related to the timing, duplication, or frequency of notifications.",
+    "Other": "Please try to use a specific feature if possible.",
     "Path": "Problems with the main path page, such as tiles not completing properly. Callouts on path fall under this feature.",
     "Path Sections": "Bugs with the section header, section cards, etc.",
     "Placement Test": "Issues with placement test in onboarding or when adding a new course",
@@ -522,14 +494,11 @@ SESSION_END_SCREEN_TO_FEATURE = {
 
 SESSION_END_SCREEN_TO_FEATURE_REGISTRY_KEY = "session_end_screen_to_feature"
 
-JIRA_AREA_TO_PILLAR = {area: pillar for pillar, areas in JIRA_FEATURES.items() for area in areas}
-JIRA_TEAM_TO_AREA = {
-    team: area for _, areas in JIRA_FEATURES.items() for area in areas for team in areas[area]
-}
+
+JIRA_TEAM_TO_AREA = {team: area for area, teams in JIRA_FEATURES.items() for team in teams}
 JIRA_FEATURE_TO_TEAM = {
     feature: team
-    for areas in JIRA_FEATURES.values()
-    for teams in areas.values()
+    for teams in JIRA_FEATURES.values()
     for team, features in teams.items()
     for feature in features.keys()
 }
@@ -537,24 +506,12 @@ JIRA_FEATURE_TO_TEAM = {
 # Maps from area/team name to a set of their features
 AREA_TO_FEATURES = {
     area: {feature for features in teams.values() for feature in features}
-    for pillar, areas in JIRA_FEATURES.items()
-    for area, teams in areas.items()
-}
-
-PILLAR_TO_FEATURES = {
-    pillar: {
-        feature
-        for areas in pillar_areas.values()
-        for features in areas.values()
-        for feature in features
-    }
-    for pillar, pillar_areas in JIRA_FEATURES.items()
+    for area, teams in JIRA_FEATURES.items()
 }
 
 TEAM_TO_FEATURES = {
     team: {feature for feature in features.keys()}
-    for areas in JIRA_FEATURES.values()
-    for teams in areas.values()
+    for teams in JIRA_FEATURES.values()
     for team, features in teams.items()
 }
 
