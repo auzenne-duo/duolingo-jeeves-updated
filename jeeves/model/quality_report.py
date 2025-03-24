@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Any, List, Optional, Tuple
 
 from jeeves.config.config import JIRA_PROJECTS
-from jeeves.config.jira_features import AREA_TO_FEATURES, TEAM_TO_FEATURES
+from jeeves.config.jira_features import AREA_TO_FEATURES, PILLAR_TO_FEATURES, TEAM_TO_FEATURES
 from jeeves.lib.quality_report_plot import create_plot
 from jeeves.model.custom_types import JSON
 from jeeves.model.jira_document import JiraDocument
@@ -127,6 +127,19 @@ class SerializedQualityReportDataArea(SerializedQualityReportData):
 
 
 @dataclass
+class SerializedQualityReportDataPillar(SerializedQualityReportData):
+    """
+    Same as parent class but with all the pillar's areas' data as well
+    """
+
+    @classmethod
+    def from_instance(cls, instance):
+        return cls(**asdict(instance))
+
+    areas: Optional[list[SerializedQualityReportDataArea]] = None
+
+
+@dataclass
 class QualityReportIssueDataset:
     """
     A collection of the issues used in a quality report to be used to find changes between reports
@@ -177,6 +190,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         start_date: datetime,
         title: str,
         area: str,
+        pillar: str,
         monthly: bool = True,
     ) -> None:
         """
@@ -190,6 +204,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
         """
         super().__init__(end_date, features, issues, None, start_date, title)
         self.area = area
+        self.pillar = pillar
         self.issue_datasets = past_issue_datasets
 
         # Add current scores to the history of quality scores
@@ -448,6 +463,7 @@ class QualityReportTeam(QualityReport):
         start_date: datetime,
         team: str,
         area: str,
+        pillar: str,
     ) -> None:
         """
         See parent class
@@ -462,6 +478,7 @@ class QualityReportTeam(QualityReport):
             start_date,
             team,
             area,
+            pillar,
             monthly=False,
         )
         self.jeeves_link = f"https://jeeves.duolingo.com/en/quality-report?area={urllib.parse.quote(area)}&team={urllib.parse.quote(team)}"
@@ -476,6 +493,7 @@ class QualityReportArea(QualityReport):
         project_to_scores: dict[str, QualityScoreHistory],
         start_date: datetime,
         area: str,
+        pillar: str,
         team_data: list[SerializedQualityReportData],
     ) -> None:
         """
@@ -492,6 +510,7 @@ class QualityReportArea(QualityReport):
             start_date,
             area,
             area,
+            pillar,
             monthly=False,
         )
         self.team_data = team_data
@@ -505,4 +524,46 @@ class QualityReportArea(QualityReport):
         """
         quality_report_data = SerializedQualityReportDataArea.from_instance(super().serialize())
         quality_report_data.teams = self.team_data
+        return quality_report_data
+
+
+class QualityReportPillar(QualityReport):
+    def __init__(
+        self,
+        end_date: datetime,
+        issues: list[JiraDocument],
+        past_issue_datasets: list[QualityReportIssueDataset],
+        project_to_scores: dict[str, QualityScoreHistory],
+        start_date: datetime,
+        pillar: str,
+        area_data: list[SerializedQualityReportData],
+    ) -> None:
+        """
+        See parent class
+        pillar: string of pillar name
+        area_data: list of SerializedQualityReportData for each area in the pillar
+        """
+        super().__init__(
+            end_date,
+            PILLAR_TO_FEATURES.get(pillar),
+            issues,
+            past_issue_datasets,
+            project_to_scores,
+            start_date,
+            pillar,
+            pillar,
+            pillar,
+            monthly=True,
+        )
+        self.area_data = area_data
+        self.jeeves_link = (
+            f"https://jeeves.duolingo.com/en/quality-report?pillar={urllib.parse.quote(pillar)}"
+        )
+
+    def serialize(self) -> SerializedQualityReportDataPillar:
+        """
+        See parent class. Also includes serialized quality report data for areas in the pillar
+        """
+        quality_report_data = SerializedQualityReportDataPillar.from_instance(super().serialize())
+        quality_report_data.areas = self.area_data
         return quality_report_data

@@ -1,0 +1,23 @@
+@use "styles/constants" as *;
+
+.button {
+  --web-ui_button-height: auto;
+  --web-ui_button-padding: 16px;
+}
+
+.graph {
+  // Reset some styles applied by the button classes.
+  letter-spacing: initial;
+  text-transform: none;
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-gap: var(--margin);
+  width: 100%;
+
+  @media (min-width: $width-ipad) {
+    grid-template-columns: 1fr 1fr;
+  }
+}

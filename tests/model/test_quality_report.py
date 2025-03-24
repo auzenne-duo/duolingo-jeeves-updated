@@ -44,8 +44,9 @@ class TestQualityReport(unittest.TestCase):
             past_issue_datasets=[],
             project_to_scores=mock_score_history,
             start_date=datetime(2022, 1, 1, tzinfo=pytz.utc),
-            team="Onboarding",
-            area="Growth",
+            team="Re-Onboarding",
+            area="International Growth",
+            pillar="Growth",
         )
 
     def test_find_issues_with_closed_parents(self):
@@ -119,7 +120,7 @@ class TestQualityReport(unittest.TestCase):
 
     def test_jeeves_link(self):
         result = self.report.jeeves_link
-        expected = "https://jeeves.duolingo.com/en/quality-report?area=Growth&team=Onboarding"
+        expected = "https://jeeves.duolingo.com/en/quality-report?area=International%20Growth&team=Re-Onboarding"
         self.assertEqual(result, expected)
 
         issues = [REPORT_ISSUE_1, REPORT_ISSUE_2]
@@ -129,11 +130,12 @@ class TestQualityReport(unittest.TestCase):
             past_issue_datasets=[],
             project_to_scores=mock_score_history,
             start_date=datetime(2022, 1, 1, tzinfo=pytz.utc),
-            team="Personalized Sessions",
-            area="Learning R&D",
+            team="Intermediate English",
+            area="Learning Experience",
+            pillar="Language Learning",
         )
         result = test_report.jeeves_link
-        expected = "https://jeeves.duolingo.com/en/quality-report?area=Learning%20R%26D&team=Personalized%20Sessions"
+        expected = "https://jeeves.duolingo.com/en/quality-report?area=Learning%20Experience&team=Intermediate%20English"
         self.assertEqual(result, expected)
 
     def test_serialize_recent_changes(self):

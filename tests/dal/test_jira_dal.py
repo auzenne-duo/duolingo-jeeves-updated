@@ -121,6 +121,7 @@ class TestJiraApiDAL(unittest.TestCase):
             is_dev_related=False,
             area="",
             team="",
+            pillar="",
             codebase="",
         )
 

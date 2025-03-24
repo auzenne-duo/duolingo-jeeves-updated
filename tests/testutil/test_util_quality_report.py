@@ -23,6 +23,7 @@ def create_jira_doc(
     screen_content="VCActivity",
     area="",
     team="",
+    pillar="",
 ) -> JiraDocument:
     if labels is None:
         labels = []
@@ -79,6 +80,7 @@ def create_jira_doc(
         parent_issue=None,
         child_issues=[],
         is_dev_related=False,
+        pillar=pillar,
         area=area,
         team=team,
         codebase="duolingo-ios",

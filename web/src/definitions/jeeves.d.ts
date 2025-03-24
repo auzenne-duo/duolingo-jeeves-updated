@@ -172,6 +172,20 @@ declare namespace JSONAPI {
     | "Unprioritized"
     | ZendeskPriority;
 
+  interface QualityReportOverviewPillar {
+    pillars: {
+      scores: QualityScores;
+      title: string;
+    }[];
+  }
+
+  interface QualityReportOverviewTeam {
+    teams: {
+      scores: QualityScores;
+      title: string;
+    }[];
+  }
+
   interface QualityReport {
     areas: {
       scores: QualityScores;

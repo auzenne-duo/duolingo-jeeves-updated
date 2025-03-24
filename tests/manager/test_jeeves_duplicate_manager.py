@@ -94,6 +94,7 @@ def _jira_document(header="I am a header", body="I am body text"):
         parent_issue=None,
         child_issues=[],
         is_dev_related=False,
+        pillar="",
         area="",
         team="",
         codebase="",
