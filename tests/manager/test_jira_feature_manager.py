@@ -9,20 +9,31 @@ from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 
 mock_jira_client = ShakiraJiraApiClient(EmployeesDAL())
 mock_jira_client.get_features = MagicMock(
-    return_value=["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"]
+    return_value=[
+        "Leaderboard",
+        "Streak",
+        "Stories",
+        "Kudos",
+        "Skill tree",
+        "Shake-to-report",
+        "Music - Instrument Mode",
+        "Music - Practice Tab",
+    ]
 )
 
+mock_jira_leaderboard_keywords = ["League", "*current_screen*: ldrbrd"]
+mock_jira_kudos_keywords = ["Congrats", "High five", "High-five", "Highfive"]
 mock_jira_features = {
     "Area A": {
         "Team 1": {
-            "Leaderboard": ["League", "*current_screen*: ldrbrd"],
+            "Leaderboard": mock_jira_leaderboard_keywords,
             "Streak": [],
             "Stories": ["Story"],
         },
     },
     "Area B": {
         "Team 2": {
-            "Kudos": ["Congrats", "High five", "High-five", "Highfive"],
+            "Kudos": mock_jira_kudos_keywords,
         },
         "Team 3": {
             "Skill tree": ["Home"],
@@ -31,6 +42,12 @@ mock_jira_features = {
     "Area C": {
         "Team 4": {
             "Shake-to-report": [],
+        },
+    },
+    "Area D": {
+        "Team 5": {
+            "Music - Instrument Mode": ["pitch"],
+            "Music - Practice Tab": ["music library"],
         },
     },
 }
@@ -70,6 +87,8 @@ def test_get_features_v1():
             "Design quality",
             "Lesson content / accepted translations",
             "Feature request / feedback",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
         ],
         actual_result,
     )
@@ -113,6 +132,15 @@ def test_get_features_by_team_and_area():
                 },
             ],
         },
+        {
+            "area_name": "Area D",
+            "teams": [
+                {
+                    "team_name": "Team 5",
+                    "features": ["Music - Instrument Mode", "Music - Practice Tab"],
+                },
+            ],
+        },
     ]
 
 
@@ -124,7 +152,15 @@ test_cases = [
         "Please fix.",
         "",
         ["Leaderboard"],
-        ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        [
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # works with feature that has a space and different capitalization in the description.
     (
@@ -132,7 +168,15 @@ test_cases = [
         "Please fix the skill tree.",
         "",
         ["Skill tree"],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Shake-to-report"],
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # synonym is detected in part of a word in description; case-insensitive.
     (
@@ -140,7 +184,15 @@ test_cases = [
         "Please fix leagues.",
         "",
         ["Leaderboard"],
-        ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        [
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # synonym with colon, underscore, and markdown is detected in generated_description.
     (
@@ -148,7 +200,15 @@ test_cases = [
         "Please fix.",
         "*current_screen*: ldrbrd",
         ["Leaderboard"],
-        ["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        [
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # terms that appear in the "substrings to ignore" should be ignored.
     (
@@ -156,7 +216,16 @@ test_cases = [
         "Please fix\n-\nReported with shake-to-report",
         "Reported with shake-to-report",
         [],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # terms that appear in ways other than the "substrings to ignore" should be detected.
     (
@@ -164,7 +233,15 @@ test_cases = [
         "Please fix\n-\nReported with shake-to-report",
         "Reported with shake-to-report",
         ["Shake-to-report"],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree"],
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # multiple features are detected, no tie.
     (
@@ -172,7 +249,14 @@ test_cases = [
         "Please fix.",
         "",
         ["Leaderboard", "Skill tree"],
-        ["Streak", "Stories", "Kudos", "Shake-to-report"],
+        [
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # more than three features are detected, no tie.
     (
@@ -180,7 +264,7 @@ test_cases = [
         "Leaderboard, League, League, League. Skill tree, home, home. Streak, streak. Kudos.",
         "",
         ["Leaderboard", "Skill tree", "Streak", "Kudos"],
-        ["Stories", "Shake-to-report"],
+        ["Stories", "Shake-to-report", "Music - Instrument Mode", "Music - Practice Tab"],
     ),
     # empty strings.
     (
@@ -188,7 +272,16 @@ test_cases = [
         "",
         "",
         [],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # session end screen is detected.
     (
@@ -196,7 +289,16 @@ test_cases = [
         "",
         "some lines of text\nSession End Screen Name: sessionComplete\n\nother stuff: things",
         ["Lesson complete session end"],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # no generated description.
     (
@@ -204,7 +306,16 @@ test_cases = [
         "",
         None,
         [],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # mega feature is detected.
     (
@@ -212,7 +323,16 @@ test_cases = [
         "Test",
         "some lines of text\nMEGA Information:\n- Mega course: math\n\nother stuff: things",
         ["Math - Generated Sessions", "Math - Localization", "Math"],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
     ),
     # mega feature is detected with iOS generated description.
     (
@@ -220,6 +340,25 @@ test_cases = [
         "Test",
         "*System Information*:\n*app version*: 6.213.0.4\n*MEGA Information*:\n- *Mega course*: math\n\nother stuff: things",
         ["Math - Generated Sessions", "Math - Localization", "Math"],
+        [
+            "Leaderboard",
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
+    ),
+    # prioritize user input over generated description.
+    (
+        "Pitch",
+        "music library",
+        "*System Information*:\n*app version*: 6.213.0.4\n*MEGA Information*:\n- *Mega course*: music\n\nother stuff: "
+        + "".join(mock_jira_leaderboard_keywords)
+        + "".join(mock_jira_kudos_keywords),
+        ["Music", "Music - Instrument Mode", "Music - Practice Tab"],
         ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
     ),
 ]
@@ -267,7 +406,15 @@ def test_get_suggested_features(
 def test_feature_filtering():
     mock_filtered_jira_client = ShakiraJiraApiClient(EmployeesDAL())
     mock_filtered_jira_client.get_features = MagicMock(
-        return_value=["Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"]
+        return_value=[
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Shake-to-report",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ]
     )
     mock_filtered_jira_features = {
         "Area A": {
@@ -279,6 +426,12 @@ def test_feature_filtering():
             },
             "Team 3": {
                 "Skill tree": ["Home"],
+            },
+        },
+        "Area D": {
+            "Team 5": {
+                "Music - Instrument Mode": ["pitch"],
+                "Music - Practice Tab": ["music library"],
             },
         },
     }
@@ -298,6 +451,8 @@ def test_feature_filtering():
             "Design quality",
             "Lesson content / accepted translations",
             "Feature request / feedback",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
         ],
         actual_result_features,
     )
@@ -326,12 +481,28 @@ def test_feature_filtering():
                 },
             ],
         },
+        {
+            "area_name": "Area D",
+            "teams": [
+                {
+                    "team_name": "Team 5",
+                    "features": ["Music - Instrument Mode", "Music - Practice Tab"],
+                },
+            ],
+        },
     ]
 
     actual_result_suggested_features = feature_manager.get_suggested_features(
         ["DLAA", "DLAI", "DLAW"], "", "", ""
     )
     case.assertCountEqual(
-        ["Streak", "Stories", "Kudos", "Skill tree"],
+        [
+            "Streak",
+            "Stories",
+            "Kudos",
+            "Skill tree",
+            "Music - Instrument Mode",
+            "Music - Practice Tab",
+        ],
         actual_result_suggested_features["other_features"],
     )

@@ -189,6 +189,36 @@ class JiraFeatureManager:
 
         return areasWithTeams
 
+    def _get_text_suggested_features(
+        self, search_text: str, valid_features: List[str]
+    ) -> List[str]:
+        """
+        Counts the mentions of a feature in a given body of text.
+        Returns a sorted and filtered list of features based on their counts.
+        """
+        search_text_uppercase = search_text.upper()
+        feature_count = Counter()
+
+        # Note: this counts substrings that are parts of words
+        for term, feature in self._uppercase_term_to_feature.items():
+            search_text_uppercase_clean = search_text_uppercase
+            substrings_to_ignore = _SUBSTRINGS_TO_IGNORE_BY_TERM.get(term)
+            if substrings_to_ignore is not None and len(substrings_to_ignore) > 0:
+                for substring in substrings_to_ignore:
+                    search_text_uppercase_clean = search_text_uppercase_clean.replace(substring, "")
+
+            feature_count[feature] += search_text_uppercase_clean.count(term)
+
+        sorted_features_to_counts = sorted(
+            feature_count.items(), key=operator.itemgetter(1), reverse=True
+        )
+
+        return [
+            feature
+            for (feature, count) in sorted_features_to_counts
+            if count > 0 and feature in valid_features
+        ]
+
     def get_suggested_features(
         self,
         projects: Union[str, List[str]],
@@ -236,33 +266,30 @@ class JiraFeatureManager:
                     suggested_features.append(self._session_end_screen_to_feature[screen_name])
 
         text_suggested_features = []
-        search_text_uppercase = summary.upper()
+
+        # parse and process user input
+        search_text_user_input = summary.upper()
         if description:
-            search_text_uppercase = search_text_uppercase + "\n" + description.upper()
+            search_text_user_input = search_text_user_input + "\n" + description.upper()
+        feature_list_user_input = self._get_text_suggested_features(
+            search_text_user_input, valid_features
+        )
+
+        # parse and process generated description
+        search_text_generated_description = ""
         if generated_description:
-            search_text_uppercase = search_text_uppercase + "\n" + generated_description.upper()
+            search_text_generated_description = generated_description.upper()
+        feature_list_generated_description = self._get_text_suggested_features(
+            search_text_generated_description, valid_features
+        )
 
-        feature_count = Counter()
-        # Note: this counts substrings that are parts of words
-        for term, feature in self._uppercase_term_to_feature.items():
-            search_text_uppercase_clean = search_text_uppercase
-            substrings_to_ignore = _SUBSTRINGS_TO_IGNORE_BY_TERM.get(term)
-            if substrings_to_ignore is not None and len(substrings_to_ignore) > 0:
-                for substring in substrings_to_ignore:
-                    search_text_uppercase_clean = search_text_uppercase_clean.replace(substring, "")
-
-            feature_count[feature] += search_text_uppercase_clean.count(term)
-
-            sorted_features_to_counts = sorted(
-                feature_count.items(), key=operator.itemgetter(1), reverse=True
+        # prioritize feature matches from user inputted text, then add suggestions from generated description if there is space
+        text_suggested_features = feature_list_user_input[:SUGGESTED_FEATURES_LIMIT]
+        available_feature_slots = SUGGESTED_FEATURES_LIMIT - len(feature_list_user_input)
+        if available_feature_slots > 0:
+            text_suggested_features.extend(
+                feature_list_generated_description[:available_feature_slots]
             )
-
-            sorted_and_filtered_features = [
-                feature
-                for (feature, count) in sorted_features_to_counts
-                if count > 0 and feature in valid_features
-            ]
-            text_suggested_features = sorted_and_filtered_features[:SUGGESTED_FEATURES_LIMIT]
 
         if len(suggested_features) == 0:
             suggested_features = text_suggested_features
