@@ -111,9 +111,10 @@ class JiraFeatureManager:
         """
         all_features_to_synonyms = {}
 
-        for teams_to_features in self.jira_features_and_synonyms.values():
-            for features_to_synonyms in teams_to_features.values():
-                all_features_to_synonyms.update(features_to_synonyms)
+        for pillar in self.jira_features_and_synonyms:
+            for teams_to_features in self.jira_features_and_synonyms[pillar].values():
+                for features_to_synonyms in teams_to_features.values():
+                    all_features_to_synonyms.update(features_to_synonyms)
 
         return all_features_to_synonyms
 
@@ -138,6 +139,7 @@ class JiraFeatureManager:
         """
         features_on_jira = self._jira_client.get_features(projects) or []
         features_in_config = self._feature_to_synonyms.keys()
+
         return list(set(features_on_jira) & set(features_in_config))
 
     def get_features_v1(self, projects: Union[str, List[str]]) -> List[str]:
@@ -160,14 +162,15 @@ class JiraFeatureManager:
                         "team_name": team_name,
                         "features": [
                             feature
-                            for (feature, synonyms) in features_dict.items()
+                            for feature, synonyms in features_dict.items()
                             if feature in valid_features
                         ],
                     }
-                    for (team_name, features_dict) in teams_dict.items()
+                    for team_name, features_dict in teams_dict.items()
                 ],
             }
-            for (area_name, teams_dict) in self.jira_features_and_synonyms.items()
+            for pillar_name, areas_dict in self.jira_features_and_synonyms.items()
+            for area_name, teams_dict in areas_dict.items()
         ]
 
         areasWithTeams = [

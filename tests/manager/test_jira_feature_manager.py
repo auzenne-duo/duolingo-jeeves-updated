@@ -24,30 +24,38 @@ mock_jira_client.get_features = MagicMock(
 mock_jira_leaderboard_keywords = ["League", "*current_screen*: ldrbrd"]
 mock_jira_kudos_keywords = ["Congrats", "High five", "High-five", "Highfive"]
 mock_jira_features = {
-    "Area A": {
-        "Team 1": {
-            "Leaderboard": mock_jira_leaderboard_keywords,
-            "Streak": [],
-            "Stories": ["Story"],
+    "Pillal A": {
+        "Area A": {
+            "Team 1": {
+                "Leaderboard": mock_jira_leaderboard_keywords,
+                "Streak": [],
+                "Stories": ["Story"],
+            },
         },
     },
-    "Area B": {
-        "Team 2": {
-            "Kudos": mock_jira_kudos_keywords,
-        },
-        "Team 3": {
-            "Skill tree": ["Home"],
-        },
-    },
-    "Area C": {
-        "Team 4": {
-            "Shake-to-report": [],
+    "Pillar B": {
+        "Area B": {
+            "Team 2": {
+                "Kudos": mock_jira_kudos_keywords,
+            },
+            "Team 3": {
+                "Skill tree": ["Home"],
+            },
         },
     },
-    "Area D": {
-        "Team 5": {
-            "Music - Instrument Mode": ["pitch"],
-            "Music - Practice Tab": ["music library"],
+    "Pillar C": {
+        "Area C": {
+            "Team 4": {
+                "Shake-to-report": [],
+            },
+        },
+    },
+    "Pillar D": {
+        "Area D": {
+            "Team 5": {
+                "Music - Instrument Mode": ["pitch"],
+                "Music - Practice Tab": ["music library"],
+            },
         },
     },
 }
@@ -417,21 +425,27 @@ def test_feature_filtering():
         ]
     )
     mock_filtered_jira_features = {
-        "Area A": {
-            "Team 1": {"Leaderboard": ["League"], "Streak": [], "Stories": ["Story"]},
-        },
-        "Area B": {
-            "Team 2": {
-                "Kudos": ["Congrats", "High five", "High-five", "Highfive"],
-            },
-            "Team 3": {
-                "Skill tree": ["Home"],
+        "Pillar A": {
+            "Area A": {
+                "Team 1": {"Leaderboard": ["League"], "Streak": [], "Stories": ["Story"]},
             },
         },
-        "Area D": {
-            "Team 5": {
-                "Music - Instrument Mode": ["pitch"],
-                "Music - Practice Tab": ["music library"],
+        "Pillar B": {
+            "Area B": {
+                "Team 2": {
+                    "Kudos": ["Congrats", "High five", "High-five", "Highfive"],
+                },
+                "Team 3": {
+                    "Skill tree": ["Home"],
+                },
+            },
+        },
+        "Pillar C": {
+            "Area D": {
+                "Team 5": {
+                    "Music - Instrument Mode": ["pitch"],
+                    "Music - Practice Tab": ["music library"],
+                },
             },
         },
     }

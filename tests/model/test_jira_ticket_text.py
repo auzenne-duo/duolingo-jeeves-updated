@@ -51,6 +51,7 @@ def create_jira_document(args: Mapping[str, Any]) -> JiraDocument:
         "shake_to_report_category": "INTERNAL",
         "status": None,
         "team": None,
+        "pillar": None,
         "ui_language": None,
         "updated_date": None,
         "username": None,

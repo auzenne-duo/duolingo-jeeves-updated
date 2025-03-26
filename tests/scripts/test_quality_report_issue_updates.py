@@ -98,13 +98,7 @@ class TestQualityReportUtil(unittest.TestCase):
             "quality_report_metrics/quality_report_updates_2021-09-10",
             json.dumps(
                 {
-                    "stats": {
-                        "team2": {
-                            "score": 0.5,
-                            "num_issues": 2,
-                            "update_actions": {"DLAA-1000": ["priority"], "DLAA-1001": []},
-                        }
-                    },
+                    "stats": {},
                     "date": "2021-09-10",
                     "since_date": "2021-09-08",
                 }

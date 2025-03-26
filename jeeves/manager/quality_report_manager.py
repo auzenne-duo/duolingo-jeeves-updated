@@ -18,6 +18,7 @@ from jeeves.model.jira_document import JiraDocument
 from jeeves.model.quality_report import (
     QualityReport,
     QualityReportArea,
+    QualityReportPillar,
     QualityReportTeam,
     QualityScoreHistory,
     SerializedQualityReportData,
@@ -25,6 +26,7 @@ from jeeves.model.quality_report import (
 from jeeves.util.date_util import date_to_str, str_to_date
 from jeeves.util.quality_report_util import QUALITY_REPORT_OVERALL_KEY, QUALITY_REPORT_WINDOW_DAYS
 
+_PILLAR_TO_EXCLUDE = []
 _AREAS_TO_EXCLUDE = ["Many", "New Initiatives", "None"]
 _TEAMS_TO_EXCLUDE = ["None"]
 LOG = logging.getLogger(__name__)
@@ -62,13 +64,43 @@ class QualityReportManager:
 
         return [[date_to_str(item[0])] + item[1][1:] for item in sorted_items]
 
-    def get_area_quality_overviews(self) -> List[QualityReportOverview]:
+    def get_pillar_quality_overviews(self) -> List[QualityReportOverview]:
+        """
+        Returns a list of QualityReportOverview for each pillar. This will
+        allow for generating overview graphs for all pillars
+        """
+        pillar_overviews = []
+        for pillar in JIRA_FEATURES:
+            if pillar in _PILLAR_TO_EXCLUDE:
+                continue
+            # get the latest quality scores from s3
+            past_project_to_scores = self.quality_report_dal.get_past_quality_scores(pillar)
+
+            # to help frontend display the current overall score, we will isolate it from the score history
+            overall_score_history: QualityScoreHistory = past_project_to_scores.get(
+                QUALITY_REPORT_OVERALL_KEY, None
+            )
+            if not overall_score_history or not overall_score_history[-1]:
+                LOG.warning(f"Could not find overall score for pillar: {pillar}")
+                continue
+
+            overall_score = overall_score_history[-1][1]
+            pillar_overviews.append(
+                QualityReportOverview(
+                    scores=past_project_to_scores, title=pillar, overall_score=overall_score
+                )
+            )
+
+        return pillar_overviews
+
+    def get_area_quality_overviews(self, pillar) -> List[QualityReportOverview]:
         """
         Returns a list of QualityReportOverview for each area. This will
         allow for generating overview graphs for all areas
         """
         area_overviews = []
-        for area in JIRA_FEATURES:
+
+        for area in JIRA_FEATURES[pillar]:
             if area in _AREAS_TO_EXCLUDE:
                 continue
             # get the latest quality scores from s3
@@ -91,6 +123,37 @@ class QualityReportManager:
 
         return area_overviews
 
+    def get_team_quality_overviews(self, pillar, area) -> List[QualityReportOverview]:
+        """
+        Returns a list of QualityReportOverview for each team in an area. This will
+        allow for generating overview graphs for all teams.
+        """
+        team_overviews = []
+
+        for team in JIRA_FEATURES[pillar][area]:
+            if team in _TEAMS_TO_EXCLUDE:
+                continue
+
+            # get the latest quality scores from s3
+            past_project_to_scores = self.quality_report_dal.get_past_quality_scores(team)
+
+            # to help frontend display the current overall score, we will isolate it from the score history
+            overall_score_history: QualityScoreHistory = past_project_to_scores.get(
+                QUALITY_REPORT_OVERALL_KEY, None
+            )
+            if not overall_score_history or not overall_score_history[-1]:
+                LOG.warning(f"Could not find overall score for team: {team}")
+                continue
+
+            overall_score = overall_score_history[-1][1]
+            team_overviews.append(
+                QualityReportOverview(
+                    scores=past_project_to_scores, title=team, overall_score=overall_score
+                )
+            )
+
+        return team_overviews
+
     def get_team_quality_report(
         self,
         area: str,
@@ -98,6 +161,7 @@ class QualityReportManager:
         jira_issues: List[JiraDocument],
         start_date: datetime,
         team: str,
+        pillar: str,
     ) -> QualityReportTeam:
         """
         Returns a QualityReportTeam object for a given team. Past scores and issues are
@@ -126,6 +190,7 @@ class QualityReportManager:
             start_date,
             team,
             area,
+            pillar,
         )
 
     def get_area_quality_report(
@@ -135,17 +200,19 @@ class QualityReportManager:
         jira_issues: List[JiraDocument],
         start_date: datetime,
         team_data: List[SerializedQualityReportData],
+        pillar: str,
     ) -> QualityReportArea:
         """
         Returns a QualityReportArea object for a given area. Past scores and issues are
         retrieved to be passed as inputs.
 
         Params
-            area: string name such as "Growth"
+            area: string name such a "International Growth"
             end_date: final day of the quality report period
             jira_issues: list of jira documents that were updated in the report period
             start_date: first day of the quality report period
             team_data: list of serialized quality reports for teams of the area
+            pillar: pillar name for the area such as "Growth"
 
         Returns
             QualityReportArea object with score data for that area
@@ -161,7 +228,44 @@ class QualityReportManager:
             past_project_to_scores,
             start_date,
             area,
+            pillar,
             team_data,
+        )
+
+    def get_pillar_quality_report(
+        self,
+        pillar: str,
+        end_date: datetime,
+        jira_issues: List[JiraDocument],
+        start_date: datetime,
+        area_data: List[SerializedQualityReportData],
+    ) -> QualityReportPillar:
+        """
+        Returns a QualityReportPillar object for a given pillar. Past scores and issues are
+        retrieved to be passed as inputs.
+
+        Params
+            pillar: string name such as "Growth"
+            end_date: final day of the quality report period
+            jira_issues: list of jira documents that were updated in the report period
+            start_date: first day of the quality report period
+            area_data: list of serialized quality reports for areas of the pillar
+
+        Returns
+            QualityReportPillar object with score data for that pillar
+        """
+        jira_issues = [issue for issue in jira_issues if issue.pillar == pillar]
+        past_project_to_scores = self.quality_report_dal.get_past_quality_scores(pillar)
+        past_issue_datasets = self.quality_report_dal.get_past_quality_issue_datasets(pillar)
+
+        return QualityReportPillar(
+            end_date,
+            jira_issues,
+            past_issue_datasets,
+            past_project_to_scores,
+            start_date,
+            pillar,
+            area_data,
         )
 
     def get_serialized_quality_report(self, title: str) -> JSON:
@@ -277,29 +381,42 @@ class QualityReportManager:
         jira_docs = self.quality_report_dal.get_quality_report_issues(start_date)
 
         quality_reports = []
-        for area, team_to_features in JIRA_FEATURES.items():
-            if area in _AREAS_TO_EXCLUDE:
+        for pillar in JIRA_FEATURES:
+            if pillar in _PILLAR_TO_EXCLUDE:
                 continue
-            team_data = []
-            for team in team_to_features:
-                if team in _TEAMS_TO_EXCLUDE:
+            area_data = []
+            for area, team_to_features in JIRA_FEATURES[pillar].items():
+                if area in _AREAS_TO_EXCLUDE:
                     continue
-                quality_report = self.get_team_quality_report(
-                    area, end_date, jira_docs, start_date, team
-                )
-                # upload latest quality report data
-                quality_report_data = quality_report.serialize()
-                if not is_dry_run:
-                    self.quality_report_dal.upload_serialized_quality_report(quality_report)
-                team_data.append(quality_report_data)
-                quality_reports.append(quality_report)
+                team_data = []
+                for team in team_to_features:
+                    if team in _TEAMS_TO_EXCLUDE:
+                        continue
+                    quality_report = self.get_team_quality_report(
+                        area, end_date, jira_docs, start_date, team, pillar
+                    )
+                    # upload latest quality report data
+                    quality_report_data = quality_report.serialize()
+                    if not is_dry_run:
+                        self.quality_report_dal.upload_serialized_quality_report(quality_report)
+                    team_data.append(quality_report_data)
+                    quality_reports.append(quality_report)
 
-            area_quality_report = self.get_area_quality_report(
-                area, end_date, jira_docs, start_date, team_data
+                area_quality_report = self.get_area_quality_report(
+                    area, end_date, jira_docs, start_date, team_data, pillar
+                )
+                area_quality_report_data = area_quality_report.serialize()
+                if not is_dry_run:
+                    self.quality_report_dal.upload_serialized_quality_report(area_quality_report)
+                area_data.append(area_quality_report_data)
+                quality_reports.append(area_quality_report)
+            pillar_quality_report = self.get_pillar_quality_report(
+                pillar, end_date, jira_docs, start_date, area_data
             )
-            quality_reports.append(area_quality_report)
             if not is_dry_run:
-                self.quality_report_dal.upload_serialized_quality_report(area_quality_report)
+                self.quality_report_dal.upload_serialized_quality_report(pillar_quality_report)
+            quality_reports.append(pillar_quality_report)
+
         # if it's the right day of the week, we will send emails and save report data
         if save_snapshots and not is_dry_run:
             self.save_report_data(quality_reports, end_date)

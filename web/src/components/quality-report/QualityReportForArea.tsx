@@ -37,9 +37,10 @@ const PLATFORM_MAP: Record<JSONAPI.Platform, string> = {
 interface Props {
   area: string;
   team?: string;
+  pillar: string;
 }
 
-const QualityReportForArea = ({ area, team }: Props) => {
+const QualityReportForArea = ({ area, team, pillar }: Props) => {
   const location = useLocation();
 
   const [, dispatch] = React.useContext(AppStateContext);
@@ -47,7 +48,7 @@ const QualityReportForArea = ({ area, team }: Props) => {
     "Overall",
   ]);
 
-  useDocumentTitle(`${area} Quality Report`);
+  useDocumentTitle(`${pillar}: ${area} Quality Report`);
 
   const { data, isLoading } = useQuery(["quality-report", area], () =>
     getQualityReportForArea(area),
@@ -175,13 +176,18 @@ const QualityReportForArea = ({ area, team }: Props) => {
       <TabsNav
         className={styles.tabs}
         tabs={[
-          {
-            href: `${location.pathname}?area=${encodeURIComponent(area)}`,
-            isActive: team === undefined,
-            name: "Entire area",
-          },
+          // There are some teams don't belong to a specific area, make an exception case here
+          ...(area.startsWith("no_area")
+            ? []
+            : [
+                {
+                  href: `${location.pathname}?pillar=${encodeURIComponent(pillar)}&area=${encodeURIComponent(area)}`,
+                  isActive: team === undefined,
+                  name: "Entire area",
+                },
+              ]),
           ...(teams?.map(t => ({
-            href: `${location.pathname}?area=${encodeURIComponent(
+            href: `${location.pathname}?pillar=${encodeURIComponent(pillar)}&area=${encodeURIComponent(
               area,
             )}&team=${encodeURIComponent(t)}`,
             isActive: t === team,

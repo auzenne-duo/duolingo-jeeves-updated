@@ -72,6 +72,7 @@ jira_doc_templ = JiraDocument(
     parent_issue=None,
     child_issues=[],
     is_dev_related=False,
+    pillar="",
     area="",
     team="",
     codebase="",

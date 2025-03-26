@@ -19,9 +19,10 @@ if __name__ == "__main__":
         jira_client = app_registry(ShakiraJiraApiClient)
 
         required_features = set()
-        for teams_to_features in JIRA_FEATURES.values():
-            for features_to_synonyms in teams_to_features.values():
-                required_features.update(features_to_synonyms.keys())
+        for pillar in JIRA_FEATURES:
+            for teams_to_features in JIRA_FEATURES[pillar].values():
+                for features_to_synonyms in teams_to_features.values():
+                    required_features.update(features_to_synonyms.keys())
 
         features_on_jira = jira_client.get_features(_PROJECTS)
         features_to_add = [

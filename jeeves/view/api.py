@@ -813,12 +813,57 @@ def sentiment_search():
     return json.jsonify(result)
 
 
-@blueprint_api.route("/api/3/quality_report", methods=["GET"])
+@blueprint_api.route("/api/3/quality_report_overview_area", methods=["GET"])
 def quality_report():
     """
     Returns high level quality report data for all areas for the quality report landing page
     """
-    return json.jsonify({"areas": app_registry(QualityReportManager).get_area_quality_overviews()})
+    pillar = request.args.get("pillar")
+    if not pillar:
+        abort(make_response("Please provide a pillar parameter.", 400))
+
+    return json.jsonify(
+        {"areas": app_registry(QualityReportManager).get_area_quality_overviews(pillar)}
+    )
+
+
+@blueprint_api.route("/api/3/quality_report_overview_team", methods=["GET"])
+def quality_report_team_overview():
+    """
+    Returns high level quality report data for all teams in an area for the quality report landing page
+    """
+    pillar = request.args.get("pillar")
+    area = request.args.get("area")
+    if not pillar:
+        abort(make_response("Please provide a pillar parameter.", 400))
+    if not area:
+        abort(make_response("Please provide an area parameter.", 400))
+
+    return json.jsonify(
+        {"teams": app_registry(QualityReportManager).get_team_quality_overviews(pillar, area)}
+    )
+
+
+@blueprint_api.route("/api/3/quality_report_overview", methods=["GET"])
+def quality_report_overview():
+    """
+    Returns high level quality report data for all pillars for the quality report landing page
+    """
+    return json.jsonify(
+        {"pillars": app_registry(QualityReportManager).get_pillar_quality_overviews()}
+    )
+
+
+@blueprint_api.route("/api/3/quality_report_pillar", methods=["GET"])
+def quality_report_pillar():
+    """
+    Retrieves the most recently generated quality report data for a specifc pillar along with quality report data for that pillar's area
+    """
+    pillar = request.args.get("pillar")
+    if not pillar:
+        abort(make_response("Please provide a pillar parameter.", 400))
+
+    return app_registry(QualityReportManager).get_serialized_quality_report(pillar)
 
 
 @blueprint_api.route("/api/3/quality_report_area", methods=["GET"])

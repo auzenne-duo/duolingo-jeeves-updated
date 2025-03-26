@@ -14,7 +14,7 @@ from jeeves import registry as app_registry
 from jeeves.config.config import get_config
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.dal.employees import EmployeesDAL
-from jeeves.model.quality_report import QualityReport, QualityReportArea
+from jeeves.model.quality_report import QualityReport, QualityReportArea, QualityReportPillar
 from jeeves.util.quality_report_util import TEMPLATE_DIRECTORY
 
 LOG = logging.getLogger(__name__)
@@ -24,181 +24,199 @@ _IS_PRODUCTION_ENV = get_config().get_nested(["environment"]) == "prod"
 
 _AREA = "AREA"
 _RECEIVE_ALL = "RECEIVE_ALL"
+_PILLAR = "PILLAR"
 # This list is mostly based on the data from the orgchart:
 # https://static.internal.duolingo.com/colombo/orgchart/orgchart.html#onboarding
 # You can run get_latest_recipient_groups function to get the latest mapping of recipients
 
+
 RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
-    "Design Accelerator": {
-        _AREA: [
-            ("colombo@duolingo.com", 65494655),
-            ("shawn.buessing@duolingo.com", 18288193),
-        ],
-        "Design Systems": [
-            ("chris.lock@duolingo.com", 576224004),
-        ],
-    },
     "Growth": {
-        _AREA: [
-            ("colombo@duolingo.com", 65494655),
-            ("hideki@duolingo.com", 1076),
-            ("kevinyang@duolingo.com", 3057357),
-            ("rock@duolingo.com", 95438),
-            ("soyee@duolingo.com", 969088226),
-            ("yao@duolingo.com", 576008906),
-            ("yudi@duolingo.com", 535711458),
-        ],
+        _PILLAR: [],
+        "International Growth": {
+            _AREA: [
+                ("colombo@duolingo.com", 65494655),
+                ("hideki@duolingo.com", 1076),
+                ("kevinyang@duolingo.com", 3057357),
+                ("rock@duolingo.com", 95438),
+                ("soyee@duolingo.com", 969088226),
+                ("yao@duolingo.com", 576008906),
+                ("yudi@duolingo.com", 535711458),
+            ],
+            "China": [
+                ("elriczhong@duolingo.com", 338612774),
+                ("kevinyang@duolingo.com", 3057357),
+                ("tao@duolingo.com", 515653291),
+            ],
+            "Momentum": [
+                ("momentum-team@duolingo.com", None),
+            ],
+            "Re-Onboarding": [
+                ("allen.wang@duolingo.com", 975446875),
+                ("elriczhong@duolingo.com", 338612774),
+                ("xiao@duolingo.com", 15625523),
+            ],
+            "Score": [
+                ("allen.wang@duolingo.com", 975446875),
+                ("tao@duolingo.com", 515653291),
+                ("yunze@duolingo.com", 918148957),
+            ],
+        },
+        "Area - Retention": {
+            _AREA: [("antonia@duolingo.com", 190618), ("jackson@duolingo.com", 19364437)],
+            "Reengagement": [
+                ("osman@duolingo.com", 555374397),
+                ("reengagement-engineering@duolingo.com", None),
+                ("sameer@duolingo.com", 497392481),
+                ("soyee@duolingo.com", 969088226),
+            ],
+            "Retention": [
+                ("retention-engineering@duolingo.com", None),
+                ("retention-pm@duolingo.com", None),
+            ],
+        },
+        "no_area_growth": {
+            _AREA: [],
+            "Delight": [
+                ("delight-team@duolingo.com", None),
+            ],
+            "Social Engagement": [
+                ("lilly@duolingo.com", 425432603),
+                ("rsalvador@duolingo.com", 591913431),
+                ("tsl-team-engineering@duolingo.com", None),
+                ("social-engagement-engineering@duolingo.com", None),
+            ],
+        },
         _RECEIVE_ALL: [
             ("ben.warsaw@duolingo.com", 404507680),
             ("hideki@duolingo.com", 1076),
             ("mpereslucha@duolingo.com", 759837354),
             ("ningxin@duolingo.com", 510539986),
         ],
-        "China": [
-            ("elriczhong@duolingo.com", 338612774),
-            ("kevinyang@duolingo.com", 3057357),
-            ("tao@duolingo.com", 515653291),
-        ],
-        "Delight": [
-            ("delight-team@duolingo.com", None),
-        ],
-        "Growth Score": [
-            ("allen.wang@duolingo.com", 975446875),
-            ("tao@duolingo.com", 515653291),
-            ("yunze@duolingo.com", 918148957),
-        ],
-        "Momentum": [
-            ("momentum-team@duolingo.com", None),
-        ],
-        "Reengagement": [
-            ("osman@duolingo.com", 555374397),
-            ("reengagement-engineering@duolingo.com", None),
-            ("sameer@duolingo.com", 497392481),
-            ("soyee@duolingo.com", 969088226),
-        ],
-        "Reonboarding": [
-            ("allen.wang@duolingo.com", 975446875),
-            ("elriczhong@duolingo.com", 338612774),
-            ("xiao@duolingo.com", 15625523),
-        ],
-        "Retention": [
-            ("retention-engineering@duolingo.com", None),
-            ("retention-pm@duolingo.com", None),
-        ],
-        "Social Engagement": [
-            ("lilly@duolingo.com", 425432603),
-            ("rsalvador@duolingo.com", 591913431),
-            ("social-engagement-engineering@duolingo.com", None),
-        ],
     },
-    "Infra Platform": {
-        _AREA: [
-            ("fabio@duolingo.com", 606042449),
-            ("peter@duolingo", 97197056),
-        ],
-        "Engineering Studio": [
-            ("becky@duolingo.com", 614576367),
-        ],
-        "Stability and Performance": [
-            ("leon@duolingo.com", 233506),
-            ("caesar@duolingo.com", 197953187),
-        ],
+    "Platform": {
+        _PILLAR: [],
+        "Design Accelerator": {
+            _AREA: [
+                ("colombo@duolingo.com", 65494655),
+                ("shawn.buessing@duolingo.com", 18288193),
+                ("fabio@duolingo.com", 606042449),
+            ],
+            "Design Systems": [
+                ("chris.lock@duolingo.com", 576224004),
+            ],
+        },
+        "Infra Platform": {
+            _AREA: [
+                ("fabio@duolingo.com", 606042449),
+                ("peter@duolingo", 97197056),
+            ],
+            "Engineering Studio": [
+                ("becky@duolingo.com", 614576367),
+            ],
+            "Stability and Performance": [
+                ("leon@duolingo.com", 233506),
+                ("caesar@duolingo.com", 197953187),
+            ],
+        },
     },
-    "Learning R&D": {
-        _AREA: [
-            ("ang@duolingo.com", 8676371),
-            ("colombo@duolingo.com", 65494655),
-            ("hoshi@duolingo.com", 35950076),
-            ("jenna@duolingo.com", 139182230),
-            ("jessica@duolingo.com", 521621716),
-            ("joseph@duolingo.com", 47061),
-            ("liz@duolingo.com", 461557793),
-            ("matt.long@duolingo.com", 1742400),
-            ("natalia@duolingo.com", 357062),
-            ("peng@duolingo.com", 450156231),
-            ("seun@duolingo.com", 448224015),
-            ("tony@duolingo.com", 4),
-        ],
+    "Language Learning": {
+        "Learning Experience": {
+            _AREA: [
+                ("ang@duolingo.com", 8676371),
+                ("colombo@duolingo.com", 65494655),
+                ("hoshi@duolingo.com", 35950076),
+                ("jenna@duolingo.com", 139182230),
+                ("jessica@duolingo.com", 521621716),
+                ("joseph@duolingo.com", 47061),
+                ("liz@duolingo.com", 461557793),
+                ("matt.long@duolingo.com", 1742400),
+                ("natalia@duolingo.com", 357062),
+                ("peng@duolingo.com", 450156231),
+                ("seun@duolingo.com", 448224015),
+                ("tony@duolingo.com", 4),
+            ],
+            "Intermediate English": [
+                ("katherine.wallace@duolingo.com", 84534537),
+                ("uriel@duolingo.com", 507876913),
+            ],
+            "Longform Content": [
+                ("michael@duolingo.com", 15587805),
+                ("luis.mas@duolingo.com", 1053329023),
+            ],
+        },
+        "Learning Scaling": {
+            _AREA: [
+                ("anand@duolingo.com", 1008909),
+                ("colombo@duolingo.com", 65494655),
+                ("jessica@duolingo.com", 521621716),
+                ("matt.long@duolingo.com", 1742400),
+            ],
+            "Shared Content": [("dominic@duolingo.com", 542060447)],
+            "Translations": [],
+        },
+        "Video Call": {
+            _AREA: [("yash@duolingo.com", 59192169), ("zan@duolingo.com", 1280054)],
+            "Video Call": [],
+        },
+        _PILLAR: [],
         _RECEIVE_ALL: [],
-        "Path": [
-            ("path-team@duolingo.com", None),
-        ],
-        "Personalized Sessions": [
-            ("ang@duolingo.com", 8676371),
-            ("sanil@duolingo.com", 800086825),
-            ("will.haines@duolingo.com", 13834416),
-        ],
-        "New Writing Systems": [("chris@duolingo.com", 15316126)],
-        "Media Learning": [
-            ("jasong@duolingo.com", 430902565),
-            ("michael@duolingo.com", 15587805),
-            ("cailyn@duolingo.com", 507747809),
-        ],
-    },
-    "Learning Scaling": {
-        _AREA: [
-            ("anand@duolingo.com", 1008909),
-            ("colombo@duolingo.com", 65494655),
-            ("jessica@duolingo.com", 521621716),
-            ("matt.long@duolingo.com", 1742400),
-        ],
-        "Generated Content": [("dominic@duolingo.com", 542060447)],
     },
     "Monetization": {
-        _AREA: [
-            ("cem@duolingo.com", 194829322),
-            ("colombo@duolingo.com", 65494655),
-            ("evelyn@duolingo.com", 46472964),
-            ("hai@duolingo.com", 825435186),
-            ("hoshi@duolingo.com", 35950076),
-            ("itai@duolingo.com", 2200982),
-            ("jay@duolingo.com", 605332),
-            ("jonathan.duxbury@duolingo.com", 446774430),
-            ("kuo@duolingo.com", 504628953),
-            ("mopewa@duolingo.com", 347408),
-            ("natalia@duolingo.com", 357062),
-            ("vicky@duolingo.com", 241673612),
-            ("wes@duolingo.com", 803633967),
-        ],
+        _PILLAR: [],
         _RECEIVE_ALL: [
             ("aspen@duolingo.com", 787642145),
             ("spotter@duolingo.com", 17782348),
             ("brock@duolingo.com", 516234),
         ],
-        "Ads": [
-            ("kuo@duolingo.com", 504628953),
-        ],
-        "Subscription Packaging": [
-            ("tower@duolingo.com", 290339876),
-            ("joana@duolingo.com", 26339151),
-            ("kuo@duolingo.com", 504628953),
-            ("sue@duolingo.com", 411492851),
-        ],
-        "ABC": [("daniel@duolingo.com", 330486311)],
-        "Energy": [
-            ("moses@duolingo.com", 57694070),
-        ],
-        "Max": [
-            ("megan.bednarczyk@duolingo.com", 111864136),
-            ("sarahtracy@duolingo.com", 100396129),
-            ("nozymko@duolingo.com", 270487647),
-        ],
-        "Acquisition": [
-            ("evelyn@duolingo.com", 46472964),
-            ("mopewa@duolingo.com", 347408),
-        ],
+        "no_area_monetization": {
+            _AREA: [],
+            "Subscription Packaging": [
+                ("tower@duolingo.com", 290339876),
+                ("joana@duolingo.com", 26339151),
+                ("kuo@duolingo.com", 504628953),
+                ("sue@duolingo.com", 411492851),
+            ],
+            "Energy": [
+                ("moses@duolingo.com", 57694070),
+            ],
+            "Max": [
+                ("megan.bednarczyk@duolingo.com", 111864136),
+                ("sarahtracy@duolingo.com", 100396129),
+                ("nozymko@duolingo.com", 270487647),
+            ],
+            "Acquisition": [
+                ("evelyn@duolingo.com", 46472964),
+                ("mopewa@duolingo.com", 347408),
+            ],
+            "Monetization Engine": [],
+        },
     },
     "New Subjects": {
-        _AREA: [
-            ("colleen@duolingo.com", 591143118),
-            ("lizn@duolingo.com", 288283957),
-            ("vanessa@duolingo.com", 160465455),
-        ],
+        "Math": {
+            _AREA: [
+                ("colleen@duolingo.com", 591143118),
+                ("lizn@duolingo.com", 288283957),
+                ("vanessa@duolingo.com", 160465455),
+            ],
+            "Math Infrastructure": [],
+            "Math Motivation": [],
+            "Math Skills": [],
+        },
+        "Music": {
+            _AREA: [
+                ("colleen@duolingo.com", 591143118),
+                ("lizn@duolingo.com", 288283957),
+                ("vanessa@duolingo.com", 160465455),
+            ],
+            "Music Instruments": [],
+            "Music Motivation": [],
+            "Music Songs": [],
+        },
+        _PILLAR: [],
         _RECEIVE_ALL: [("tianyu@duolingo.com", 919037599)],
-        "Math": [("colleen@duolingo.com", 591143118)],
     },
 }
-
 
 RECEIVE_ALL_AREA_REPORTS = [
     ("natalie@duolingo.com", 762020),
@@ -212,7 +230,10 @@ RECEIVE_ALL_REPORTS = [
     ("caleb.noble@duolingo.com", 23133309),
     ("britni@duolingo.com", 875832803),
     ("rwagner@duolingo.com", 105023805),
+    ("guanhua@duolingo.com", 909564076),
 ]
+
+AREA_TO_EXCLUDE = ["no_area_growth", "no_area_monetization", "no_area_new_subjects"]
 
 
 def get_employees() -> Tuple[List[Dict], List[Dict]]:
@@ -256,10 +277,11 @@ def get_latest_recipient_groups():
     """
     team_to_leads, area_to_leads = determine_team_leads()
     recipient_groups = {}
-    for area, teams in JIRA_FEATURES.items():
-        recipient_groups[area] = {_AREA: area_to_leads.get(area, [])}
-        for team in teams:
-            recipient_groups[area][team] = team_to_leads.get(team, [])
+    for pillar in JIRA_FEATURES:
+        for area, teams in JIRA_FEATURES[pillar].items():
+            recipient_groups[area] = {_AREA: area_to_leads.get(area, [])}
+            for team in teams:
+                recipient_groups[area][team] = team_to_leads.get(team, [])
     return recipient_groups
 
 
@@ -277,15 +299,26 @@ def _get_recipients(report: QualityReport) -> List[Tuple[str, Optional[int]]]:
     Returns a list of recipients for each area or team.
     """
     recipients: List[Tuple[str, Optional[int]]] = []
-    if isinstance(report, QualityReportArea):
-        recipients = RECIPIENT_GROUPS[report.area][_AREA]
-        recipients.extend(RECEIVE_ALL_AREA_REPORTS)
+    if isinstance(report, QualityReportPillar):
+        recipients = RECIPIENT_GROUPS[report.pillar][_PILLAR]
+    elif isinstance(report, QualityReportArea):
+        areas = RECIPIENT_GROUPS[report.pillar]
+        if report.area in AREA_TO_EXCLUDE:
+            return []
+        if report.area in areas:
+            recipients = areas[report.area][_AREA]
+            recipients.extend(RECEIVE_ALL_AREA_REPORTS)
+        else:
+            LOG.info(f"missing recipients for area: {report.area}")
+            return []
     else:
-        if report.title not in RECIPIENT_GROUPS[report.area]:
+        areas = RECIPIENT_GROUPS[report.pillar]
+        teams = areas.get(report.area, {})
+        if report.title not in teams:
             LOG.info(f"missing recipients for team: {report.title}")
             return []
-        recipients = RECIPIENT_GROUPS[report.area][report.title]
-    recipients.extend(RECIPIENT_GROUPS[report.area].get(_RECEIVE_ALL, []))
+        recipients = teams.get(report.title, [])
+    recipients.extend(RECIPIENT_GROUPS[report.pillar].get(_RECEIVE_ALL, []))
     recipients.extend(RECEIVE_ALL_REPORTS)
     return recipients
 
@@ -300,8 +333,8 @@ def send_email(report: QualityReport, recipient_override: Optional[str] = None):
         "ui_language": "en",
     }
 
-    if report.area not in RECIPIENT_GROUPS:
-        LOG.info(f"missing recipients for area: {report.area}")
+    if report.pillar not in RECIPIENT_GROUPS:
+        LOG.info(f"missing recipients for pillar: {report.pillar}")
         return
 
     if recipient_override is not None:

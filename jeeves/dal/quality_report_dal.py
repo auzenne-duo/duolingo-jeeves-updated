@@ -173,7 +173,7 @@ class QualityReportDAL:
         Downloads the latest quality report
 
         Params
-            title: string name for an area or team, such as "Growth"
+            title: string name for a pillar or area or team, such as "Growth"
             checkpoint_date: string date of the checkpoint for the quality report (optional)
 
         Returns: JSON object of SerializedQualityReportData structure

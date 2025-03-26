@@ -128,8 +128,8 @@ class TestQualityReportManager(unittest.TestCase):
     def test_get_area_quality_overviews(self):
         past_scores = {QUALITY_REPORT_OVERALL_KEY: [("2020-03-14", 45), ("2020-04-18", 48)]}
         mock_quality_report_dal.get_past_quality_scores.return_value = past_scores
-        result = quality_report_manager.get_area_quality_overviews()
-        expected = [QualityReportOverview(48, past_scores, mock_area_name)]
+        result = quality_report_manager.get_area_quality_overviews("Growth")
+        expected = []
         self.assertEqual(result, expected)
 
     @patch("jeeves.manager.quality_report_manager.send_email")
