@@ -325,7 +325,7 @@ test_cases = [
             "Music - Practice Tab",
         ],
     ),
-    # mega feature is detected.
+    # math feature is detected.
     (
         "",
         "Test",
@@ -342,7 +342,7 @@ test_cases = [
             "Music - Practice Tab",
         ],
     ),
-    # mega feature is detected with iOS generated description.
+    # math feature is detected with iOS generated description.
     (
         "",
         "Test",
@@ -362,12 +362,12 @@ test_cases = [
     # prioritize user input over generated description.
     (
         "Pitch",
-        "music library",
+        "music library home streak stories",
         "*System Information*:\n*app version*: 6.213.0.4\n*MEGA Information*:\n- *Mega course*: music\n\nother stuff: "
         + "".join(mock_jira_leaderboard_keywords)
         + "".join(mock_jira_kudos_keywords),
-        ["Music", "Music - Instrument Mode", "Music - Practice Tab"],
-        ["Leaderboard", "Streak", "Stories", "Kudos", "Skill tree", "Shake-to-report"],
+        ["Music - Instrument Mode", "Music - Practice Tab", "Streak", "Skill tree", "Stories"],
+        ["Leaderboard", "Kudos", "Shake-to-report"],
     ),
 ]
 
@@ -386,10 +386,6 @@ test_cases = [
         "Math - Localization",
         "Math",
     ],
-)
-@patch(
-    "jeeves.manager.jira_feature_manager._MUSIC_FEATURES",
-    ["Music"],
 )
 def test_get_suggested_features(
     summary, description, generated_description, expected_suggestions, expected_others

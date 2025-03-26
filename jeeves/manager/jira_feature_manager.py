@@ -58,7 +58,6 @@ _MATH_FEATURES = [
     "Math - Life Skills",
     "Math",
 ]
-_MUSIC_FEATURES = ["Music"]
 
 
 @registry.bind(
@@ -255,8 +254,6 @@ class JiraFeatureManager:
             mega_course = duolingo_metadata.get("mega_information", {}).get("mega_course", None)
             if mega_course == "math":
                 suggested_features.extend(_MATH_FEATURES)
-            elif mega_course == "music":
-                suggested_features.extend(_MUSIC_FEATURES)
 
         for session_end_screen_label in ["Session end screen name: ", "Session End Screen Name: "]:
             if generated_description and session_end_screen_label in generated_description:
@@ -278,6 +275,7 @@ class JiraFeatureManager:
             search_text_user_input, valid_features
         )
 
+        print(feature_list_user_input)
         # parse and process generated description
         search_text_generated_description = ""
         if generated_description:
@@ -285,7 +283,7 @@ class JiraFeatureManager:
         feature_list_generated_description = self._get_text_suggested_features(
             search_text_generated_description, valid_features
         )
-
+        print(feature_list_generated_description)
         # prioritize feature matches from user inputted text, then add suggestions from generated description if there is space
         text_suggested_features = feature_list_user_input[:SUGGESTED_FEATURES_LIMIT]
         available_feature_slots = SUGGESTED_FEATURES_LIMIT - len(feature_list_user_input)
