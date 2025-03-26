@@ -52,7 +52,6 @@ JIRA_FEATURES = {
                 "Student Plan": [],
                 "Ads / rewarded ads": ["ads"],
                 "Streak Society Promo": [],
-                "Legendary": ["Legendarize"],
             },
             "Max": {
                 "Mistakes Inbox": [],
@@ -62,6 +61,7 @@ JIRA_FEATURES = {
                 "Words List": ["word list"],
                 "Max Upsell": [],
                 "Explain my Answer": ["EMA", "bad explanation", "wrong explanation", "explanation"],
+                "Legendary": ["Legendarize"],
             },
             "Energy": {
                 "Gems / Lingots": ["gem", "lingot"],
