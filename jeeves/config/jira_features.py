@@ -92,7 +92,9 @@ JIRA_FEATURES = {
                 "China Android Super": [],
                 "WeChat": ["wechat registration", "wechat login", "wechat sharing"],
             },
-            "Momentum": {},
+            "Momentum": {
+                "Momentum": [],
+            },
             "Re-Onboarding": {
                 "Onboarding": ["new user", "on boarding", "funboarding"],
                 "Course picker": ["course chooser", "language drawer", "flag", "flagship"],
@@ -455,6 +457,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Max": "Anything with Max dashboard, Max purchase flow, and upgrading to Max from Super or Free, or upgrading from Max individual to Max Family Plan",
     "Max Upsell": "Anything related to 'Get Max' in the app",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
+    "Momentum": "Bugs with Momentum team features",
     "Monthly Challenge": "Bugs with the monthly challenge",
     "Music - Instrument Mode": "Problems with using a real instrument with the music course, either via pitch detection or MIDI.",
     "Music - Licensed Songs": "Problems with the song play experience for any licensed song.",
