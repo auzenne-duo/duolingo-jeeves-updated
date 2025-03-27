@@ -50,7 +50,6 @@ JIRA_FEATURES = {
                 "Super": [],
                 "New Years Promo": [],
                 "Student Plan": [],
-                "Ads / rewarded ads": ["ads"],
                 "Streak Society Promo": [],
             },
             "Max": {
@@ -82,6 +81,9 @@ JIRA_FEATURES = {
             "Monetization Engine": {
                 "Max Backend": [],
                 "Purchasing": ["can't purchase"],
+            },
+            "Ads": {
+                "Ads / rewarded ads": ["ads"],
             },
         },
     },
