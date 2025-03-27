@@ -396,12 +396,9 @@ JIRA_FEATURES = {
     "Other": {
         "Severin": {
             "LLM Team": {
-                "Story Content": [],
-                "Books Home": [],
-                "Table of Contents": [],
-                "Notify Me": [],
-                "Book Continuation": [],
-            }
+                "Bookshelf Content": ["hints", "tts", "content", "XP"],
+                "Bookshelf Pages": ["home", "toc", "continue", "notify me"],
+            },
         },
         "Misc": {
             "Misc Team": {
