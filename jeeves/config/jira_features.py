@@ -413,7 +413,12 @@ JIRA_FEATURES = {
 JIRA_FEATURES_REGISTRY_KEY = "jira_features"
 
 # Use this if you want to tag an entire project with a specific team
-JIRA_TEAM_TO_PROJECT = {"Video Call": ["VCCF", "VCBF", "EXAI", "VCS", "VCG"]}
+JIRA_TEAM_TO_PROJECT = {
+    "Video Call Experience": ["VCCF", "EXAI"],
+    "Video Call Backend Foundations": ["VCBF"],
+    "Video Call Scaffolding": ["VCS"],
+    "Video Call Growth": ["VCG"],
+}
 
 ALL_CUSTOM_PROJECTS = [proj for projects in JIRA_TEAM_TO_PROJECT.values() for proj in projects]
 
