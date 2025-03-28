@@ -127,14 +127,14 @@ class ZendeskManager(JeevesManager):
                 part = line.split("email:")
                 if len(part) == 2 and "duolingocontractors" in part[-1]:
                     email = ZendeskManager._clean_email(part[-1].strip())
-                    LOG.info(f"email extracting: {email}")
+                    print(f"email extracting: {email}", flush=True)
                     break
 
         if email:
             description = description + "\n root_email: " + email
 
         if feature == "Other":
-            LOG.warning(f"Unknown feature for ticket: {summary}")
+            print(f"Unknown feature for ticket: {summary}", flush=True)
 
         issue_status = None
 
@@ -147,8 +147,9 @@ class ZendeskManager(JeevesManager):
             )
             and JiraManager.check_duplicates_jira(project, summary)
         ):
-            LOG.info(
-                f"Creating Jira ticket for Zendesk ticket with {summary} and feature {feature}"
+            print(
+                f"Creating Jira ticket for Zendesk ticket with {summary} and feature {feature}",
+                flush=True,
             )
 
             issue_status = app_registry(ShakiraManager).report_issue(
@@ -166,21 +167,21 @@ class ZendeskManager(JeevesManager):
                 files={},
                 localization_contractor=True,
             )
-            LOG.info(f"Jira ticket created: {issue_status}")
 
         if issue_status:
             if "issueKey" in issue_status:
                 ZendeskManager.attach_files(project, issue_status["issueKey"], files)
+                print(f"Jira ticket successfully created: {issue_status}", flush=True)
             else:
-                LOG.info(
-                    f"Jira ticket doesn't contain issue key: {issue_status} for ticket: {summary} and project: {project}"
+                print(
+                    f"Jira ticket creation fail: {issue_status} for ticket: {summary} and project: {project}",
+                    flush=True,
                 )
         return issue_status
 
     @staticmethod
     def _check_date_repeat(created_at: str, updated_at: str) -> bool:
         if created_at == "" or updated_at == "":
-            LOG.info("missing create or update data in Zendesk ticket")
             return False
 
         # Convert strings to datetime objects
@@ -196,7 +197,6 @@ class ZendeskManager(JeevesManager):
         # If the ticket is updated in Zendesk, we don't want to create a new ticket
         # This check only provides a heuristic for whether a date is a "repeat"
         if time_difference >= timedelta(minutes=20):
-            LOG.info("Zendesk ticket is updated, skip creating Jira ticket")
             return False
         else:
             return True
