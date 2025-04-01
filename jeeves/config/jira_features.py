@@ -43,6 +43,7 @@ JIRA_FEATURES = {
                 "Super Upsell": [],
                 "Crossgrades": ["upgrades", "downgrades"],
                 "Family Plan": [],
+                "Legendary": ["Legendarize"],
             },
             "Subscription Packaging": {
                 "Purchase Flow": ["purchase page", "purchase screen", "purchase step"],
@@ -60,7 +61,6 @@ JIRA_FEATURES = {
                 "Words List": ["word list"],
                 "Max Upsell": [],
                 "Explain my Answer": ["EMA", "bad explanation", "wrong explanation", "explanation"],
-                "Legendary": ["Legendarize"],
             },
             "Energy": {
                 "Gems / Lingots": ["gem", "lingot"],
