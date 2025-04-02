@@ -20,6 +20,7 @@ from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.shakira_stat import ShakiraStat
 
 _UNSUBSCRIBED = [
+    "alexis.sursock@duolingo.com",
     "jake@duolingo.com",
     "josh.kenny@duolingo.com",
     "ming@duolingo.com",
