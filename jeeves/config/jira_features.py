@@ -245,8 +245,11 @@ JIRA_FEATURES = {
             },
         },
         "Learning Scaling": {
-            "Shared Content": {},
-            "Translations": {},
+            "GRID": {},
+            "Translations": {
+                "Translation Issue": [],
+                "Grading issue": [],
+            },
             "Automation Platform": {},
             "Curriculum Generation & Infrastructure": {},
             "Exercises": {},
@@ -404,7 +407,6 @@ JIRA_FEATURES = {
             "Misc Team": {
                 "Feature request / feedback": [],
                 "Schools": [],
-                "Translation Issue": [],
             }
         },
     },
@@ -445,6 +447,8 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "General performance issues": "App crashes, 4xx/5xx errors, freezes, slowness, etc.",
     "Generated Sessions": "Problems within exercises such as missing tap tokens, broken buttons, etc. Not for content issues such as wrong translation.",
     "Grading Ribbon": "Issues with the grading ribbon that appears at the bottom of an exercise, specifically layout/formatting",
+    "Grading issue": "Issues with the grading during lessons",
+    "Translation Issue": "Issues with the translation",
     "Guidebook": "Bugs on a guidebook page",
     "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
     "Hard Exercises": "Use this if you think the exercise is mislabeled as hard",
