@@ -212,6 +212,7 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
                 ("colleen@duolingo.com", 591143118),
                 ("lizn@duolingo.com", 288283957),
                 ("vanessa@duolingo.com", 160465455),
+                ("or@duolingo.com", 50664284),
             ],
             "Music Instruments": [],
             "Music Motivation": [],
