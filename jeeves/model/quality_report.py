@@ -553,7 +553,7 @@ class QualityReportPillar(QualityReport):
             pillar,
             pillar,
             pillar,
-            monthly=True,
+            monthly=False,
         )
         self.area_data = area_data
         self.jeeves_link = (
