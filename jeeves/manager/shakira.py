@@ -58,8 +58,8 @@ _SLACK_CHANNELS_TO_JIRA_LABELS = {
 }
 
 PRIORITIZED_BY_GPT_LABEL = "prioritized-by-gpt"
-SLACK_CHANNEL_NAME = "#proj-shake-to-report-improvements"
-SLACK_CHANNEL_URL = "https://duolingo.slack.com/archives/C0727H848P3"
+SLACK_CHANNEL_NAME = "#proj-jeeves"
+SLACK_CHANNEL_URL = "https://duolingo.slack.com/archives/C01DFNRES8Y"
 SLACK_CHANNEL_MD = f"[{SLACK_CHANNEL_NAME}|{SLACK_CHANNEL_URL}]"
 
 _IOS_LOG_FILENAME = "logs.txt"
