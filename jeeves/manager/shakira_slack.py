@@ -25,6 +25,37 @@ class ShakiraSlackApiClient:
         """
         return _API_TOKEN
 
+    def _get_slack_display_name_by_email(self, email: str) -> Optional[str]:
+        """
+        Look up a Slack user by their email address and return their display name.
+        For reference: https://api.slack.com/methods/users.lookupByEmail
+
+        parameters:
+            email: Email address of the user to look up.
+
+        returns:
+            display_name: str Slack user's display name if found, None otherwise.
+        """
+        url = f"{_API}/users.lookupByEmail"
+        headers = {"Authorization": f"Bearer {_API_TOKEN}"}
+        params = {"email": email}
+
+        try:
+            r = post(url, headers=headers, params=params)
+            r.raise_for_status()
+            response_json = json.loads(r.text)
+            if response_json["ok"]:
+                user = response_json["user"]
+                return user.get("profile", {}).get("display_name")
+            else:
+                duo_logging.capture_message(
+                    f"Could not look up Slack user by email: {response_json['error']}", "warning"
+                )
+                return None
+        except RequestException as e:
+            print_request_exception(e, log_level="warning")
+            return None
+
     def _post_chat_message(
         self,
         slack_channel: SlackChannel,
@@ -153,9 +184,11 @@ class ShakiraSlackApiClient:
         returns:
             post id: str API ID of the created slack post.
         """
-        reporter_username = (
-            f'<@{reporter_email.split("@")[0]}>' if reporter_email else "unknown user"
+        slack_display_name = (
+            self._get_slack_display_name_by_email(reporter_email) if reporter_email else None
         )
+        reporter_username = f"@{slack_display_name}" if slack_display_name else "unknown user"
+
         platform = JIRA_PROJ_TO_PLATFORM.get(project, "unknown platform")
         additional_details = ""
         if jira_issue_url:
