@@ -75,6 +75,10 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
                 ("retention-engineering@duolingo.com", None),
                 ("retention-pm@duolingo.com", None),
             ],
+            "Notifications": [
+                ("cailyn@duolingo.com", 507747809),
+                ("notifications-team@duolingo.com", None),
+            ],
         },
         "no_area_growth": {
             _AREA: [],
