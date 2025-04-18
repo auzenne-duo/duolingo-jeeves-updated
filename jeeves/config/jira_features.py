@@ -493,7 +493,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
     "Streak Society Promo": "Anything related to the Streak Society Promotion subscription discount",
     "Student Plan": "Anything related to the Get Student Plan, Student Plan verification, or Student Plan Prices",
-    "Super Upsell": "Anything related to when you see super upsell, super hooks, or pay wall",
+    "Super Upsell": "Includes Super hooks, tabs, and session end cards, but excludes Super ads and the purchase flow after entering the Super hook",
     "Purchase Flow": "Anything that happens after you enters the subscripton purchase flow",
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
