@@ -3,9 +3,11 @@ from typing import Tuple
 from unittest.mock import MagicMock
 
 import requests
+from werkzeug.datastructures import FileStorage
 
 from jeeves.dal.employees import EmployeesDAL
 from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator, GPTPriorityResponse
+from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
 from jeeves.manager.shakira import SLACK_CHANNEL_MD, ShakiraManager
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
@@ -18,15 +20,25 @@ _JIRA_ISSUE_URL = "https://jira.com/issues/DLAA-1"
 
 
 def _get_mocked_managers() -> (
-    Tuple[GPTPriorityEstimator, ShakiraJiraApiClient, ShakiraSlackApiClient, ShakiraManager]
+    Tuple[
+        GPTPriorityEstimator,
+        GPTScreenshotSummarizer,
+        ShakiraJiraApiClient,
+        ShakiraSlackApiClient,
+        ShakiraManager,
+    ]
 ):
     gpt_priority_estimator_mock = GPTPriorityEstimator(ai_completions_dal=MagicMock())
+    gpt_screenshot_summarizer_mock = GPTScreenshotSummarizer(ai_completions_dal=MagicMock())
+    gpt_screenshot_summarizer_mock.get_screenshot_summary = MagicMock(
+        return_value="screenshot summary"
+    )
 
     employees_dal = EmployeesDAL()
     shakira_jira_mock = ShakiraJiraApiClient(employees_dal=employees_dal)
     shakira_jira_mock.add_comment = MagicMock()
     shakira_jira_mock.create_issue = MagicMock(return_value="DLAA-1")
-    shakira_jira_mock.get_issue_details = MagicMock(return_value="None")
+    shakira_jira_mock.get_issue_details = MagicMock(return_value={"fields": {"summary": "summary"}})
     shakira_jira_mock.issue_url = MagicMock(return_value=_JIRA_ISSUE_URL)
     shakira_jira_mock.link_issues = MagicMock()
     shakira_jira_mock.set_priority = MagicMock()
@@ -38,15 +50,21 @@ def _get_mocked_managers() -> (
 
     return (
         gpt_priority_estimator_mock,
+        gpt_screenshot_summarizer_mock,
         shakira_jira_mock,
         shakira_slack_mock,
-        ShakiraManager(gpt_priority_estimator_mock, shakira_jira_mock, shakira_slack_mock),
+        ShakiraManager(
+            gpt_priority_estimator_mock,
+            gpt_screenshot_summarizer_mock,
+            shakira_jira_mock,
+            shakira_slack_mock,
+        ),
     )
 
 
 class Test(unittest.TestCase):
     def test_get_slack_report_types(self):
-        _, _, _, shakira_manager = _get_mocked_managers()
+        _, _, _, _, shakira_manager = _get_mocked_managers()
         result = shakira_manager.get_slack_report_types()
 
         case = unittest.TestCase()
@@ -61,7 +79,7 @@ class Test(unittest.TestCase):
         )
 
     def test_report_issue_to_jira_only(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature="Callouts",
@@ -94,7 +112,7 @@ class Test(unittest.TestCase):
         assert not shakira_slack_mock.post_issue.called
 
     def test_report_issue_with_valid_related_jira_ticket(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_jira_mock.get_issue_details = MagicMock(return_value={"id": 1})
 
         shakira_manager.report_issue(
@@ -144,7 +162,7 @@ class Test(unittest.TestCase):
         )
 
     def test_report_design_quality_issue_forwards_to_area_design_quality_channel(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_jira_mock.get_issue_details = MagicMock(return_value={"id": 1})
 
         shakira_manager.report_issue(
@@ -207,7 +225,7 @@ class Test(unittest.TestCase):
 
     def test_design_quality_forwarding_with_combined_area_channel(self):
         """Verify that the forwarding works for the combined learning (R&D and Scaling) channel."""
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_jira_mock.get_issue_details = MagicMock(return_value={"id": 1})
 
         shakira_manager.report_issue(
@@ -269,7 +287,7 @@ class Test(unittest.TestCase):
         assert shakira_slack_mock.post_issue.call_count == 2
 
     def test_report_issue_with_invalid_related_jira_ticket(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_jira_mock.get_issue_details = MagicMock(return_value={})
 
         shakira_manager.report_issue(
@@ -307,7 +325,7 @@ class Test(unittest.TestCase):
         assert not shakira_slack_mock.post_issue.called
 
     def test_report_issue_to_slack_only_v1(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature=None,
@@ -336,7 +354,7 @@ class Test(unittest.TestCase):
         assert not shakira_jira_mock.create_issue.called
 
     def test_report_issue_to_slack_only_with_related_ticket_v1(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature=None,
@@ -365,7 +383,7 @@ class Test(unittest.TestCase):
         assert not shakira_jira_mock.create_issue.called
 
     def test_report_issue_to_slack_only_v2(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature=None,
@@ -394,7 +412,7 @@ class Test(unittest.TestCase):
         assert not shakira_jira_mock.create_issue.called
 
     def test_report_issue_to_both_v1(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature="Design quality",
@@ -436,7 +454,7 @@ class Test(unittest.TestCase):
         )
 
     def test_report_issue_to_both_v2(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature="Callouts",
@@ -479,7 +497,7 @@ class Test(unittest.TestCase):
         assert not shakira_jira_mock.link_issues.called
 
     def test_report_issue_from_jeeves(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature="Callouts",
@@ -512,7 +530,7 @@ class Test(unittest.TestCase):
         assert not shakira_slack_mock.post_issue.called
 
     def test_report_issue_summary_too_long(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature="Callouts",
@@ -545,7 +563,7 @@ class Test(unittest.TestCase):
         assert not shakira_slack_mock.post_issue.called
 
     def test_report_issue_release_blocker(self):
-        _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
         shakira_manager.report_issue(
             project="DLAA",
             feature="Callouts",
@@ -577,8 +595,40 @@ class Test(unittest.TestCase):
         )
         assert not shakira_slack_mock.post_issue.called
 
+    def test_screenshot_summary(self) -> None:
+        _, gpt_screenshot_summarizer_mock, _, _, shakira_manager = _get_mocked_managers()
+        files = {
+            "screenshot": FileStorage(
+                stream=None,
+                filename="screenshot.png",
+                content_type="image/png",
+                name="screenshot",
+            )
+        }
+        shakira_manager.report_issue(
+            project="DLAA",
+            feature="Callouts",
+            slack_report_type=None,
+            client_specified_slack_channel_name=None,
+            related_issue_key=None,
+            summary="summary",
+            description=None,
+            generated_description=None,
+            reporter_email="biglou@duolingo.com",
+            pre_release=False,
+            release_blocker=True,
+            files=files,
+            localization_contractor=False,
+        )
+        gpt_screenshot_summarizer_mock.get_screenshot_summary.assert_called_once_with(
+            files["screenshot"],
+            "summary",
+        )
+
     def test_set_priority(self) -> None:
-        gpt_priority_estimator_mock, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        gpt_priority_estimator_mock, _, shakira_jira_mock, _, shakira_manager = (
+            _get_mocked_managers()
+        )
         priority_str = "Highest"
         reason = "App crashing blocks all user activity."
         gpt_priority_estimator_mock.estimate_priority = MagicMock(
@@ -599,7 +649,9 @@ class Test(unittest.TestCase):
         )
 
     def test_set_priority_no_priority(self) -> None:
-        gpt_priority_estimator_mock, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        gpt_priority_estimator_mock, _, shakira_jira_mock, _, shakira_manager = (
+            _get_mocked_managers()
+        )
         priority_str = "Unprioritized"
         reason = "Not enough context"
         gpt_priority_estimator_mock.estimate_priority = MagicMock(
@@ -620,7 +672,9 @@ class Test(unittest.TestCase):
         )
 
     def test_set_priority_jira_error(self) -> None:
-        gpt_priority_estimator_mock, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        gpt_priority_estimator_mock, _, shakira_jira_mock, _, shakira_manager = (
+            _get_mocked_managers()
+        )
         shakira_jira_mock.set_priority.side_effect = requests.HTTPError(
             "JIRA internal error", response=MagicMock(status_code=500)
         )
@@ -642,7 +696,9 @@ class Test(unittest.TestCase):
         )
 
     def test_set_priority_gpt_error(self) -> None:
-        gpt_priority_estimator_mock, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        gpt_priority_estimator_mock, _, shakira_jira_mock, _, shakira_manager = (
+            _get_mocked_managers()
+        )
         gpt_priority_estimator_mock.ai_completions_dal.ask.side_effect = (
             requests.exceptions.RequestException("GPT internal error")
         )
@@ -660,7 +716,7 @@ class Test(unittest.TestCase):
         )
 
     def test_upload_artifacts_success(self):
-        _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
         resp = shakira_manager.upload_artifacts(
             jira_issue_key="TEST-1234",
             files={"screenshot": "screenshot.png"},
@@ -672,7 +728,7 @@ class Test(unittest.TestCase):
         assert resp["issueKey"] == "TEST-1234"
 
     def test_upload_artifacts_jira_error(self):
-        _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
         mock_jira_response = requests.models.Response()
         mock_jira_response.status_code = 500
         shakira_jira_mock.upload_attachments.side_effect = requests.HTTPError(
@@ -690,7 +746,7 @@ class Test(unittest.TestCase):
         )
 
     def test_upload_artifacts_no_artifacts(self):
-        _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
 
         resp = shakira_manager.upload_artifacts(
             jira_issue_key="TEST-1234",

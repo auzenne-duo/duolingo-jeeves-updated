@@ -11,11 +11,13 @@ from typing import Dict, List, Optional, Tuple, Union
 from duolingo_base.user_agent import DuolingoUserAgent, DuoPlatform
 from duolingo_base.util import registry
 from requests.exceptions import RequestException
+from werkzeug.datastructures import FileStorage
 
 from jeeves import registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator
+from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_loki import ShakiraLokiApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
@@ -26,6 +28,7 @@ from jeeves.model.slack_channel import (
     SlackChannel,
     area_design_quality_channel,
 )
+from jeeves.util.s3_client_and_bucket import upload_to_jeeves_s3
 from jeeves.util.shakira import (
     JIRA_PROJ_TO_PLATFORM,
     JIRA_RELEASE_BLOCKER_LABEL,
@@ -68,6 +71,7 @@ ANDROID_LOG_FILE_PATTERN = re.compile(r"^log\d+\.txt$")
 
 @registry.bind(
     gpt_priority_estimator=registry.reference(GPTPriorityEstimator),
+    gpt_screenshot_summarizer=registry.reference(GPTScreenshotSummarizer),
     jira_client=registry.reference(ShakiraJiraApiClient),
     slack_client=registry.reference(ShakiraSlackApiClient),
 )
@@ -75,10 +79,12 @@ class ShakiraManager:
     def __init__(
         self,
         gpt_priority_estimator: GPTPriorityEstimator,
+        gpt_screenshot_summarizer: GPTScreenshotSummarizer,
         jira_client: ShakiraJiraApiClient,
         slack_client: ShakiraSlackApiClient,
     ):
         self._gpt_priority_estimator = gpt_priority_estimator
+        self._gpt_screenshot_summarizer = gpt_screenshot_summarizer
         self._jira_client = jira_client
         self._slack_client = slack_client
 
@@ -227,6 +233,26 @@ class ShakiraManager:
 
         self._jira_client.add_comment(project, issue_key, comment)
 
+    def _generate_and_upload_screenshot_summary(
+        self,
+        issue_key: str,
+        screenshot: FileStorage,
+        issue_summary: str,
+    ):
+        LOG.info(f"Generating screenshot summary for {issue_key}")
+        try:
+            summary = self._gpt_screenshot_summarizer.get_screenshot_summary(
+                screenshot, issue_summary
+            )
+        except Exception as e:
+            LOG.error(f"Failed to generate screenshot summary for {issue_key}: {e}")
+            return
+        try:
+            upload_to_jeeves_s3(f"screenshot_summaries/{issue_key}.txt", summary.encode("utf-8"))
+            LOG.info(f"Summary uploaded to S3 for {issue_key}")
+        except Exception as e:
+            LOG.error(f"Error uploading screenshot summary to S3 for {issue_key}: {e}")
+
     @traced_function()
     def report_issue(
         self,
@@ -241,7 +267,7 @@ class ShakiraManager:
         reporter_email: Optional[str],
         pre_release: bool,
         release_blocker: bool,
-        files: Dict[str, "FileStorage"],
+        files: Dict[str, FileStorage],
         localization_contractor: bool = False,
     ) -> Dict[str, Union[str, Tuple[str, int]]]:
         """
@@ -351,7 +377,7 @@ class ShakiraManager:
 
             if issue_key:
                 issue_url = self._jira_client.issue_url(issue_key)
-                self.upload_artifacts(issue_key, files)
+                self.upload_artifacts(issue_key, files, issue_summary=summary)
                 if related_issue_exists:
                     self._jira_client.link_issues(
                         outward_issue_key=related_issue_key,
@@ -360,9 +386,8 @@ class ShakiraManager:
 
                 # Set priority based on summary and feature in a background task.
                 ticket_text = JiraTicketText(title=summary, description=f"{description}")
-                with ThreadPoolExecutor() as executor:
-                    executor = app_registry(ThreadPoolExecutor)
-                    executor.submit(self._set_priority, issue_key, project, ticket_text)
+                executor = app_registry(ThreadPoolExecutor)
+                executor.submit(self._set_priority, issue_key, project, ticket_text)
 
             if not should_post_to_slack:
                 return (
@@ -440,6 +465,7 @@ class ShakiraManager:
         self,
         jira_issue_key: str,
         files: Dict[str, "FileStorage"],
+        issue_summary: Optional[str] = None,
         user_agent: Optional["DuolingoUserAgent"] = None,
     ) -> Dict[str, Union[str, Tuple[str, int]]]:
         """
@@ -474,13 +500,31 @@ class ShakiraManager:
                     # Assume we will either have one `logs.txt` file or one `log${random_number}.txt`
                     break
 
-        with ThreadPoolExecutor() as executor:
-            if text_stream:
-                executor = app_registry(ThreadPoolExecutor)
-                if user_agent.platform == DuoPlatform.IOS:
-                    executor.submit(self._upload_to_loki_ios, jira_issue_key, text_stream)
-                elif user_agent.platform == DuoPlatform.ANDROID:
-                    executor.submit(self._upload_to_loki_android, jira_issue_key, text_stream)
+        executor = app_registry(ThreadPoolExecutor)
+
+        if text_stream:
+            if user_agent.platform == DuoPlatform.IOS:
+                executor.submit(self._upload_to_loki_ios, jira_issue_key, text_stream)
+            elif user_agent.platform == DuoPlatform.ANDROID:
+                executor.submit(self._upload_to_loki_android, jira_issue_key, text_stream)
+
+        if "screenshot" in files:
+            if issue_summary is None:
+                issue_details = self._jira_client.get_issue_details(jira_issue_key)
+                if issue_details is None:
+                    LOG.warning(
+                        f"Could not get issue details for {jira_issue_key}, using empty summary"
+                    )
+                    issue_summary = "(no issue summary)"
+                else:
+                    issue_summary = issue_details["fields"]["summary"]
+                    assert isinstance(issue_summary, str)
+            executor.submit(
+                self._generate_and_upload_screenshot_summary,
+                jira_issue_key,
+                files["screenshot"],
+                issue_summary,
+            )
 
         try:
             self._jira_client.upload_attachments(project, jira_issue_key, files)
