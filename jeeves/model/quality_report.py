@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any, List, Optional, Tuple
 
+import attr
+
 from jeeves.config.config import JIRA_PROJECTS
 from jeeves.config.jira_features import AREA_TO_FEATURES, PILLAR_TO_FEATURES, TEAM_TO_FEATURES
 from jeeves.lib.quality_report_plot import create_plot
@@ -111,6 +113,7 @@ class SerializedQualityReportData:
     design_quality_issues: list[JSON]
     title: str
     recent_changes: Optional[dict[str, Any]]
+    open_issues: list[JSON]
 
 
 @dataclass
@@ -434,6 +437,21 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             JiraDocument.serialize_to_json(issue, _JIRA_FIELDS_TO_FILTER)
             for issue in self.max_dupes_design_quality_issues
         ]
+
+        open_issues_json = []
+
+        for issue in self.open_issues:
+            retval = attr.asdict(issue)
+            issue_json = {
+                "key": retval.get("issue_key", ""),
+                "title": retval.get("header_text", ""),
+                "assignee": retval.get("assignee", ""),
+                "creation_date": date_to_str(retval.get("creation_date"))
+                if retval.get("creation_date")
+                else "",
+            }
+            open_issues_json.append(issue_json)
+
         return SerializedQualityReportData(
             end_date=date_to_str(self.end_date),
             features=list(self.features),
@@ -450,6 +468,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
             design_quality_issues=design_quality_issues_json,
             title=self.title,
             recent_changes=self.recent_changes.serialize(),
+            open_issues=open_issues_json,
         )
 
 

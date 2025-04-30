@@ -23,6 +23,12 @@ declare namespace JSONAPI {
     max_priority_issues: Ticket[];
     open_bugs_count: number;
     open_bugs_url: string;
+    open_issues?: {
+      key: string;
+      title: string;
+      assignee: string;
+      creation_date: string;
+    }[];
     overall_score: number;
     recent_changes?: QualityReportRecentChanges;
     score_breakdowns: {

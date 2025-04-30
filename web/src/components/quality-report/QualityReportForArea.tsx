@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { formatReadableDate, toDateString } from "../../util";
 import {
@@ -198,12 +198,30 @@ const QualityReportForArea = ({ area, team, pillar }: Props) => {
       <div className={styles.header}>
         <h1 className={styles.title}>{report.title} Quality Report</h1>
         <strong>Overall score: {report.overall_score}</strong>
-        <a href={report.open_bugs_url}>
-          {report.open_bugs_count} open bug reports
-          {report.open_bugs_count > MAX_LINKED_ISSUES
-            ? ` (link shows first ${MAX_LINKED_ISSUES})`
-            : null}
-        </a>
+        <div>{report.open_bugs_count} open bug reports</div>
+        <div>
+          [
+          <a
+            href={report.open_bugs_url}
+            title={
+              report.open_bugs_count > MAX_LINKED_ISSUES
+                ? "The link will contain issues more than indicated here, since it will contain duplicated and dev tickets"
+                : undefined
+            }
+          >
+            Jira
+            {report.open_bugs_count > MAX_LINKED_ISSUES
+              ? ` (only first ${MAX_LINKED_ISSUES})`
+              : ""}
+          </a>
+          ] [
+          <Link
+            to={`/${location.pathname.split("/")[1]}/open-issues/${encodeURIComponent(area)}?pillar=${encodeURIComponent(pillar)}${team ? `&team=${encodeURIComponent(team)}` : ""}`}
+          >
+            Jeeves
+          </Link>
+          ]
+        </div>
         <span>
           {formatReadableDate(new Date(report.start_date))} to{" "}
           {formatReadableDate(new Date(report.end_date))}

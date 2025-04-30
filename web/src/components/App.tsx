@@ -17,6 +17,7 @@ import Topbar from "components/Topbar";
 import Dashboard from "components/dashboard/Dashboard";
 import GPTSearch from "components/gpt-search/GPTSearch";
 import IssueDiscovery from "components/issue-discovery/IssueDiscovery";
+import OpenIssuesPage from "components/pages/OpenIssuesPage";
 import QualityReport from "components/quality-report/QualityReport";
 import SentimentSearch from "components/sentiment-search/SentimentSearch";
 import SpikeDetector from "components/spike-detector/SpikeDetector";
@@ -173,6 +174,9 @@ const App = () => {
                     </Route>
                     <Route path="/:lang/quality-report">
                       <QualityReport />
+                    </Route>
+                    <Route path="/:lang/open-issues/:area">
+                      <OpenIssuesPage />
                     </Route>
                     <Route path="/:lang/sentiment-search">
                       <SentimentSearch />
