@@ -36,7 +36,7 @@ _USERNAME_LITERACY = os.environ.get("SHAKIRA_JIRA_USERNAME_LITERACY")
 _API_TOKEN_LITERACY = os.environ.get("SHAKIRA_JIRA_API_TOKEN_LITERACY")
 _USERNAME_DET = os.environ.get("JIRA_USERNAME")
 _API_TOKEN_DET = os.environ.get("JIRA_API_TOKEN")
-_USERNMAE_ALL_PROJECTS = os.environ.get("JIRA_USERNAME")
+_USERNAME_ALL_PROJECTS = os.environ.get("JIRA_USERNAME")
 _API_TOKEN_ALL_PROJECTS = os.environ.get("JIRA_API_TOKEN")
 
 _ISSUE_TYPE_BUG = "Bug"
@@ -99,8 +99,10 @@ class ShakiraJiraApiClient:
             return HTTPBasicAuth(_USERNAME_ANDROID, _API_TOKEN_ANDROID)
         elif project == "DLAW":
             return HTTPBasicAuth(_USERNAME_WEB, _API_TOKEN_WEB)
-        else:
+        elif project == "DLAI":
             return HTTPBasicAuth(_USERNAME_IOS, _API_TOKEN_IOS)
+        else:
+            return HTTPBasicAuth(_USERNAME_ALL_PROJECTS, _API_TOKEN_ALL_PROJECTS)
 
     def _get_full_access_jira_auth(self) -> HTTPBasicAuth:
         """
@@ -113,7 +115,7 @@ class ShakiraJiraApiClient:
         have access to all Jira projects. Thus, we provide an account with full access for
         making read-only or "link issues" backend requests.
         """
-        return HTTPBasicAuth(_USERNMAE_ALL_PROJECTS, _API_TOKEN_ALL_PROJECTS)
+        return HTTPBasicAuth(_USERNAME_ALL_PROJECTS, _API_TOKEN_ALL_PROJECTS)
 
     def _get_metadata_url_and_params(
         self, projects: Union[str, List[str]], issue_types: Union[str, List[str]]
@@ -274,6 +276,7 @@ class ShakiraJiraApiClient:
         auth = self._get_jira_auth(project)
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
         data = {"fields": {"priority": {"name": priority}}}
+        LOG.info(f"Setting priority for JIRA issue {issue_key} to {priority}")
 
         try:
             r = put(url, auth=auth, headers=headers, data=json.dumps(data))
@@ -414,8 +417,9 @@ class ShakiraJiraApiClient:
         body = {"update": {"labels": [{"add": label}]}}
         headers = {"Content-Type": "application/json"}
         url = f"{_API}/issue/{issue_key}"
+        LOG.info(f"Adding label {label} to JIRA issue {issue_key}")
         try:
-            r = put(url, auth=auth, headers=headers, json=json.dumps(body))
+            r = put(url, auth=auth, headers=headers, json=body)
             r.raise_for_status()
         except RequestException as e:
             print_request_exception(e, log_level="error")

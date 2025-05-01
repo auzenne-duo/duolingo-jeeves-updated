@@ -4,7 +4,7 @@ DAL for accessing GPT-4 using the duolingo-ai-completions api.
 
 import logging
 import time
-from typing import Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 import requests
 from duolingo_base.dal.duoapi import DuolingoApiClient
@@ -20,6 +20,7 @@ _EMBEDDING_MODEL = "text-embedding-ada-002"
 
 _CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions"
 _CHAT_COMPLETIONS_MODEL = "gpt-dv-duo"
+_CHAT_COMPLETIONS_MODEL_MULTIMODAL = "gpt-4o-mini"
 _BATCH_CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions-batch"
 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE = "/1/ai-completions/chat-completion-statuses"
 
@@ -32,6 +33,34 @@ class AICompletionsDAL:
             auth_api=auth_dal.auth_api,
         )
 
+    def ask_messages(
+        self,
+        messages: List[Dict],
+        timeout_seconds: float = 90.0,
+        model: str = _CHAT_COMPLETIONS_MODEL_MULTIMODAL,
+    ) -> str:
+        body = {
+            "messages": messages,
+            "modelParameters": {
+                "model": model,
+            },
+            "allowCachedCompletions": False,
+            "allowRecordingCompletions": False,
+            "taskName": "general",
+        }
+
+        try:
+            response = self.client.put(
+                _CHAT_COMPLETIONS_ROUTE,
+                json=body,
+                timeout=timeout_seconds,
+            )
+            response.raise_for_status()
+            return response.json()["message"]["content"]
+        except requests.exceptions.RequestException as e:
+            print_request_exception(e, log_level="error")
+            raise e
+
     def ask(
         self,
         system_prompt: str,
@@ -41,7 +70,7 @@ class AICompletionsDAL:
         timeout_seconds: float = 90.0,
         top_p: float = 1.0,
         use_json_mode: bool = False,
-    ):
+    ) -> Optional[str]:
         model = _CHAT_COMPLETIONS_MODEL
         body = {
             "messages": [
