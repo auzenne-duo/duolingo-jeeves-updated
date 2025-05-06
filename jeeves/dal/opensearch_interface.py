@@ -311,7 +311,7 @@ class OpenSearchDAL:
                 else:
                     s = s.query(
                         "query_string",
-                        default_field="body_text",
+                        fields=["body_text", "header_text"],
                         default_operator="AND",
                         lenient=True,
                         query=word,
@@ -399,7 +399,7 @@ class OpenSearchDAL:
         else:
             s = s.query(
                 "query_string",
-                default_field="body_text",
+                fields=["body_text", "header_text"],
                 default_operator="AND",
                 lenient=True,
                 query=word,
@@ -899,7 +899,7 @@ class OpenSearchDAL:
                 ]
             )
 
-        request_body_params = {"fields": ["body_text"]}
+        request_body_params = {"fields": ["body_text", "header_text"]}
         if lang == "ja":
             request_body_params["per_field_analyzer"] = {"body_text": "kuromoji"}
         if lang == "zh":
