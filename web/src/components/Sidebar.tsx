@@ -33,7 +33,7 @@ const Sidebar = ({ onItemClick }: Props) => {
       <div className={styles["item-language"]}>
         <LanguagePicker
           className={styles.language}
-          onChange={newValue => {
+          onChange={(newValue: string) => {
             // Replace the language part of the URL, which
             // is the first part of the path. This also unsets
             // any search parameters. The assumption is that
@@ -89,6 +89,15 @@ const Sidebar = ({ onItemClick }: Props) => {
         to={`/${lang}/analysis`}
       >
         Time Series Analyzer
+      </LinkItem>
+
+      <div className={styles.section}>Utilities</div>
+      <LinkItem
+        onClick={onItemClick}
+        title="Mark multiple JIRA issues as duplicates with a single action."
+        to="/mark-duplicates"
+      >
+        Mark Duplicates
       </LinkItem>
     </nav>
   );

@@ -313,3 +313,10 @@ export const setSpikeStatus = async (
     desired_state: desiredState,
     spike_id: spikeId,
   });
+
+export const fullyConnectDuplicates = async (
+  issueKeys: string[],
+): Promise<{ overall: string; manifest: string }> =>
+  post<{ overall: string; manifest: string }>("/1/fully_connect_duplicates", {
+    issue_keys: issueKeys,
+  });

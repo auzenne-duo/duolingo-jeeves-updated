@@ -26,3 +26,13 @@
   padding: 18px $juicy-margin;
   width: 100%;
 }
+
+.section {
+  background-color: web-ui-color("polar");
+  color: web-ui-color("eel");
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 8px $juicy-margin;
+  text-transform: uppercase;
+}

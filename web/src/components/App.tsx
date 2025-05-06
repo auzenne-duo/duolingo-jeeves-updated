@@ -17,6 +17,7 @@ import Topbar from "components/Topbar";
 import Dashboard from "components/dashboard/Dashboard";
 import GPTSearch from "components/gpt-search/GPTSearch";
 import IssueDiscovery from "components/issue-discovery/IssueDiscovery";
+import MarkDuplicatesPage from "components/pages/MarkDuplicatesPage";
 import OpenIssuesPage from "components/pages/OpenIssuesPage";
 import QualityReport from "components/quality-report/QualityReport";
 import SentimentSearch from "components/sentiment-search/SentimentSearch";
@@ -186,6 +187,9 @@ const App = () => {
                     </Route>
                     <Route path="/:lang/spike-stats">
                       <SpikeStats />
+                    </Route>
+                    <Route path="/mark-duplicates">
+                      <MarkDuplicatesPage />
                     </Route>
                     <Route>
                       <Dashboard />
