@@ -118,6 +118,7 @@ class TestQualityReport(unittest.TestCase):
         )
         self.assertEqual(result, expected)
 
+    @patch("jeeves.model.quality_report.upload_to_public_static", MagicMock())
     def test_jeeves_link(self):
         result = self.report.jeeves_link
         expected = "https://jeeves.duolingo.com/en/quality-report?area=International%20Growth&team=Re-Onboarding"
