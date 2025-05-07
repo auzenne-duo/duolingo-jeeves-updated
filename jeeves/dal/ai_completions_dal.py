@@ -23,15 +23,19 @@ _CHAT_COMPLETIONS_MODEL = "gpt-dv-duo"
 _CHAT_COMPLETIONS_MODEL_MULTIMODAL = "gpt-4o-mini"
 _BATCH_CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions-batch"
 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE = "/1/ai-completions/chat-completion-statuses"
+BATCH_SIZE = 500
 
 
 @registry.bind(auth_dal=registry.reference(AuthDAL))
 class AICompletionsDAL:
-    def __init__(self, auth_dal: AuthDAL):
-        self.client = DuolingoApiClient(
-            url="https://duolingo-ai-completions-prod.duolingo.com",
-            auth_api=auth_dal.auth_api,
-        )
+    def __init__(self, auth_dal: AuthDAL, api_client: Optional[DuolingoApiClient] = None):
+        if api_client is None:
+            self.client = DuolingoApiClient(
+                url="https://duolingo-ai-completions-prod.duolingo.com",
+                auth_api=auth_dal.auth_api,
+            )
+        else:
+            self.client = api_client
 
     def ask_messages(
         self,
@@ -123,6 +127,8 @@ class AICompletionsDAL:
         max_tokens: int = 512,
         timeout_seconds: float = 900.0,
         top_p: float = 1.0,
+        # use 3 since requests typically take 20-30 seconds so we don't add on more than ~10% to waiting time
+        request_interval: float = 3.0,
     ) -> List[str]:
         """
         Takes in a system prompt and a batch of user prompts
@@ -144,25 +150,25 @@ class AICompletionsDAL:
                 "taskName": "general",
             }
             requests_array.append(request_object)
-        try:
-            batch_response = self.client.put(
+        LOG.debug(f"submitting {len(requests_array)} requests to ai-completions-backend")
+        hashes = []
+        for start in range(0, len(requests_array), BATCH_SIZE):
+            body = {"requests": requests_array[start : start + BATCH_SIZE]}
+            LOG.debug(f"submitting batch {start}:{start + BATCH_SIZE}")
+            resp = self.client.put(
                 _BATCH_CHAT_COMPLETIONS_ROUTE,
-                json={"requests": requests_array},
-                timeout=90,
+                json=body,
             )
-            batch_response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            print_request_exception(e, log_level="warning")
-            return None
-        LOG.debug(f"AI completions responded with status code {batch_response.status_code}")
-        request_hashes = [request["requestHash"] for request in batch_response.json()["responses"]]
-        done = False
-        results = []
-        # use 3 since requests typically take 20-30 seconds so we don't add on more than ~10% to waiting time
-        REQUEST_INTERVAL = 3
-        # retry every REQUEST_INTERVAL seconds until all responses are done or we time out
+            assert resp is not None, "ai-completions-backend request failed and returned None"
+            resp.raise_for_status()
+            resps = resp.json()["responses"]
+            iteration_hashes = [resp["requestHash"] for resp in resps]
+            hashes += iteration_hashes
+
+        i = 0
+        completions: Dict[str, Optional[str]] = {hash: None for hash in hashes}
         start_time = time.time()
-        while not done:
+        while True:
             if time.time() - start_time > timeout_seconds:
                 raise TimeoutError(
                     """
@@ -170,20 +176,26 @@ class AICompletionsDAL:
                     Note that the service may still finish some requests in the background.
                     """
                 )
-            time.sleep(REQUEST_INTERVAL)
-            batch_response = self.client.post(
+            i += 1
+            time.sleep(request_interval)
+            waiting_hashes = [h for h in hashes if completions[h] is None]
+            if not waiting_hashes:
+                break
+            resp = self.client.post(
                 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE,
-                json={"requestHashes": request_hashes},
-                timeout=90,
+                json={"requestHashes": waiting_hashes},
             )
-            LOG.debug(f"AI completions responded with status code {batch_response.status_code}")
-            results = []
-            done = True
-            LOG.debug(f"Statuses \n{batch_response.json()}")
-            for request_response in batch_response.json()["statuses"]:
-                if "message" not in request_response:
-                    done = False
-                    break
-                else:
-                    results.append(request_response["message"]["content"])
-        return results
+            assert resp is not None, "ai-completions-backend request failed and returned None"
+            resp.raise_for_status()
+            statuses = resp.json()["statuses"]
+            for status in statuses:
+                if status["status"]["status"] == "SUCCESS":
+                    completions[status["requestHash"]] = status["message"]["content"]
+
+            n_succeeded = len([v for v in completions.values() if v is not None])
+            LOG.debug(
+                f"polling for batch completion ({i * request_interval} sec) ({n_succeeded}/{len(completions)})..."
+            )
+
+        out: List[str] = [completions[h] for h in hashes]  # type: ignore
+        return out

@@ -16,6 +16,7 @@ from werkzeug.datastructures import FileStorage
 from jeeves import registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.profiling import traced_function
+from jeeves.manager.gpt_duplicate_detector import GPTDuplicateDetector
 from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator
 from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
@@ -70,6 +71,7 @@ ANDROID_LOG_FILE_PATTERN = re.compile(r"^log\d+\.txt$")
 
 
 @registry.bind(
+    gpt_duplicate_detector=registry.reference(GPTDuplicateDetector),
     gpt_priority_estimator=registry.reference(GPTPriorityEstimator),
     gpt_screenshot_summarizer=registry.reference(GPTScreenshotSummarizer),
     jira_client=registry.reference(ShakiraJiraApiClient),
@@ -82,12 +84,14 @@ class ShakiraManager:
         gpt_screenshot_summarizer: GPTScreenshotSummarizer,
         jira_client: ShakiraJiraApiClient,
         slack_client: ShakiraSlackApiClient,
+        gpt_duplicate_detector: GPTDuplicateDetector,
         upload_to_s3: Callable[[str, bytes], None] = upload_to_jeeves_s3,
     ):
         self._gpt_priority_estimator = gpt_priority_estimator
         self._gpt_screenshot_summarizer = gpt_screenshot_summarizer
         self._jira_client = jira_client
         self._slack_client = slack_client
+        self._gpt_duplicate_detector = gpt_duplicate_detector
         self._upload_to_s3 = upload_to_s3
 
     def get_shake_to_report_tokens(self, project: Optional[str]) -> Dict[str, str]:
@@ -235,6 +239,35 @@ class ShakiraManager:
 
         self._jira_client.add_comment(project, issue_key, comment)
 
+    def _find_duplicates_gpt(self, issue_key: str):
+        issue = self._jira_client.get_issue_details(issue_key)
+        if issue is None:
+            LOG.error(f"Could not get issue details for {issue_key}, skipping duplicate detection")
+            return
+        try:
+            duplicates = self._gpt_duplicate_detector.find_duplicates(issue)
+        except Exception as e:
+            LOG.error(f"Error finding duplicates for {issue_key}: {e}")
+            return
+
+        if not duplicates:
+            LOG.info(f"No potential duplicates detected for {issue_key}")
+            return
+
+        dups_file = ""
+        for dup, reasoning in duplicates:
+            dups_file += f"{dup}\nReasoning: {reasoning}\n\n"
+
+        LOG.debug(f"Potential duplicates detected for {issue_key}: {dups_file}")
+        try:
+            self._upload_to_s3(
+                f"gpt_detected_duplicates/{issue_key}.txt", dups_file.strip().encode("utf-8")
+            )
+            LOG.info(f"Potential duplicates for {issue_key} stored to S3")
+        except Exception as e:
+            LOG.error(f"Error uploading potential duplicates to S3 for {issue_key}: {e}")
+            return
+
     def _generate_and_upload_screenshot_summary(
         self,
         issue_key: str,
@@ -244,7 +277,7 @@ class ShakiraManager:
     ):
         LOG.info(f"Generating screenshot summary for {issue_key}")
         try:
-            summary = self._gpt_screenshot_summarizer.get_screenshot_summary(
+            summary = self._gpt_screenshot_summarizer.generate_description(
                 screenshot, extension, issue_summary
             )
         except Exception as e:
@@ -391,6 +424,7 @@ class ShakiraManager:
                 ticket_text = JiraTicketText(title=summary, description=f"{description}")
                 executor = app_registry(ThreadPoolExecutor)
                 executor.submit(self._set_priority, issue_key, project, ticket_text)
+                executor.submit(self._find_duplicates_gpt, issue_key)
 
             if not should_post_to_slack:
                 return (

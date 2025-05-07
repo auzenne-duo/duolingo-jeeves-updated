@@ -91,7 +91,7 @@ class JiraDocument(JeevesDocument):
         return "JIRA"
 
     @classmethod
-    def _compress_rich_text(cls, rich_text: JSON) -> str:
+    def compress_rich_text(cls, rich_text: JSON) -> str:
         """
         Converts an instance of JIRA's rich text format into a single string.
         Some liberties are taken when converting in this way, for example,
@@ -127,28 +127,28 @@ class JiraDocument(JeevesDocument):
             return ""
 
         if rtt == "doc":
-            return "\n".join([cls._compress_rich_text(node) for node in rich_text["content"]])
+            return "\n".join([cls.compress_rich_text(node) for node in rich_text["content"]])
 
         if rtt == "text":
             return rich_text["text"]
 
         if rtt == "paragraph":
-            subcontent = "".join([cls._compress_rich_text(node) for node in rich_text["content"]])
+            subcontent = "".join([cls.compress_rich_text(node) for node in rich_text["content"]])
             return f"{subcontent}\n"
 
         if rtt == "bulletList":
-            list_items = [f"\t- {cls._compress_rich_text(node)}" for node in rich_text["content"]]
+            list_items = [f"\t- {cls.compress_rich_text(node)}" for node in rich_text["content"]]
             return "".join(list_items)
 
         if rtt == "orderedList":
             list_items = [
-                f"\t{node[0]}. {cls._compress_rich_text(node[1])}"
+                f"\t{node[0]}. {cls.compress_rich_text(node[1])}"
                 for node in enumerate(rich_text["content"], start=1)
             ]
             return "".join(list_items)
 
         if rtt == "listItem":
-            return "".join([cls._compress_rich_text(node) for node in rich_text["content"]])
+            return "".join([cls.compress_rich_text(node) for node in rich_text["content"]])
 
         if rtt == "hardBreak":
             return "\n"
@@ -162,7 +162,7 @@ class JiraDocument(JeevesDocument):
             return "<ID NOT FOUND DESPITE BEING REQUIRED IN THE SPEC>"
 
         if rtt == "mediaGroup" or rtt == "mediaSingle":
-            return ", ".join([cls._compress_rich_text(node) for node in rich_text["content"]])
+            return ", ".join([cls.compress_rich_text(node) for node in rich_text["content"]])
 
         if rtt == "inlineCard":
             if "url" in rich_text["attrs"]:
@@ -186,7 +186,7 @@ class JiraDocument(JeevesDocument):
             "author": comment_json["author"],
             "body": comment_json["body"]
             if isinstance(comment_json["body"], str)
-            else cls._compress_rich_text(comment_json["body"]),
+            else cls.compress_rich_text(comment_json["body"]),
             "created": parse_external_datetime(comment_json["created"])
             if isinstance(comment_json["created"], str)
             else comment_json["created"],
@@ -270,7 +270,7 @@ class JiraDocument(JeevesDocument):
         external_fields: dict[str, Any] = external_json["fields"]
 
         body_text = (
-            cls._compress_rich_text(external_fields["description"])
+            cls.compress_rich_text(external_fields["description"])
             if external_fields["description"]
             else ""
         )

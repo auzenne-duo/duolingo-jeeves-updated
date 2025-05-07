@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from duolingo_base.dal import s3
 
 from jeeves.config.config import get_config
@@ -5,7 +7,7 @@ from jeeves.config.config import get_config
 _config = get_config()
 
 
-def get_s3_client_and_bucket():
+def get_s3_client_and_bucket() -> Tuple[s3.S3Client, str]:
     """
     Returns the s3 bucket and s3 client
     """
@@ -14,6 +16,7 @@ def get_s3_client_and_bucket():
     else:
         s3_client = s3.S3Client()
     s3_bucket_name = _config.get_nested(["s3_document_cache", "bucket_name"])
+    assert isinstance(s3_bucket_name, str)
     return s3_client, s3_bucket_name
 
 

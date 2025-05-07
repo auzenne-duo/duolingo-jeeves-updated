@@ -30,7 +30,7 @@ def _get_mocked_managers() -> (
 ):
     gpt_priority_estimator_mock = GPTPriorityEstimator(ai_completions_dal=MagicMock())
     gpt_screenshot_summarizer_mock = GPTScreenshotSummarizer(ai_completions_dal=MagicMock())
-    gpt_screenshot_summarizer_mock.get_screenshot_summary = MagicMock(
+    gpt_screenshot_summarizer_mock.generate_description = MagicMock(
         return_value="screenshot summary"
     )
 
@@ -58,6 +58,7 @@ def _get_mocked_managers() -> (
             gpt_screenshot_summarizer_mock,
             shakira_jira_mock,
             shakira_slack_mock,
+            MagicMock(),
             upload_to_s3=MagicMock(),
         ),
     )
@@ -146,8 +147,6 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
-
         shakira_jira_mock.link_issues.assert_called_once_with(
             outward_issue_key="DEL-1733", inward_issue_key="DLAA-1"
         )
@@ -195,8 +194,6 @@ class Test(unittest.TestCase):
             related_issue_exists=True,
             localization_contractor=False,
         )
-
-        shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
 
         shakira_jira_mock.link_issues.assert_called_once_with(
             outward_issue_key="DEL-1733", inward_issue_key="DLAA-1"
@@ -623,7 +620,7 @@ class Test(unittest.TestCase):
             files=files,
             localization_contractor=False,
         )
-        gpt_screenshot_summarizer_mock.get_screenshot_summary.assert_called_once_with(
+        gpt_screenshot_summarizer_mock.generate_description.assert_called_once_with(
             b"fake image data",
             "png",
             "summary",

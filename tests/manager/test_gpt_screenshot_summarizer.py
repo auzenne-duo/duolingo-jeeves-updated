@@ -19,7 +19,7 @@ class TestGPTScreenshotSummarizer(unittest.TestCase):
 
         self.mock_ai_completions_dal.ask_messages.return_value = expected_summary
 
-        result = self.summarizer.get_screenshot_summary(screenshot_bytes, extension, issue_summary)
+        result = self.summarizer.generate_description(screenshot_bytes, extension, issue_summary)
 
         self.assertEqual(result, expected_summary)
         self.mock_ai_completions_dal.ask_messages.assert_called_once()
@@ -34,6 +34,6 @@ class TestGPTScreenshotSummarizer(unittest.TestCase):
         )
 
         with self.assertRaises(RequestException):
-            self.summarizer.get_screenshot_summary(screenshot_bytes, extension, issue_summary)
+            self.summarizer.generate_description(screenshot_bytes, extension, issue_summary)
 
         self.mock_ai_completions_dal.ask_messages.assert_called_once()

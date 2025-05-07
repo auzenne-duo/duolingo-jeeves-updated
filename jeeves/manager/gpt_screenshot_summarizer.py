@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import logging
+import time
 from base64 import b64encode
+from typing import Optional
 
+from duolingo_base.dal.s3 import S3DownloadException
 from duolingo_base.util import registry
 
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
+from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 LOG = logging.getLogger(__name__)
 
@@ -18,8 +22,25 @@ DESCRIPTION_PROMPT = "Describe this screenshot of the Duolingo app. It is a scre
 class GPTScreenshotSummarizer:
     def __init__(self, ai_completions_dal: AICompletionsDAL) -> None:
         self.ai_completions_dal = ai_completions_dal
+        self.s3_client, self.s3_bucket = get_s3_client_and_bucket()
 
-    def get_screenshot_summary(self, screenshot: bytes, extension: str, issue_summary: str) -> str:
+    def get_description_s3(self, jira_key: str) -> Optional[str]:
+        try:
+            data = self.s3_client.download(self.s3_bucket, f"screenshot_summaries/{jira_key}.txt")
+            return data.decode("utf-8")
+        except S3DownloadException:
+            return None
+
+    def poll_for_description_s3(self, jira_key: str, timeout: int = 60) -> Optional[str]:
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            description = self.get_description_s3(jira_key)
+            if description is not None:
+                return description
+            time.sleep(1)
+        return None
+
+    def generate_description(self, screenshot: bytes, extension: str, issue_summary: str) -> str:
         """
         Generates a description of a screenshot from an STR ticket using AIC backend.
 
