@@ -26,8 +26,9 @@ declare namespace JSONAPI {
     open_issues?: {
       key: string;
       title: string;
-      assignee: string;
-      creation_date: string;
+      assignee?: string;
+      creation_date?: string;
+      priority?: string;
     }[];
     overall_score: number;
     recent_changes?: QualityReportRecentChanges;

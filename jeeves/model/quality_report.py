@@ -449,6 +449,7 @@ class QualityReport(QualityReportBase, metaclass=abc.ABCMeta):
                 "creation_date": date_to_str(retval.get("creation_date"))
                 if retval.get("creation_date")
                 else "",
+                "priority": retval.get("priority", ""),
             }
             open_issues_json.append(issue_json)
 
