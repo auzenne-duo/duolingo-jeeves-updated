@@ -10,6 +10,8 @@ import duo_logging  # type: ignore[import]
 from requests import post
 from requests.exceptions import RequestException
 
+from jeeves import registry as app_registry
+from jeeves.dal.employees import EmployeesDAL
 from jeeves.model.slack_channel import SlackChannel
 from jeeves.util.error_util import print_request_exception
 from jeeves.util.shakira import JIRA_PROJ_TO_PLATFORM
@@ -24,37 +26,6 @@ class ShakiraSlackApiClient:
         Returns Slack API token.
         """
         return _API_TOKEN
-
-    def _get_slack_display_name_by_email(self, email: str) -> Optional[str]:
-        """
-        Look up a Slack user by their email address and return their display name.
-        For reference: https://api.slack.com/methods/users.lookupByEmail
-
-        parameters:
-            email: Email address of the user to look up.
-
-        returns:
-            display_name: str Slack user's display name if found, None otherwise.
-        """
-        url = f"{_API}/users.lookupByEmail"
-        headers = {"Authorization": f"Bearer {_API_TOKEN}"}
-        params = {"email": email}
-
-        try:
-            r = post(url, headers=headers, params=params)
-            r.raise_for_status()
-            response_json = json.loads(r.text)
-            if response_json["ok"]:
-                user = response_json["user"]
-                return user.get("profile", {}).get("display_name")
-            else:
-                duo_logging.capture_message(
-                    f"Could not look up Slack user by email: {response_json['error']}", "warning"
-                )
-                return None
-        except RequestException as e:
-            print_request_exception(e, log_level="warning")
-            return None
 
     def _post_chat_message(
         self,
@@ -184,10 +155,13 @@ class ShakiraSlackApiClient:
         returns:
             post id: str API ID of the created slack post.
         """
-        slack_display_name = (
-            self._get_slack_display_name_by_email(reporter_email) if reporter_email else None
-        )
-        reporter_username = f"@{slack_display_name}" if slack_display_name else "unknown user"
+        slack_user_id = None
+        if reporter_email:
+            employee_dal = app_registry(EmployeesDAL)
+            employee = employee_dal.get_employee_by_email(reporter_email)
+            slack_user_id = employee.get("slack")
+
+        reporter_username = f"<@{slack_user_id}>" if slack_user_id else "unknown user"
 
         platform = JIRA_PROJ_TO_PLATFORM.get(project, "unknown platform")
         additional_details = ""
