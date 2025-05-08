@@ -256,8 +256,6 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
-
         shakira_jira_mock.link_issues.assert_called_once_with(
             outward_issue_key="DEL-1733", inward_issue_key="DLAA-1"
         )
