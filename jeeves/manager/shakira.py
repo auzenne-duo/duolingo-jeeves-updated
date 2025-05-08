@@ -242,12 +242,14 @@ class ShakiraManager:
     def _find_duplicates_gpt(self, issue_key: str):
         issue = self._jira_client.get_issue_details(issue_key)
         if issue is None:
-            LOG.error(f"Could not get issue details for {issue_key}, skipping duplicate detection")
+            LOG.warning(
+                f"Could not get issue details for {issue_key}, skipping duplicate detection"
+            )
             return
         try:
             duplicates = self._gpt_duplicate_detector.find_duplicates(issue)
         except Exception as e:
-            LOG.error(f"Error finding duplicates for {issue_key}: {e}")
+            LOG.warning(f"Error finding duplicates for {issue_key}: {e}")
             return
 
         if not duplicates:
@@ -281,13 +283,13 @@ class ShakiraManager:
                 screenshot, extension, issue_summary
             )
         except Exception as e:
-            LOG.error(f"Failed to generate screenshot summary for {issue_key}: {e}")
+            LOG.warning(f"Failed to generate screenshot summary for {issue_key}: {e}")
             return
         try:
             self._upload_to_s3(f"screenshot_summaries/{issue_key}.txt", summary.encode("utf-8"))
             LOG.info(f"Summary uploaded to S3 for {issue_key}")
         except Exception as e:
-            LOG.error(f"Error uploading screenshot summary to S3 for {issue_key}: {e}")
+            LOG.warning(f"Error uploading screenshot summary to S3 for {issue_key}: {e}")
 
     @traced_function()
     def report_issue(
