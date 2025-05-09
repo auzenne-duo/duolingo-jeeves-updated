@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections import Counter
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -11,6 +12,10 @@ from duolingo_base.util import registry
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
 
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
+
+# These are titles that are known to be irrelevant to log summarization
+SKIP_TITLES = {"test", "tests", "testing"}
 
 RESP_LOG_SUMMARY = "log_summary"
 
@@ -20,19 +25,42 @@ REQ_ID = "ID"  # The Jira ticket ID
 REQ_TITLE = "TITLE"
 REQ_LOGS = "LOGS"  # List of log contents
 
-SYSTEM_PROMPT = """You are an expert log analyzer that finds patterns in logs that are STRICTLY relevant to what appears after either:
+SYSTEM_PROMPT = f"""You are an expert log analyzer that finds patterns in logs that are STRICTLY relevant to what appears in the:
 1. "Ticket Title:" field
 2. "Description:" field
+
+The user prompt will be formatted as:
+Ticket Title: <title string>
+Description: <description string>
+Logs: <list of log lines>
 
 Instructions:
 1. First, identify the key issue from ONLY what appears after "Ticket Title:" or the first line after "Description:"
 2. Then, find ONLY log entries that directly prove or relate to that specific issue
-3. If the title or description indicates this ticket was created for testing, return an empty array
-4. If the title or description indicates this is a feature request, return an empty array
-5. If no logs directly relate to the title or first line, return an empty array
+3. If no logs directly relate to the title or first line, return an empty array
+4. Respond with a JSON object containing only one string field:
+   "{RESP_LOG_SUMMARY}": The list of log lines that directly prove or relate to the key issue
 
-Respond with a JSON object as an array of strings:
-- "{RESP_LOG_SUMMARY}": Grouping of log entries that are relevant to the ticket title or description
+IMPORTANT: Respond ONLY with a valid JSON object, and do NOT include any Markdown or code block formatting.
+
+Examples:
+Title: "Crashing"
+Description: "App crashes when I try to sign in"
+Logs: ['Running on port 8080', 'App failed to start', 'Network request failed']
+
+Response: {{{RESP_LOG_SUMMARY}: ["App failed to start", "Network request failed"]}}
+
+Title: "Slow"
+Description: "App is slow when I try to sign in"
+Logs: ['App running on port 8080', 'Failed to connect to server', 'Network request failed']
+
+Response: {{{RESP_LOG_SUMMARY}: ["Failed to connect to server", "Network request failed"]}}
+
+Title: "lily not responding / device not capturing inputs"
+Description: "Lily is not responding to inputs from the device"
+Logs: ['[ERROR | ASAP] Keychain delete error: -34018 A required entitlement isn\'t present.', '2025/02/06 20:29:18:595  [ERROR | EXAI] [VCST] Task finished with error: Error Domain=kAFAssistantErrorDomain Code=1110 "No speech detected" UserInfo={{NSLocalizedDescription=No speech detected}}']
+
+Response: {{{RESP_LOG_SUMMARY}: ["Task finished with error: Error Domain=kAFAssistantErrorDomain Code=1110 \"No speech detected\" UserInfo={{NSLocalizedDescription=No speech detected}}"]}}
 """
 
 
@@ -64,7 +92,7 @@ class JiraLogSummarizationTicket:
             if "log" not in file_title.lower():
                 continue  # Only use log files
             if file_contents:
-                self.logs.append(file_contents)
+                self.logs.extend(file_contents)
 
     def to_yaml(self) -> str:
         yaml_parts = [
@@ -84,14 +112,31 @@ class LogSummaryResponse:
     log_summary: List[str]
 
     @classmethod
-    def from_text(cls, text: str, ticket_id: Optional[str] = None) -> LogSummaryResponse:
-        try:
-            json_str = re.sub(r"[\x00-\x1F\x7F-\x9F]", " ", text)
-            data = json.loads(json_str)
-            return cls(log_summary=data[RESP_LOG_SUMMARY] if data.get(RESP_LOG_SUMMARY) else [])
-        except Exception:
-            LOG.error(f"{ticket_id}: Error parsing log summary response: {text}")
-            return cls(log_summary=[])
+    def from_text(cls, text: str) -> LogSummaryResponse:
+        # Sanitize all control characters from JSON string before parsing
+        json_str = re.sub(r"[\x00-\x1F\x7F-\x9F]", " ", text)
+        data = json.loads(json_str)
+
+        return cls(log_summary=data[RESP_LOG_SUMMARY])
+
+    def format(self, max_lines: int = 5) -> str:
+        """
+        Returns a formatted string of the logs, collapsing duplicate lines and appending a repeat count.
+        Only up to max_lines unique lines are shown; if more, a summary line is appended.
+        """
+        counts = Counter(self.log_summary)
+        unique_lines = list(counts.keys())
+        output_lines = []
+        for line in unique_lines[:max_lines]:
+            count = counts[line]
+            if count > 1:
+                output_lines.append(f"{line} (x{count})")
+            else:
+                output_lines.append(line)
+        omitted = len(unique_lines) - max_lines
+        if omitted > 0:
+            output_lines.append(f"...and {omitted} more unique lines omitted.")
+        return "\n".join(output_lines)
 
 
 @registry.bind(
@@ -100,6 +145,19 @@ class LogSummaryResponse:
 class GPTLogSummarizer:
     def __init__(self, ai_completions_dal: AICompletionsDAL) -> None:
         self.ai_completions_dal = ai_completions_dal
+
+    def should_skip_ticket(self, ticket_data: JiraLogSummarizationTicket) -> bool:
+        normalized_title = (ticket_data.title or "").replace(" ", "").lower()
+        if normalized_title in SKIP_TITLES:
+            return True
+        if not (ticket_data.title and ticket_data.title.strip()) and not (
+            ticket_data.description and ticket_data.description.strip()
+        ):
+            return True
+        return False
+
+    def _filter_logs_error_warn(self, logs: list[str]) -> list[str]:
+        return [line for line in logs if "error" in line.lower() or "warn" in line.lower()]
 
     def summarize_logs(self, ticket_data: JiraLogSummarizationTicket) -> LogSummaryResponse:
         """
@@ -111,17 +169,39 @@ class GPTLogSummarizer:
         Returns:
             A LogSummaryResponse containing the analysis results
         """
+        if self.should_skip_ticket(ticket_data):
+            LOG.info(
+                f"{ticket_data.ticket_id}: Returning empty LogSummaryResponse due to should_skip_ticket"
+            )
+            return LogSummaryResponse(log_summary=[])
+
+        filtered_logs = self._filter_logs_error_warn(ticket_data.logs)
+        if not filtered_logs:
+            LOG.info(
+                f"{ticket_data.ticket_id}: Returning empty LogSummaryResponse because filtered_logs is empty"
+            )
+            return LogSummaryResponse(log_summary=[])
+
         user_prompt = f"""
         Ticket Title: {ticket_data.title}
         Description: {ticket_data.description}
-        Logs: {ticket_data.logs}
+        Logs: {filtered_logs}
         """
 
         try:
             response = self.ai_completions_dal.ask(
                 system_prompt=SYSTEM_PROMPT, user_prompt=user_prompt, use_json_mode=True
             )
-            return LogSummaryResponse.from_text(response, ticket_data.ticket_id)
-        except Exception:
-            LOG.error(f"{ticket_data.ticket_id}: Error analyzing logs")
-            return LogSummaryResponse.from_text([], ticket_data.ticket_id)
+            LOG.debug(
+                f"{ticket_data.ticket_id}: LogSummaryResponse AI completions response: {response}"
+            )
+            log_summary_response = LogSummaryResponse.from_text(response)
+            formatted_lines = log_summary_response.format(max_lines=1).splitlines()
+            first_formatted_log = formatted_lines[0] if formatted_lines else "<no logs>"
+            LOG.debug(
+                f"{ticket_data.ticket_id}: Returning LogSummaryResponse from AI completions response. First formatted log: {first_formatted_log}"
+            )
+            return log_summary_response
+        except Exception as e:
+            LOG.error(f"{ticket_data.ticket_id}: Error analyzing logs: {e}")
+            return LogSummaryResponse(log_summary=[])
