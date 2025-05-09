@@ -43,6 +43,7 @@ def _get_mocked_managers() -> (
     shakira_jira_mock.link_issues = MagicMock()
     shakira_jira_mock.set_priority = MagicMock()
     shakira_jira_mock.upload_attachments = MagicMock()
+    shakira_jira_mock.insert_rich_text_into_description = MagicMock()
 
     shakira_slack_mock = ShakiraSlackApiClient()
     shakira_slack_mock.post_info_in_reply = MagicMock()
@@ -742,7 +743,7 @@ class Test(unittest.TestCase):
         )
 
         assert resp["error"] == (
-            "Error uploading attachments to JIRA for TEST-1234: JIRA internal error",
+            "TEST-1234: Error uploading attachments to JIRA: JIRA internal error",
             500,
         )
 

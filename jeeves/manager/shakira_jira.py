@@ -22,8 +22,11 @@ from jeeves.util.error_util import print_request_exception
 
 LOG = logging.getLogger(__name__)
 
+STR_SECTION_DELIMITER = "—"
+
 _HOST = "https://duolingo.atlassian.net"
 _API = f"{_HOST}/rest/api/2"
+_API_3 = f"{_HOST}/rest/api/3"
 
 
 _USERNAME_ANDROID = os.environ.get("SHAKIRA_JIRA_USERNAME_ANDROID")
@@ -443,6 +446,66 @@ class ShakiraJiraApiClient:
             r.raise_for_status()
             response = json.loads(r.text)
             return response
+        except RequestException as e:
+            print_request_exception(e, log_level="error")
+            return None
+
+    def insert_rich_text_into_description(self, issue_key: str, rich_text: List[Dict]):
+        """
+        Insert JIRA rich text into an issue description, after the body text (user-submitted description).
+
+        Looks for the first em-dash character in the description and splits the
+        containing paragraph necessary. Inserts the given content blocks after
+        this dash.
+        """
+        issue = self.get_issue_details(issue_key)
+        if issue is None:
+            LOG.error(f"Could not find issue with key {issue_key} to update description")
+            return None
+        description = issue["fields"]["description"]
+        content = description["content"]
+
+        if content[0]["type"] != "paragraph":
+            raise Exception("First paragraph is not a paragraph")
+
+        first_para = content[0]
+
+        # Find the index of the last dash
+        dash_index = -1
+        for i, item in enumerate(first_para["content"]):
+            if item["type"] == "text" and item["text"] == STR_SECTION_DELIMITER:
+                dash_index = i
+
+        if dash_index == -1:
+            raise ValueError("No em-dash found in issue description")
+        # Split into two paragraphs after the dash
+        new_first_para = {
+            "type": "paragraph",
+            "content": first_para["content"][: dash_index + 1],  # Include the dash
+        }
+        # Skip hard break if it exists
+        try:
+            has_hard_break = first_para["content"][dash_index + 1]["type"] == "hardBreak"
+        except IndexError:
+            has_hard_break = False
+        continue_index = dash_index + 2 if has_hard_break else dash_index + 1
+        new_second_para = {"type": "paragraph", "content": first_para["content"][continue_index:]}
+
+        # Build the new content list, with new blocks inserted after the new first paragraph
+        new_content = [new_first_para, *rich_text]
+        if new_second_para["content"]:
+            new_content.append(new_second_para)
+        new_content.extend(content[1:])
+        description["content"] = new_content
+
+        url = f"{_API_3}/issue/{issue_key}"
+        headers = {"Content-Type": "application/json"}
+        auth = self._get_jira_auth("default")
+        data = {"fields": {"description": description}}
+
+        try:
+            r = put(url, auth=auth, headers=headers, data=json.dumps(data))
+            r.raise_for_status()
         except RequestException as e:
             print_request_exception(e, log_level="error")
             return None

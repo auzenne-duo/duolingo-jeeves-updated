@@ -90,11 +90,11 @@ def test_get_jira_issue_text_with_empty_description(detector):
 def test_determine_duplicate_from_chat_response():
     assert GPTDuplicateDetector.determine_duplicate_from_chat_response(
         "These are duplicates.\nduplicate: true"
-    )
+    ) == (True, "These are duplicates.")
 
-    assert not GPTDuplicateDetector.determine_duplicate_from_chat_response(
+    assert GPTDuplicateDetector.determine_duplicate_from_chat_response(
         "These are not duplicates.\nduplicate: false"
-    )
+    ) == (False, "These are not duplicates.")
 
 
 def test_find_duplicates(detector, mock_jira_manager, mock_ai_completions_dal):
@@ -158,4 +158,4 @@ def test_find_duplicates(detector, mock_jira_manager, mock_ai_completions_dal):
 
     assert len(duplicates) == 1
     assert duplicates[0][0] == "TEST-456"
-    assert "duplicate: true" in duplicates[0][1]
+    assert "These are duplicates." in duplicates[0][1]

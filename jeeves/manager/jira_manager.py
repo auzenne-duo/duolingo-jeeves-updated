@@ -29,7 +29,7 @@ from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig()
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 
 
 class JiraManager(JeevesManager):

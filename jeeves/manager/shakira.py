@@ -215,7 +215,7 @@ class ShakiraManager:
                 raise ValueError("Invalid response from GPT")
 
             if priority != JiraPriority.UNPRIORITIZED:
-                LOG.info(f"Setting priority {priority} for {issue_key} for the reason: {reason}")
+                LOG.info(f"{issue_key}: Setting priority {priority} for the reason: {reason}")
                 self._jira_client.set_priority(project, issue_key, priority)
 
             # Jira API expects "{{...}}" for fixed-width text in markdown, but with an f-string we need to escape each;
@@ -233,7 +233,7 @@ class ShakiraManager:
                 issue_key=issue_key, label=PRIORITIZED_BY_GPT_LABEL, project=project
             )
         except Exception as e:
-            LOG.error(f"Error estimating priority for {issue_key}: {e}")
+            LOG.error(f"{issue_key}: Error estimating priority: {e}")
             self._jira_client.add_comment(project, issue_key, comment)
             return
 
@@ -242,33 +242,41 @@ class ShakiraManager:
     def _find_duplicates_gpt(self, issue_key: str):
         issue = self._jira_client.get_issue_details(issue_key)
         if issue is None:
-            LOG.warning(
-                f"Could not get issue details for {issue_key}, skipping duplicate detection"
-            )
+            LOG.warning(f"{issue_key}: Could not get issue details, skipping duplicate detection")
             return
         try:
             duplicates = self._gpt_duplicate_detector.find_duplicates(issue)
         except Exception as e:
-            LOG.warning(f"Error finding duplicates for {issue_key}: {e}")
+            LOG.warning(f"{issue_key}: Error finding duplicates: {e}")
             return
 
         if not duplicates:
-            LOG.info(f"No potential duplicates detected for {issue_key}")
+            LOG.info(f"{issue_key}: No potential duplicates detected")
             return
+
+        dup_str = ", ".join(dup for dup, _ in duplicates)
+        LOG.info(f"{issue_key}: Potential duplicates detected: {dup_str}")
 
         dups_file = ""
         for dup, reasoning in duplicates:
             dups_file += f"{dup}\nReasoning: {reasoning}\n\n"
 
-        LOG.debug(f"Potential duplicates detected for {issue_key}: {dups_file}")
         try:
             self._upload_to_s3(
                 f"gpt_detected_duplicates/{issue_key}.txt", dups_file.strip().encode("utf-8")
             )
-            LOG.info(f"Potential duplicates for {issue_key} stored to S3")
+            LOG.info(f"{issue_key}: Potential duplicates stored to S3")
         except Exception as e:
-            LOG.error(f"Error uploading potential duplicates to S3 for {issue_key}: {e}")
-            return
+            LOG.error(f"{issue_key}: Error uploading potential duplicates to S3: {e}")
+
+        try:
+            rich_text = self._gpt_duplicate_detector.generate_duplicates_rich_text(
+                issue_key, duplicates
+            )
+            self._jira_client.insert_rich_text_into_description(issue_key, rich_text)
+            LOG.info(f"{issue_key}: Updated description with potential duplicates")
+        except Exception as e:
+            LOG.error(f"{issue_key}: Error inserting rich text into description: {e}")
 
     def _generate_and_upload_screenshot_summary(
         self,
@@ -277,19 +285,19 @@ class ShakiraManager:
         extension: str,
         issue_summary: str,
     ):
-        LOG.info(f"Generating screenshot summary for {issue_key}")
+        LOG.info(f"{issue_key}: Generating screenshot summary")
         try:
             summary = self._gpt_screenshot_summarizer.generate_description(
                 screenshot, extension, issue_summary
             )
         except Exception as e:
-            LOG.warning(f"Failed to generate screenshot summary for {issue_key}: {e}")
+            LOG.warning(f"{issue_key}: Failed to generate screenshot summary: {e}")
             return
         try:
             self._upload_to_s3(f"screenshot_summaries/{issue_key}.txt", summary.encode("utf-8"))
-            LOG.info(f"Summary uploaded to S3 for {issue_key}")
+            LOG.info(f"{issue_key}: Summary uploaded to S3")
         except Exception as e:
-            LOG.warning(f"Error uploading screenshot summary to S3 for {issue_key}: {e}")
+            LOG.warning(f"{issue_key}: Error uploading screenshot summary to S3: {e}")
 
     @traced_function()
     def report_issue(
@@ -488,7 +496,7 @@ class ShakiraManager:
         try:
             loki_client.integrate_ios_info_to_loki(self._jira_client, jira_issue_key, text_stream)
         except Exception as e:
-            LOG.error(f"Error uploading to Loki: {type(e).__name__}: {e}")
+            LOG.error(f"{jira_issue_key}: Error uploading to Loki: {type(e).__name__}: {e}")
 
     def _upload_to_loki_android(self, jira_issue_key: str, text_stream: io.TextIOWrapper):
         loki_client = ShakiraLokiApiClient()
@@ -497,7 +505,7 @@ class ShakiraManager:
                 self._jira_client, jira_issue_key, text_stream
             )
         except Exception as e:
-            LOG.error(f"Error uploading to Loki: {type(e).__name__}: {e}")
+            LOG.error(f"{jira_issue_key}: Error uploading to Loki: {type(e).__name__}: {e}")
 
     @traced_function()
     def upload_artifacts(
@@ -521,7 +529,7 @@ class ShakiraManager:
         """
         issue_url = self._jira_client.issue_url(jira_issue_key)
         if not files:
-            LOG.info(f"No files to upload for issue {jira_issue_key}")
+            LOG.info(f"{jira_issue_key}: No files to upload")
             return {"issueKey": jira_issue_key, "jiraUrl": issue_url}
 
         project = jira_issue_key.split("-")[0]
@@ -553,7 +561,7 @@ class ShakiraManager:
                 issue_details = self._jira_client.get_issue_details(jira_issue_key)
                 if issue_details is None:
                     LOG.warning(
-                        f"Could not get issue details for {jira_issue_key}, using empty summary"
+                        f"{jira_issue_key}: Could not get issue details, using empty summary"
                     )
                     issue_summary = "(no issue summary)"
                 else:
@@ -571,7 +579,7 @@ class ShakiraManager:
             elif screenshot.mimetype:
                 extension = screenshot.mimetype.split("/")[-1]
             else:
-                LOG.warning(f"Could not determine extension for screenshot {jira_issue_key}")
+                LOG.warning(f"{jira_issue_key}: Could not determine extension for screenshot")
                 extension = "jpeg"
 
             executor.submit(
@@ -587,14 +595,14 @@ class ShakiraManager:
         except RequestException as e:
             return {
                 "error": (
-                    f"Error uploading attachments to JIRA for {jira_issue_key}: {e}",
+                    f"{jira_issue_key}: Error uploading attachments to JIRA: {e}",
                     e.response.status_code if e.response else 500,
                 )
             }
         except Exception as e:
             return {
                 "error": (
-                    f"Error uploading attachments to JIRA for {jira_issue_key}: {e}",
+                    f"{jira_issue_key}: Error uploading attachments to JIRA: {e}",
                     500,
                 )
             }

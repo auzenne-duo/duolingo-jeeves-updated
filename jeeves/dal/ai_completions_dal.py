@@ -14,6 +14,7 @@ from jeeves.dal.auth_dal import AuthDAL
 from jeeves.util.error_util import print_request_exception
 
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
 
 _EMBEDDING_REQUEST_ROUTE = "/1/ai-completions/embeddings"
 _EMBEDDING_MODEL = "text-embedding-ada-002"

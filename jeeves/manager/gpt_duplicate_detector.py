@@ -11,11 +11,12 @@ from duolingo_base.util import registry
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
 from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
 from jeeves.manager.jira_manager import JiraManager
+from jeeves.manager.shakira_jira import STR_SECTION_DELIMITER
 from jeeves.model.jira_document import JiraDocument
 from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 
 DEDUP_SYSTEM_PROMPT = """
 You are a helpful assistant trying to determine if two bug reports are duplicates, i.e. are likely describing the same problem with the application. After a short justification, produce a single line of output saying either "duplicate: true" or "duplicate: false".
@@ -110,7 +111,11 @@ class GPTDuplicateDetector:
 
     @staticmethod
     def determine_duplicate_from_chat_response(chat_response: str):
-        return "true" in chat_response.splitlines()[-1]
+        if not chat_response:
+            return False, "No response from AIC backend"
+        lines = chat_response.splitlines()
+        dup = "true" in lines[-1]
+        return dup, "\n".join(lines[:-1]).strip()
 
     def find_duplicates(
         self,
@@ -134,10 +139,10 @@ class GPTDuplicateDetector:
             issue_key, timeout=60
         )
         if screenshot_description:
-            LOG.info(f"Found screenshot description for {issue_key}; starting deduplication")
+            LOG.info(f"{issue_key}: Found screenshot description; starting deduplication")
         else:
             LOG.warning(
-                f"Could not find screenshot description for {issue_key}; performing deduplication without it"
+                f"{issue_key}: Could not find screenshot description; performing deduplication without it"
             )
 
         text1 = self.get_jira_issue_text(issue)
@@ -148,7 +153,7 @@ class GPTDuplicateDetector:
         )
 
         LOG.info(
-            f"Analyzing {len(other_issues)} other issues for potential duplicates of {issue_key}"
+            f"{issue_key}: Analyzing {len(other_issues)} other issues for potential duplicates"
         )
         dedup_user_messages = []
         issues_to_test = []
@@ -157,7 +162,7 @@ class GPTDuplicateDetector:
                 text2 = self.get_jira_issue_text(other)
             except (KeyError, ValueError) as e:
                 LOG.warning(
-                    f"Skipping issue {other['key']} because it does not have expected structure: {e}"
+                    f"{issue_key}: Skipping issue {other['key']} because it does not have expected structure: {e}"
                 )
                 continue
             message = DEDUP_USER_PROMPT.format(text1, text2)
@@ -169,10 +174,93 @@ class GPTDuplicateDetector:
         potential_duplicates = []
         for completion, other in zip(completions, issues_to_test):
             other_key: str = other["key"]
-            LOG.debug(f"{issue_key} vs {other_key}: {completion}")
-            is_duplicate = self.determine_duplicate_from_chat_response(completion)
+            LOG.debug(f"{issue_key}: Comparing with {other_key}: {completion}")
+            is_duplicate, justification = self.determine_duplicate_from_chat_response(completion)
             if is_duplicate:
-                potential_duplicates.append((other_key, completion))
+                potential_duplicates.append((other_key, justification))
 
-        LOG.info(f"Found {len(potential_duplicates)} potential duplicates for {issue_key}")
         return potential_duplicates
+
+    @staticmethod
+    def generate_duplicates_rich_text(
+        issue_key: str, duplicates: List[Tuple[str, str]]
+    ) -> List[Dict]:
+        """
+        Generate rich text for flagging potential duplicate issues.
+
+        Args:
+            duplicates: List of tuples containing (issue_key, justification) pairs
+
+        Returns:
+            List of dictionaries in jira rich text format (to be inserted in
+            issue["fields"]["description"]["content"])
+        """
+        if not duplicates:
+            return []
+
+        connect_duplicates_url = (
+            "https://jeeves.duolingo.com/mark-duplicates?jira_issues="
+            + f"{issue_key},"
+            + ",".join(k for k, _ in duplicates)
+        )
+
+        rich_text = [
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Potential duplicates (",
+                        "marks": [{"type": "strong"}],
+                    },
+                    {
+                        "type": "text",
+                        "text": "connect...",
+                        "marks": [
+                            {"type": "link", "attrs": {"href": connect_duplicates_url}},
+                            {"type": "strong"},
+                        ],
+                    },
+                    {"type": "text", "text": ")", "marks": [{"type": "strong"}]},
+                ],
+            },
+        ]
+
+        # Add all issue links first
+        for issue_key, _ in duplicates:
+            issue_url = f"https://duolingo.atlassian.net/browse/{issue_key}"
+            rich_text.append(
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "inlineCard", "attrs": {"url": issue_url}},
+                    ],
+                }
+            )
+
+        # Add all justifications in a single expandable section
+        justification_paragraphs = []
+        for issue_key, justification in duplicates:
+            justification_paragraphs.append(
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": f"{issue_key}", "marks": [{"type": "strong"}]},
+                        {"type": "text", "text": f": {justification}"},
+                    ],
+                }
+            )
+
+        rich_text.append(
+            {
+                "type": "expand",
+                "content": justification_paragraphs,
+                "attrs": {"title": "Reasoning for duplicate detection"},
+            }
+        )
+
+        rich_text.append(
+            {"type": "paragraph", "content": [{"type": "text", "text": STR_SECTION_DELIMITER}]}
+        )
+
+        return rich_text
