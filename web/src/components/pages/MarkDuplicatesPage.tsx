@@ -2,7 +2,8 @@ import * as React from "react";
 import { useLocation } from "react-router-dom";
 
 import styles from "../NamedSection.module.scss";
-import { fullyConnectDuplicates } from "api/jeeves";
+import { fullyConnectDuplicates, getJiraIssueDetails } from "api/jeeves";
+import type { JiraIssueDetails } from "api/jeeves";
 
 /**
  * Creates a JIRA URL from a ticket key
@@ -31,15 +32,34 @@ const MarkDuplicatesPage: React.FC = () => {
     message: string;
     success: boolean;
   } | null>(null);
+  const [issueDetails, setIssueDetails] = React.useState<
+    JiraIssueDetails[] | null
+  >(null);
+  const [detailsLoading, setDetailsLoading] = React.useState(false);
 
   // Parse jira_issues from URL query parameters
   const searchParams = new URLSearchParams(location.search);
   const jiraIssuesParam = searchParams.get("jira_issues") ?? "";
-  const jiraIssues = jiraIssuesParam.split(",").filter(Boolean);
+  const jiraIssues = React.useMemo(
+    () => jiraIssuesParam.split(",").filter(Boolean),
+    [jiraIssuesParam],
+  );
 
   // State to track which tickets are selected
   const [selectedTickets, setSelectedTickets] =
     React.useState<string[]>(jiraIssues);
+
+  React.useEffect(() => {
+    if (jiraIssues.length === 0) {
+      setIssueDetails(null);
+      return;
+    }
+    setDetailsLoading(true);
+    getJiraIssueDetails(jiraIssues)
+      .then(setIssueDetails)
+      .catch(() => setIssueDetails(null))
+      .finally(() => setDetailsLoading(false));
+  }, [jiraIssues]);
 
   const handleTicketToggle = (ticketKey: string) => {
     setSelectedTickets(prev =>
@@ -93,12 +113,29 @@ const MarkDuplicatesPage: React.FC = () => {
             No JIRA issues provided. Use the URL parameter{" "}
             <code>jira_issues</code> with a comma-separated list of issues.
           </p>
-        ) : (
+        ) : detailsLoading ? (
+          <p>Loading JIRA issue details...</p>
+        ) : issueDetails ? (
           <>
             <p>
               Select the JIRA issues you want to mark as duplicates. All
               selected issues will be linked together.
             </p>
+
+            {jiraIssues.length !== issueDetails.length && (
+              <div
+                style={{
+                  backgroundColor: "#FFEBE6",
+                  borderRadius: "3px",
+                  color: "#DE350B",
+                  marginBottom: "15px",
+                  padding: "10px",
+                }}
+              >
+                Warning: Some JIRA issues could not be found and are not shown
+                below. Please check your input.
+              </div>
+            )}
 
             <div style={{ marginBottom: "15px" }}>
               <button
@@ -133,39 +170,130 @@ const MarkDuplicatesPage: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: "20px" }}>
-              {jiraIssues.map(ticketKey => (
-                <div
-                  key={ticketKey}
-                  style={{
-                    alignItems: "center",
-                    backgroundColor: selectedTickets.includes(ticketKey)
-                      ? "#F4F9FF"
-                      : "transparent",
-                    borderRadius: "3px",
-                    display: "flex",
-                    marginBottom: "8px",
-                    padding: "5px",
-                  }}
-                >
-                  <input
-                    checked={selectedTickets.includes(ticketKey)}
-                    id={`ticket-${ticketKey}`}
-                    onChange={() => handleTicketToggle(ticketKey)}
-                    style={{ marginRight: "10px" }}
-                    type="checkbox"
-                  />
-                  <label
-                    htmlFor={`ticket-${ticketKey}`}
-                    style={{
-                      alignItems: "center",
-                      cursor: "pointer",
-                      display: "flex",
-                    }}
-                  >
-                    <JiraLink ticketKey={ticketKey} />
-                  </label>
-                </div>
-              ))}
+              <table
+                style={{
+                  background: "#fff",
+                  borderCollapse: "separate",
+                  borderSpacing: "0 8px",
+                  width: "100%",
+                }}
+              >
+                <thead>
+                  <tr style={{ background: "#F4F5F7" }}>
+                    <th
+                      style={{
+                        borderBottom: "2px solid #DFE1E6",
+                        fontSize: 18,
+                        fontWeight: 700,
+                        padding: "12px 16px",
+                        textAlign: "left",
+                      }}
+                    />
+                    <th
+                      style={{
+                        borderBottom: "2px solid #DFE1E6",
+                        fontSize: 18,
+                        fontWeight: 700,
+                        padding: "12px 16px",
+                        textAlign: "left",
+                      }}
+                    >
+                      JIRA Key
+                    </th>
+                    <th
+                      style={{
+                        borderBottom: "2px solid #DFE1E6",
+                        fontSize: 18,
+                        fontWeight: 700,
+                        padding: "12px 16px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Title
+                    </th>
+                    <th
+                      style={{
+                        borderBottom: "2px solid #DFE1E6",
+                        fontSize: 18,
+                        fontWeight: 700,
+                        padding: "12px 16px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Status
+                    </th>
+                    <th
+                      style={{
+                        borderBottom: "2px solid #DFE1E6",
+                        fontSize: 18,
+                        fontWeight: 700,
+                        padding: "12px 16px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Date Reported
+                    </th>
+                    <th
+                      style={{
+                        borderBottom: "2px solid #DFE1E6",
+                        fontSize: 18,
+                        fontWeight: 700,
+                        padding: "12px 16px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Assignee
+                    </th>
+                    <th
+                      style={{
+                        borderBottom: "2px solid #DFE1E6",
+                        fontSize: 18,
+                        fontWeight: 700,
+                        padding: "12px 16px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Feature
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {issueDetails.map((issue, idx) => (
+                    <tr
+                      key={issue.key}
+                      style={{
+                        backgroundColor: selectedTickets.includes(issue.key)
+                          ? "#F4F9FF"
+                          : idx % 2 === 0
+                            ? "#FAFBFC"
+                            : "#fff",
+                        borderRadius: 8,
+                      }}
+                    >
+                      <td style={{ padding: "10px 16px" }}>
+                        <input
+                          checked={selectedTickets.includes(issue.key)}
+                          id={`ticket-${issue.key}`}
+                          onChange={() => handleTicketToggle(issue.key)}
+                          type="checkbox"
+                        />
+                      </td>
+                      <td style={{ fontWeight: 600, padding: "10px 16px" }}>
+                        <JiraLink ticketKey={issue.key} />
+                      </td>
+                      <td style={{ padding: "10px 16px" }}>{issue.title}</td>
+                      <td style={{ padding: "10px 16px" }}>{issue.status}</td>
+                      <td style={{ padding: "10px 16px" }}>
+                        {issue.date_reported
+                          ? new Date(issue.date_reported).toLocaleString()
+                          : ""}
+                      </td>
+                      <td style={{ padding: "10px 16px" }}>{issue.assignee}</td>
+                      <td style={{ padding: "10px 16px" }}>{issue.feature}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             <button
@@ -202,6 +330,8 @@ const MarkDuplicatesPage: React.FC = () => {
               </div>
             )}
           </>
+        ) : (
+          <p>Could not load JIRA issue details.</p>
         )}
       </div>
     </div>

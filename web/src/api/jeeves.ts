@@ -320,3 +320,19 @@ export const fullyConnectDuplicates = async (
   post<{ overall: string; manifest: string }>("/1/fully_connect_duplicates", {
     issue_keys: issueKeys,
   });
+
+export interface JiraIssueDetails {
+  key: string;
+  title: string;
+  status: string;
+  date_reported: string;
+  assignee: string;
+  feature: string;
+}
+
+export const getJiraIssueDetails = async (
+  issueKeys: string[],
+): Promise<JiraIssueDetails[]> =>
+  post<JiraIssueDetails[]>("/1/jira_issue_details", {
+    issue_keys: issueKeys,
+  });

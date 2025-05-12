@@ -25,6 +25,7 @@ from jeeves.manager.gpt_search_manager import (
     KNNSearchResponse,
 )
 from jeeves.manager.jira_feature_manager import JiraFeatureManager
+from jeeves.manager.jira_manager import JiraManager
 from jeeves.manager.quality_report_manager import QualityReportManager
 from jeeves.manager.query_helper import QueryHelper
 from jeeves.manager.sentiment_search_manager import SentimentSearchManager
@@ -920,6 +921,36 @@ def quality_score_area():
         abort(make_response(f"Could not parse end date argument {html.escape(end_date_arg)}.", 400))
 
     return app_registry(QualityReportManager).get_quality_scores(area, start_date, end_date)
+
+
+@blueprint_api.route("/api/1/jira_issue_details", methods=["POST"])
+def get_jira_issue_details():
+    """
+    Given a list of JIRA issue keys, return for each:
+    - title (summary)
+    - current status
+    - date reported (creation date)
+    - assignee
+    - feature
+    """
+    data = request.get_json()
+    if not data or "issue_keys" not in data or not isinstance(data["issue_keys"], list):
+        abort(make_response("Please provide a list of issue_keys in the POST body.", 400))
+    issue_keys = data["issue_keys"]
+    issues = app_registry(JiraManager).download_bulk_issues_with_features(issue_keys)
+    result = []
+    for issue in issues:
+        result.append(
+            {
+                "key": issue.issue_key,
+                "title": issue.header_text,
+                "status": issue.status,
+                "date_reported": issue.creation_date.isoformat() if issue.creation_date else None,
+                "assignee": issue.assignee,
+                "feature": issue.feature,
+            }
+        )
+    return json.jsonify(result)
 
 
 @blueprint_api.route("/", defaults={"path": ""})
