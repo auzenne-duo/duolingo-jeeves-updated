@@ -246,13 +246,11 @@ class DuplicateGraphResolver:
         parent_doc = duplicate_graph.issue_keys_to_documents[parent_key]
         parent_data = parse_parent_description(parent_doc.body_text)
 
-        # The set visited should now contain all issues we want to fully connect
-        # The set existing_links should now contain all existing links
+        # Only link the parent to each child (not between children)
         all_possible_links = set()
-        keys_list = sorted(list(duplicate_graph.issue_keys_to_documents.keys()))
-        for i in range(len(keys_list) - 1):
-            for j in range(i + 1, len(keys_list)):
-                all_possible_links.add((keys_list[i], keys_list[j]))
+        for key in duplicate_graph.issue_keys_to_documents.keys():
+            if key != parent_key and key not in deprecated_parent_issue_keys:
+                all_possible_links.add((key, parent_key))
 
         remaining_links = all_possible_links - duplicate_graph.existing_issue_links
         any_success = False

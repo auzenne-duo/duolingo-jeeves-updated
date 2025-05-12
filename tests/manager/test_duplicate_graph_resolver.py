@@ -203,9 +203,7 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         expected_links = {
             ("DLAA-5", "parent_key"),
             ("DLAA-6", "parent_key"),
-            ("DLAA-4", "DLAA-6"),
             ("DLAA-4", "parent_key"),
-            ("DLAA-4", "DLAA-5"),
         }
         asyncio_return = [(inward, outward, True) for inward, outward in expected_links]
         mock_get_asyncio_loop.return_value.run_until_complete.return_value = asyncio_return
