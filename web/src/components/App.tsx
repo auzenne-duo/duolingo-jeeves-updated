@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as React from "react";
-import { Route, Switch } from "react-router-dom";
+import { Redirect, Route, Switch } from "react-router-dom";
 import { ThemeProvider } from "web-ui";
 
 import { getLoggedIn } from "api/user";
@@ -188,9 +188,20 @@ const App = () => {
                     <Route path="/:lang/spike-stats">
                       <SpikeStats />
                     </Route>
-                    <Route path="/mark-duplicates">
+                    <Route path="/:lang/mark-duplicates">
                       <MarkDuplicatesPage />
                     </Route>
+                    <Route
+                      path="/mark-duplicates"
+                      render={({ location }) => (
+                        <Redirect
+                          to={{
+                            pathname: "/en/mark-duplicates",
+                            search: location.search,
+                          }}
+                        />
+                      )}
+                    />
                     <Route>
                       <Dashboard />
                     </Route>

@@ -95,7 +95,7 @@ const Sidebar = ({ onItemClick }: Props) => {
       <LinkItem
         onClick={onItemClick}
         title="Mark multiple JIRA issues as duplicates with a single action."
-        to="/mark-duplicates"
+        to={`/${lang}/mark-duplicates`}
       >
         Mark Duplicates
       </LinkItem>

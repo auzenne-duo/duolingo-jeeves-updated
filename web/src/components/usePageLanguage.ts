@@ -1,8 +1,8 @@
-import { useParams } from "react-router";
+import { useParams } from "react-router-dom";
 
-const usePageLanguage = () => {
-  const { lang } = useParams<{ lang: JSONAPI.LanguageId }>();
-  return lang;
+const usePageLanguage = (): JSONAPI.LanguageId => {
+  const { lang } = useParams<{ lang?: JSONAPI.LanguageId }>();
+  return lang ?? "en";
 };
 
 export default usePageLanguage;
