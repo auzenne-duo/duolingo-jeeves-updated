@@ -24,7 +24,7 @@ _CHAT_COMPLETIONS_MODEL = "gpt-dv-duo"
 _CHAT_COMPLETIONS_MODEL_MULTIMODAL = "gpt-4o-mini"
 _BATCH_CHAT_COMPLETIONS_ROUTE = "/1/ai-completions/chat-completions-batch"
 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE = "/1/ai-completions/chat-completion-statuses"
-BATCH_SIZE = 500
+BATCH_SIZE = 200
 
 
 @registry.bind(auth_dal=registry.reference(AuthDAL))
@@ -184,7 +184,8 @@ class AICompletionsDAL:
                 break
             resp = self.client.post(
                 _BATCH_CHAT_COMPLETIONS_STATUS_ROUTE,
-                json={"requestHashes": waiting_hashes},
+                # Limit to BATCH_SIZE to prevent HTTP read timeouts
+                json={"requestHashes": waiting_hashes[:BATCH_SIZE]},
             )
             assert resp is not None, "ai-completions-backend request failed and returned None"
             resp.raise_for_status()
