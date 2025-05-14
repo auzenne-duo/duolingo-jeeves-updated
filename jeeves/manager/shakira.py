@@ -14,13 +14,17 @@ from requests.exceptions import RequestException
 from werkzeug.datastructures import FileStorage
 
 from jeeves import registry as app_registry
-from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
+from jeeves.config.jira_features import (
+    JIRA_FEATURE_TO_TEAM,
+    JIRA_TEAM_TO_AREA,
+    LOG_SUMMARIZATION_ENABLED_FEATURES,
+)
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.gpt_duplicate_detector import GPTDuplicateDetector
 from jeeves.manager.gpt_log_summarizer import GPTLogSummarizer, JiraLogSummarizationTicket
 from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator
 from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
-from jeeves.manager.shakira_jira import ShakiraJiraApiClient
+from jeeves.manager.shakira_jira import STR_SECTION_DELIMITER, ShakiraJiraApiClient
 from jeeves.manager.shakira_loki import ShakiraLokiApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.jira_priorities import JiraPriority
@@ -246,20 +250,49 @@ class ShakiraManager:
 
         self._jira_client.add_comment(project, issue_key, comment)
 
-    def _find_duplicates_gpt(self, issue_key: str):
+    def _create_ai_summary(self, issue_key: str, feature: Optional[str]):
+        try:
+            dups = self._find_duplicates_gpt(issue_key)
+            rich_text = []
+            if dups:
+                rich_text.extend(
+                    self._gpt_duplicate_detector.generate_duplicates_rich_text(issue_key, dups)
+                )
+
+            if feature and feature in LOG_SUMMARIZATION_ENABLED_FEATURES:
+                rich_text.extend(self._gpt_log_summarizer.generate_log_summary_rich_text(issue_key))
+
+            if not rich_text:
+                LOG.info(f"{issue_key}: No AI summary to insert")
+                return
+
+            # Add a section delimiter to the rich text
+            rich_text.append(
+                {"type": "paragraph", "content": [{"type": "text", "text": STR_SECTION_DELIMITER}]}
+            )
+            LOG.info(f"{issue_key}: Rich text: {rich_text}")
+
+            self._jira_client.insert_rich_text_into_description(issue_key, rich_text)
+            LOG.info(f"{issue_key}: Updated description with AI summary")
+        except Exception as e:
+            LOG.error(f"{issue_key}: Error inserting rich text into description: {e}")
+
+    def _find_duplicates_gpt(self, issue_key: str) -> List[Tuple[str, str]]:
         issue = self._jira_client.get_issue_details(issue_key)
+
         if issue is None:
             LOG.warning(f"{issue_key}: Could not get issue details, skipping duplicate detection")
-            return
+            return []
+
         try:
             duplicates = self._gpt_duplicate_detector.find_duplicates(issue)
         except Exception as e:
             LOG.warning(f"{issue_key}: Error finding duplicates: {e}")
-            return
+            return []
 
         if not duplicates:
             LOG.info(f"{issue_key}: No potential duplicates detected")
-            return
+            return []
 
         dup_str = ", ".join(dup for dup, _ in duplicates)
         LOG.info(f"{issue_key}: Potential duplicates detected: {dup_str}")
@@ -275,15 +308,7 @@ class ShakiraManager:
             LOG.info(f"{issue_key}: Potential duplicates stored to S3")
         except Exception as e:
             LOG.error(f"{issue_key}: Error uploading potential duplicates to S3: {e}")
-
-        try:
-            rich_text = self._gpt_duplicate_detector.generate_duplicates_rich_text(
-                issue_key, duplicates
-            )
-            self._jira_client.insert_rich_text_into_description(issue_key, rich_text)
-            LOG.info(f"{issue_key}: Updated description with potential duplicates")
-        except Exception as e:
-            LOG.error(f"{issue_key}: Error inserting rich text into description: {e}")
+        return duplicates
 
     def _generate_and_upload_screenshot_summary(
         self,
@@ -506,7 +531,7 @@ class ShakiraManager:
                 ticket_text = JiraTicketText(title=summary, description=f"{description}")
                 executor = app_registry(ThreadPoolExecutor)
                 executor.submit(self._set_priority, issue_key, project, ticket_text)
-                executor.submit(self._find_duplicates_gpt, issue_key)
+                executor.submit(self._create_ai_summary, issue_key, feature)
 
             if not should_post_to_slack:
                 return (

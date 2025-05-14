@@ -11,7 +11,6 @@ from duolingo_base.util import registry
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
 from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
 from jeeves.manager.jira_manager import JiraManager
-from jeeves.manager.shakira_jira import STR_SECTION_DELIMITER
 from jeeves.model.jira_document import JiraDocument
 from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
@@ -257,10 +256,6 @@ class GPTDuplicateDetector:
                 "content": justification_paragraphs,
                 "attrs": {"title": "Reasoning for duplicate detection"},
             }
-        )
-
-        rich_text.append(
-            {"type": "paragraph", "content": [{"type": "text", "text": STR_SECTION_DELIMITER}]}
         )
 
         return rich_text
