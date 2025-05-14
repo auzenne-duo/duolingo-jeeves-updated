@@ -17,6 +17,9 @@ LOG.setLevel(logging.DEBUG)
 # These are titles that are known to be irrelevant to log summarization
 SKIP_TITLES = {"test", "tests", "testing"}
 
+# These are lines that are known to be spammy and not relevant to log summarization
+SKIP_LINES = ["frameperformance", "keychain"]
+
 RESP_LOG_SUMMARY = "log_summary"
 
 # Components of the request format (in YAML)
@@ -157,7 +160,12 @@ class GPTLogSummarizer:
         return False
 
     def _filter_logs_error_warn(self, logs: list[str]) -> list[str]:
-        return [line for line in logs if "error" in line.lower() or "warn" in line.lower()]
+        return [
+            line
+            for line in logs
+            if ("error" in line.lower() or "warn" in line.lower())
+            and not any(skip_line in line.lower() for skip_line in SKIP_LINES)
+        ]
 
     def summarize_logs(self, ticket_data: JiraLogSummarizationTicket) -> LogSummaryResponse:
         """
