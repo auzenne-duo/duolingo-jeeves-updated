@@ -1,6 +1,6 @@
 import json
 from io import BytesIO
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from werkzeug.datastructures import FileStorage
@@ -10,7 +10,6 @@ from jeeves.manager.gpt_log_summarizer import (
     GPTLogSummarizer,
     JiraLogSummarizationTicket,
     LogSummaryResponse,
-    S3DownloadException,
 )
 
 
@@ -48,10 +47,7 @@ def mock_ai_completions_dal():
 
 @pytest.fixture
 def summarizer(mock_ai_completions_dal):
-    with patch("jeeves.manager.gpt_log_summarizer.get_s3_client_and_bucket") as mock_get:
-        mock_s3_client = MagicMock()
-        mock_get.return_value = (mock_s3_client, "test-bucket")
-        yield GPTLogSummarizer(ai_completions_dal=mock_ai_completions_dal)
+    return GPTLogSummarizer(ai_completions_dal=mock_ai_completions_dal)
 
 
 def test_logs_filtering(ticket):
@@ -99,9 +95,6 @@ def test_filter_logs_error_warn(summarizer, mock_ai_completions_dal):
         "DEBUG: not important",
         "warning: heads up",
         "no issues here",
-        "error: frameperformance issue detected",
-        "warn: keychain access denied",
-        "error: unrelated error",
     ]
     ticket = JiraLogSummarizationTicket(
         description="desc", title="title", files={"error.log": logs}, ticket_id="JIRA-1"
@@ -113,12 +106,9 @@ def test_filter_logs_error_warn(summarizer, mock_ai_completions_dal):
     assert "error: something failed" in user_prompt
     assert "Warn: be careful" in user_prompt
     assert "warning: heads up" in user_prompt
-    assert "error: unrelated error" in user_prompt
     assert "info: all good" not in user_prompt
     assert "DEBUG: not important" not in user_prompt
     assert "no issues here" not in user_prompt
-    assert "error: frameperformance issue detected" not in user_prompt
-    assert "warn: keychain access denied" not in user_prompt
 
 
 def test_empty_title_and_description_returns_empty_and_no_call(summarizer, mock_ai_completions_dal):
@@ -162,89 +152,27 @@ def test_testing_ticket_returns_empty_and_no_call(summarizer, mock_ai_completion
     mock_ai_completions_dal.ask.assert_not_called()
 
 
-def test_format_collapses_duplicates_and_counts():
-    logs = [
-        "error: something failed",
-        "warn: something odd",
-        "error: something failed",
-        "info: all good",
-        "warn: something odd",
-        "warn: something odd",
-    ]
-    response = LogSummaryResponse(log_summary=logs)
-    formatted = response.format(max_lines=10)
-    assert "error: something failed (x2)" in formatted
-    assert "warn: something odd (x3)" in formatted
-    assert "info: all good" in formatted
-    assert "info: all good (x" not in formatted
-    assert "error: something failed\nerror: something failed" not in formatted
+class TestLogSummaryResponseFormat:
+    def test_format_collapses_duplicates_and_counts(self):
+        logs = [
+            "error: something failed",
+            "warn: something odd",
+            "error: something failed",
+            "info: all good",
+            "warn: something odd",
+            "warn: something odd",
+        ]
+        response = LogSummaryResponse(log_summary=logs)
+        formatted = response.format(max_lines=10)
+        assert "error: something failed (x2)" in formatted
+        assert "warn: something odd (x3)" in formatted
+        assert "info: all good" in formatted
+        assert "info: all good (x" not in formatted
+        assert "error: something failed\nerror: something failed" not in formatted
 
-
-def test_format_max_lines():
-    logs = [f"error {i}" for i in range(10)]
-    response = LogSummaryResponse(log_summary=logs)
-    formatted = response.format(max_lines=5)
-    assert len(formatted.splitlines()) == 6  # 5 lines + 1 omitted line
-    assert "...and 5 more unique lines omitted." in formatted
-
-
-def test_get_description_s3_success(summarizer):
-    summarizer.s3_client = MagicMock()
-    summarizer.s3_bucket = "bucket"
-    summarizer.s3_client.download.return_value = b"log summary text"
-
-    # pylint: disable=protected-access
-    result = summarizer._get_log_summary_s3("JIRA-123")
-    assert result == "log summary text"
-    summarizer.s3_client.download.assert_called_once_with("bucket", "log_summaries/JIRA-123.txt")
-
-
-def test_get_description_s3_download_exception(summarizer):
-    summarizer.s3_client = MagicMock()
-    summarizer.s3_bucket = "bucket"
-    summarizer.s3_client.download.side_effect = S3DownloadException()
-    # pylint: disable=protected-access
-    result = summarizer._get_log_summary_s3("JIRA-123")
-    assert result is None
-
-
-def test_poll_for_description_s3_immediate(summarizer):
-    # pylint: disable=protected-access
-    summarizer._get_log_summary_s3 = MagicMock(return_value="desc")
-    # pylint: disable=protected-access
-    result = summarizer._poll_for_log_summary_s3("JIRA-123", timeout=2)
-    assert result == "desc"
-    summarizer._get_log_summary_s3.assert_called_once_with("JIRA-123")
-
-
-def test_generate_log_summary_rich_text_returns_adf(summarizer, monkeypatch):
-    def dummy_poll_for_log_summary_s3(self, *args, **kwargs):
-        return "Log line 1\nLog line 2"
-
-    monkeypatch.setattr(
-        "jeeves.manager.gpt_log_summarizer.GPTLogSummarizer._poll_for_log_summary_s3",
-        dummy_poll_for_log_summary_s3,
-    )
-    result = summarizer.generate_log_summary_rich_text("JIRA-123")
-    assert isinstance(result, list)
-    assert result[0]["content"][0]["text"] == "Relevant Logs"
-    assert result[1]["content"][0]["content"][0]["text"] == "Log line 1\nLog line 2"
-
-
-def test_generate_log_summary_rich_text_empty_issue_key(summarizer):
-    result = summarizer.generate_log_summary_rich_text("")
-    assert result == []
-
-
-def test_generate_log_summary_rich_text_empty_summary(summarizer, monkeypatch):
-    class DummySummarizer:
-        def _poll_for_log_summary_s3(self, *args, **kwargs):
-            return None
-
-    monkeypatch.setattr(
-        "jeeves.manager.gpt_log_summarizer.GPTLogSummarizer._poll_for_log_summary_s3",
-        # pylint: disable=protected-access
-        DummySummarizer._poll_for_log_summary_s3,
-    )
-    result = summarizer.generate_log_summary_rich_text("JIRA-123")
-    assert result == []
+    def test_format_max_lines(self):
+        logs = [f"error {i}" for i in range(10)]
+        response = LogSummaryResponse(log_summary=logs)
+        formatted = response.format(max_lines=5)
+        assert len(formatted.splitlines()) == 6  # 5 lines + 1 omitted line
+        assert "...and 5 more unique lines omitted." in formatted

@@ -3,25 +3,19 @@ from __future__ import annotations
 import json
 import logging
 import re
-import time
 from collections import Counter
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from duolingo_base.dal.s3 import S3DownloadException
 from duolingo_base.util import registry
 
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
-from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
 # These are titles that are known to be irrelevant to log summarization
 SKIP_TITLES = {"test", "tests", "testing"}
-
-# These are lines that are known to be spammy and not relevant to log summarization
-SKIP_LINES = ["frameperformance", "keychain"]
 
 RESP_LOG_SUMMARY = "log_summary"
 
@@ -151,7 +145,6 @@ class LogSummaryResponse:
 class GPTLogSummarizer:
     def __init__(self, ai_completions_dal: AICompletionsDAL) -> None:
         self.ai_completions_dal = ai_completions_dal
-        self.s3_client, self.s3_bucket = get_s3_client_and_bucket()
 
     def should_skip_ticket(self, ticket_data: JiraLogSummarizationTicket) -> bool:
         normalized_title = (ticket_data.title or "").replace(" ", "").lower()
@@ -164,12 +157,7 @@ class GPTLogSummarizer:
         return False
 
     def _filter_logs_error_warn(self, logs: list[str]) -> list[str]:
-        return [
-            line
-            for line in logs
-            if ("error" in line.lower() or "warn" in line.lower())
-            and not any(skip_line in line.lower() for skip_line in SKIP_LINES)
-        ]
+        return [line for line in logs if "error" in line.lower() or "warn" in line.lower()]
 
     def summarize_logs(self, ticket_data: JiraLogSummarizationTicket) -> LogSummaryResponse:
         """
@@ -217,55 +205,3 @@ class GPTLogSummarizer:
         except Exception as e:
             LOG.error(f"{ticket_data.ticket_id}: Error analyzing logs: {e}")
             return LogSummaryResponse(log_summary=[])
-
-    def _get_log_summary_s3(self, jira_key: str) -> Optional[str]:
-        try:
-            data = self.s3_client.download(self.s3_bucket, f"log_summaries/{jira_key}.txt")
-            return data.decode("utf-8")
-        except S3DownloadException:
-            return None
-
-    def _poll_for_log_summary_s3(self, jira_key: str, timeout: int = 60) -> Optional[str]:
-        end_time = time.time() + timeout
-        while time.time() < end_time:
-            if summary := self._get_log_summary_s3(jira_key):
-                return summary
-            time.sleep(1)
-        return None
-
-    def generate_log_summary_rich_text(self, issue_key: str) -> List[Dict]:
-        """
-        Generate rich text for log summary.
-
-        Args:
-            issue_key: The Jira issue key
-
-        Returns:
-            List of dictionaries in jira rich text format (to be inserted in
-            issue["fields"]["description"]["content"])
-        """
-        if not issue_key:
-            return []
-
-        summary = self._poll_for_log_summary_s3(issue_key, timeout=60)
-
-        if not summary:
-            return []
-
-        return [
-            {
-                "type": "paragraph",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Relevant Logs",
-                        "marks": [{"type": "strong"}],
-                    }
-                ],
-            },
-            {
-                "type": "expand",
-                "attrs": {"title": "Expand to view"},
-                "content": [{"type": "paragraph", "content": [{"type": "text", "text": summary}]}],
-            },
-        ]
