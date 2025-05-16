@@ -1,0 +1,8 @@
+warn: disk space low
+error: could not connect to database
+debug: retrying connection
+info: operation completed
+error: could not connect to database
+info: summary is 'Test bug for log summarization'
+info: description is 'This is a test bug to check log summarization.'
+error: encountered an error during testing

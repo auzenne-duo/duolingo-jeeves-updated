@@ -1,0 +1,10 @@
+error: something failed
+info: all good
+Warn: be careful
+error: something failed again
+warning: heads up
+no issues here
+error: Test bug relevant for a summarization of the logs
+info: description is 'This is a test bug to check log summarization.'
+warning: this is a testing log entry
+2025/02/06 20:29:18:595  [ERROR | EXAI] [VCST] Task finished with error: Error Domain=kAFAssistantErrorDomain Code=1110 "No speech detected" UserInfo={NSLocalizedDescription=No speech detected}

@@ -167,3 +167,68 @@ You might have to run `make install` from the Frontend section to get css fonts 
 - [Jeeves Spec](https://docs.google.com/document/d/1QaIR3qbbQh0cT0uwlHrLWeRywRnmXP4NKyK21PUCXnU/edit#)
 - [Shakira API](https://github.com/duolingo/duolingo-jeeves/tree/master/jeeves/view#shakira-routes-documentation)
 - [Jeeves API](https://github.com/duolingo/duolingo-jeeves/tree/master/jeeves/view#jeeves-routes-documentation)
+
+## Running Shake To Report Flow Locally
+
+To run the ShakiraManager tests locally, follow these steps:
+
+1. **Authenticate with Okta/SSO**
+
+   - In your terminal, run:
+     ```sh
+     duo sso
+     ```
+   - When prompted, select the `okta-area-dev-amp` role.
+   - This should set up your AWS credentials.
+   - **Verify your AWS credentials are set:**
+     ```sh
+     echo $AWS_ACCESS_KEY_ID
+     echo $AWS_SECRET_ACCESS_KEY
+     echo $AWS_SESSION_TOKEN
+     ```
+
+2. **Start the Local Environment**
+
+   - In the project root, run:
+     ```sh
+     ./run_local.sh --aws_env=dev
+     ```
+
+3. **Run the Shake-to-Report Test Flow**
+   - In a separate terminal window, run:
+     ```sh
+     tests/local_testing/test_shake_to_report_flow.sh
+     ```
+
+This will ensure you are authenticated, your environment is running, and the integration test script is executed correctly.
+
+## Running Shake To Report Flow With An Emulator
+
+1. **Set up duolingo-ios locally**
+
+   - Follow the instructions at: https://github.com/duolingo/duolingo-ios?tab=readme-ov-file#setup
+
+2. **Update the ShakeToReport endpoint to point to Jeeves dev**
+
+   - Edit the file [`ShakeReportRoute.swift`](https://github.com/duolingo/duolingo-ios/blob/9be0724656a234d1d584b07c79b8140cf948ae70/DuolingoMobile/Sources/Library/Utilities/ShakeToReport/Admin/API/ShakeReportRoute.swift#L15)
+   - Replace:
+     ```swift
+     static let baseURL = "https://jeeves.duolingo.com"
+     ```
+     with:
+     ```swift
+     static let baseURL = "https://duolingo-jeeves-dev.duolingo.com"
+     ```
+
+3. **Deploy your development branch to Jeeves dev**
+
+   - Start a build in Jenkins with your development branch:
+     - Go to: https://deployment-jenkins.duolingo.com/job/duolingo-jeeves-deploy-galaxy-dev/
+     - Click **Build with Parameters**
+     - Set your local branch as the `BUILD_BRANCH` parameter
+     - (Optional) Unselect everything except `DEPLOY_API` if you are just making an API change
+     - Start the build
+
+4. **Run the emulator**
+   - In Xcode, press `Cmd + R` or select `Product > Run` to launch the app in the emulator.
+   - To trigger shake-to-report, press `Ctrl + Cmd + Z` or select `Device > Shake` in the simulator menu.
