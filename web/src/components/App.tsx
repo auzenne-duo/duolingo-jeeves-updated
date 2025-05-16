@@ -17,6 +17,7 @@ import Topbar from "components/Topbar";
 import Dashboard from "components/dashboard/Dashboard";
 import GPTSearch from "components/gpt-search/GPTSearch";
 import IssueDiscovery from "components/issue-discovery/IssueDiscovery";
+import FeedbackPage from "components/pages/FeedbackPage";
 import MarkDuplicatesPage from "components/pages/MarkDuplicatesPage";
 import OpenIssuesPage from "components/pages/OpenIssuesPage";
 import QualityReport from "components/quality-report/QualityReport";
@@ -197,6 +198,20 @@ const App = () => {
                         <Redirect
                           to={{
                             pathname: "/en/mark-duplicates",
+                            search: location.search,
+                          }}
+                        />
+                      )}
+                    />
+                    <Route path="/:lang/feedback">
+                      <FeedbackPage />
+                    </Route>
+                    <Route
+                      path="/feedback"
+                      render={({ location }) => (
+                        <Redirect
+                          to={{
+                            pathname: "/en/feedback",
                             search: location.search,
                           }}
                         />

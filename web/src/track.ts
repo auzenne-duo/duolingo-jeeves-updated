@@ -46,6 +46,13 @@ interface TrackingEvents {
     selected_suggested_feature: boolean;
     slack_channel?: string;
   };
+  // Generic feedback from the feedback page
+  jeeves_generic_feedback: {
+    feature: string;
+    id: string;
+    quick_feedback: string;
+    long_feedback?: string; // Will be used in upcoming feedback form enhancement
+  };
 }
 
 const track = <T extends keyof TrackingEvents>(
@@ -53,7 +60,9 @@ const track = <T extends keyof TrackingEvents>(
   props?: TrackingEvents[T],
 ) =>
   new Promise<void>(resolve => {
-    excess.track(event, props, () => resolve);
+    excess.track(event, props, () => {
+      resolve();
+    });
   });
 
 export default track;
