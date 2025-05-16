@@ -17,6 +17,8 @@ from jeeves.model.jira_ticket_text import JiraTicketText
 from jeeves.model.slack_channel import SlackChannel
 from jeeves.util.shakira import JIRA_RELEASE_BLOCKER_LABEL, SHAKE_TO_REPORT_LABEL
 
+# pylint: disable=protected-access
+
 _JIRA_ISSUE_URL = "https://jira.com/issues/DLAA-1"
 
 
@@ -941,6 +943,116 @@ class Test(unittest.TestCase):
         # pylint: disable=protected-access
         result = shakira_manager._parse_log_files(files)
         assert result == {}
+
+    def test_find_duplicates_gpt_issue_details_none(self):
+        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        shakira_jira_mock.get_issue_details = MagicMock(return_value=None)
+        # pylint: disable=protected-access
+        result = shakira_manager._find_duplicates_gpt("DUP-KEY")
+        assert result == []
+
+    def test_find_duplicates_gpt_find_duplicates_raises(self):
+        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        shakira_jira_mock.get_issue_details = MagicMock(return_value={"fields": {}})
+        shakira_manager._gpt_duplicate_detector.find_duplicates = MagicMock(
+            side_effect=Exception("fail")
+        )
+        # pylint: disable=protected-access
+        result = shakira_manager._find_duplicates_gpt("DUP-KEY")
+        assert result == []
+
+    def test_find_duplicates_gpt_no_duplicates(self):
+        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        shakira_jira_mock.get_issue_details = MagicMock(return_value={"fields": {}})
+        shakira_manager._gpt_duplicate_detector.find_duplicates = MagicMock(return_value=[])
+        # pylint: disable=protected-access
+        result = shakira_manager._find_duplicates_gpt("DUP-KEY")
+        assert result == []
+
+    def test_find_duplicates_gpt_uploads_to_s3_and_handles_upload_error(self):
+        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        shakira_jira_mock.get_issue_details = MagicMock(return_value={"fields": {}})
+        shakira_manager._gpt_duplicate_detector.find_duplicates = MagicMock(
+            return_value=[("DUP-1", "reason")]
+        )
+        shakira_manager._upload_to_s3 = MagicMock(side_effect=Exception("fail upload"))
+        # pylint: disable=protected-access
+        result = shakira_manager._find_duplicates_gpt("DUP-KEY")
+        assert result == [("DUP-1", "reason")]
+        shakira_manager._upload_to_s3.assert_called_once()
+
+    def test_create_ai_summary_no_rich_text(self):
+        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        shakira_manager._find_duplicates_gpt = MagicMock(return_value=[])
+        shakira_manager._gpt_log_summarizer.generate_log_summary_rich_text = MagicMock(
+            return_value=[]
+        )
+        shakira_jira_mock.insert_rich_text_into_description = MagicMock()
+        # pylint: disable=protected-access
+        shakira_manager._create_ai_summary("DUP-KEY", None)
+        shakira_jira_mock.insert_rich_text_into_description.assert_not_called()
+
+    def test_create_ai_summary_handles_exception(self):
+        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        shakira_manager._find_duplicates_gpt = MagicMock(side_effect=Exception("fail"))
+        shakira_jira_mock.insert_rich_text_into_description = MagicMock()
+        # pylint: disable=protected-access
+        shakira_manager._create_ai_summary("DUP-KEY", None)
+        shakira_jira_mock.insert_rich_text_into_description.assert_not_called()
+
+    def test_create_ai_disabled_log_summarization_feature(self):
+        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        # Simulate finding duplicates and log summary
+        dups = [("DUP-1", "reason")]
+        rich_text_dups = ["duplicate rich text"]
+        rich_text_logs = ["log summary rich text"]
+        shakira_manager._find_duplicates_gpt = MagicMock(return_value=dups)
+        shakira_manager._gpt_duplicate_detector.generate_duplicates_rich_text = MagicMock(
+            return_value=rich_text_dups
+        )
+        shakira_manager._gpt_log_summarizer.generate_log_summary_rich_text = MagicMock(
+            return_value=rich_text_logs
+        )
+        shakira_jira_mock.insert_rich_text_into_description = MagicMock()
+
+        # pylint: disable=protected-access
+        shakira_manager._create_ai_summary("DUP-KEY", "disable feature")
+
+        shakira_jira_mock.insert_rich_text_into_description.assert_called_once()
+        args, _ = shakira_jira_mock.insert_rich_text_into_description.call_args
+        # The rich text should include both duplicate and log summary
+        assert rich_text_dups[0] in str(args[1])
+        assert rich_text_logs[0] not in str(args[1])
+        assert len(args[1]) == 2
+
+    def test_create_ai_summary_happy_path(self):
+        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
+        # Simulate finding duplicates and log summary
+        dups = [("DUP-1", "reason")]
+        rich_text_dups = ["duplicate rich text"]
+        rich_text_logs = ["log summary rich text"]
+        shakira_manager._find_duplicates_gpt = MagicMock(return_value=dups)
+        shakira_manager._gpt_duplicate_detector.generate_duplicates_rich_text = MagicMock(
+            return_value=rich_text_dups
+        )
+        shakira_manager._gpt_log_summarizer.generate_log_summary_rich_text = MagicMock(
+            return_value=rich_text_logs
+        )
+        shakira_jira_mock.insert_rich_text_into_description = MagicMock()
+
+        # pylint: disable=protected-access
+        shakira_manager._create_ai_summary("DUP-KEY", "Video Call")
+
+        # Should call insert_rich_text_into_description with both rich text parts
+        shakira_jira_mock.insert_rich_text_into_description.assert_called_once()
+        args, _ = shakira_jira_mock.insert_rich_text_into_description.call_args
+        # The rich text should include both duplicate and log summary
+        assert rich_text_dups[0] in str(args[1])
+        assert rich_text_logs[0] in str(args[1])
+        assert len(args[1]) == 3
+        # Assert order: dups before logs
+        rich_text_str = str(args[1])
+        assert rich_text_str.index(rich_text_dups[0]) < rich_text_str.index(rich_text_logs[0])
 
 
 def test_upload_artifacts_stream_seek_and_executor_order(monkeypatch):
