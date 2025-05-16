@@ -17,6 +17,7 @@ from jeeves import registry as app_registry
 from jeeves.config.jira_features import JIRA_FEATURE_TO_TEAM, JIRA_TEAM_TO_AREA
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.gpt_duplicate_detector import GPTDuplicateDetector
+from jeeves.manager.gpt_log_summarizer import GPTLogSummarizer, JiraLogSummarizationTicket
 from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator
 from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
 from jeeves.manager.shakira_jira import ShakiraJiraApiClient
@@ -69,9 +70,15 @@ SLACK_CHANNEL_MD = f"[{SLACK_CHANNEL_NAME}|{SLACK_CHANNEL_URL}]"
 _IOS_LOG_FILENAME = "logs.txt"
 ANDROID_LOG_FILE_PATTERN = re.compile(r"^log\d+\.txt$")
 
+DEFAULT_DESCRIPTION = "(no description)"
+DEFAULT_ISSUE_SUMMARY = "(no issue summary)"
+
+_SCREENSHOT_FILE_KEY = "screenshot"
+
 
 @registry.bind(
     gpt_duplicate_detector=registry.reference(GPTDuplicateDetector),
+    gpt_log_summarizer=registry.reference(GPTLogSummarizer),
     gpt_priority_estimator=registry.reference(GPTPriorityEstimator),
     gpt_screenshot_summarizer=registry.reference(GPTScreenshotSummarizer),
     jira_client=registry.reference(ShakiraJiraApiClient),
@@ -80,6 +87,7 @@ ANDROID_LOG_FILE_PATTERN = re.compile(r"^log\d+\.txt$")
 class ShakiraManager:
     def __init__(
         self,
+        gpt_log_summarizer: GPTLogSummarizer,
         gpt_priority_estimator: GPTPriorityEstimator,
         gpt_screenshot_summarizer: GPTScreenshotSummarizer,
         jira_client: ShakiraJiraApiClient,
@@ -87,6 +95,7 @@ class ShakiraManager:
         gpt_duplicate_detector: GPTDuplicateDetector,
         upload_to_s3: Callable[[str, bytes], None] = upload_to_jeeves_s3,
     ):
+        self._gpt_log_summarizer = gpt_log_summarizer
         self._gpt_priority_estimator = gpt_priority_estimator
         self._gpt_screenshot_summarizer = gpt_screenshot_summarizer
         self._jira_client = jira_client
@@ -299,6 +308,75 @@ class ShakiraManager:
         except Exception as e:
             LOG.warning(f"{issue_key}: Error uploading screenshot summary to S3: {e}")
 
+    def _summarize_logs(
+        self,
+        issue_key: str,
+        summary: str,
+        description: str,
+        files: Dict[str, List[str]],
+    ):
+        """
+        Summarize logs using GPTLogSummarizer and log the result.
+        Returns the LogSummaryResponse or None if no logs or error.
+        """
+        if not files:
+            LOG.warning(f"{issue_key}: No logs found to summarize")
+            return None
+        if (description is None or description == DEFAULT_DESCRIPTION) and (
+            summary is None or summary == DEFAULT_ISSUE_SUMMARY
+        ):
+            LOG.warning(f"{issue_key}: No description or summary, skipping log summarization")
+            return None
+        try:
+            ticket = JiraLogSummarizationTicket(
+                description=description or "", title=summary or "", files=files, ticket_id=issue_key
+            )
+            summary_response = self._gpt_log_summarizer.summarize_logs(ticket)
+            LOG.info(f"{issue_key}: GPT log summary: {summary_response.format(max_lines=5)}")
+        except Exception as e:
+            LOG.error(f"{issue_key}: Error summarizing logs with GPT: {e}")
+            return
+        try:
+            self._upload_to_s3(
+                f"log_summaries/{issue_key}.txt",
+                summary_response.format(max_lines=5).encode("utf-8"),
+            )
+            LOG.info(f"{issue_key}: Log summary uploaded to S3")
+        except Exception as e:
+            LOG.warning(f"{issue_key}: Error uploading log summary to S3: {e}")
+
+    def _parse_log_files(self, files: Dict[str, FileStorage]) -> Dict[str, List[str]]:
+        """Parse log files from FileStorage objects into a dictionary of filename to list of log lines.
+        Args:
+            files: Dictionary mapping file names to FileStorage objects
+        Returns:
+            Dictionary mapping filenames to lists of log lines
+        """
+        parsed_log_files: Dict[str, List[str]] = {}
+        for file_name, file_storage in files.items():
+            if file_name == _SCREENSHOT_FILE_KEY:
+                # We don't want to parse the screenshot file
+                continue
+
+            try:
+                file_storage.stream.seek(0)
+                log_text = file_storage.stream.read().decode("utf-8")
+                file_storage.stream.seek(0)
+                if log_text:
+                    LOG.info(
+                        f"Log text exists for {file_storage.filename}. Length: {len(log_text)}"
+                    )
+                    parsed_log_files[file_storage.filename] = log_text.splitlines()
+            except UnicodeDecodeError as e:
+                LOG.warning(
+                    f"Could not decode file {getattr(file_storage, 'filename', '<unknown>')} as UTF-8, skipping: {e}"
+                )
+            except Exception as e:
+                LOG.warning(
+                    f"Error reading log file {getattr(file_storage, 'filename', '<unknown>')}, skipping: {e}"
+                )
+        return parsed_log_files
+
     @traced_function()
     def report_issue(
         self,
@@ -379,7 +457,7 @@ class ShakiraManager:
         jeeves_label = JIRA_VIA_JEEVES_LABEL if summary.startswith(_VIA_JEEVES_MARKER) else None
         rc_blocker_label = JIRA_RELEASE_BLOCKER_LABEL if release_blocker else None
 
-        screenshot = files.get("screenshot")
+        screenshot = files.get(_SCREENSHOT_FILE_KEY)
 
         post_to_slack_only = channels is not None and jira_label_from_channel is None
         if related_issue_key and not post_to_slack_only:
@@ -555,18 +633,43 @@ class ShakiraManager:
             elif user_agent.platform == DuoPlatform.ANDROID:
                 executor.submit(self._upload_to_loki_android, jira_issue_key, text_stream)
 
-        if "screenshot" in files:
-            screenshot = files["screenshot"]
-            if issue_summary is None:
-                issue_details = self._jira_client.get_issue_details(jira_issue_key)
-                if issue_details is None:
-                    LOG.warning(
-                        f"{jira_issue_key}: Could not get issue details, using empty summary"
-                    )
-                    issue_summary = "(no issue summary)"
-                else:
-                    issue_summary = issue_details["fields"]["summary"]
-                    assert isinstance(issue_summary, str)
+        issue_details = self._jira_client.get_issue_details(jira_issue_key)
+        if issue_summary is None:
+            if issue_details is None:
+                LOG.warning(f"{jira_issue_key}: Could not get issue details, using empty summary")
+                issue_summary = DEFAULT_ISSUE_SUMMARY
+            else:
+                issue_summary = issue_details["fields"]["summary"]
+                assert isinstance(issue_summary, str)
+
+        if issue_details is None:
+            LOG.warning(f"{jira_issue_key}: Could not get issue details, using empty description")
+            description = DEFAULT_DESCRIPTION
+        else:
+            description_field = issue_details["fields"]["description"]
+            content = description_field["content"]
+
+            # Only take the first paragraph of the description for now.
+            # TODO(cainan): Clean up how we pull this data, and get other relevant fields
+            if (
+                len(content) > 0
+                and content[0]["type"] == "paragraph"
+                and len(content[0]["content"]) > 0
+            ):
+                description = content[0]["content"][0]["text"]
+            else:
+                LOG.warning(f"{jira_issue_key}: Invalid description field, using empty description")
+                description = DEFAULT_DESCRIPTION
+
+            assert isinstance(
+                description, str
+            ), f"description should be str but got {type(description)} with value: {description}"
+
+        # Parse the log files first to avoid race conditions in stream consumption
+        parsed_log_files = self._parse_log_files(files)
+
+        if _SCREENSHOT_FILE_KEY in files:
+            screenshot = files[_SCREENSHOT_FILE_KEY]
 
             # Read the screenshot in single threaded context to avoid race
             # conditions in stream consumption
@@ -589,6 +692,14 @@ class ShakiraManager:
                 extension,
                 issue_summary,
             )
+
+        executor.submit(
+            self._summarize_logs,
+            jira_issue_key,
+            issue_summary,
+            description,
+            parsed_log_files,
+        )
 
         try:
             self._jira_client.upload_attachments(project, jira_issue_key, files)

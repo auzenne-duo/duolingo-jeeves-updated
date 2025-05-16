@@ -95,6 +95,9 @@ def test_filter_logs_error_warn(summarizer, mock_ai_completions_dal):
         "DEBUG: not important",
         "warning: heads up",
         "no issues here",
+        "error: frameperformance issue detected",
+        "warn: keychain access denied",
+        "error: unrelated error",
     ]
     ticket = JiraLogSummarizationTicket(
         description="desc", title="title", files={"error.log": logs}, ticket_id="JIRA-1"
@@ -106,9 +109,12 @@ def test_filter_logs_error_warn(summarizer, mock_ai_completions_dal):
     assert "error: something failed" in user_prompt
     assert "Warn: be careful" in user_prompt
     assert "warning: heads up" in user_prompt
+    assert "error: unrelated error" in user_prompt
     assert "info: all good" not in user_prompt
     assert "DEBUG: not important" not in user_prompt
     assert "no issues here" not in user_prompt
+    assert "error: frameperformance issue detected" not in user_prompt
+    assert "warn: keychain access denied" not in user_prompt
 
 
 def test_empty_title_and_description_returns_empty_and_no_call(summarizer, mock_ai_completions_dal):
