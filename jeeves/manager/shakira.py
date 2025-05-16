@@ -35,6 +35,7 @@ from jeeves.util.shakira import (
     JIRA_PROJ_TO_PLATFORM,
     JIRA_RELEASE_BLOCKER_LABEL,
     JIRA_VIA_JEEVES_LABEL,
+    SHAKE_TO_REPORT_LABEL,
 )
 
 LOG = logging.getLogger(__name__)
@@ -486,7 +487,12 @@ class ShakiraManager:
                 feature=feature,
                 labels=[
                     label
-                    for label in [jira_label_from_channel, jeeves_label, rc_blocker_label]
+                    for label in [
+                        jira_label_from_channel,
+                        jeeves_label,
+                        rc_blocker_label,
+                        SHAKE_TO_REPORT_LABEL,
+                    ]
                     if label is not None
                 ],
                 summary=summary,

@@ -12,3 +12,4 @@ JIRA_PROJ_TO_PLATFORM = {
 }
 JIRA_VIA_JEEVES_LABEL = "via-jeeves"
 JIRA_RELEASE_BLOCKER_LABEL = "rc-blocker"
+SHAKE_TO_REPORT_LABEL = "shake-to-report"

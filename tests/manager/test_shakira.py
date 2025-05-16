@@ -15,7 +15,7 @@ from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.jira_priorities import JiraPriority
 from jeeves.model.jira_ticket_text import JiraTicketText
 from jeeves.model.slack_channel import SlackChannel
-from jeeves.util.shakira import JIRA_RELEASE_BLOCKER_LABEL
+from jeeves.util.shakira import JIRA_RELEASE_BLOCKER_LABEL, SHAKE_TO_REPORT_LABEL
 
 _JIRA_ISSUE_URL = "https://jira.com/issues/DLAA-1"
 
@@ -128,7 +128,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Callouts",
-            labels=[],
+            labels=[SHAKE_TO_REPORT_LABEL],
             summary="summary",
             description=None,
             generated_description=None,
@@ -163,7 +163,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Callouts",
-            labels=["design-quality"],
+            labels=["design-quality", SHAKE_TO_REPORT_LABEL],
             summary="summary",
             description=None,
             generated_description=None,
@@ -211,7 +211,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Explain my Answer",
-            labels=["design-quality"],
+            labels=["design-quality", SHAKE_TO_REPORT_LABEL],
             summary="summary",
             description=None,
             generated_description=None,
@@ -272,7 +272,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Path",
-            labels=["design-quality"],
+            labels=["design-quality", SHAKE_TO_REPORT_LABEL],
             summary="summary",
             description=None,
             generated_description=None,
@@ -332,7 +332,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Callouts",
-            labels=["design-quality"],
+            labels=["design-quality", SHAKE_TO_REPORT_LABEL],
             summary="summary",
             description=None,
             generated_description=None,
@@ -455,7 +455,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Design quality",
-            labels=["design-quality"],
+            labels=["design-quality", SHAKE_TO_REPORT_LABEL],
             summary="summary",
             description=None,
             generated_description=None,
@@ -497,7 +497,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Callouts",
-            labels=["design-quality"],
+            labels=["design-quality", SHAKE_TO_REPORT_LABEL],
             summary="summary",
             description=None,
             generated_description=None,
@@ -540,7 +540,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Callouts",
-            labels=["via-jeeves"],
+            labels=["via-jeeves", SHAKE_TO_REPORT_LABEL],
             summary="[via Jeeves] summary",
             description=None,
             generated_description=None,
@@ -573,7 +573,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Callouts",
-            labels=[],
+            labels=[SHAKE_TO_REPORT_LABEL],
             summary="a" * 252 + "...",
             description=None,
             generated_description=None,
@@ -606,7 +606,7 @@ class Test(unittest.TestCase):
         shakira_jira_mock.create_issue.assert_called_once_with(
             project="DLAA",
             feature="Callouts",
-            labels=[JIRA_RELEASE_BLOCKER_LABEL],
+            labels=[JIRA_RELEASE_BLOCKER_LABEL, SHAKE_TO_REPORT_LABEL],
             summary="summary",
             description=None,
             generated_description=None,
