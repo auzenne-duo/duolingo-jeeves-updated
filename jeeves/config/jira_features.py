@@ -33,6 +33,8 @@ If you rename a feature on Jira, you must (1) update the feature name in this fi
 team in charge of Jeeves know that their documents have to be refreshed.
 """
 
+GROWTH = "Growth"
+VIDEO_CALL = "Video Call"
 JIRA_FEATURES = {
     "Monetization": {
         "no_area_monetization": {
@@ -87,7 +89,7 @@ JIRA_FEATURES = {
             },
         },
     },
-    "Growth": {
+    GROWTH: {
         "International Growth": {
             "China": {
                 "China Compliances": [],
@@ -254,7 +256,7 @@ JIRA_FEATURES = {
             "Curriculum Generation & Infrastructure": {},
             "Exercises": {},
         },
-        "Video Call": {
+        VIDEO_CALL: {
             "Video Call Backend Foundations": {},
             "Video Call Experience": {"Video Call": ["facetime", "videocall"]},
             "Video Call Growth": {},
@@ -570,6 +572,19 @@ TEAM_TO_FEATURES = {
     for team, features in teams.items()
 }
 
+LOG_SUMMARIZATION_ENABLED_GROUPS = [GROWTH, VIDEO_CALL]
+
+LOG_SUMMARIZATION_ENABLED_FEATURES = set()
+for pillar, areas in JIRA_FEATURES.items():
+    for area, teams in areas.items():
+        for team, features in teams.items():
+            if (
+                area in LOG_SUMMARIZATION_ENABLED_GROUPS
+                or pillar in LOG_SUMMARIZATION_ENABLED_GROUPS
+                or team in LOG_SUMMARIZATION_ENABLED_GROUPS
+            ):
+                for feature in features:
+                    LOG_SUMMARIZATION_ENABLED_FEATURES.add(feature)
 
 DEBUG_TYPE_TO_FEATURES = {
     "Max features": [
