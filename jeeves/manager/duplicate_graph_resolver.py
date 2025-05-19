@@ -11,6 +11,7 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple, TypedDict
 import duo_logging  # type: ignore[import]
 from duolingo_base.util import registry
 
+from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_ISSUE_TYPE_EPIC
 from jeeves.dal.jira_dal import JiraApiDAL
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.lib.profiling import traced_function
@@ -476,9 +477,10 @@ class DuplicateGraphResolver:
             duplicate_graph = self.get_duplicate_graph([issue.issue_key], key_to_doc=key_to_issue)
             duplicate_graph_issues = list(duplicate_graph.issue_keys_to_documents.values())
             visited_issues.update(duplicate_graph.issue_keys_to_documents.keys())
-            parent_issues = [
-                issue for issue in duplicate_graph_issues if JiraDocument.is_group_parent(issue)
-            ]
+            parent_issues = []
+            for issue in duplicate_graph_issues:
+                if JiraDocument.is_group_parent(issue) and issue.issue_type == JIRA_ISSUE_TYPE_BUG:
+                    parent_issues.append(issue)
 
             if len(parent_issues) == 1:
                 parent_issue = parent_issues[0]
@@ -513,6 +515,8 @@ class DuplicateGraphResolver:
                 if child_issue == parent_issue:
                     continue
                 child_issue.parent_issue = parent_issue.issue_key
-            parent_representatives.append(parent_issue)
+
+            if parent_issue.issue_type != JIRA_ISSUE_TYPE_EPIC:
+                parent_representatives.append(parent_issue)
 
         return parent_representatives, key_to_issue

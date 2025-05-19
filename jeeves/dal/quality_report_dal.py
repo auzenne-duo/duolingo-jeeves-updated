@@ -266,9 +266,11 @@ class QualityReportDAL:
         """
         jira_docs = JiraManager.get_jira_issues_since(date_to_str(start_date))
         LOG.debug("resolving duplicate graphs")
+
         jira_docs, key_to_issue_map = self.duplicate_graph_resolver.resolve_duplicate_graphs(
             jira_docs
         )
+
         jira_docs = self.filter_dev_related_issues(jira_docs, key_to_issue_map)
 
         self.update_jira_issues_with_score_params(jira_docs)

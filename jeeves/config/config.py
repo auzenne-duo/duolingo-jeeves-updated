@@ -23,6 +23,7 @@ JIRA_LOCALIZATION_CONTRACTORS_LABEL = "localization-contractor"
 
 # Jira issue type label for bugs
 JIRA_ISSUE_TYPE_BUG = "Bug"
+JIRA_ISSUE_TYPE_EPIC = "Epic"
 
 # For storing stats on words, only consider words that appear more commonly across the corpus
 MIN_SAMPLES_THRESHOLD = 10
