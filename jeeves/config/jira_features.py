@@ -54,6 +54,7 @@ JIRA_FEATURES = {
                 "New Years Promo": [],
                 "Student Plan": [],
                 "Streak Society Promo": [],
+                "Energy Retier": [],
             },
             "Max": {
                 "Mistakes Inbox": [],
@@ -501,6 +502,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Widget": "Problems with widget on home screen or widget reward",
     "World characters": "Missing or buggy world characters in lessons",
     "Video Call Tab": "Anything related to the Video Call tab, call history list, or Lily's video message",
+    "Energy Retier": "Anything related to Energy Retier",
 }
 
 JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY = "jira_features_descriptions"
