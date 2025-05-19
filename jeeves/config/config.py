@@ -12,7 +12,7 @@ CRAWL_WINDOW_SIZE = 90
 # We compare word occurrences in the past these days.
 HISTORY_WINDOW_SIZE = 60
 
-# Projects that are used only witth video call
+# Projects that are used only with video call
 VIDEO_CALL_PROJECTS = ["VCCF", "VCBF", "EXAI", "VCS", "VCG"]
 
 # Jira projects that are used for bug reporting
