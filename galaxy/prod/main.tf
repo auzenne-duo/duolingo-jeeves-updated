@@ -48,6 +48,7 @@ module "duolingo-jeeves-internal" {
   min_count                         = 2    # Minimum number of tasks to run in autoscaling group
   max_count                         = 5    # Maximum number of tasks to run in autoscaling group
   scale_out_cpu                     = 80   # Scale out at this cpu usage (percent)
+  cpu                               = 4096 # Increased from default for higher performance
   memory                            = 8192 # Maximum memory (default: 128MB)
   product                           = var.product
   owner                             = var.owner       # The name of the owner for this service
