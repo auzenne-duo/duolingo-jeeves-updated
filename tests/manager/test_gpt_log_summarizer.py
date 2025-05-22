@@ -237,14 +237,41 @@ def test_generate_log_summary_rich_text_empty_issue_key(summarizer):
 
 
 def test_generate_log_summary_rich_text_empty_summary(summarizer, monkeypatch):
-    class DummySummarizer:
-        def _poll_for_log_summary_s3(self, *args, **kwargs):
-            return None
+    def _poll_for_log_summary_s3(self, *args, **kwargs):
+        return None
 
     monkeypatch.setattr(
         "jeeves.manager.gpt_log_summarizer.GPTLogSummarizer._poll_for_log_summary_s3",
-        # pylint: disable=protected-access
-        DummySummarizer._poll_for_log_summary_s3,
+        _poll_for_log_summary_s3,
     )
     result = summarizer.generate_log_summary_rich_text("JIRA-123")
     assert result == []
+
+
+def test_generate_log_summary_rich_text_feedback_url_prod(summarizer, monkeypatch):
+    def dummy_poll_for_log_summary_s3(self, *args, **kwargs):
+        return "Log line 1\nLog line 2"
+
+    monkeypatch.setattr(
+        "jeeves.manager.gpt_log_summarizer.GPTLogSummarizer._poll_for_log_summary_s3",
+        dummy_poll_for_log_summary_s3,
+    )
+    mock_config = MagicMock()
+    mock_config.get_nested.return_value = "prod"
+
+    result = summarizer.generate_log_summary_rich_text("JIRA-123")
+
+    expand_content = result[1]["content"]
+    feedback_paragraph = expand_content[1]["content"]
+    yes_link = next(c for c in feedback_paragraph if c.get("text") == "Yes")
+    no_link = next(c for c in feedback_paragraph if c.get("text") == "No")
+    yes_link_href = next(m["attrs"]["href"] for m in yes_link["marks"] if m["type"] == "link")
+    no_link_href = next(m["attrs"]["href"] for m in no_link["marks"] if m["type"] == "link")
+    assert (
+        yes_link_href
+        == "https://jeeves.duolingo.com/en/feedback?feature=AI_LOG_SUMMARY&id=JIRA-123&quick_feedback=POSITIVE"
+    )
+    assert (
+        no_link_href
+        == "https://jeeves.duolingo.com/en/feedback?feature=AI_LOG_SUMMARY&id=JIRA-123&quick_feedback=NEGATIVE"
+    )

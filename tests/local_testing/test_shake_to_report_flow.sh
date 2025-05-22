@@ -34,11 +34,7 @@ curl -X POST "$UPLOAD_API_URL" \
   -F "jiraIssueKey=$JIRA_ISSUE_KEY" \
   -F 'logfile1=@log1.txt' \
   -F 'logfile2=@log2.txt' \
-  -F 'screenshot=@screenshot.jpeg' \
-  -s > "$TMPDIR/upload_response.json"
-
-echo "Full JSON response from upload_artifacts:"
-cat "$TMPDIR/upload_response.json"
+  -F 'screenshot=@screenshot.jpeg'
 
 # Optionally, clean up
 rm -rf "$TMPDIR"

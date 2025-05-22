@@ -17,6 +17,9 @@ from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
+FEEDBACK_BASE_URL = "https://jeeves.duolingo.com/en/feedback"
+FEEDBACK_FEATURE = "AI_LOG_SUMMARY"
+
 # These are titles that are known to be irrelevant to log summarization
 SKIP_TITLES = {"test", "tests", "testing"}
 
@@ -252,6 +255,13 @@ class GPTLogSummarizer:
         if not summary:
             return []
 
+        yes_feedback_url = (
+            f"{FEEDBACK_BASE_URL}?feature={FEEDBACK_FEATURE}&id={issue_key}&quick_feedback=POSITIVE"
+        )
+        no_feedback_url = (
+            f"{FEEDBACK_BASE_URL}?feature={FEEDBACK_FEATURE}&id={issue_key}&quick_feedback=NEGATIVE"
+        )
+
         return [
             {
                 "type": "paragraph",
@@ -266,6 +276,32 @@ class GPTLogSummarizer:
             {
                 "type": "expand",
                 "attrs": {"title": "Expand to view"},
-                "content": [{"type": "paragraph", "content": [{"type": "text", "text": summary}]}],
+                "content": [
+                    {"type": "paragraph", "content": [{"type": "text", "text": summary}]},
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {"type": "text", "text": "Helpful? (", "marks": [{"type": "em"}]},
+                            {
+                                "type": "text",
+                                "text": "Yes",
+                                "marks": [
+                                    {"type": "em"},
+                                    {"type": "link", "attrs": {"href": yes_feedback_url}},
+                                ],
+                            },
+                            {"type": "text", "text": " / ", "marks": [{"type": "em"}]},
+                            {
+                                "type": "text",
+                                "text": "No",
+                                "marks": [
+                                    {"type": "em"},
+                                    {"type": "link", "attrs": {"href": no_feedback_url}},
+                                ],
+                            },
+                            {"type": "text", "text": ")", "marks": [{"type": "em"}]},
+                        ],
+                    },
+                ],
             },
         ]

@@ -6,6 +6,8 @@ import track from "../../track";
 
 const useQuery = () => new URLSearchParams(useLocation().search);
 
+// These parameter names are part of the public API and used by external systems.
+// Changing them would break compatibility, so they must remain as is.
 const FEATURE_PARAM = "feature";
 const ID_PARAM = "id";
 const QUICK_FEEDBACK_PARAM = "quick_feedback";
