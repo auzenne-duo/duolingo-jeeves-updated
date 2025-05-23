@@ -56,13 +56,15 @@ JIRA_FEATURES = {
                 "Streak Society Promo": [],
                 "Energy Retier": [],
             },
+            "Crossgrades": {
+                "Max Upsell": ["max purchase flow", "max crossgrade", "crossgrade"],
+            },
             "Max": {
                 "Mistakes Inbox": [],
                 "Practice Hub": [],
-                "Max": ["max purchase flow", "max crossgrade"],
+                "Max": ["max user", "max", "max onboarding"],
                 "Role Play": ["roleplay", "role-play"],
                 "Words List": ["word list"],
-                "Max Upsell": [],
                 "Explain my Answer": ["EMA", "bad explanation", "wrong explanation", "explanation"],
             },
             "Energy": {
@@ -466,8 +468,8 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
     "Live Activities": "NOT for Session-related issues! Bugs for Live Activity *Notifications* on the Lock Screen (bad UI, not starting, lasting too long, deeplinking wrong, etc.)",
-    "Max": "Anything with Max dashboard, Max purchase flow, and upgrading to Max from Super or Free, or upgrading from Max individual to Max Family Plan",
-    "Max Upsell": "Anything related to 'Get Max' in the app",
+    "Max": "Anything with the Max subscriber experience. For purchasing Max via Video Call hooks, use 'Max Upsell'",
+    "Max Upsell": "Anything related to 'Get Max' from Video Call upsells, Max purchase flow, and upgrading to Max from Super or Free, or upgrading from Max individual to Max Family Plan",
     "Mid-lesson animations / Duo": "Problems with the duo coach encouragement animations in between exercises",
     "Momentum": "Bugs with Momentum team features",
     "Monthly Challenge": "Bugs with the monthly challenge",
