@@ -217,8 +217,14 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         mock_response = JiraTicketText(description=MOCK_DESCRIPTION, title=MOCK_SUMMARY)
         mock_parent_summary_generator.generate_summary_and_description.return_value = mock_response
 
+        mock_upload_to_s3 = MagicMock()
+
         duplicate_graph_resolver = DuplicateGraphResolver(
-            mock_es_dal, magic_mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
+            mock_es_dal,
+            magic_mock_jira_dal,
+            mock_jira_manager,
+            mock_parent_summary_generator,
+            mock_upload_to_s3,
         )
         duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
         expected_summary = f"[Parent] {MOCK_SUMMARY}"
@@ -280,6 +286,15 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         )
         magic_mock_jira_dal.reset_mock()
         magic_mock_jira_dal.get_issue.return_value = parent_issue
+
+        mock_upload_to_s3.assert_called_once()
+        args, _ = mock_upload_to_s3.call_args
+        assert args[0].startswith("duplicate_connect_results/parent_key_")
+        assert b"SUCCESS" in args[1]
+        assert b"S DLAA-4 parent_key" in args[1]
+        assert b"S DLAA-5 parent_key" in args[1]
+        assert b"S DLAA-6 parent_key" in args[1]
+
         duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
         magic_mock_jira_dal.update_issue.assert_any_call(
             "parent_key",

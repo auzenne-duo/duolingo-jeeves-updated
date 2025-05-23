@@ -5,8 +5,10 @@ make sense or would cause a circular dependency.
 """
 
 import asyncio
+import logging
 from collections import Counter
-from typing import Dict, Iterable, List, Optional, Set, Tuple, TypedDict
+from datetime import datetime, timezone
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, TypedDict
 
 import duo_logging  # type: ignore[import]
 from duolingo_base.util import registry
@@ -26,6 +28,10 @@ from jeeves.util.parent_jira_issue_util import (
     update_parent_data_from_child,
 )
 from jeeves.util.quality_report_util import is_jira_issue_resolved
+from jeeves.util.s3_client_and_bucket import upload_to_jeeves_s3
+
+LOG = logging.getLogger(__name__)
+MAX_LOG_LINES = 10
 
 PARENT_PREFIX = "[Parent]"
 DUPLICATE_ISSUE_LINK_TYPE = "Duplicate"
@@ -50,11 +56,13 @@ class DuplicateGraphResolver:
         jira_dal: JiraApiDAL,
         jira_manager: JiraManager,
         parent_summary_manager: ParentSummaryManager,
+        upload_to_s3: Callable[[str, bytes], None] = upload_to_jeeves_s3,
     ):
         self._es_dal = es_dal
         self._jira_dal = jira_dal
         self._jira_manager = jira_manager
         self._parent_summary_manager = parent_summary_manager
+        self._upload_to_s3 = upload_to_s3
 
     @traced_function()
     def get_duplicate_graph(
@@ -219,6 +227,14 @@ class DuplicateGraphResolver:
             we consider the operation a success. If we attempt to merge two or
             more parent issues into the same group, an exception will be thrown.
         """
+        # Log the issue keys we're connecting duplicates for.
+        displayed_keys = issue_keys[:MAX_LOG_LINES]
+        msg = f"Connecting {len(issue_keys)} duplicate(s) for {displayed_keys}"
+        if len(issue_keys) > MAX_LOG_LINES:
+            msg += "...truncated"
+        LOG.info(msg)
+
+        # Get the duplicate graph for the issue keys.
         duplicate_graph = self.get_duplicate_graph(issue_keys)
         doc_reps = [doc for doc in duplicate_graph.issue_keys_to_documents.values()]
         group_parents = [doc for doc in doc_reps if doc and JiraDocument.is_group_parent(doc)]
@@ -243,6 +259,9 @@ class DuplicateGraphResolver:
             parent_key, deprecated_parent_issue_keys = self.resolve_multiple_parent_issues(
                 group_parents
             )
+        # Log the parent key and deprecated parent issue keys.
+        LOG.info(f"Parent key chosen: {parent_key}")
+        LOG.info(f"Deprecated parent issue keys: {deprecated_parent_issue_keys}")
 
         parent_doc = duplicate_graph.issue_keys_to_documents[parent_key]
         parent_data = parse_parent_description(parent_doc.body_text)
@@ -252,6 +271,13 @@ class DuplicateGraphResolver:
         for key in duplicate_graph.issue_keys_to_documents.keys():
             if key != parent_key and key not in deprecated_parent_issue_keys:
                 all_possible_links.add((key, parent_key))
+
+        # Log the links we're marking as duplicates.
+        displayed_links = list(all_possible_links)[:MAX_LOG_LINES]
+        msg = f"Marking {len(all_possible_links)} duplicate(s) for {parent_key}: {displayed_links}"
+        if len(all_possible_links) > MAX_LOG_LINES:
+            msg += "...truncated"
+        LOG.info(msg)
 
         remaining_links = all_possible_links - duplicate_graph.existing_issue_links
         any_success = False
@@ -308,7 +334,17 @@ class DuplicateGraphResolver:
         else:
             result_status = "FAILURE"
 
-        return f"{result_status}\n{result_manifest}"
+        result = f"{result_status}\n{result_manifest}"
+        # Upload the result status and manifest to S3
+        try:
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            s3_key = f"duplicate_connect_results/{parent_key}_{timestamp}.txt"
+            self._upload_to_s3(s3_key, result.encode("utf-8"))
+            LOG.info(f"Uploaded duplicate connect results to S3: {s3_key}")
+        except Exception as e:
+            LOG.error(f"Error uploading duplicate connect results to S3: {e}")
+
+        return result
 
     def _upload_template_parent_issue(self, project: str, header_text: str) -> str:
         """
