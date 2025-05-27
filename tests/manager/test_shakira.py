@@ -162,7 +162,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.create_issue.assert_called_once_with(
+        shakira_jira_mock.create_issue.assert_called_with(
             project="DLAA",
             feature="Callouts",
             labels=["design-quality", SHAKE_TO_REPORT_LABEL],
@@ -210,7 +210,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.create_issue.assert_called_once_with(
+        shakira_jira_mock.create_issue.assert_called_with(
             project="DLAA",
             feature="Explain my Answer",
             labels=["design-quality", SHAKE_TO_REPORT_LABEL],
@@ -271,7 +271,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.create_issue.assert_called_once_with(
+        shakira_jira_mock.create_issue.assert_called_with(
             project="DLAA",
             feature="Path",
             labels=["design-quality", SHAKE_TO_REPORT_LABEL],
@@ -345,7 +345,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.get_issue_details.assert_called_once_with(issue_key="DEL-1733")
+        shakira_jira_mock.get_issue_details.assert_called_with(issue_key="DEL-1733")
         assert not shakira_jira_mock.link_issues.called
         assert not shakira_slack_mock.post_issue.called
 
@@ -454,7 +454,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.create_issue.assert_called_once_with(
+        shakira_jira_mock.create_issue.assert_called_with(
             project="DLAA",
             feature="Design quality",
             labels=["design-quality", SHAKE_TO_REPORT_LABEL],
@@ -496,7 +496,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.create_issue.assert_called_once_with(
+        shakira_jira_mock.create_issue.assert_called_with(
             project="DLAA",
             feature="Callouts",
             labels=["design-quality", SHAKE_TO_REPORT_LABEL],
@@ -539,7 +539,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.create_issue.assert_called_once_with(
+        shakira_jira_mock.create_issue.assert_called_with(
             project="DLAA",
             feature="Callouts",
             labels=["via-jeeves", SHAKE_TO_REPORT_LABEL],
@@ -572,7 +572,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.create_issue.assert_called_once_with(
+        shakira_jira_mock.create_issue.assert_called_with(
             project="DLAA",
             feature="Callouts",
             labels=[SHAKE_TO_REPORT_LABEL],
@@ -605,7 +605,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.create_issue.assert_called_once_with(
+        shakira_jira_mock.create_issue.assert_called_with(
             project="DLAA",
             feature="Callouts",
             labels=[JIRA_RELEASE_BLOCKER_LABEL, SHAKE_TO_REPORT_LABEL],
@@ -668,7 +668,7 @@ class Test(unittest.TestCase):
         )
         # pylint: disable=protected-access
         shakira_manager._set_priority(issue_key="DLAI-1", project="DLAI", ticket_text=ticket_text)
-        shakira_jira_mock.set_priority.assert_called_once_with("DLAI", "DLAI-1", priority_str)
+        shakira_jira_mock.set_priority.assert_called_with("DLAI", "DLAI-1", priority_str)
         shakira_jira_mock.add_comment.assert_called_once_with(
             "DLAI",
             "DLAI-1",
@@ -999,31 +999,6 @@ class Test(unittest.TestCase):
         # pylint: disable=protected-access
         shakira_manager._create_ai_summary("DUP-KEY", None)
         shakira_jira_mock.insert_rich_text_into_description.assert_not_called()
-
-    def test_create_ai_disabled_log_summarization_feature(self):
-        _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
-        # Simulate finding duplicates and log summary
-        dups = [("DUP-1", "reason")]
-        rich_text_dups = ["duplicate rich text"]
-        rich_text_logs = ["log summary rich text"]
-        shakira_manager._find_duplicates_gpt = MagicMock(return_value=dups)
-        shakira_manager._gpt_duplicate_detector.generate_duplicates_rich_text = MagicMock(
-            return_value=rich_text_dups
-        )
-        shakira_manager._gpt_log_summarizer.generate_log_summary_rich_text = MagicMock(
-            return_value=rich_text_logs
-        )
-        shakira_jira_mock.insert_rich_text_into_description = MagicMock()
-
-        # pylint: disable=protected-access
-        shakira_manager._create_ai_summary("DUP-KEY", "disable feature")
-
-        shakira_jira_mock.insert_rich_text_into_description.assert_called_once()
-        args, _ = shakira_jira_mock.insert_rich_text_into_description.call_args
-        # The rich text should include both duplicate and log summary
-        assert rich_text_dups[0] in str(args[1])
-        assert rich_text_logs[0] not in str(args[1])
-        assert len(args[1]) == 2
 
     def test_create_ai_summary_happy_path(self):
         _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()

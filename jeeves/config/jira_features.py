@@ -576,20 +576,6 @@ TEAM_TO_FEATURES = {
     for team, features in teams.items()
 }
 
-LOG_SUMMARIZATION_ENABLED_GROUPS = [GROWTH, VIDEO_CALL]
-
-LOG_SUMMARIZATION_ENABLED_FEATURES = set()
-for pillar, areas in JIRA_FEATURES.items():
-    for area, teams in areas.items():
-        for team, features in teams.items():
-            if (
-                area in LOG_SUMMARIZATION_ENABLED_GROUPS
-                or pillar in LOG_SUMMARIZATION_ENABLED_GROUPS
-                or team in LOG_SUMMARIZATION_ENABLED_GROUPS
-            ):
-                for feature in features:
-                    LOG_SUMMARIZATION_ENABLED_FEATURES.add(feature)
-
 DEBUG_TYPE_TO_FEATURES = {
     "Max features": [
         "Explain my Answer",

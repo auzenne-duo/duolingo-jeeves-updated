@@ -12,7 +12,7 @@ RESPONSE_JSON="$TMPDIR/response.json"
 curl -X POST "$API_URL" \
   -F 'issueData={
     "project": "TES",
-    "feature": "Video Call",
+    "feature": "Path",
     "summary": "lily not responding / device not capturing inputs",
     "description": "this happens to me consistently on this device. i have reported many times before but not actually gotten resolution : / once i had to steal a device lab phone or a week to be able to test video call",
     "generatedDescription": "---\n\nGenerated info",

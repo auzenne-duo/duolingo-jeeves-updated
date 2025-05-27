@@ -17,7 +17,6 @@ from jeeves import registry as app_registry
 from jeeves.config.jira_features import (
     JIRA_FEATURE_TO_TEAM,
     JIRA_TEAM_TO_AREA,
-    LOG_SUMMARIZATION_ENABLED_FEATURES,
 )
 from jeeves.lib.profiling import traced_function
 from jeeves.manager.gpt_duplicate_detector import GPTDuplicateDetector
@@ -262,8 +261,7 @@ class ShakiraManager:
                     self._gpt_duplicate_detector.generate_duplicates_rich_text(issue_key, dups)
                 )
 
-            if feature and feature in LOG_SUMMARIZATION_ENABLED_FEATURES:
-                rich_text.extend(self._gpt_log_summarizer.generate_log_summary_rich_text(issue_key))
+            rich_text.extend(self._gpt_log_summarizer.generate_log_summary_rich_text(issue_key))
 
             if not rich_text:
                 LOG.info(f"{issue_key}: No AI summary to insert")
