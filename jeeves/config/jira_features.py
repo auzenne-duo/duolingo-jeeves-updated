@@ -43,7 +43,6 @@ JIRA_FEATURES = {
                 "Hearts / Unlimited Hearts": ["heart"],
                 "Subscription hooks": [],
                 "Super Upsell": [],
-                "Crossgrades": ["upgrades", "downgrades"],
                 "Family Plan": [],
                 "Legendary": ["Legendarize"],
             },
@@ -58,6 +57,7 @@ JIRA_FEATURES = {
             },
             "Crossgrades": {
                 "Max Upsell": ["max purchase flow", "max crossgrade", "crossgrade"],
+                "Crossgrades": ["upgrades", "downgrades"],
             },
             "Max": {
                 "Mistakes Inbox": [],

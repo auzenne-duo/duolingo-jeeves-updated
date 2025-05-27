@@ -180,8 +180,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
             _AREA: [],
             "Subscription Packaging": [
                 ("tower@duolingo.com", 290339876),
-                ("joana@duolingo.com", 26339151),
-                ("kuo@duolingo.com", 504628953),
                 ("sue@duolingo.com", 411492851),
             ],
             "Energy": [
@@ -197,9 +195,12 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
                 ("mopewa@duolingo.com", 347408),
             ],
             "Ads": [
-                ("kuo@duolingo.com", 504628953),
+                ("enrique@duolingo.com", 50624505),
             ],
             "Monetization Engine": [],
+            "Crossgrades": [
+                ("kuo@duolingo.com", 504628953),
+            ],
         },
     },
     "New Subjects": {
