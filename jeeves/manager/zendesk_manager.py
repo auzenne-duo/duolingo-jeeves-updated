@@ -124,10 +124,27 @@ class ZendeskManager(JeevesManager):
         if email == "":
             description_list = description.split("\n")
             for line in description_list:
-                part = line.split("email:")
-                if len(part) == 2 and "duolingocontractors" in part[-1]:
-                    email = ZendeskManager._clean_email(part[-1].strip())
-                    print(f"email extracting: {email}", flush=True)
+                # Make the search case-insensitive and handle variations in spacing
+                line_lower = line.lower().strip()
+
+                # Look for various email field formats
+                email_patterns = ["email:", "email :", "email: "]
+
+                for pattern in email_patterns:
+                    if pattern in line_lower:
+                        # Split on the pattern and get the email part
+                        parts = line_lower.split(pattern)
+                        if len(parts) == 2:
+                            # Get the original case version for actual email extraction
+                            email_part = line.split(":", 1)[-1].strip()
+                            # Check if it contains duolingocontractors domain
+                            if "duolingocontractors" in email_part.lower():
+                                email = ZendeskManager._clean_email(email_part)
+                                print(f"email extracting: {email}", flush=True)
+                                break
+
+                # If email found, break out of the outer loop too
+                if email:
                     break
 
         if email:
@@ -148,9 +165,11 @@ class ZendeskManager(JeevesManager):
             and JiraManager.check_duplicates_jira(project, summary)
         ):
             print(
-                f"Creating Jira ticket for Zendesk ticket with {summary} and feature {feature}",
+                f"Creating Jira ticket for Zendesk ticket with {summary} and feature {feature} and email {email}",
                 flush=True,
             )
+
+            print(f"Ticket Json Log: {ticket_json}", flush=True)
 
             issue_status = app_registry(ShakiraManager).report_issue(
                 project=project,
