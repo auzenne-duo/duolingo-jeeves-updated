@@ -147,9 +147,10 @@ class GPTDuplicateDetector:
         text1 = self.get_jira_issue_text(issue)
 
         updated_since = datetime.now(tz=pytz.utc) - RECENT_ISSUES_THRESHOLD
-        other_issues = self.jira_manager.get_jira_issues_since_cached(
-            self.s3_client, self.s3_bucket, updated_since
-        )
+        other_issues = self.jira_manager.get_str_tickets_since(updated_since)
+        other_issues = self.jira_manager.get_str_tickets_since(updated_since)
+        other_issues = self.jira_manager.get_str_tickets_since(updated_since - timedelta(days=1))
+        other_issues = self.jira_manager.get_str_tickets_since(updated_since - timedelta(days=1))
 
         LOG.info(
             f"{issue_key}: Analyzing {len(other_issues)} other issues for potential duplicates"
@@ -157,6 +158,8 @@ class GPTDuplicateDetector:
         dedup_user_messages = []
         issues_to_test = []
         for other in other_issues:
+            if other["key"] == issue_key:
+                continue
             try:
                 text2 = self.get_jira_issue_text(other)
             except (KeyError, ValueError) as e:

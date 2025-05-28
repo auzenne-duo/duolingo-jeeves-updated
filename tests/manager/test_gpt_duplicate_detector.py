@@ -147,7 +147,7 @@ def test_find_duplicates(detector, mock_jira_manager, mock_ai_completions_dal):
         },
     ]
 
-    mock_jira_manager.get_jira_issues_since_cached.return_value = other_issues
+    mock_jira_manager.get_str_tickets_since.return_value = other_issues
 
     mock_ai_completions_dal.batched_ask.return_value = [
         "These are duplicates.\nduplicate: true",

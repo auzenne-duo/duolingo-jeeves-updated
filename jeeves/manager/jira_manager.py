@@ -6,7 +6,7 @@ import json
 import logging
 import re
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Type
 
 import duo_logging  # type: ignore[import]
@@ -25,7 +25,7 @@ from jeeves.model.custom_types import JSON
 from jeeves.model.jeeves_document import JeevesDocument
 from jeeves.model.jira_document import JiraDocument
 from jeeves.util.date_util import date_to_str, parse_external_datetime
-from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL
+from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL, SHAKE_TO_REPORT_LABEL
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig()
@@ -34,10 +34,11 @@ LOG.setLevel(logging.INFO)
 
 class JiraManager(JeevesManager):
     # in-memory cache of recent issues returned by
-    # get_jira_issues_since_cached. Items are evicted if they have not been
+    # get_str_tickets_since. Items are evicted if they have not been
     # updated since the cutoff that function is called with
     RECENT_ISSUES_CACHE: Dict[str, Tuple[Dict, datetime]] = {}  # jira_key: (issue dict, updated_at)
-    RECENT_ISSUES_CACHE_CHECKPOINT: datetime = datetime.fromtimestamp(0, tz=pytz.utc)
+    RECENT_ISSUES_CACHE_START: datetime = datetime.fromtimestamp(0, tz=pytz.utc)
+    RECENT_ISSUES_CACHE_END: datetime = datetime.fromtimestamp(0, tz=pytz.utc)
 
     @staticmethod
     def _try_set_jira_document_feature_field_key() -> bool:
@@ -166,71 +167,6 @@ class JiraManager(JeevesManager):
                 start_timestamp_millis = issue_updated_millis
                 s3_client.upload(bucket_name, _CHECKPOINT_FILE, f"{start_timestamp_millis}")
 
-    @classmethod
-    def get_jira_issues_since_cached(
-        cls, s3_client, bucket_name, updated_since: datetime
-    ) -> List[Dict]:
-        """
-        Yield Jira issues that have been updated since the given date.
-
-        Caches recent issues in memory, and checks S3 before hitting the JIRA
-        API, to minimize latency and API calls.
-
-        `updated_since` is an offset-aware datetime object in UTC.
-        """
-        # collect issues into a dict so we yield the latest version of any
-        # given issue regardless of how old the cached version is
-        issues = {}
-
-        cache_keys_to_purge = []
-        for k, (issue, updated_at) in cls.RECENT_ISSUES_CACHE.items():
-            if updated_at < updated_since:
-                cache_keys_to_purge.append(k)
-            else:
-                LOG.debug("Yielding Jira issue %s from cache", issue["key"])
-                issues[issue["key"]] = issue
-
-        for k in cache_keys_to_purge:
-            del cls.RECENT_ISSUES_CACHE[k]
-
-        jira_prefix = JiraManager.get_managed_document_type().get_data_source_identifier()
-        _CHECKPOINT_FILE = JiraManager.get_checkpoint_file_name()
-        checkpoint_timestamp = int(s3_client.download(bucket_name, _CHECKPOINT_FILE))
-        checkpoint_dt = datetime.fromtimestamp(checkpoint_timestamp / 1000, tz=pytz.utc)
-
-        # Add one day to the memory cache checkpoint, since otherwise today's
-        # tickets will be refetched from S3 unnecessarily. This means sometimes
-        # we will miss some tickets cached in S3, but we will get them from the
-        # API later.
-        s3_start = max(cls.RECENT_ISSUES_CACHE_CHECKPOINT + timedelta(days=1), updated_since)
-        LOG.debug(f"starting s3 search at {s3_start}")
-        current_date = s3_start.replace(hour=0, minute=0, second=0, microsecond=0)
-
-        while current_date <= checkpoint_dt:
-            date_str = current_date.strftime("%Y-%m-%d")
-            LOG.debug("Downloading Jira issues for %s", date_str)
-            for file in s3_client.yield_filenames(
-                bucket_name, path_prefix=f"{jira_prefix}/{date_str}"
-            ):
-                issue = json.loads(s3_client.download(bucket_name, file))
-                LOG.debug("Yielding Jira issue %s from S3 %s", issue["key"], file)
-                issues[issue["key"]] = issue
-            current_date += timedelta(days=1)
-
-        api_start = max(cls.RECENT_ISSUES_CACHE_CHECKPOINT, checkpoint_dt.replace(tzinfo=pytz.utc))
-        LOG.debug(f"starting api search at {api_start}")
-        for issue in JiraManager.get_jira_issues_since_raw(api_start.strftime("%Y-%m-%d %H:%M")):
-            LOG.debug("Yielding Jira issue %s from Jira", issue["key"])
-            issues[issue["key"]] = issue
-
-        for k, issue in issues.items():
-            cls.RECENT_ISSUES_CACHE[k] = (
-                issue,
-                parse_external_datetime(issue["fields"]["updated"]),
-            )
-        cls.RECENT_ISSUES_CACHE_CHECKPOINT = datetime.now(tz=pytz.utc)
-        return list(issues.values())
-
     @staticmethod
     def download_specific_issue(issue_key: str) -> Optional[JiraDocument]:
         """
@@ -300,7 +236,115 @@ class JiraManager(JeevesManager):
                 return
 
     @staticmethod
-    def get_jira_issues_since_raw(start_datetime_string: str) -> List[Dict]:
+    def get_str_tickets_jql(
+        start_datetime: datetime, end_datetime: Optional[datetime]
+    ) -> List[Dict]:
+        start_str = start_datetime.strftime("%Y-%m-%d %H:%M")
+        end_str = end_datetime.strftime("%Y-%m-%d %H:%M") if end_datetime else ""
+        fetch_string = (
+            f'updated >= "{start_str}" '
+            + (f'AND updated < "{end_str}" ' if end_datetime else "")
+            + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
+            + f"AND labels in ('{SHAKE_TO_REPORT_LABEL}') "
+            + "ORDER BY updated asc"
+        )
+        LOG.debug(f"fetch_string: {fetch_string}")
+        url_params = {
+            "fields": "*all",
+            "maxResults": 100,
+            "startAt": 0,
+            "jql": fetch_string,
+        }
+
+        issues = []
+        for issue in JiraDAL.paginate_search_issues(url_params):
+            assert isinstance(issue, dict)
+            issues.append(issue)
+        return issues
+
+    @staticmethod
+    def get_str_tickets_since(start_datetime: datetime) -> List[Dict]:
+        """
+        Yields shake-to-report tickets that have been updated since the start date.
+
+        Returns all issues with the "shake-to-report" label.
+
+        Params:
+            start_datetime: only consider issues updated after this datetime (must be tz-aware UTC)
+
+        Returns:
+            List of JSON as returned by Jira API (dict)
+        """
+        issues: List[Dict] = []
+        LOG.debug(f"start_datetime: {start_datetime}")
+        LOG.debug(
+            f"CACHE_START: {JiraManager.RECENT_ISSUES_CACHE_START}, CACHE_END: {JiraManager.RECENT_ISSUES_CACHE_END}"
+        )
+
+        # If start_datetime is earlier than the last time this function was
+        # called, the cache will be missing some older tickets. Add those to
+        # the cache now (tickets updated between start_datetime and
+        # RECENT_ISSUES_CACHE_START)
+        if start_datetime < JiraManager.RECENT_ISSUES_CACHE_START:
+            LOG.debug("Searching for issues before cache range")
+            for issue in JiraManager.get_str_tickets_jql(
+                start_datetime, JiraManager.RECENT_ISSUES_CACHE_START
+            ):
+                updated = parse_external_datetime(issue["fields"]["updated"])
+                LOG.debug(
+                    "Adding Jira issue %s to cache from API (updated %s)",
+                    issue["key"],
+                    updated.isoformat(),
+                )
+                JiraManager.RECENT_ISSUES_CACHE[issue["key"]] = (issue, updated)
+
+        # Get issues updated after RECENT_ISSUES_CACHE_END and add to cache
+        after_cache_start = max(JiraManager.RECENT_ISSUES_CACHE_END, start_datetime)
+        LOG.debug("Searching for issues updated after %s", after_cache_start)
+        for issue in JiraManager.get_str_tickets_jql(after_cache_start, None):
+            updated = parse_external_datetime(issue["fields"]["updated"])
+            LOG.debug(
+                "Adding Jira issue %s to cache from API (updated %s)",
+                issue["key"],
+                updated.isoformat(),
+            )
+            JiraManager.RECENT_ISSUES_CACHE[issue["key"]] = (issue, updated)
+
+        # Yield all cached issues
+        cache_keys_to_purge = []
+        LOG.debug("Yielding cached issues")
+        # Sort by updated
+        cached = sorted(JiraManager.RECENT_ISSUES_CACHE.items(), key=lambda x: x[1][1])
+        for k, (issue, updated_at) in cached:
+            if updated_at < start_datetime:
+                cache_keys_to_purge.append(k)
+            else:
+                LOG.debug("Yielding Jira issue %s", issue["key"])
+                issues.append(issue)
+
+        # Purge cache of tickets updated before start_datetime
+        for k in cache_keys_to_purge:
+            del JiraManager.RECENT_ISSUES_CACHE[k]
+
+        # Cache contains tickets updated between start_datetime and now
+        JiraManager.RECENT_ISSUES_CACHE_START = start_datetime
+        JiraManager.RECENT_ISSUES_CACHE_END = datetime.now(tz=pytz.utc)
+
+        return issues
+
+    @staticmethod
+    def get_jira_issues_since(start_datetime_string: str) -> List[JiraDocument]:
+        """
+        Yields bugs that have been updated since the start date
+
+        Params:
+            start_datetime_string (str): only consider issues with updated after this datetime
+                examples include "2023-02-14" or "-40h"
+
+        Returns:
+            List of JiraDocuments
+        """
+        JiraManager._try_set_jira_document_feature_field_key()
         max_results_per_page = 100
         projects_fetch_string = (
             f"project IN ({','.join(JIRA_PROJECTS)}) "
@@ -317,31 +361,12 @@ class JiraManager(JeevesManager):
             "jql": projects_fetch_string,
         }
 
-        issues = []
+        docs = []
         for i, issue in enumerate(JiraDAL.paginate_search_issues(url_params)):
-            issues.append(issue)
+            docs.append(JiraDocument.deserialize_from_external_json(issue))
             if i % 500 == 0:
                 print(f"Paginating jira issues; at {i}", flush=True)
         print("finished paginating")
-        return issues
-
-    @staticmethod
-    def get_jira_issues_since(start_datetime_string: str) -> List[JiraDocument]:
-        """
-        Yields bugs that have been updated since the start date
-
-        Params:
-            start_datetime_string (str): only consider issues with updated after this datetime
-                examples include "2023-02-14" or "-40h"
-
-        Returns:
-            List of JiraDocuments
-        """
-        JiraManager._try_set_jira_document_feature_field_key()
-
-        docs = []
-        for issue in JiraManager.get_jira_issues_since_raw(start_datetime_string):
-            docs.append(JiraDocument.deserialize_from_external_json(issue))
         return docs
 
     # Check if jira ticket already exists based on project and summary
