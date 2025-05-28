@@ -72,7 +72,7 @@ module "duolingo-jeeves" {
   environment_vars = [
     {
       name  = "JIRA_USERNAME"
-      value = "jira-automation@duolingo.com"
+      value = "it@duolingo.com"
     },
     {
       name  = "SHAKIRA_JIRA_USERNAME_IOS"
@@ -84,11 +84,11 @@ module "duolingo-jeeves" {
     },
     {
       name  = "SHAKIRA_JIRA_USERNAME_WEB"
-      value = "jira-automation@duolingo.com"
+      value = "it@duolingo.com"
     },
     {
       name  = "SHAKIRA_JIRA_USERNAME_LITERACY"
-      value = "jira-automation@duolingo.com"
+      value = "it@duolingo.com"
     },
     {
       name  = "SENTRY_DSN"
@@ -101,7 +101,7 @@ module "duolingo-jeeves" {
   ]
 
   doppler_secrets = [{
-    doppler_key = "JIRA_API_TOKEN_GENERAL"
+    doppler_key = "IT_EMAIL_TOKEN"
     env_var     = "JIRA_API_TOKEN"
     }, {
     doppler_key = "SHAKIRA_JIRA_API_TOKEN_IOS"
@@ -110,10 +110,10 @@ module "duolingo-jeeves" {
     doppler_key = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
     env_var     = "SHAKIRA_JIRA_API_TOKEN_ANDROID"
     }, {
-    doppler_key = "SHAKIRA_JIRA_API_TOKEN_WEB"
+    doppler_key = "IT_EMAIL_TOKEN"
     env_var     = "SHAKIRA_JIRA_API_TOKEN_WEB"
     }, {
-    doppler_key = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
+    doppler_key = "IT_EMAIL_TOKEN"
     env_var     = "SHAKIRA_JIRA_API_TOKEN_LITERACY"
     }, {
     doppler_key = "DUOLINGO_USERNAME"
@@ -156,7 +156,7 @@ module "duolingo-jeeves-s3-worker" {
     },
     {
       name  = "JIRA_USERNAME"
-      value = "jira-automation@duolingo.com"
+      value = "it@duolingo.com"
     },
     {
       name  = "APPFIGURES_USER"
@@ -191,7 +191,7 @@ module "duolingo-jeeves-s3-worker" {
   release_version = var.release_version
 
   doppler_secrets = [{
-    doppler_key = "JIRA_API_TOKEN"
+    doppler_key = "IT_EMAIL_TOKEN"
     env_var     = "JIRA_API_TOKEN"
     }, {
     doppler_key = "APPFIGURES_PASSWORD"
@@ -285,7 +285,7 @@ module "duolingo-jeeves-sqs-worker-1" {
     },
     {
       name  = "JIRA_USERNAME"
-      value = "jira-automation@duolingo.com"
+      value = "it@duolingo.com"
     },
     {
       name  = "ZENDESK_REPORTS_USER"
@@ -306,7 +306,7 @@ module "duolingo-jeeves-sqs-worker-1" {
   scale_out_count_sqs = 16
 
   doppler_secrets = [{
-    doppler_key = "JIRA_API_TOKEN_SQS_WORKER_1"
+    doppler_key = "IT_EMAIL_TOKEN"
     env_var     = "JIRA_API_TOKEN"
     }, {
     doppler_key = "DUOLINGO_USERNAME"
