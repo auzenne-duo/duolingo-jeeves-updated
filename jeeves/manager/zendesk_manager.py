@@ -121,7 +121,7 @@ class ZendeskManager(JeevesManager):
 
         email = ticket_json.get("recipient", "")
 
-        if email == "":
+        if not email:
             description_list = description.split("\n")
             for line in description_list:
                 # Make the search case-insensitive and handle variations in spacing
@@ -168,8 +168,6 @@ class ZendeskManager(JeevesManager):
                 f"Creating Jira ticket for Zendesk ticket with {summary} and feature {feature} and email {email}",
                 flush=True,
             )
-
-            print(f"Ticket Json Log: {ticket_json}", flush=True)
 
             issue_status = app_registry(ShakiraManager).report_issue(
                 project=project,
