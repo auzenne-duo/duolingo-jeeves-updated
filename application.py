@@ -19,7 +19,6 @@ from jeeves.model.supported_languages import SUPPORTED_LANGUAGES
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
-logging.basicConfig(stream=sys.stdout, encoding="utf-8", level=logging.INFO)
 
 LOG = logging.getLogger("application")
 
@@ -75,7 +74,11 @@ def init():
 
     # Initialize logging subsystem
     log_level = logging.INFO if is_production_env else logging.DEBUG
-    logging.basicConfig()
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=log_level,
+        format="%(levelname)s [PID:%(process)d TID:%(thread)d] %(message)s",
+    )
     LOG.setLevel(log_level)
     logging.getLogger("jeeves").setLevel(log_level)
     LOG.info("initializing")

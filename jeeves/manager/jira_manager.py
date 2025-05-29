@@ -28,7 +28,6 @@ from jeeves.util.date_util import date_to_str, parse_external_datetime
 from jeeves.util.shakira import JIRA_VIA_JEEVES_LABEL, SHAKE_TO_REPORT_LABEL
 
 LOG = logging.getLogger(__name__)
-logging.basicConfig()
 LOG.setLevel(logging.INFO)
 
 

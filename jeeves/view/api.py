@@ -515,10 +515,12 @@ def fully_connect_duplicates():
     issue_keys = data["issue_keys"]
     if isinstance(issue_keys, str):
         issue_keys = [issue_keys]
+    LOG.info("fully_connect_duplicates called with issue_keys: %s", issue_keys)
 
     result_manifest = app_registry(DuplicateGraphResolver).connect_duplicates_remote(issue_keys)
     first_line = result_manifest.split("\n")[0]
     result_dict = {"overall": first_line, "manifest": result_manifest}
+    LOG.info("fully_connect_duplicates result: %s", result_dict)
     return json.jsonify(result_dict)
 
 
