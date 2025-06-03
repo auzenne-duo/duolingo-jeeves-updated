@@ -24,7 +24,7 @@ const QualityReportOverview = () => {
       {report?.pillars.map(a =>
         // We make exceptions for areas that don't fit into normal pillar structure
         // Areas under "Other" pillar get special handling since they are grouped differently in the UI
-        // This includes teams like "Severin" that don't map cleanly to a single pillar
+        // This includes teams like "Misc" that don't map cleanly to a single pillar
         // Rather than showing "Other" as its own pillar, we display its areas alongside regular pillars
         a.title.startsWith("Other") ? (
           <OtherQualityReports key={a.title} pillar={a.title} />

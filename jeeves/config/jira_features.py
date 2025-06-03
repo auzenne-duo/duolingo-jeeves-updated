@@ -403,12 +403,6 @@ JIRA_FEATURES = {
         },
     },
     "Other": {
-        "Severin": {
-            "LLM Team": {
-                "Bookshelf Content": ["hints", "tts", "content", "XP"],
-                "Bookshelf Pages": ["home", "toc", "continue", "notify me"],
-            },
-        },
         "Misc": {
             "Misc Team": {
                 "Feature request / feedback": [],
