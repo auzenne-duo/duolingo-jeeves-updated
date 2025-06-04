@@ -313,14 +313,59 @@ class DuplicateGraphResolver:
         aic_title = aic_summary.title
         aic_description = aic_summary.description
 
+        # Extract user IDs from child documents and generate shared conditions link
+        child_user_ids = []
+        for doc in duplicate_graph.issue_keys_to_documents.values():
+            if not JiraDocument.is_group_parent(doc) and doc.user_id and doc.user_id.strip():
+                child_user_ids.append(str(doc.user_id))
+
+        # Remove duplicates and sort for consistent URLs
+        unique_user_ids = sorted(list(set(child_user_ids)))
+
+        # Generate the description content from the AIC summary
+        body_json = generate_parent_body_text_from_data(aic_description, parent_data)
+
+        # Add shared experiment conditions link if we have user IDs
+        if unique_user_ids:
+            user_ids_str = ",".join(unique_user_ids)
+            shared_conditions_url = f"https://metrics.duolingo.com/findSharedConditions#sentryUrl:!n,urlVersion:4,userIds:'{user_ids_str}',usernames:!n"
+
+            # Create a paragraph block with the shared conditions link
+            shared_conditions_paragraph = {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Shared Experiment Conditions: ",
+                        "marks": [{"type": "strong"}],
+                    },
+                    {
+                        "type": "text",
+                        "text": "View Shared Conditions",
+                        "marks": [{"type": "link", "attrs": {"href": shared_conditions_url}}],
+                    },
+                ],
+            }
+
+            # Add the shared conditions paragraph to the content
+            body_json["content"].append(shared_conditions_paragraph)
+
         # Prepend [Parent] to the summary so that it's clear that this is a parent issue.
         # (Only if [Parent] is not already in the summary)
         if PARENT_PREFIX not in aic_title:
             aic_title = f"{PARENT_PREFIX} {aic_title}"
 
-        self._try_set_remote_parent(
-            parent_key, aic_title, aic_description, parent_data, most_common_feature, priority
-        )
+        # Update the parent issue with the generated content including shared conditions link
+        try:
+            self._jira_dal.update_issue(
+                parent_key,
+                summary=aic_title,
+                description=body_json,
+                feature=most_common_feature,
+                priority=priority,
+            )
+        except Exception as e:
+            LOG.error(f"Error updating parent issue {parent_key}: {e}")
 
         result_manifest = "".join(result_list)
         # If we had no successes and no failures, then we didn't create any new
@@ -388,45 +433,6 @@ class DuplicateGraphResolver:
         """
         try:
             self._jira_dal.mark_duplicate(outward_key, inward_key)
-            return True
-        except:
-            return False
-
-    def _try_set_remote_parent(
-        self,
-        parent_key: str,
-        summary: str,
-        description: str,
-        data: Dict[str, Dict[str, int]],
-        feature: Optional[str],
-        priority: Optional[str],
-    ) -> bool:
-        """
-        Sets the body text of the issue specified by parent_key to content
-        specified by the provided data, and saves this change to Jira.
-
-        Parameters:
-            parent_key: The issue key of the parent issue we want to edit
-            summary: The summary of the parent issue.
-            description: The text-based description of all the issues captured
-                  by the parent.
-            data: The data we will use to generate the new parent body. See
-                  parse_parent_description for format.
-            feature: The string to be used for the issue's feature field
-            priority: The string to be used for the issue's priority field
-
-        Returns:
-            True if the Jira API indicates that the operation completed
-            successfully, otherwise False.
-        """
-        try:
-            self._jira_dal.update_issue(
-                parent_key,
-                summary=summary,
-                description=generate_parent_body_text_from_data(description, data),
-                feature=feature,
-                priority=priority,
-            )
             return True
         except:
             return False

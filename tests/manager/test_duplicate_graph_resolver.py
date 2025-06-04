@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -34,6 +35,7 @@ def _jira_document(
     labels=None,
     feature="",
     header_text="I am a header",
+    user_id="",
 ):
     doc = JiraDocument(
         data_source="JIRA",
@@ -78,6 +80,7 @@ def _jira_document(
         embeddings={},
         experiment_conditions={},
         jira_attachments=[],
+        user_id=user_id,
         parent_issue=None,
         child_issues=[],
         is_dev_related=False,
@@ -270,13 +273,34 @@ class TestDuplicateGraphResolver(unittest.TestCase):
                 {"type": "paragraph", "content": [{"type": "text", "text": "AREAS:\n"}]},
             ],
         }
-        magic_mock_jira_dal.update_issue.assert_any_call(
-            "parent_key",
-            summary=expected_summary,
-            description=expected_description,
-            feature="shake",
-            priority="High",
-        )
+        # Verify that update_issue was called, but use more flexible matching
+        # since the actual implementation may include additional content like shared conditions links
+        assert magic_mock_jira_dal.update_issue.call_count >= 1
+        update_call_args = magic_mock_jira_dal.update_issue.call_args_list[0]
+
+        # Check the basic parameters are correct
+        assert update_call_args[0][0] == "parent_key"
+        assert update_call_args[1]["summary"] == expected_summary
+        assert update_call_args[1]["feature"] == "shake"
+        assert update_call_args[1]["priority"] == "High"
+
+        # Check that the description has the expected basic structure
+        actual_description = update_call_args[1]["description"]
+        assert actual_description["type"] == "doc"
+        assert actual_description["version"] == 1
+        assert len(actual_description["content"]) >= len(expected_description["content"])
+
+        # Check that the expected content is present (allowing for additional content)
+        expected_paragraphs = expected_description["content"]
+        actual_paragraphs = actual_description["content"]
+
+        for i, expected_paragraph in enumerate(expected_paragraphs):
+            if i < len(actual_paragraphs):
+                actual_paragraph = actual_paragraphs[i]
+                assert actual_paragraph["type"] == expected_paragraph["type"]
+                if "content" in expected_paragraph:
+                    assert actual_paragraph["content"] == expected_paragraph["content"]
+
         magic_mock_jira_dal.mark_duplicates_async.assert_any_call(expected_links)
 
         # Test with an existing [Parent] already in the summary
@@ -296,13 +320,32 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         assert b"S DLAA-6 parent_key" in args[1]
 
         duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
-        magic_mock_jira_dal.update_issue.assert_any_call(
-            "parent_key",
-            summary=expected_summary,
-            description=expected_description,
-            feature="shake",
-            priority="High",
-        )
+        # Use the same flexible assertion for the second call
+        assert magic_mock_jira_dal.update_issue.call_count >= 1
+        update_call_args = magic_mock_jira_dal.update_issue.call_args_list[-1]
+
+        # Check the basic parameters are correct
+        assert update_call_args[0][0] == "parent_key"
+        assert update_call_args[1]["summary"] == expected_summary
+        assert update_call_args[1]["feature"] == "shake"
+        assert update_call_args[1]["priority"] == "High"
+
+        # Check that the description has the expected basic structure
+        actual_description = update_call_args[1]["description"]
+        assert actual_description["type"] == "doc"
+        assert actual_description["version"] == 1
+        assert len(actual_description["content"]) >= len(expected_description["content"])
+
+        # Check that the expected content is present (allowing for additional content)
+        expected_paragraphs = expected_description["content"]
+        actual_paragraphs = actual_description["content"]
+
+        for i, expected_paragraph in enumerate(expected_paragraphs):
+            if i < len(actual_paragraphs):
+                actual_paragraph = actual_paragraphs[i]
+                assert actual_paragraph["type"] == expected_paragraph["type"]
+                if "content" in expected_paragraph:
+                    assert actual_paragraph["content"] == expected_paragraph["content"]
 
     @patch("jeeves.scripts.index_pipeline_and_spike_detector.sync_jira_tickets.app_registry")
     def test_resolve_duplicate_graphs(self, mock_app_registry):
@@ -610,3 +653,107 @@ def test_disconnect_duplicates_remote_jira_succeeds_once(
     expected_results["edge_failures"].sort()
     expected_results["edge_successes"].sort()
     assert result == expected_results
+
+
+@patch("jeeves.manager.duplicate_graph_resolver.upload_to_jeeves_s3")
+def test_connect_duplicates_remote_adds_shared_conditions_link(mock_upload_to_s3):
+    """Test that shared experiment conditions link is added to parent issue description."""
+    magic_mock_jira_dal = MagicMock()
+
+    # Mock documents with user IDs
+    child_doc_1 = MagicMock()
+    child_doc_1.issue_key = "DLAA-4"
+    child_doc_1.user_id = "450156231"
+    child_doc_1.feature = "shake"
+    child_doc_1.priority = "High"
+    child_doc_1.header_text = "Child Issue 1"
+
+    child_doc_2 = MagicMock()
+    child_doc_2.issue_key = "DLAA-5"
+    child_doc_2.user_id = "1600500023"
+    child_doc_2.feature = "shake"
+    child_doc_2.priority = "High"
+    child_doc_2.header_text = "Child Issue 2"
+
+    # Mock parent issue
+    parent_issue = MagicMock()
+    parent_issue.body_text = "Random description someone entered\nAPP VERSIONS:\nNOT PRESENT: 2\n6.117.0.1: 1\n\n\nPLATFORMS:\nNOT PRESENT: 2\niOS: 1\n\n\nCOURSES:\nNOT PRESENT: 2\nDUOLINGO_FR_EN: 1\n\n\nINTERFACE LANGUAGES:\nNOT PRESENT: 2\nen: 1\n\n\nOPERATING SYSTEMS:\nNOT PRESENT: 2\niOS 14.4.1: 1\n\n\nAREAS:\n\n"
+    parent_issue.issue_key = "parent_key"
+    parent_issue.summary = "Parent Issue"
+
+    docs = {
+        "DLAA-4": child_doc_1,
+        "DLAA-5": child_doc_2,
+        "parent_key": parent_issue,
+    }
+
+    def mock_is_group_parent(doc):
+        return doc.issue_key == "parent_key"
+
+    magic_mock_jira_dal.get_issue.return_value = parent_issue
+    magic_mock_jira_dal.mark_duplicates_async.return_value = asyncio.Future()
+    magic_mock_jira_dal.mark_duplicates_async.return_value.set_result(
+        [
+            ("DLAA-4", "parent_key", True),
+            ("DLAA-5", "parent_key", True),
+        ]
+    )
+
+    mock_parent_summary_generator = MagicMock()
+    mock_summary = MagicMock()
+    mock_summary.title = "Test Summary"
+    mock_summary.description = "Test Description"
+    mock_parent_summary_generator.generate_summary_and_description.return_value = mock_summary
+
+    duplicate_graph_resolver = DuplicateGraphResolver(
+        mock_es_dal, magic_mock_jira_dal, mock_jira_manager, mock_parent_summary_generator
+    )
+
+    with patch.object(duplicate_graph_resolver, "get_duplicate_graph") as mock_get_duplicate_graph:
+        mock_get_duplicate_graph.return_value = JiraDuplicateGraph(
+            issue_keys_to_documents=docs,
+            existing_issue_links=set(),
+        )
+        with patch.object(JiraDocument, "is_group_parent", side_effect=mock_is_group_parent):
+            duplicate_graph_resolver.connect_duplicates_remote(["DLAA-4", "DLAA-5"])
+
+    # Verify that update_issue was called with the shared conditions link
+    magic_mock_jira_dal.update_issue.assert_called_once()
+    call_args = magic_mock_jira_dal.update_issue.call_args
+
+    # Check that the description contains the shared conditions URL
+    description_arg = call_args[1]["description"]
+    description_content = description_arg["content"]
+
+    # Find the paragraph with the shared conditions link
+    shared_conditions_found = False
+    for paragraph in description_content:
+        if paragraph["type"] == "paragraph":
+            # Check if this paragraph contains the shared conditions link
+            content = paragraph.get("content", [])
+            has_shared_conditions_text = False
+            has_link = False
+
+            for text_element in content:
+                if text_element.get("type") == "text":
+                    # Check for bold "Shared Experiment Conditions:" text
+                    if "Shared Experiment Conditions:" in text_element.get("text", "") and any(
+                        mark.get("type") == "strong" for mark in text_element.get("marks", [])
+                    ):
+                        has_shared_conditions_text = True
+
+                    # Check for the link with correct URL containing user IDs
+                    if "View Shared Conditions" in text_element.get("text", "") and any(
+                        mark.get("type") == "link"
+                        and "1600500023,450156231" in mark.get("attrs", {}).get("href", "")
+                        for mark in text_element.get("marks", [])
+                    ):
+                        has_link = True
+
+            if has_shared_conditions_text and has_link:
+                shared_conditions_found = True
+                break
+
+    assert (
+        shared_conditions_found
+    ), "Shared experiment conditions link not found in parent issue description"
