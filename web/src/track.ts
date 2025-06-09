@@ -53,6 +53,16 @@ interface TrackingEvents {
     quick_feedback: string;
     long_feedback?: string; // Will be used in upcoming feedback form enhancement
   };
+  // Mark duplicates page events
+  mark_duplicates_page_view: {
+    jira_issues: string;
+    num_jira_issues: number;
+  };
+  mark_duplicates_connect: {
+    jira_issues: string;
+    status: string;
+    success: boolean;
+  };
 }
 
 const track = <T extends keyof TrackingEvents>(

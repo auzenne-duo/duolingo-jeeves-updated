@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useLocation } from "react-router-dom";
 
+import track from "../../track";
 import styles from "../NamedSection.module.scss";
 import { fullyConnectDuplicates, getJiraIssueDetails } from "api/jeeves";
 import type { JiraIssueDetails } from "api/jeeves";
@@ -50,6 +51,12 @@ const MarkDuplicatesPage: React.FC = () => {
     React.useState<string[]>(jiraIssues);
 
   React.useEffect(() => {
+    // Track page view event
+    track("mark_duplicates_page_view", {
+      jira_issues: jiraIssues.join(","),
+      num_jira_issues: jiraIssues.length,
+    });
+
     if (jiraIssues.length === 0) {
       setIssueDetails(null);
       return;
@@ -94,9 +101,21 @@ const MarkDuplicatesPage: React.FC = () => {
         message: `Successfully connected ${selectedTickets.length} tickets as duplicates. Status: ${response.overall}`,
         success: response.overall.startsWith("SUCCESS"),
       });
+      // Track connect event (success)
+      track("mark_duplicates_connect", {
+        jira_issues: selectedTickets.join(","),
+        status: response.overall,
+        success: response.overall.startsWith("SUCCESS"),
+      });
     } catch (error) {
       setResult({
         message: `Error connecting duplicates: ${error instanceof Error ? error.message : String(error)}`,
+        success: false,
+      });
+      // Track connect event (failure)
+      track("mark_duplicates_connect", {
+        jira_issues: selectedTickets.join(","),
+        status: error instanceof Error ? error.message : String(error),
         success: false,
       });
     } finally {
