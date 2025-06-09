@@ -176,17 +176,31 @@ def generate_slack_message(
 
 if __name__ == "__main__":
     apply_registry()
+    print(f"Starting spike script at {datetime.datetime.now()}", flush=True)
+
     try:
         url = f"{_SLACK_API}/chat.postMessage"
         weekday = datetime.datetime.now().weekday()
+
         for spike_category, slack_channels in _SPIKE_CATEGORY_TO_SLACK_CHANNELS.items():
-            if weekday not in _SPIKE_CATEGORY_TO_REPORT_DAYS.get(spike_category, range(7)):
+            report_days = _SPIKE_CATEGORY_TO_REPORT_DAYS.get(spike_category, range(7))
+
+            if weekday not in report_days:
+                print(
+                    f"Skipping {spike_category} - not in range for {report_days} for this category",
+                    flush=True,
+                )
                 continue
+
             top_spikes = get_top_spikes_yesterday(spike_category)
+            print(f"Found {len(top_spikes)} top spikes for {spike_category}", flush=True)
+
             spikes_for_bots = spike_sorter(
                 top_spikes, spike_category
             )  # Prepare spikes for each bot
+
             if len(top_spikes) == 0:
+                print(f"No spikes found for {spike_category}, skipping...", flush=True)
                 continue
 
             slack_channels = (
@@ -195,15 +209,22 @@ if __name__ == "__main__":
                 else slack_channels
             )  # Only post to the dev channel in the dev environment
 
+            print(f"Target channels: {slack_channels}", flush=True)
+
             for slack_channel in slack_channels:
-                for bot in _SLACK_CHANNEL_TO_SLACK_BOT[slack_channel]:
+                bots_for_channel = _SLACK_CHANNEL_TO_SLACK_BOT.get(slack_channel, [])
+                print(f"Bots for this channel: {bots_for_channel}", flush=True)
+
+                for bot in bots_for_channel:
                     headers = {
                         "Authorization": f"Bearer {bot.api_token}",
                         "Content-Type": "application/json; charset=utf-8",
                     }
-                    spikes_for_channel = spikes_for_bots[bot.slack_name]
+                    spikes_for_channel = spikes_for_bots.get(bot.slack_name, [])
+                    print(f"Processing spikes for channel: {spikes_for_channel}", flush=True)
 
                     if len(spikes_for_channel) != 0:
+                        print(f"Generating slack message for {bot.slack_name}...", flush=True)
                         slack_message = generate_slack_message(
                             spike_category, spikes_for_channel, bot.spike_type_insert
                         )
@@ -214,13 +235,25 @@ if __name__ == "__main__":
                         }
                         try:
                             print(
-                                f"Posting to slack for {spike_category} in {slack_channel} by {bot.slack_name}"
+                                f"Posting to slack for {spike_category} in {slack_channel.channel_id} by {bot.slack_name}",
+                                flush=True,
                             )
                             r = post(url, headers=headers, data=json.dumps(data))
                             r.raise_for_status()
+                            print(
+                                f"Successfully posted message to {slack_channel.channel_id} via {bot.slack_name}",
+                                flush=True,
+                            )
                         except RequestException as e:
                             print_request_exception(e, log_level="error")
+                    else:
+                        print(
+                            f"No spikes for bot {bot.slack_name}, skipping message generation",
+                            flush=True,
+                        )
+
     except:
         duo_logging.capture_exception(sys.exc_info())
     finally:
+        print(f"Closing registry at {datetime.datetime.now()}", flush=True)
         close_registry()
