@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 
 import track from "../../track";
 import styles from "../NamedSection.module.scss";
@@ -28,6 +28,7 @@ const JiraLink: React.FC<{ ticketKey: string }> = ({ ticketKey }) => (
 
 const MarkDuplicatesPage: React.FC = () => {
   const location = useLocation();
+  const history = useHistory();
   const [isLoading, setIsLoading] = React.useState(false);
   const [result, setResult] = React.useState<{
     message: string;
@@ -40,16 +41,29 @@ const MarkDuplicatesPage: React.FC = () => {
 
   // Parse jira_issues from URL query parameters
   const searchParams = new URLSearchParams(location.search);
-  const jiraIssuesParam = searchParams.get("jira_issues") ?? "";
-  const jiraIssues = React.useMemo(
-    () => jiraIssuesParam.split(",").filter(Boolean),
-    [jiraIssuesParam],
+  const urlJiraIssuesParam = searchParams.get("jira_issues") ?? "";
+  const urlJiraIssues = React.useMemo(
+    () => urlJiraIssuesParam.split(",").filter(Boolean),
+    [urlJiraIssuesParam],
   );
+
+  // State for input field
+  const [inputValue, setInputValue] = React.useState(urlJiraIssuesParam);
+  const [jiraIssues, setJiraIssues] = React.useState<string[]>(urlJiraIssues);
 
   // State to track which tickets are selected
   const [selectedTickets, setSelectedTickets] =
-    React.useState<string[]>(jiraIssues);
+    React.useState<string[]>(urlJiraIssues);
 
+  // Update jiraIssues when URL changes
+
+  React.useEffect(() => {
+    setJiraIssues(urlJiraIssues);
+    setSelectedTickets(urlJiraIssues);
+    setInputValue(urlJiraIssuesParam);
+  }, [urlJiraIssues, urlJiraIssuesParam]);
+
+  // Load JIRA issue details when jiraIssues changes
   React.useEffect(() => {
     // Track page view event
     track("mark_duplicates_page_view", {
@@ -67,6 +81,52 @@ const MarkDuplicatesPage: React.FC = () => {
       .catch(() => setIssueDetails(null))
       .finally(() => setDetailsLoading(false));
   }, [jiraIssues]);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  };
+
+  const handleLoadIssues = () => {
+    const issues = inputValue
+      .split(",")
+      .map(issue => issue.trim().toUpperCase())
+      .filter(Boolean);
+
+    if (issues.length === 0) {
+      setResult({
+        message: "Please enter at least one valid JIRA issue key.",
+        success: false,
+      });
+      return;
+    }
+
+    // Validate JIRA ticket format (capital letters + dash + number)
+    const jiraPattern = /^[A-Z]+-\d+$/;
+    const invalidIssues = issues.filter(issue => !jiraPattern.test(issue));
+
+    if (invalidIssues.length > 0) {
+      setResult({
+        message: `Invalid JIRA ticket format: ${invalidIssues.join(", ")}. Expected format: LETTERS-NUMBER (e.g., DLAI-52067)`,
+        success: false,
+      });
+      return;
+    }
+
+    setJiraIssues(issues);
+    setSelectedTickets(issues);
+    setResult(null); // Clear any previous results
+
+    // Update URL parameters to sync with input
+    const newSearchParams = new URLSearchParams(location.search);
+    if (issues.length > 0) {
+      newSearchParams.set("jira_issues", issues.join(","));
+    } else {
+      newSearchParams.delete("jira_issues");
+    }
+
+    // Navigate to the new URL with updated parameters
+    history.replace(`${location.pathname}?${newSearchParams.toString()}`);
+  };
 
   const handleTicketToggle = (ticketKey: string) => {
     setSelectedTickets(prev =>
@@ -127,9 +187,66 @@ const MarkDuplicatesPage: React.FC = () => {
     <div className={styles.section}>
       <h2>Mark Multiple JIRA Issues as Duplicates</h2>
       <div className={styles.content}>
+        <div style={{ marginBottom: "20px" }}>
+          <label
+            htmlFor="jira-input"
+            style={{
+              display: "block",
+              fontWeight: "bold",
+              marginBottom: "8px",
+            }}
+          >
+            Enter JIRA Issue Keys (comma-separated):
+          </label>
+          <div style={{ alignItems: "center", display: "flex", gap: "10px" }}>
+            <input
+              id="jira-input"
+              onChange={handleInputChange}
+              placeholder="e.g., DLAI-52067,DLAI-52066,DLAI-54218"
+              style={{
+                border: "1px solid #DFE1E6",
+                borderRadius: "4px",
+                flex: 1,
+                fontSize: "14px",
+                padding: "8px 12px",
+              }}
+              type="text"
+              value={inputValue}
+            />
+            <button
+              onClick={handleLoadIssues}
+              style={{
+                backgroundColor: "#0052CC",
+                border: "none",
+                borderRadius: "4px",
+                color: "white",
+                cursor: "pointer",
+                fontSize: "14px",
+                padding: "8px 16px",
+              }}
+            >
+              Load Issues
+            </button>
+          </div>
+        </div>
+
+        {result && (
+          <div
+            style={{
+              backgroundColor: result.success ? "#E3FCEF" : "#FFEBE6",
+              borderRadius: "3px",
+              color: result.success ? "#006644" : "#DE350B",
+              marginBottom: "20px",
+              padding: "10px",
+            }}
+          >
+            {result.message}
+          </div>
+        )}
+
         {jiraIssues.length === 0 ? (
           <p>
-            No JIRA issues provided. Use the URL parameter{" "}
+            Enter JIRA issue keys above or use the URL parameter{" "}
             <code>jira_issues</code> with a comma-separated list of issues.
           </p>
         ) : detailsLoading ? (
@@ -334,20 +451,6 @@ const MarkDuplicatesPage: React.FC = () => {
             >
               {isLoading ? "Processing..." : "Mark Selected as Duplicates"}
             </button>
-
-            {result && (
-              <div
-                style={{
-                  backgroundColor: result.success ? "#E3FCEF" : "#FFEBE6",
-                  borderRadius: "3px",
-                  color: result.success ? "#006644" : "#DE350B",
-                  marginTop: "20px",
-                  padding: "10px",
-                }}
-              >
-                {result.message}
-              </div>
-            )}
           </>
         ) : (
           <p>Could not load JIRA issue details.</p>
