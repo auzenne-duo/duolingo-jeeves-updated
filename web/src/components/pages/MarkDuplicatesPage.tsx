@@ -98,7 +98,7 @@ const MarkDuplicatesPage: React.FC = () => {
     try {
       const response = await fullyConnectDuplicates(selectedTickets);
       setResult({
-        message: `Successfully connected ${selectedTickets.length} tickets as duplicates. Status: ${response.overall}`,
+        message: `Successfully marked ${selectedTickets.length} tickets as duplicates. Status: ${response.overall}`,
         success: response.overall.startsWith("SUCCESS"),
       });
       // Track connect event (success)
@@ -109,7 +109,7 @@ const MarkDuplicatesPage: React.FC = () => {
       });
     } catch (error) {
       setResult({
-        message: `Error connecting duplicates: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Error marking duplicates: ${error instanceof Error ? error.message : String(error)}`,
         success: false,
       });
       // Track connect event (failure)
@@ -125,7 +125,7 @@ const MarkDuplicatesPage: React.FC = () => {
 
   return (
     <div className={styles.section}>
-      <h2>Connect Multiple JIRA Issues as Duplicates</h2>
+      <h2>Mark Multiple JIRA Issues as Duplicates</h2>
       <div className={styles.content}>
         {jiraIssues.length === 0 ? (
           <p>
@@ -332,7 +332,7 @@ const MarkDuplicatesPage: React.FC = () => {
                 padding: "10px 20px",
               }}
             >
-              {isLoading ? "Processing..." : "Connect Selected as Duplicates"}
+              {isLoading ? "Processing..." : "Mark Selected as Duplicates"}
             </button>
 
             {result && (
