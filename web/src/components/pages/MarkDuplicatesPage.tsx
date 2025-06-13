@@ -158,7 +158,7 @@ const MarkDuplicatesPage: React.FC = () => {
     try {
       const response = await fullyConnectDuplicates(selectedTickets);
       setResult({
-        message: `Successfully marked ${selectedTickets.length} tickets as duplicates. Status: ${response.overall}`,
+        message: `Successfully marked ${selectedTickets.length} tickets as duplicates. ${response.overall}`,
         success: response.overall.startsWith("SUCCESS"),
       });
       // Track connect event (success)
@@ -254,8 +254,9 @@ const MarkDuplicatesPage: React.FC = () => {
         ) : issueDetails ? (
           <>
             <p>
-              Select the JIRA issues you want to mark as duplicates. All
-              selected issues will be linked together.
+              Select the JIRA issues you want to mark as duplicates. A parent
+              ticket will be created and remain open, while all other tickets
+              will be closed as duplicates of it.
             </p>
 
             {jiraIssues.length !== issueDetails.length && (
@@ -449,7 +450,7 @@ const MarkDuplicatesPage: React.FC = () => {
                 padding: "10px 20px",
               }}
             >
-              {isLoading ? "Processing..." : "Mark Selected as Duplicates"}
+              {isLoading ? "Processing..." : "Close Selected as Duplicates"}
             </button>
           </>
         ) : (

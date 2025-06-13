@@ -367,6 +367,27 @@ class DuplicateGraphResolver:
         except Exception as e:
             LOG.error(f"Error updating parent issue {parent_key}: {e}")
 
+        # Close child tickets as duplicates (but leave parent open)
+        child_tickets_to_close = []
+        for key, doc in duplicate_graph.issue_keys_to_documents.items():
+            if (
+                key != parent_key
+                and key not in deprecated_parent_issue_keys
+                and not JiraDocument.is_group_parent(doc)
+                and not is_jira_issue_resolved(doc.resolution)
+            ):
+                child_tickets_to_close.append(key)
+
+        LOG.info(
+            f"Closing {len(child_tickets_to_close)} child tickets as duplicates: {child_tickets_to_close}"
+        )
+        for child_key in child_tickets_to_close:
+            try:
+                self._jira_dal.close_issue_as_duplicate(child_key)
+                LOG.info(f"Successfully closed {child_key} as duplicate")
+            except Exception as e:
+                LOG.error(f"Error closing child issue {child_key} as duplicate: {e}")
+
         result_manifest = "".join(result_list)
         # If we had no successes and no failures, then we didn't create any new
         # links. This turns out to be identical to the case where we had only
@@ -379,7 +400,12 @@ class DuplicateGraphResolver:
         else:
             result_status = "FAILURE"
 
-        result = f"{result_status}\n{result_manifest}"
+        # Add information about closed child tickets to the result
+        closed_info = ""
+        if child_tickets_to_close:
+            closed_info = f"\nClosed {len(child_tickets_to_close)} child tickets as duplicates: {', '.join(child_tickets_to_close)}"
+
+        result = f"{result_status}{closed_info}\n{result_manifest}"
         # Upload the result status and manifest to S3
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")

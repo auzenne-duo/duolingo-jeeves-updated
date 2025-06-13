@@ -379,6 +379,94 @@ class TestDuplicateGraphResolver(unittest.TestCase):
         self.assertEqual(key_to_issue, expected_key_to_issue)
         self.assertEqual(list_of_parents, expected_list_of_parents)
 
+    def test_connect_duplicates_remote_closes_child_tickets(self):
+        """Test that child tickets are closed as duplicates while parent tickets remain open."""
+        # Create test documents
+        parent_doc = _jira_document(
+            issue_number=10, labels=["parent_bug"], status="To Do", resolution=""
+        )
+        open_child_doc = _jira_document(issue_number=11, status="To Do", resolution="")
+        resolved_child_doc = _jira_document(issue_number=12, status="Done", resolution="Fixed")
+        another_parent_doc = _jira_document(
+            issue_number=13, labels=["parent_bug"], status="To Do", resolution=""
+        )
+
+        # Mock duplicate graph
+        mock_duplicate_graph = MagicMock()
+        mock_duplicate_graph.issue_keys_to_documents = {
+            "DLAA-10": parent_doc,
+            "DLAA-11": open_child_doc,
+            "DLAA-12": resolved_child_doc,
+            "DLAA-13": another_parent_doc,
+        }
+        mock_duplicate_graph.existing_issue_links = set()
+
+        # Mock JiraDAL
+        mock_jira_dal = MagicMock()
+        mock_jira_dal.get_issue.return_value = parent_doc
+        mock_jira_dal.create_bug_issue.return_value = "DLAA-10"
+
+        # Mock async results for marking duplicates
+        future = asyncio.Future()
+        future.set_result(
+            [
+                ("DLAA-11", "DLAA-10", True),
+                ("DLAA-12", "DLAA-10", True),
+                ("DLAA-13", "DLAA-10", True),
+            ]
+        )
+        mock_jira_dal.mark_duplicates_async.return_value = future
+
+        # Mock parent summary manager
+        mock_parent_summary_manager = MagicMock()
+        mock_parent_summary_manager.generate_summary_and_description.return_value = JiraTicketText(
+            description="Test description", title="Test summary"
+        )
+
+        # Create resolver
+        resolver = DuplicateGraphResolver(
+            mock_es_dal, mock_jira_dal, mock_jira_manager, mock_parent_summary_manager, MagicMock()
+        )
+
+        # Use patches to simplify the test
+        with patch.object(
+            resolver, "get_duplicate_graph", return_value=mock_duplicate_graph
+        ), patch.object(
+            JiraDocument, "is_group_parent", side_effect=lambda doc: "parent_bug" in doc.labels
+        ), patch(
+            "jeeves.manager.duplicate_graph_resolver.is_jira_issue_resolved",
+            side_effect=lambda resolution: resolution not in ["", "Unresolved"],
+        ), patch("jeeves.manager.duplicate_graph_resolver.get_asyncio_loop") as mock_loop, patch(
+            "jeeves.manager.duplicate_graph_resolver.parse_parent_description",
+            return_value={
+                "app_version": {},
+                "platform": {},
+                "course": {},
+                "ui_language": {},
+                "os_version": {},
+                "components": {},
+            },
+        ):
+            mock_loop.return_value.run_until_complete.return_value = [
+                ("DLAA-11", "DLAA-10", True),
+                ("DLAA-12", "DLAA-10", True),
+                ("DLAA-13", "DLAA-10", True),
+            ]
+
+            result = resolver.connect_duplicates_remote(
+                ["DLAA-10", "DLAA-11", "DLAA-12", "DLAA-13"]
+            )
+
+            # Verify that child tickets and deprecated parent issues are closed
+            # Expected calls: DLAA-13 (deprecated parent), DLAA-11 (open child), DLAA-12 (gets closed despite being resolved)
+            self.assertEqual(mock_jira_dal.close_issue_as_duplicate.call_count, 3)
+            mock_jira_dal.close_issue_as_duplicate.assert_any_call("DLAA-11")  # open child
+            mock_jira_dal.close_issue_as_duplicate.assert_any_call(
+                "DLAA-12"
+            )  # resolved child (still gets closed)
+            mock_jira_dal.close_issue_as_duplicate.assert_any_call("DLAA-13")  # deprecated parent
+            self.assertIn("SUCCESS", result)
+
 
 @pytest.mark.parametrize(
     ("graph", "expected_results"),
