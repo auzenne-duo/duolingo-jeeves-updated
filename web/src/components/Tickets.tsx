@@ -29,6 +29,7 @@ import useTicketSelection from "components/useTicketSelection";
 import AppStateContext from "contexts/AppStateContext";
 
 const PER_PAGE = 30;
+const MAX_DOWNLOAD_COUNT = 5000;
 
 const handleRangeChangeDebouncer = debounce(
   (callback: () => void) => callback(),
@@ -51,6 +52,11 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
   const search = useSearchParams();
 
   const [, dispatch] = React.useContext(AppStateContext);
+
+  // Add state for custom download modal
+  const [showDownloadModal, setShowDownloadModal] = React.useState(false);
+  const [downloadCount, setDownloadCount] = React.useState(100);
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
   const area = search.get("area");
   const filter = search.get("filter") as JSONAPI.ShakeToReportCategory | null;
@@ -208,6 +214,39 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
     }
   }, [isPreviousData, offset]);
 
+  // Add custom download function
+  const handleCustomDownload = async () => {
+    if (downloadCount < 1 || downloadCount > MAX_DOWNLOAD_COUNT) {
+      alert(`Please enter a number between 1 and ${MAX_DOWNLOAD_COUNT}`);
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const downloadData = await getTickets(lang, {
+        areas,
+        beta_filter: filter ?? undefined,
+        end_time: to,
+        limit: downloadCount,
+        offset: 0, // Start from beginning for download
+        spike_category: spikeCategory,
+        start_time: from,
+        use_lemmas: useLemmas,
+        word: query,
+      });
+
+      if (downloadData?.data) {
+        downloadAsCsv(downloadData.data, lang);
+        setShowDownloadModal(false);
+      }
+    } catch (downloadError) {
+      // Handle download error without console.error
+      alert("Failed to download tickets. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <>
       {hasTrend ? (
@@ -241,12 +280,21 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
               total: data?.total_records,
             })}
           </div>
-          <Button
-            onClick={() => downloadAsCsv(tickets, lang)}
-            variant="outline"
-          >
-            Download data
-          </Button>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+            <Button
+              onClick={() => downloadAsCsv(tickets, lang)}
+              variant="outline"
+            >
+              Download current page ({tickets.length} tickets)
+            </Button>
+            <Button
+              onClick={() => setShowDownloadModal(true)}
+              title="Download a custom number of tickets starting from the beginning of your search results (not from current page)"
+              variant="outline"
+            >
+              Download more...
+            </Button>
+          </div>
         </>
       ) : error ? (
         <span>Failed to retrieve data.</span>
@@ -273,6 +321,82 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
             document.getElementById("aside") as HTMLElement,
           )
         : null}
+
+      {/* Custom Download Modal */}
+      {showDownloadModal && (
+        <div
+          style={{
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            bottom: 0,
+            display: "flex",
+            justifyContent: "center",
+            left: 0,
+            position: "fixed",
+            right: 0,
+            top: 0,
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "8px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              minWidth: "300px",
+              padding: "20px",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>Download Custom Amount</h3>
+            <p style={{ color: "#666", fontSize: "14px" }}>
+              Total tickets available: {numResults.toLocaleString()}
+            </p>
+            <div style={{ marginBottom: "15px" }}>
+              <label
+                htmlFor="downloadCount"
+                style={{ display: "block", marginBottom: "5px" }}
+              >
+                Number of tickets to download (max {MAX_DOWNLOAD_COUNT}):
+              </label>
+              <input
+                id="downloadCount"
+                max={MAX_DOWNLOAD_COUNT}
+                min="1"
+                onChange={e =>
+                  setDownloadCount(parseInt(e.target.value, 10) || 1)
+                }
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  padding: "8px",
+                  width: "100%",
+                }}
+                type="number"
+                value={downloadCount}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Button
+                onClick={() => setShowDownloadModal(false)}
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={isDownloading ? undefined : handleCustomDownload}
+              >
+                {isDownloading ? "Downloading..." : "Download"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
