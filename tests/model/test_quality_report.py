@@ -24,6 +24,8 @@ mock_score_history = {
     "EXAI": [],
     "VCS": [],
     "VCG": [],
+    "DETBUG": [],
+    "DETMON": [],
 }
 
 

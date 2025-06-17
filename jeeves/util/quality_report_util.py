@@ -10,6 +10,8 @@ PROJECT_TO_PLATFORM = {
     "EXAI": "Video Call",
     "VCS": "Video Call",
     "VCG": "Video Call",
+    "DETBUG": "DET",
+    "DETMON": "DET",
 }
 CODEBASE_TO_PLATFORM = {
     "duolingo-android": "Android",
