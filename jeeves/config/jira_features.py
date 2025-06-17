@@ -204,6 +204,7 @@ JIRA_FEATURES = {
             "Intermediate English": {
                 "SMEC": ["Intermediate English"],
                 "Placement test": [],
+                "Intermediate Mini Units IMU": [],
             },
             "Longform Content": {
                 "DuoShorts": ["duo shorts"],
@@ -458,6 +459,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Immersive subscriptions": "Any temporary subscription won from opening a chest on the path, does not include free trials",
     "In-app purchases": "Problems with items purchased with gems (row blaster, timer boosts, xp boost refills, league repairs, etc.)",
     "In Lesson Delight": "Issues with delightful animations for special in-lesson moments (progress bar pulse, grading ribbon lightning, session end XP flurry)",
+    "Intermediate Mini Units IMU": "Issues with the flattened mini unit in B1+ content",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
     "Layout Issues: Romaji/Furigana/Pinyin": "Issues with transliterations in the challenge",
     "Legendary": "Bugs with loading or doing legendary lessons",
