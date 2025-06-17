@@ -5,15 +5,6 @@ resource "aws_s3_bucket" "jeeves-document-cache-dev" {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
   }
 
   # Lifecycle rules managed in lifecycle configuration resource below
@@ -87,6 +78,16 @@ resource "aws_s3_bucket_lifecycle_configuration" "jeeves-document-cache-dev-clea
     }
     noncurrent_version_expiration {
       noncurrent_days = 30
+    }
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "jeeves-document-cache-dev" {
+  bucket = aws_s3_bucket.jeeves-document-cache-dev.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }

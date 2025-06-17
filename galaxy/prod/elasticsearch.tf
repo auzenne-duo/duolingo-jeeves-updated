@@ -2,12 +2,11 @@
 # TODO (david.sawicki): upgrade "elasticsearch_version" to "OpenSearch_1.3.10" and then "OpenSearch_2.7.0"
 module "jeeves-elasticsearch" {
   source                = "app.terraform.io/duolingo/galaxy/terraform//modules/elasticsearch_domain"
-  version               = "~> 2.0"
+  version               = "~> 3.0"
   elasticsearch_version = "7.7"
   product               = var.product
   service               = var.service
   subservice            = "es"
-  owner                 = var.owner
   environment           = var.environment
   cluster_instance_type = "i3.4xlarge.elasticsearch"
 }

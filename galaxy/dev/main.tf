@@ -1,3 +1,7 @@
+provider "grafana" {
+  url = var.grafana_url
+}
+
 # The AWS region. This is normally us-east-1.
 provider "aws" {
   region = "us-east-1"
@@ -24,11 +28,16 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
+      version = "~> 5.0"
     }
     sentry = {
       source  = "jianyuan/sentry"
       version = "~> 0.11.2"
+    }
+
+    grafana = {
+      source  = "grafana/grafana"
+      version = "~> 3.0"
     }
   }
 }
@@ -52,7 +61,7 @@ resource "aws_route53_record" "duolingo-jeeves-dev" {
 
 module "duolingo-jeeves" {
   source                            = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_web_service"
-  version                           = "~> 2.0"
+  version                           = "~> 3.0"
   environment                       = var.environment
   service                           = var.service
   subservice                        = "api"
@@ -61,13 +70,10 @@ module "duolingo-jeeves" {
   max_count                         = 1    # Maximum number of tasks to run in autoscaling group
   memory                            = 4096 # Maximum memory (default: 128MB)
   product                           = var.product
-  owner                             = var.owner       # The name of the owner for this service
   ecs_cluster                       = var.ecs_cluster # Name of the ECS cluster to run on
   container_port                    = 5000
   internal                          = "true" # Create an internal service
-  release_version                   = var.release_version
   health_check_grace_period_seconds = 120
-
 
   environment_vars = [
     {
@@ -129,7 +135,7 @@ module "duolingo-jeeves" {
 
 module "duolingo-jeeves-s3-worker" {
   source                             = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version                            = "~> 2.0"
+  version                            = "~> 3.0"
   environment                        = var.environment
   service                            = var.service
   subservice                         = "s3-worker"
@@ -140,10 +146,8 @@ module "duolingo-jeeves-s3-worker" {
   scale_out_count                    = 0
   deployment_minimum_healthy_percent = 0
   product                            = var.product
-  owner                              = var.owner       # The name of the owner for this service
   ecs_cluster                        = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition               = "s3-worker.json"
-
 
   environment_vars = [
     {
@@ -188,8 +192,6 @@ module "duolingo-jeeves-s3-worker" {
     }
   ]
 
-  release_version = var.release_version
-
   doppler_secrets = [{
     doppler_key = "IT_EMAIL_TOKEN"
     env_var     = "JIRA_API_TOKEN"
@@ -225,7 +227,7 @@ module "duolingo-jeeves-s3-worker" {
 
 module "duolingo-jeeves-worker-cron" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   environment          = var.environment
   service              = var.service
   subservice           = "worker-cron"
@@ -234,7 +236,6 @@ module "duolingo-jeeves-worker-cron" {
   min_count            = 1   # Minimum number of tasks to run in autoscaling group
   max_count            = 1   # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "worker-cron.json"
   environment_vars = [
@@ -244,7 +245,6 @@ module "duolingo-jeeves-worker-cron" {
     },
   ]
   schedule_expression = "cron(* * * * ? 1970)" # "cron(0/20 * * * ? *)"
-  release_version     = var.release_version
 
   doppler_secrets = [{
     doppler_key = "BETA_FEEDBACK_SPIKE_REPORTER_SLACK_API_TOKEN"
@@ -263,7 +263,7 @@ module "duolingo-jeeves-worker-cron" {
 
 module "duolingo-jeeves-sqs-worker-1" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   environment          = var.environment
   service              = var.service
   subservice           = "sqs-worker-1"
@@ -272,11 +272,8 @@ module "duolingo-jeeves-sqs-worker-1" {
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
   max_count            = 8    # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "sqs-worker-1.json"
-  release_version      = var.release_version
-
 
   environment_vars = [
     {
@@ -322,7 +319,7 @@ module "duolingo-jeeves-sqs-worker-1" {
 
 module "duolingo-jeeves-sqs-worker-2" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   environment          = var.environment
   service              = var.service
   subservice           = "sqs-worker-2"
@@ -331,10 +328,8 @@ module "duolingo-jeeves-sqs-worker-2" {
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
   max_count            = 8    # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "sqs-worker-2.json"
-  release_version      = var.release_version
 
   environment_vars = [
     {
@@ -355,7 +350,6 @@ module "duolingo-jeeves-sqs-worker-2" {
   scale_out_sqs       = 2500
   scale_out_count_sqs = 16
 
-
   doppler_secrets = [{
     doppler_key = "DUOLINGO_USERNAME"
     env_var     = "DUOLINGO_USERNAME"
@@ -367,7 +361,7 @@ module "duolingo-jeeves-sqs-worker-2" {
 
 module "duolingo-jeeves-spike-worker" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   environment          = var.environment
   service              = var.service
   subservice           = "spike-worker"
@@ -376,12 +370,9 @@ module "duolingo-jeeves-spike-worker" {
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
   max_count            = 1    # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "spike-worker.json"
   schedule_expression  = "rate(15 minutes)"
-  release_version      = var.release_version
-
 
   environment_vars = [
     {
@@ -406,7 +397,7 @@ module "duolingo-jeeves-spike-worker" {
 # this task should never run in dev
 module "duolingo-jeeves-email-sender" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   environment          = var.environment
   service              = var.service
   subservice           = "email-sender"
@@ -415,16 +406,14 @@ module "duolingo-jeeves-email-sender" {
   min_count            = 1   # Minimum number of tasks to run in autoscaling group
   max_count            = 1   # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "email-sender.json"
   schedule_expression  = "cron(* * * * ? 1970)" # "cron(0/20 * * * ? *)"
-  release_version      = var.release_version
 }
 
 module "duolingo-jeeves-ensure-embeddings-worker" {
   source               = "app.terraform.io/duolingo/galaxy/terraform//modules/ecs_worker_service"
-  version              = "~> 2.0"
+  version              = "~> 3.0"
   environment          = var.environment
   service              = var.service
   subservice           = "ensure-embeddings-worker"
@@ -433,11 +422,9 @@ module "duolingo-jeeves-ensure-embeddings-worker" {
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
   max_count            = 1    # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  owner                = var.owner       # The name of the owner for this service
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
   container_definition = "ensure-embeddings-worker.json"
   schedule_expression  = "cron(0 17 ? * * *)"
-  release_version      = var.release_version
   environment_vars = [
     {
       name  = "PYTHONPATH"
@@ -452,7 +439,6 @@ module "duolingo-jeeves-ensure-embeddings-worker" {
       value = var.environment
     }
   ]
-
 
   doppler_secrets = [{
     doppler_key = "DUOLINGO_USERNAME"

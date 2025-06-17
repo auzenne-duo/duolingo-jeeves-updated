@@ -1,7 +1,3 @@
-variable "release_version" {
-  description = "The version of the app to deploy"
-}
-
 variable "product" {
   default = "duolingo"
 }
@@ -12,10 +8,6 @@ variable "service" {
 
 variable "environment" {
   default = "dev"
-}
-
-variable "owner" {
-  default = "david.sawicki@duolingo.com"
 }
 
 variable "ecs_cluster" {
@@ -38,4 +30,9 @@ variable "pagerduty_rotation" {
 
 variable "team" {
   default = "observability-team@duolingo.com"
+}
+
+variable "grafana_url" {
+  default     = "https://grafana.duolingo.com"
+  description = "URL of the Grafana frontend"
 }

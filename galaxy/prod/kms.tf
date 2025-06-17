@@ -5,7 +5,6 @@ resource "aws_kms_key" "kms-key" {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
   }
 }
 

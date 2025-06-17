@@ -7,12 +7,10 @@ resource "aws_sqs_queue" "jeeves-attachments-dev" {
   receive_wait_time_seconds  = 0
   redrive_policy             = "{\"deadLetterTargetArn\":\"${aws_sqs_queue.jeeves-attachments-deadletter-dev.arn}\",\"maxReceiveCount\":5}"
 
-
   tags = {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
   }
 
 }
@@ -25,12 +23,10 @@ resource "aws_sqs_queue" "jeeves-attachments-deadletter-dev" {
   delay_seconds              = 0
   receive_wait_time_seconds  = 0
 
-
   tags = {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
   }
 
 }
@@ -68,12 +64,10 @@ resource "aws_sqs_queue" "jeeves-pipeline-break-download-verify-dev" {
   receive_wait_time_seconds  = 0
   redrive_policy             = "{\"deadLetterTargetArn\":\"${aws_sqs_queue.jeeves-pipeline-break-download-verify-deadletter-dev.arn}\",\"maxReceiveCount\":5}"
 
-
   tags = {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
   }
 
 }
@@ -86,12 +80,10 @@ resource "aws_sqs_queue" "jeeves-pipeline-break-download-verify-deadletter-dev" 
   delay_seconds              = 0
   receive_wait_time_seconds  = 0
 
-
   tags = {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
   }
 
 }
@@ -105,12 +97,10 @@ resource "aws_sqs_queue" "jeeves-pipeline-break-verify-index-dev" {
   receive_wait_time_seconds  = 0
   redrive_policy             = "{\"deadLetterTargetArn\":\"${aws_sqs_queue.jeeves-pipeline-break-verify-index-deadletter-dev.arn}\",\"maxReceiveCount\":5}"
 
-
   tags = {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
   }
 
 }
@@ -123,12 +113,10 @@ resource "aws_sqs_queue" "jeeves-pipeline-break-verify-index-deadletter-dev" {
   delay_seconds              = 0
   receive_wait_time_seconds  = 0
 
-
   tags = {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
   }
 
 }

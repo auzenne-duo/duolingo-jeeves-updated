@@ -5,15 +5,6 @@ resource "aws_s3_bucket" "duolingo-jeeves" {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
   }
 }
 
@@ -33,15 +24,6 @@ resource "aws_s3_bucket" "jeeves-document-cache" {
     product     = var.product
     service     = var.service
     environment = var.environment
-    owner       = var.owner
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
   }
 }
 
@@ -52,4 +34,24 @@ resource "aws_s3_bucket_public_access_block" "jeeves-document-cache" {
   ignore_public_acls = true
 
   block_public_policy = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "duolingo-jeeves" {
+  bucket = aws_s3_bucket.duolingo-jeeves.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "jeeves-document-cache" {
+  bucket = aws_s3_bucket.jeeves-document-cache.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
 }

@@ -13,10 +13,9 @@ resource "aws_route53_record" "duolingo-jeeves-memcache-vpc-record" {
 
 module "duolingo-jeeves-memcache" {
   source          = "app.terraform.io/duolingo/galaxy/terraform//modules/memcache_cluster"
-  version         = "~> 2.0"
+  version         = "~> 3.0"
   identifier      = "duolingo-jeeves-prod"
   product         = var.product
-  owner           = var.owner
   service         = var.service
   subservice      = "memcache"
   engine_family   = "memcached1.6"

@@ -8,7 +8,6 @@ resource "sentry_project" "duolingo-jeeves" {
   name = "duolingo-jeeves"
   slug = "duolingo-jeeves"
 
-
 }
 
 data "sentry_key" "sentry_dsn" {
