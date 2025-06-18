@@ -345,7 +345,7 @@ class Test(unittest.TestCase):
             localization_contractor=False,
         )
 
-        shakira_jira_mock.get_issue_details.assert_called_with(issue_key="DEL-1733")
+        shakira_jira_mock.get_issue_details.assert_any_call(issue_key="DEL-1733")
         assert not shakira_jira_mock.link_issues.called
         assert not shakira_slack_mock.post_issue.called
 

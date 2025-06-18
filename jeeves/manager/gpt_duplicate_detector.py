@@ -148,9 +148,6 @@ class GPTDuplicateDetector:
 
         updated_since = datetime.now(tz=pytz.utc) - RECENT_ISSUES_THRESHOLD
         other_issues = self.jira_manager.get_str_tickets_since(updated_since)
-        other_issues = self.jira_manager.get_str_tickets_since(updated_since)
-        other_issues = self.jira_manager.get_str_tickets_since(updated_since - timedelta(days=1))
-        other_issues = self.jira_manager.get_str_tickets_since(updated_since - timedelta(days=1))
 
         LOG.info(
             f"{issue_key}: Analyzing {len(other_issues)} other issues for potential duplicates"
