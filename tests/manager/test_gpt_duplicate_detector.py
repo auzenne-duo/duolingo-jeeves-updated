@@ -154,8 +154,14 @@ def test_find_duplicates(detector, mock_jira_manager, mock_ai_completions_dal):
         "These are not duplicates.\nduplicate: false",
     ]
 
-    duplicates = detector.find_duplicates(test_issue)
+    duplicates, non_duplicates = detector.find_duplicates(test_issue)
 
+    # Check duplicates
     assert len(duplicates) == 1
     assert duplicates[0][0] == "TEST-456"
     assert "These are duplicates." in duplicates[0][1]
+
+    # Check non-duplicates
+    assert len(non_duplicates) == 1
+    assert non_duplicates[0][0] == "TEST-789"
+    assert "These are not duplicates." in non_duplicates[0][1]

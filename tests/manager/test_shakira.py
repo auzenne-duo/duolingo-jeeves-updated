@@ -964,7 +964,7 @@ class Test(unittest.TestCase):
     def test_find_duplicates_gpt_no_duplicates(self):
         _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
         shakira_jira_mock.get_issue_details = MagicMock(return_value={"fields": {}})
-        shakira_manager._gpt_duplicate_detector.find_duplicates = MagicMock(return_value=[])
+        shakira_manager._gpt_duplicate_detector.find_duplicates = MagicMock(return_value=([], []))
         # pylint: disable=protected-access
         result = shakira_manager._find_duplicates_gpt("DUP-KEY")
         assert result == []
@@ -973,13 +973,13 @@ class Test(unittest.TestCase):
         _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()
         shakira_jira_mock.get_issue_details = MagicMock(return_value={"fields": {}})
         shakira_manager._gpt_duplicate_detector.find_duplicates = MagicMock(
-            return_value=[("DUP-1", "reason")]
+            return_value=([("DUP-1", "reason")], [("NON-DUP-1", "not duplicate reason")])
         )
         shakira_manager._upload_to_s3 = MagicMock(side_effect=Exception("fail upload"))
         # pylint: disable=protected-access
         result = shakira_manager._find_duplicates_gpt("DUP-KEY")
         assert result == [("DUP-1", "reason")]
-        shakira_manager._upload_to_s3.assert_called_once()
+        shakira_manager._upload_to_s3.assert_called()
 
     def test_create_ai_summary_no_rich_text(self):
         _, _, _, shakira_jira_mock, _, shakira_manager = _get_mocked_managers()

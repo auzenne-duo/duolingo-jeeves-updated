@@ -119,10 +119,11 @@ class GPTDuplicateDetector:
     def find_duplicates(
         self,
         issue: Dict,
-    ) -> List[Tuple[str, str]]:
+    ) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
         """
         Given a JIRA issue (JSON dictionary as returned by the JIRA API),
-        returns a list of potential duplicates in (key, reasoning) pairs.
+        returns a tuple of (duplicates, non_duplicates) where each is a list of
+        (key, reasoning) pairs.
 
         Duplicate candidates are all tickets from the last
         `RECENT_ISSUES_THRESHOLD`. AI Completions backend is used to determine
@@ -171,14 +172,17 @@ class GPTDuplicateDetector:
         completions = self.ai_completions_dal.batched_ask(DEDUP_SYSTEM_PROMPT, dedup_user_messages)
 
         potential_duplicates = []
+        non_duplicates = []
         for completion, other in zip(completions, issues_to_test):
             other_key: str = other["key"]
             LOG.debug(f"{issue_key}: Comparing with {other_key}: {completion}")
             is_duplicate, justification = self.determine_duplicate_from_chat_response(completion)
             if is_duplicate:
                 potential_duplicates.append((other_key, justification))
+            else:
+                non_duplicates.append((other_key, justification))
 
-        return potential_duplicates
+        return potential_duplicates, non_duplicates
 
     @staticmethod
     def generate_duplicates_rich_text(

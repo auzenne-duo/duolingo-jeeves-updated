@@ -286,29 +286,45 @@ class ShakiraManager:
             return []
 
         try:
-            duplicates = self._gpt_duplicate_detector.find_duplicates(issue)
+            duplicates, non_duplicates = self._gpt_duplicate_detector.find_duplicates(issue)
         except Exception as e:
             LOG.warning(f"{issue_key}: Error finding duplicates: {e}")
             return []
 
         if not duplicates:
             LOG.info(f"{issue_key}: No potential duplicates detected")
-            return []
+        else:
+            dup_str = ", ".join(dup for dup, _ in duplicates)
+            LOG.info(f"{issue_key}: Potential duplicates detected: {dup_str}")
 
-        dup_str = ", ".join(dup for dup, _ in duplicates)
-        LOG.info(f"{issue_key}: Potential duplicates detected: {dup_str}")
+            dups_file = ""
+            for dup, reasoning in duplicates:
+                dups_file += f"{dup}\nReasoning: {reasoning}\n\n"
 
-        dups_file = ""
-        for dup, reasoning in duplicates:
-            dups_file += f"{dup}\nReasoning: {reasoning}\n\n"
+            try:
+                self._upload_to_s3(
+                    f"gpt_detected_duplicates/{issue_key}.txt", dups_file.strip().encode("utf-8")
+                )
+                LOG.info(f"{issue_key}: Potential duplicates stored to S3")
+            except Exception as e:
+                LOG.error(f"{issue_key}: Error uploading potential duplicates to S3: {e}")
 
-        try:
-            self._upload_to_s3(
-                f"gpt_detected_duplicates/{issue_key}.txt", dups_file.strip().encode("utf-8")
-            )
-            LOG.info(f"{issue_key}: Potential duplicates stored to S3")
-        except Exception as e:
-            LOG.error(f"{issue_key}: Error uploading potential duplicates to S3: {e}")
+        # Save non-duplicate justifications to separate S3 prefix
+        if non_duplicates:
+            LOG.info(f"{issue_key}: {len(non_duplicates)} non-duplicates analyzed")
+
+            non_dups_file = ""
+            for non_dup, reasoning in non_duplicates:
+                non_dups_file += f"{non_dup}\nReasoning: {reasoning}\n\n"
+
+            try:
+                self._upload_to_s3(
+                    f"gpt_non_duplicates/{issue_key}.txt", non_dups_file.strip().encode("utf-8")
+                )
+                LOG.info(f"{issue_key}: Non-duplicate justifications stored to S3")
+            except Exception as e:
+                LOG.error(f"{issue_key}: Error uploading non-duplicate justifications to S3: {e}")
+
         return duplicates
 
     def _generate_and_upload_screenshot_summary(
