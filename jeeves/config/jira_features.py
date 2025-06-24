@@ -181,7 +181,7 @@ JIRA_FEATURES = {
                     "say hi",
                 ],
                 "Kudos": ["congrats", "high five"],
-                "Profile": [],
+                "Profile": ["1pp", "3pp"],
                 "Profile Completion": [],
                 "User Search": [],
                 "Tabs Redesign": [],
