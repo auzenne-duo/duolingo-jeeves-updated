@@ -71,6 +71,7 @@ module "duolingo-jeeves" {
   memory                            = 4096 # Maximum memory (default: 128MB)
   product                           = var.product
   ecs_cluster                       = var.ecs_cluster # Name of the ECS cluster to run on
+  instance_types                    = var.instance_types
   container_port                    = 5000
   internal                          = "true" # Create an internal service
   health_check_grace_period_seconds = 120
@@ -147,6 +148,7 @@ module "duolingo-jeeves-s3-worker" {
   deployment_minimum_healthy_percent = 0
   product                            = var.product
   ecs_cluster                        = var.ecs_cluster # Name of the ECS cluster to run on
+  instance_types                     = var.instance_types
   container_definition               = "s3-worker.json"
 
   environment_vars = [
@@ -237,6 +239,7 @@ module "duolingo-jeeves-worker-cron" {
   max_count            = 1   # Maximum number of tasks to run in autoscaling group
   product              = var.product
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  instance_types       = var.instance_types
   container_definition = "worker-cron.json"
   environment_vars = [
     {
@@ -273,6 +276,7 @@ module "duolingo-jeeves-sqs-worker-1" {
   max_count            = 8    # Maximum number of tasks to run in autoscaling group
   product              = var.product
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  instance_types       = var.instance_types
   container_definition = "sqs-worker-1.json"
 
   environment_vars = [
@@ -329,6 +333,7 @@ module "duolingo-jeeves-sqs-worker-2" {
   max_count            = 8    # Maximum number of tasks to run in autoscaling group
   product              = var.product
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  instance_types       = var.instance_types
   container_definition = "sqs-worker-2.json"
 
   environment_vars = [
@@ -371,6 +376,7 @@ module "duolingo-jeeves-spike-worker" {
   max_count            = 1    # Maximum number of tasks to run in autoscaling group
   product              = var.product
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  instance_types       = var.instance_types
   container_definition = "spike-worker.json"
   schedule_expression  = "rate(15 minutes)"
 
@@ -407,6 +413,7 @@ module "duolingo-jeeves-email-sender" {
   max_count            = 1   # Maximum number of tasks to run in autoscaling group
   product              = var.product
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  instance_types       = var.instance_types
   container_definition = "email-sender.json"
   schedule_expression  = "cron(* * * * ? 1970)" # "cron(0/20 * * * ? *)"
 }
@@ -423,6 +430,7 @@ module "duolingo-jeeves-ensure-embeddings-worker" {
   max_count            = 1    # Maximum number of tasks to run in autoscaling group
   product              = var.product
   ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  instance_types       = var.instance_types
   container_definition = "ensure-embeddings-worker.json"
   schedule_expression  = "cron(0 17 ? * * *)"
   environment_vars = [

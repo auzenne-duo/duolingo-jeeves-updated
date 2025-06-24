@@ -30,3 +30,7 @@ variable "grafana_url" {
   default     = "https://grafana.duolingo.com"
   description = "URL of the Grafana frontend"
 }
+
+variable "instance_types" {
+  default = ".*d.*"
+}

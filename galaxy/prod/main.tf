@@ -60,7 +60,8 @@ module "duolingo-jeeves-internal" {
   cpu                               = 4096 # Increased from default for higher performance
   memory                            = 8192 # Maximum memory (default: 128MB)
   product                           = var.product
-  ecs_cluster                       = var.ecs_cluster # Name of the ECS cluster to run on
+  ecs_cluster                       = var.ecs_cluster    # Name of the ECS cluster to run on
+  instance_types                    = var.instance_types # Types of instances to run on
   container_port                    = 5000
   internal                          = "true" # Create internal service. This handles traffic behind the edge gateway
   enable_http_listener              = "true"
@@ -145,7 +146,8 @@ module "duolingo-jeeves-s3-worker" {
   scale_out_count                    = 0
   deployment_minimum_healthy_percent = 0
   product                            = var.product
-  ecs_cluster                        = var.ecs_cluster # Name of the ECS cluster to run on
+  ecs_cluster                        = var.ecs_cluster    # Name of the ECS cluster to run on
+  instance_types                     = var.instance_types # Types of instances to run on
   container_definition               = "s3-worker.json"
 
   environment_vars = [
@@ -238,7 +240,8 @@ module "duolingo-jeeves-worker-cron" {
   min_count            = 1   # Minimum number of tasks to run in autoscaling group
   max_count            = 1   # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  ecs_cluster          = var.ecs_cluster    # Name of the ECS cluster to run on
+  instance_types       = var.instance_types # Types of instances to run on
   container_definition = "worker-cron.json"
   environment_vars = [
     {
@@ -277,7 +280,8 @@ module "duolingo-jeeves-sqs-worker-1" {
   min_count                   = 6    # Minimum number of tasks to run in autoscaling group
   max_count                   = 40   # Maximum number of tasks to run in autoscaling group
   product                     = var.product
-  ecs_cluster                 = var.ecs_cluster # Name of the ECS cluster to run on
+  ecs_cluster                 = var.ecs_cluster    # Name of the ECS cluster to run on
+  instance_types              = var.instance_types # Types of instances to run on
   container_definition        = "sqs-worker-1.json"
   scale_in_evaluation_periods = 5
 
@@ -337,7 +341,8 @@ module "duolingo-jeeves-sqs-worker-2" {
   min_count            = 4    # Minimum number of tasks to run in autoscaling group
   max_count            = 20   # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  ecs_cluster          = var.ecs_cluster    # Name of the ECS cluster to run on
+  instance_types       = var.instance_types # Types of instances to run on
   container_definition = "sqs-worker-2.json"
 
   environment_vars = [
@@ -382,7 +387,8 @@ module "duolingo-jeeves-spike-worker" {
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
   max_count            = 1    # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  ecs_cluster          = var.ecs_cluster    # Name of the ECS cluster to run on
+  instance_types       = var.instance_types # Types of instances to run on
   container_definition = "spike-worker.json"
   schedule_expression  = "rate(15 minutes)"
 
@@ -420,7 +426,8 @@ module "duolingo-jeeves-email-sender" {
   min_count            = 1   # Minimum number of tasks to run in autoscaling group
   max_count            = 1   # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster to run on
+  ecs_cluster          = var.ecs_cluster    # Name of the ECS cluster to run on
+  instance_types       = var.instance_types # Types of instances to run on
   container_definition = "email-sender.json"
   schedule_expression  = "cron(0 16 ? * MON *)"
 
@@ -439,7 +446,8 @@ module "duolingo-jeeves-ensure-embeddings-worker" {
   min_count            = 1    # Minimum number of tasks to run in autoscaling group
   max_count            = 1    # Maximum number of tasks to run in autoscaling group
   product              = var.product
-  ecs_cluster          = var.ecs_cluster # Name of the ECS cluster on which to run
+  ecs_cluster          = var.ecs_cluster    # Name of the ECS cluster on which to run
+  instance_types       = var.instance_types # Types of instances to run on
   container_definition = "ensure-embeddings-worker.json"
   schedule_expression  = "cron(0 11 ? * * *)"
   environment_vars = [
