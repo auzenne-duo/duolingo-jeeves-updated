@@ -67,7 +67,7 @@ DEDUP_TICKET_TEMPLATE = """
 **end of ticket**
 """.strip()
 
-RECENT_ISSUES_THRESHOLD = timedelta(days=2)
+RECENT_ISSUES_THRESHOLD = timedelta(days=4)
 
 
 @registry.bind(
