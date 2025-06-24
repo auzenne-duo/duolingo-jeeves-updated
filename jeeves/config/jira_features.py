@@ -288,6 +288,7 @@ JIRA_FEATURES = {
                 "Math": [],
             },
             "Math Navigation": {
+                "Math - Visuals": ["math visual", "math interactive"],
                 "Math - Match Madness": ["math match"],
                 "Math - Puzzles & Games": ["math puzzles", "math paths", "CashDashNavigationVC"],
             },
