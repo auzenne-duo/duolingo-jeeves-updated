@@ -15,11 +15,8 @@ HISTORY_WINDOW_SIZE = 60
 # Projects that are used only with video call
 VIDEO_CALL_PROJECTS = ["VCCF", "VCBF", "EXAI", "VCS", "VCG"]
 
-# Projects that related to DET
-DET_DEBUG_PROJECTS = ["DETBUG", "DETMON"]
-
 # Jira projects that are used for bug reporting
-JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"] + VIDEO_CALL_PROJECTS + DET_DEBUG_PROJECTS
+JIRA_PROJECTS = ["DLAA", "DLAI", "DLAW"] + VIDEO_CALL_PROJECTS
 
 # Localization contractors label
 JIRA_LOCALIZATION_CONTRACTORS_LABEL = "localization-contractor"
