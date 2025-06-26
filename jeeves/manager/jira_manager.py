@@ -7,10 +7,9 @@ import logging
 import re
 import sys
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Type
+from typing import Dict, List, Optional, Type
 
 import duo_logging  # type: ignore[import]
-import pytz
 from duolingo_base.dal.s3 import S3Client, S3Exception
 
 from jeeves.config.config import (
@@ -32,13 +31,6 @@ LOG.setLevel(logging.INFO)
 
 
 class JiraManager(JeevesManager):
-    # in-memory cache of recent issues returned by
-    # get_str_tickets_since. Items are evicted if they have not been
-    # updated since the cutoff that function is called with
-    RECENT_ISSUES_CACHE: Dict[str, Tuple[Dict, datetime]] = {}  # jira_key: (issue dict, updated_at)
-    RECENT_ISSUES_CACHE_START: datetime = datetime.fromtimestamp(0, tz=pytz.utc)
-    RECENT_ISSUES_CACHE_END: datetime = datetime.fromtimestamp(0, tz=pytz.utc)
-
     @staticmethod
     def _try_set_jira_document_feature_field_key() -> bool:
         if JiraDocument.get_feature_field_key() is not None:
@@ -235,14 +227,10 @@ class JiraManager(JeevesManager):
                 return
 
     @staticmethod
-    def get_str_tickets_jql(
-        start_datetime: datetime, end_datetime: Optional[datetime]
-    ) -> List[Dict]:
+    def get_str_tickets_jql(start_datetime: datetime) -> List[Dict]:
         start_str = start_datetime.strftime("%Y-%m-%d %H:%M")
-        end_str = end_datetime.strftime("%Y-%m-%d %H:%M") if end_datetime else ""
         fetch_string = (
             f'updated >= "{start_str}" '
-            + (f'AND updated < "{end_str}" ' if end_datetime else "")
             + f"AND issueType = {JIRA_ISSUE_TYPE_BUG} "
             + f"AND labels in ('{SHAKE_TO_REPORT_LABEL}') "
             + "ORDER BY updated asc"
@@ -274,62 +262,7 @@ class JiraManager(JeevesManager):
         Returns:
             List of JSON as returned by Jira API (dict)
         """
-        issues: List[Dict] = []
-        LOG.debug(f"start_datetime: {start_datetime}")
-        LOG.debug(
-            f"CACHE_START: {JiraManager.RECENT_ISSUES_CACHE_START}, CACHE_END: {JiraManager.RECENT_ISSUES_CACHE_END}"
-        )
-
-        # If start_datetime is earlier than the last time this function was
-        # called, the cache will be missing some older tickets. Add those to
-        # the cache now (tickets updated between start_datetime and
-        # RECENT_ISSUES_CACHE_START)
-        if start_datetime < JiraManager.RECENT_ISSUES_CACHE_START:
-            LOG.debug("Searching for issues before cache range")
-            for issue in JiraManager.get_str_tickets_jql(
-                start_datetime, JiraManager.RECENT_ISSUES_CACHE_START
-            ):
-                updated = parse_external_datetime(issue["fields"]["updated"])
-                LOG.debug(
-                    "Adding Jira issue %s to cache from API (updated %s)",
-                    issue["key"],
-                    updated.isoformat(),
-                )
-                JiraManager.RECENT_ISSUES_CACHE[issue["key"]] = (issue, updated)
-
-        # Get issues updated after RECENT_ISSUES_CACHE_END and add to cache
-        after_cache_start = max(JiraManager.RECENT_ISSUES_CACHE_END, start_datetime)
-        LOG.debug("Searching for issues updated after %s", after_cache_start)
-        for issue in JiraManager.get_str_tickets_jql(after_cache_start, None):
-            updated = parse_external_datetime(issue["fields"]["updated"])
-            LOG.debug(
-                "Adding Jira issue %s to cache from API (updated %s)",
-                issue["key"],
-                updated.isoformat(),
-            )
-            JiraManager.RECENT_ISSUES_CACHE[issue["key"]] = (issue, updated)
-
-        # Yield all cached issues
-        cache_keys_to_purge = []
-        LOG.debug("Yielding cached issues")
-        # Sort by updated
-        cached = sorted(JiraManager.RECENT_ISSUES_CACHE.items(), key=lambda x: x[1][1])
-        for k, (issue, updated_at) in cached:
-            if updated_at < start_datetime:
-                cache_keys_to_purge.append(k)
-            else:
-                LOG.debug("Yielding Jira issue %s", issue["key"])
-                issues.append(issue)
-
-        # Purge cache of tickets updated before start_datetime
-        for k in cache_keys_to_purge:
-            del JiraManager.RECENT_ISSUES_CACHE[k]
-
-        # Cache contains tickets updated between start_datetime and now
-        JiraManager.RECENT_ISSUES_CACHE_START = start_datetime
-        JiraManager.RECENT_ISSUES_CACHE_END = datetime.now(tz=pytz.utc)
-
-        return issues
+        return JiraManager.get_str_tickets_jql(start_datetime)
 
     @staticmethod
     def get_jira_issues_since(start_datetime_string: str) -> List[JiraDocument]:
