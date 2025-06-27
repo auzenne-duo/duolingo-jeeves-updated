@@ -97,7 +97,6 @@ def test_get_features_v1():
             "Feature request / feedback",
             "Music - Instrument Mode",
             "Music - Practice Tab",
-            "Tab Redesign",
         ],
         actual_result,
     )
@@ -464,7 +463,6 @@ def test_feature_filtering():
             "Feature request / feedback",
             "Music - Instrument Mode",
             "Music - Practice Tab",
-            "Tab Redesign",
         ],
         actual_result_features,
     )
