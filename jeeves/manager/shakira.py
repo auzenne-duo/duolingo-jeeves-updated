@@ -44,10 +44,12 @@ from jeeves.util.shakira import (
 LOG = logging.getLogger(__name__)
 _VIA_JEEVES_MARKER = "[via Jeeves]"
 
+# NOTE: Shakira must be added to the channel for the feature to be posted to it.
 _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "Design quality": SlackChannel.DESIGN_QUALITY,
     "Lesson content / accepted translations": SlackChannel.FEEDBACK_LANGUAGE,
     "Feature request / feedback": SlackChannel.FEEDBACK_PRODUCT,
+    "Tab Redesign": SlackChannel.TAB_REDESIGN,
 }
 
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
@@ -55,6 +57,7 @@ _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
     "TTS / Visemes / Mouth animations": SlackChannel.FEEDBACK_TTS,
     "Design quality": SlackChannel.DESIGN_QUALITY,
     "Feature request": SlackChannel.FEEDBACK_PRODUCT,
+    "Tab Redesign": SlackChannel.TAB_REDESIGN,
 }
 
 _SLACK_CHANNELS_TO_JIRA_LABELS = {
@@ -63,8 +66,14 @@ _SLACK_CHANNELS_TO_JIRA_LABELS = {
     SlackChannel.DESIGN_QUALITY_GROWTH: "design-quality",
     SlackChannel.DESIGN_QUALITY_LEARNING: "design-quality",
     SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS: "design-quality",
+    SlackChannel.TAB_REDESIGN: "tab-redesign",
     SlackChannel.LITERACY_TESTING: "shakira",
 }
+
+_CHANNELS_TO_FORWARD_TO_AREA_DESIGN_QUALITY = (
+    SlackChannel.DESIGN_QUALITY,
+    SlackChannel.TAB_REDESIGN,
+)
 
 PRIORITIZED_BY_GPT_LABEL = "prioritized-by-gpt"
 SLACK_CHANNEL_NAME = "#proj-jeeves"
@@ -191,10 +200,10 @@ class ShakiraManager:
         team = JIRA_FEATURE_TO_TEAM.get(feature)
         area = JIRA_TEAM_TO_AREA.get(team)
 
-        # Add forwarding to Design Quality area channel if applicable
+        # Add forwarding to Design Quality channel for the corresponding area if applicable
         if (
             channels is not None
-            and channels.primary == SlackChannel.DESIGN_QUALITY
+            and channels.primary in _CHANNELS_TO_FORWARD_TO_AREA_DESIGN_QUALITY
             and area is not None
             and (area_channel := area_design_quality_channel(area)) is not None
         ):

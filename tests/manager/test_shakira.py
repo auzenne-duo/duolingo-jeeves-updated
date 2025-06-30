@@ -105,6 +105,7 @@ class Test(unittest.TestCase):
                 {"name": "Lesson content issue", "alsoPostsToJira": False},
                 {"name": "TTS / Visemes / Mouth animations", "alsoPostsToJira": False},
                 {"name": "Feature request", "alsoPostsToJira": False},
+                {"name": "Tab Redesign", "alsoPostsToJira": True},
             ],
             result,
         )
