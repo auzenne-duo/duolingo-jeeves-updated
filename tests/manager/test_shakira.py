@@ -1024,7 +1024,7 @@ class Test(unittest.TestCase):
         # The rich text should include both duplicate and log summary
         assert rich_text_dups[0] in str(args[1])
         assert rich_text_logs[0] in str(args[1])
-        assert len(args[1]) == 3
+        assert len(args[1]) == 2
         # Assert order: dups before logs
         rich_text_str = str(args[1])
         assert rich_text_str.index(rich_text_dups[0]) < rich_text_str.index(rich_text_logs[0])
@@ -1083,3 +1083,287 @@ def test_upload_artifacts_stream_seek_and_executor_order(monkeypatch):
     assert all(
         i > last_stream_call for i in submit_calls
     ), "All submit calls should happen after all seek/read calls"
+
+
+class TestShakiraJiraDescriptionBuilding(unittest.TestCase):
+    def setUp(self):
+        employees_dal = EmployeesDAL()
+        self.jira_client = ShakiraJiraApiClient(employees_dal=employees_dal)
+
+    def test_build_regular_description_with_rich_text(self):
+        """Test building description for regular tickets with em-dash separator"""
+        # Mock description with em-dash separator
+        description = {
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "User reported issue"},
+                        {"type": "hardBreak"},
+                        {"type": "text", "text": "—"},  # em-dash separator
+                        {"type": "hardBreak"},
+                        {"type": "text", "text": "Generated metadata here"},
+                    ],
+                }
+            ]
+        }
+
+        # Simple rich text to insert
+        rich_text = [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "AI Summary: This is a UI issue"}],
+            }
+        ]
+
+        result = self.jira_client._build_description_with_rich_text(description, rich_text, "—")
+
+        expected = [
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "User reported issue"},
+                    {"type": "hardBreak"},
+                    {"type": "text", "text": "—"},
+                ],
+            },
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "AI Summary: This is a UI issue"}],
+            },
+            {"type": "paragraph", "content": [{"type": "text", "text": "Generated metadata here"}]},
+        ]
+
+        self.assertEqual(result, expected)
+
+    def test_build_detbug_description_with_rich_text(self):
+        """Test building description for DETBUG tickets with hyphen separator"""
+        # Mock DETBUG description with hyphen separator
+        description = {
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "User description here"},
+                        {"type": "hardBreak"},
+                        {"type": "text", "text": "-------------------"},  # hyphen separator
+                        {"type": "hardBreak"},
+                        {"type": "text", "text": "Browser: Chrome"},
+                        {"type": "hardBreak"},
+                        {"type": "text", "text": "OS: macOS"},
+                    ],
+                }
+            ]
+        }
+
+        # Simple rich text to insert
+        rich_text = [
+            {"type": "paragraph", "content": [{"type": "text", "text": "🤖 Generated Analysis"}]}
+        ]
+
+        result = self.jira_client._build_description_with_rich_text(
+            description, rich_text, "-------------------"
+        )
+
+        expected = [
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "User description here"},
+                    {"type": "hardBreak"},
+                    {"type": "text", "text": "-------------------"},
+                ],
+            },
+            {"type": "paragraph", "content": [{"type": "text", "text": "🤖 Generated Analysis"}]},
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "Browser: Chrome"},
+                    {"type": "hardBreak"},
+                    {"type": "text", "text": "OS: macOS"},
+                ],
+            },
+        ]
+
+        self.assertEqual(result, expected)
+
+    def test_build_description_no_delimiter_appends_to_end(self):
+        """Test that missing delimiter appends rich text to the end"""
+        description = {
+            "content": [
+                {"type": "paragraph", "content": [{"type": "text", "text": "No delimiter here"}]}
+            ]
+        }
+
+        rich_text = [
+            {"type": "paragraph", "content": [{"type": "text", "text": "appended content"}]}
+        ]
+
+        result = self.jira_client._build_description_with_rich_text(description, rich_text, "—")
+
+        expected = [
+            {"type": "paragraph", "content": [{"type": "text", "text": "No delimiter here"}]},
+            {"type": "paragraph", "content": [{"type": "text", "text": "appended content"}]},
+        ]
+
+        self.assertEqual(result, expected)
+
+    def test_build_description_delimiter_in_second_paragraph(self):
+        """Test finding delimiter in a paragraph other than the first"""
+        description = {
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [{"type": "text", "text": "First paragraph no delimiter"}],
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "Second paragraph with"},
+                        {"type": "text", "text": "—"},
+                        {"type": "text", "text": "delimiter here"},
+                    ],
+                },
+            ]
+        }
+
+        rich_text = [{"type": "paragraph", "content": [{"type": "text", "text": "inserted"}]}]
+
+        result = self.jira_client._build_description_with_rich_text(description, rich_text, "—")
+
+        expected = [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "First paragraph no delimiter"}],
+            },
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "Second paragraph with"},
+                    {"type": "text", "text": "—"},
+                ],
+            },
+            {"type": "paragraph", "content": [{"type": "text", "text": "inserted"}]},
+            {"type": "paragraph", "content": [{"type": "text", "text": "delimiter here"}]},
+        ]
+
+        self.assertEqual(result, expected)
+
+    def test_build_description_multiple_delimiters_uses_first(self):
+        """Test that when multiple delimiters exist, the first one is used"""
+        description = {
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "start"},
+                        {"type": "text", "text": "—"},
+                        {"type": "text", "text": "middle"},
+                        {"type": "text", "text": "—"},
+                        {"type": "text", "text": "end"},
+                    ],
+                }
+            ]
+        }
+
+        rich_text = [{"type": "paragraph", "content": [{"type": "text", "text": "inserted"}]}]
+
+        result = self.jira_client._build_description_with_rich_text(description, rich_text, "—")
+
+        expected = [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "start"}, {"type": "text", "text": "—"}],
+            },
+            {"type": "paragraph", "content": [{"type": "text", "text": "inserted"}]},
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "middle"},
+                    {"type": "text", "text": "—"},
+                    {"type": "text", "text": "end"},
+                ],
+            },
+        ]
+
+        self.assertEqual(result, expected)
+
+    def test_build_description_multiple_paragraphs_with_delimiters_uses_first(self):
+        """Test that when multiple paragraphs have delimiters, the first paragraph's first delimiter is used"""
+        description = {
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "First paragraph"},
+                        {"type": "text", "text": "—"},
+                        {"type": "text", "text": "with delimiter"},
+                    ],
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "Second paragraph"},
+                        {"type": "text", "text": "—"},
+                        {"type": "text", "text": "also has delimiter"},
+                    ],
+                },
+            ]
+        }
+
+        rich_text = [{"type": "paragraph", "content": [{"type": "text", "text": "inserted"}]}]
+
+        result = self.jira_client._build_description_with_rich_text(description, rich_text, "—")
+
+        expected = [
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "First paragraph"},
+                    {"type": "text", "text": "—"},
+                ],
+            },
+            {"type": "paragraph", "content": [{"type": "text", "text": "inserted"}]},
+            {"type": "paragraph", "content": [{"type": "text", "text": "with delimiter"}]},
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "Second paragraph"},
+                    {"type": "text", "text": "—"},
+                    {"type": "text", "text": "also has delimiter"},
+                ],
+            },
+        ]
+
+        self.assertEqual(result, expected)
+
+    def test_build_description_no_content_after_delimiter(self):
+        """Test handling when there's no content after the delimiter"""
+        description = {
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "Content before"},
+                        {"type": "text", "text": "—"},  # delimiter at end
+                    ],
+                }
+            ]
+        }
+
+        rich_text = [{"type": "paragraph", "content": [{"type": "text", "text": "inserted"}]}]
+
+        result = self.jira_client._build_description_with_rich_text(description, rich_text, "—")
+
+        expected = [
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "Content before"},
+                    {"type": "text", "text": "—"},
+                ],
+            },
+            {"type": "paragraph", "content": [{"type": "text", "text": "inserted"}]},
+        ]
+
+        self.assertEqual(result, expected)

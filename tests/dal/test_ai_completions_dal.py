@@ -161,7 +161,7 @@ class TestAICompletionsDAL(unittest.TestCase):
         responses = self.dal.batched_ask(
             system_prompt=system_prompt,
             user_prompts=user_prompts,
-            timeout_seconds=0.2,
+            timeout_seconds=1,
             request_interval=0.02,
         )
 

@@ -23,7 +23,7 @@ from jeeves.manager.gpt_duplicate_detector import GPTDuplicateDetector
 from jeeves.manager.gpt_log_summarizer import GPTLogSummarizer, JiraLogSummarizationTicket
 from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator
 from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
-from jeeves.manager.shakira_jira import STR_SECTION_DELIMITER, ShakiraJiraApiClient
+from jeeves.manager.shakira_jira import ShakiraJiraApiClient
 from jeeves.manager.shakira_loki import ShakiraLokiApiClient
 from jeeves.manager.shakira_slack import ShakiraSlackApiClient
 from jeeves.model.jira_priorities import JiraPriority
@@ -267,10 +267,6 @@ class ShakiraManager:
                 LOG.info(f"{issue_key}: No AI summary to insert")
                 return
 
-            # Add a section delimiter to the rich text
-            rich_text.append(
-                {"type": "paragraph", "content": [{"type": "text", "text": STR_SECTION_DELIMITER}]}
-            )
             LOG.info(f"{issue_key}: Rich text: {rich_text}")
 
             self._jira_client.insert_rich_text_into_description(issue_key, rich_text)

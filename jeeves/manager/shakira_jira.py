@@ -22,7 +22,8 @@ from jeeves.util.error_util import print_request_exception
 
 LOG = logging.getLogger(__name__)
 
-STR_SECTION_DELIMITER = "—"
+STR_SECTION_DELIMITER = "—"  # em-dash
+DETBUG_SECTION_DELIMITER = "-------------------"  # hyphens
 
 _HOST = "https://duolingo.atlassian.net"
 _API = f"{_HOST}/rest/api/2"
@@ -454,48 +455,32 @@ class ShakiraJiraApiClient:
         """
         Insert JIRA rich text into an issue description, after the body text (user-submitted description).
 
-        Looks for the first em-dash character in the description and splits the
-        containing paragraph necessary. Inserts the given content blocks after
-        this dash.
+        For regular tickets: Looks for the first em-dash character in any paragraph and splits the
+        containing paragraph as necessary. Inserts the given content blocks after this dash.
+
+        For DETBUG tickets: Looks for the first row of dashes in any paragraph and inserts the content after it.
         """
         issue = self.get_issue_details(issue_key)
         if issue is None:
             LOG.error(f"Could not find issue with key {issue_key} to update description")
             return None
+
         description = issue["fields"]["description"]
-        content = description["content"]
 
-        if content[0]["type"] != "paragraph":
-            raise Exception("First paragraph is not a paragraph")
+        if issue_key.startswith("DETBUG"):
+            delimiter_pattern = DETBUG_SECTION_DELIMITER
+        else:
+            delimiter_pattern = STR_SECTION_DELIMITER
 
-        first_para = content[0]
+        # Add delimiter after the rich text content
+        rich_text = rich_text + [
+            {"type": "paragraph", "content": [{"type": "text", "text": delimiter_pattern}]}
+        ]
 
-        # Find the index of the last dash
-        dash_index = -1
-        for i, item in enumerate(first_para["content"]):
-            if item["type"] == "text" and item["text"] == STR_SECTION_DELIMITER:
-                dash_index = i
+        new_content = self._build_description_with_rich_text(
+            description, rich_text, delimiter_pattern
+        )
 
-        if dash_index == -1:
-            raise ValueError("No em-dash found in issue description")
-        # Split into two paragraphs after the dash
-        new_first_para = {
-            "type": "paragraph",
-            "content": first_para["content"][: dash_index + 1],  # Include the dash
-        }
-        # Skip hard break if it exists
-        try:
-            has_hard_break = first_para["content"][dash_index + 1]["type"] == "hardBreak"
-        except IndexError:
-            has_hard_break = False
-        continue_index = dash_index + 2 if has_hard_break else dash_index + 1
-        new_second_para = {"type": "paragraph", "content": first_para["content"][continue_index:]}
-
-        # Build the new content list, with new blocks inserted after the new first paragraph
-        new_content = [new_first_para, *rich_text]
-        if new_second_para["content"]:
-            new_content.append(new_second_para)
-        new_content.extend(content[1:])
         description["content"] = new_content
 
         url = f"{_API_3}/issue/{issue_key}"
@@ -509,6 +494,61 @@ class ShakiraJiraApiClient:
         except RequestException as e:
             print_request_exception(e, log_level="error")
             return None
+
+    def _build_description_with_rich_text(
+        self, description: Dict, rich_text: List[Dict], delimiter_pattern: str
+    ) -> Optional[List[Dict]]:
+        """
+        Build description content with rich text inserted after the first occurrence of the delimiter in the first paragraph that contains one.
+        """
+        content = description["content"]
+
+        # Find the first paragraph that contains the delimiter
+        target_paragraph_index = -1
+        delimiter_index = -1
+
+        for para_idx, paragraph in enumerate(content):
+            if paragraph["type"] == "paragraph":
+                for text_idx, item in enumerate(paragraph["content"]):
+                    if item["type"] == "text" and item["text"] == delimiter_pattern:
+                        target_paragraph_index = para_idx
+                        delimiter_index = text_idx
+                        break
+                if target_paragraph_index != -1:
+                    break
+
+        if target_paragraph_index == -1:
+            # No delimiter found, just append rich text to the end
+            new_content = content + rich_text
+            return new_content
+
+        target_para = content[target_paragraph_index]
+
+        # Split into two paragraphs after the delimiter
+        new_first_para = {
+            "type": "paragraph",
+            "content": target_para["content"][: delimiter_index + 1],  # Include the delimiter
+        }
+        # Skip hard break if it exists
+        try:
+            has_hard_break = target_para["content"][delimiter_index + 1]["type"] == "hardBreak"
+        except IndexError:
+            has_hard_break = False
+        continue_index = delimiter_index + 2 if has_hard_break else delimiter_index + 1
+        new_second_para = {
+            "type": "paragraph",
+            "content": target_para["content"][continue_index:],
+        }
+
+        # Build the new content list, with new blocks inserted after the target paragraph
+        new_content = content[:target_paragraph_index]  # Content before target paragraph
+        new_content.append(new_first_para)  # First part with delimiter
+        new_content.extend(rich_text)  # Insert rich text
+        if new_second_para["content"]:  # Second part if it has content
+            new_content.append(new_second_para)
+        new_content.extend(content[target_paragraph_index + 1 :])  # Remaining content
+
+        return new_content
 
     def link_issues(
         self,
