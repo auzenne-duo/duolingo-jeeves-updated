@@ -24,6 +24,7 @@ groups:
     required: 0
     users:
       - hideki@duolingo.com
+      - ningxin@duolingo.com
     comment: |
       ## Important reminders when modifying the feature list
 
