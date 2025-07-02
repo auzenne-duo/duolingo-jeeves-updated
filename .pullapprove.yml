@@ -4,6 +4,7 @@ groups:
     suggested_users:
       - caleb.noble@duolingo.com
       - david.sawicki@duolingo.com
+      - guanhua@duolingo.com
       - josh@duolingo.com
       - shelby@duolingo.com
     users:
@@ -13,9 +14,10 @@ groups:
       - guanhua@duolingo.com
       - hideki@duolingo.com # Backup repo-checker
       - josh@duolingo.com
-      - nancy@duolingo.com
+      - memo@duolingo.com
       - peter@duolingo.com
       - shelby@duolingo.com
+      - tim@duolingo.com
       - yijin@duolingo.com
   feature-watchers:
     conditions:
