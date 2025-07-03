@@ -70,11 +70,6 @@ _SLACK_CHANNELS_TO_JIRA_LABELS = {
     SlackChannel.LITERACY_TESTING: "shakira",
 }
 
-_CHANNELS_TO_FORWARD_TO_AREA_DESIGN_QUALITY = (
-    SlackChannel.DESIGN_QUALITY,
-    SlackChannel.TAB_REDESIGN,
-)
-
 PRIORITIZED_BY_GPT_LABEL = "prioritized-by-gpt"
 SLACK_CHANNEL_NAME = "#proj-jeeves"
 SLACK_CHANNEL_URL = "https://duolingo.slack.com/archives/C01DFNRES8Y"
@@ -203,7 +198,7 @@ class ShakiraManager:
         # Add forwarding to Design Quality channel for the corresponding area if applicable
         if (
             channels is not None
-            and channels.primary in _CHANNELS_TO_FORWARD_TO_AREA_DESIGN_QUALITY
+            and channels.primary == SlackChannel.DESIGN_QUALITY
             and area is not None
             and (area_channel := area_design_quality_channel(area)) is not None
         ):
