@@ -201,21 +201,36 @@ JIRA_FEATURES = {
         },
     },
     "Language Learning": {
-        "Learning Experience": {
-            "Intermediate English": {
+        "Long-form Learning": {
+            "Intermediate Experience": {
                 "SMEC": ["Intermediate English"],
                 "Placement test": [],
-                "Intermediate Mini Units IMU": [],
+                "Path": [
+                    "course",
+                    "level up",
+                    "home page",
+                    "home tab",
+                    "tree",
+                    "trophy",
+                    "trophies",
+                    "unit complete",
+                    "unit review",
+                ],
+                "Path Sections": ["daily refresh", "sections"],
             },
-            "Longform Content": {
-                "DuoShorts": ["duo shorts"],
+            "Reading & Writing": {
                 "Stories": ["story"],
+            },
+            "Listening & Speaking": {
+                "DuoShorts": ["duo shorts"],
                 "Pronunciation Bingo": [],
                 "DuoRadio": [],
                 "Adventures": [],
                 "Immersive Speak": [],
             },
-            "Unowned Learning": {
+        },
+        "Short-form Learning": {
+            "Short Form Experience": {
                 "Generated sessions": [],
                 "Challenge layout issues": [
                     "exercise",
@@ -228,39 +243,19 @@ JIRA_FEATURES = {
                     "word bank",
                 ],
                 "Smart tips": ["smart tip"],
-                "Path": [
-                    "course",
-                    "level up",
-                    "home page",
-                    "home tab",
-                    "tree",
-                    "trophy",
-                    "trophies",
-                    "unit complete",
-                    "unit review",
-                ],
                 "Guidebook": [],
-                "Path Sections": ["daily refresh", "sections"],
-                "Skill tree migration": ["course update"],
                 "Character Bingo": [
                     "drawing",
                     "tracing",
                     "Session type: alphabet_lesson",
                     "*session type*: alphabet_lesson",
                 ],
-                "Layout Issues: Romaji/Furigana/Pinyin": ["Transliteration"],
                 "Settings Issues: Romaji/Furigana/Pinyin": [],
+                "Non-latin Alphabet": [],
             },
-        },
-        "Learning Scaling": {
-            "GRID": {},
-            "Translations": {
-                "Translation Issue": [],
-                "Grading issue": [],
+            "GRID": {
+                "Skill tree migration": ["course update"],
             },
-            "Automation Platform": {},
-            "Curriculum Generation & Infrastructure": {},
-            "Exercises": {},
         },
         VIDEO_CALL: {
             "Video Call Backend Foundations": {},
@@ -452,8 +447,6 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "General performance issues": "App crashes, 4xx/5xx errors, freezes, slowness, etc.",
     "Generated Sessions": "Problems within exercises such as missing tap tokens, broken buttons, etc. Not for content issues such as wrong translation.",
     "Grading Ribbon": "Issues with the grading ribbon that appears at the bottom of an exercise, specifically layout/formatting",
-    "Grading issue": "Issues with the grading during lessons",
-    "Translation Issue": "Issues with the translation",
     "Guidebook": "Bugs on a guidebook page",
     "Haptic Feedback": "Issues with missing haptics or haptics playing incorrectly",
     "Hard Exercises": "Use this if you think the exercise is mislabeled as hard",
@@ -462,9 +455,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Immersive subscriptions": "Any temporary subscription won from opening a chest on the path, does not include free trials",
     "In-app purchases": "Problems with items purchased with gems (row blaster, timer boosts, xp boost refills, league repairs, etc.)",
     "In Lesson Delight": "Issues with delightful animations for special in-lesson moments (progress bar pulse, grading ribbon lightning, session end XP flurry)",
-    "Intermediate Mini Units IMU": "Issues with the flattened mini unit in B1+ content",
     "Kudos": "Problems with the 'Send congrats' drawer/celebrations on Feed page",
-    "Layout Issues: Romaji/Furigana/Pinyin": "Issues with transliterations in the challenge",
     "Legendary": "Bugs with loading or doing legendary lessons",
     "Lesson complete session end": "Bugs for the card with a character animation and session stats. Not for general session end issues.",
     "Live Activities": "NOT for Session-related issues! Bugs for Live Activity *Notifications* on the Lock Screen (bad UI, not starting, lasting too long, deeplinking wrong, etc.)",
