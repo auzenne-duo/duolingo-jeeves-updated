@@ -218,7 +218,7 @@ class GPTDuplicateDetector:
                     },
                     {
                         "type": "text",
-                        "text": "MARK AS DUPLICATES",
+                        "text": "Choose duplicates and create parent ticket...",
                         "marks": [
                             {"type": "link", "attrs": {"href": connect_duplicates_url}},
                             {"type": "strong"},
