@@ -241,7 +241,7 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       }
     } catch (downloadError) {
       // Handle download error without console.error
-      alert("Failed to download tickets. Please try again.");
+      alert("Failed to download tickets, please try again.");
     } finally {
       setIsDownloading(false);
     }
@@ -267,20 +267,14 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
       ) : null}
       {tickets?.length ? (
         <>
-          <TicketList
-            onClick={handleClick}
-            selectedId={id}
-            supportsTicketQuery={true}
-            tickets={tickets}
-          />
-          <div className={styles.pagination}>
-            {getPaginationString({
-              offset,
-              perPage: PER_PAGE,
-              total: data?.total_records,
-            })}
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "10px",
+              marginBottom: "16px",
+            }}
+          >
             <Button
               onClick={() => downloadAsCsv(tickets, lang)}
               variant="outline"
@@ -294,6 +288,19 @@ const Tickets = ({ hasTrend, monthsAgo }: Props) => {
             >
               Download more...
             </Button>
+          </div>
+          <TicketList
+            onClick={handleClick}
+            selectedId={id}
+            supportsTicketQuery={true}
+            tickets={tickets}
+          />
+          <div className={styles.pagination}>
+            {getPaginationString({
+              offset,
+              perPage: PER_PAGE,
+              total: data?.total_records,
+            })}
           </div>
         </>
       ) : error ? (
