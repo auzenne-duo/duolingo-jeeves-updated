@@ -227,6 +227,7 @@ class JiraApiDAL:
         remove_parent_bug_label: bool = False,
         feature: Optional[str] = None,
         priority: Optional[str] = None,
+        labels_to_add: Optional[List[str]] = None,
     ) -> None:
         """
         Update the issue's fields.
@@ -247,6 +248,10 @@ class JiraApiDAL:
                 fields_dict[feature_field_key] = {"value": feature}
         if priority:
             update_dict["priority"] = [{"set": {"name": priority}}]
+
+        # Handle generic label additions/removals
+        if labels_to_add:
+            update_dict.setdefault("labels", []).extend({"add": label} for label in labels_to_add)
 
         data_operation = {"update": update_dict, "fields": fields_dict}
         try:

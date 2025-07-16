@@ -12,6 +12,7 @@ from duolingo_base.dal.s3 import S3DownloadException
 from duolingo_base.util import registry
 
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
+from jeeves.dal.jira_dal import JiraDAL
 from jeeves.util.s3_client_and_bucket import get_s3_client_and_bucket
 
 LOG = logging.getLogger(__name__)
@@ -254,6 +255,12 @@ class GPTLogSummarizer:
 
         if not summary:
             return []
+
+        # Add a label indicating that logs have been summarized
+        try:
+            JiraDAL.update_issue(issue_key, labels_to_add=["log_summarized"])
+        except Exception as e:
+            LOG.error("%s: Failed to add label log_summarized – %s", issue_key, e)
 
         yes_feedback_url = (
             f"{FEEDBACK_BASE_URL}?feature={FEEDBACK_FEATURE}&id={issue_key}&quick_feedback=POSITIVE"

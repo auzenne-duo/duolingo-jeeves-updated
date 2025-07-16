@@ -9,6 +9,7 @@ from duolingo_base.dal.s3 import S3Client
 from duolingo_base.util import registry
 
 from jeeves.dal.ai_completions_dal import AICompletionsDAL
+from jeeves.dal.jira_dal import JiraDAL
 from jeeves.manager.gpt_screenshot_summarizer import GPTScreenshotSummarizer
 from jeeves.manager.jira_manager import JiraManager
 from jeeves.model.jira_document import JiraDocument
@@ -116,6 +117,13 @@ class GPTDuplicateDetector:
         dup = "true" in lines[-1]
         return dup, "\n".join(lines[:-1]).strip()
 
+    def _add_label_to_issue(self, issue_key: str, label: str) -> None:
+        """Helper to add a JIRA label to an issue, best-effort."""
+        try:
+            JiraDAL.update_issue(issue_key, labels_to_add=[label])
+        except Exception as e:
+            LOG.error("%s: Failed to add label %s – %s", issue_key, label, e)
+
     def find_duplicates(
         self,
         issue: Dict,
@@ -181,6 +189,10 @@ class GPTDuplicateDetector:
                 potential_duplicates.append((other_key, justification))
             else:
                 non_duplicates.append((other_key, justification))
+
+        # Add a label if we detected duplicates
+        if potential_duplicates:
+            self._add_label_to_issue(issue_key, "duplicate_detected")
 
         return potential_duplicates, non_duplicates
 
