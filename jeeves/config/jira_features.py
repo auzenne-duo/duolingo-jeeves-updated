@@ -120,6 +120,7 @@ JIRA_FEATURES = {
                 "Notifications - Timing": ["notification", "practice reminder"],
             },
             "Reengagement": {
+                "App icon": ["streak saver", "home screen"],
                 "Notifications - Copy": ["reminder", "notification"],
                 "Widget": [],
                 "XP Happy Hour": [],
@@ -426,6 +427,7 @@ ALL_CUSTOM_PROJECTS = [proj for projects in JIRA_TEAM_TO_PROJECT.values() for pr
 JIRA_FEATURES_DESCRIPTIONS = {
     "Achievements": "Claiming and viewing achievements in the profile page",
     "Ads / rewarded ads": "Problems with ads layout, audio, completion, etc.",
+    "App icon": "Problems with the app icon on home screen.",
     "App startup": "Crashes or slowness on app startup",
     "Background Music": "Issues with background music that is not in the music course",
     "Challenge layout issues": "Problems with format of elements in an exercise, such as overlapping tokens, text in incorrect location, missing prompts, etc.",
