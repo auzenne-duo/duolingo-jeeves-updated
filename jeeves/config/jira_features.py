@@ -402,6 +402,13 @@ JIRA_FEATURES = {
             },
         },
     },
+    "Score": {
+        "DET Test Taker Growth": {
+            "Monetization & Acquisition": {
+                "DET Score Design Quality": [],
+            },
+        },
+    },
     "Other": {
         "Misc": {
             "Misc Team": {
@@ -481,6 +488,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Progress Bar": "Issues with the progress bar at the top of a lesson",
     "Purchasing": "Anything related to the actual act of purchasing, like wrong prices, refund problems, or purchasing failing",
     "Registration": "Bugs with profile creation flow after onboarding",
+    "DET Score Design Quality": "Bugs with the DET Score design quality",
     "Session end screens": "General session end screen issues. If possible, use a more specific feature",
     "Settings": "Problems specifically on the settings page.",
     "Settings Issues: Romaji/Furigana/Pinyin": "Issues with transliteration settings not being obeyed",

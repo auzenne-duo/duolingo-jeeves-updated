@@ -50,6 +50,7 @@ _SHAKIRA_FEATURES_TO_SLACK_CHANNEL = {
     "Lesson content / accepted translations": SlackChannel.FEEDBACK_LANGUAGE,
     "Feature request / feedback": SlackChannel.FEEDBACK_PRODUCT,
     "Tab Redesign": SlackChannel.TAB_REDESIGN,
+    "DET Score Design Quality": SlackChannel.DESIGN_QUALITY_DET_SCORE,
 }
 
 _SLACK_REPORT_TYPE_TO_SLACK_CHANNEL = {
@@ -68,6 +69,7 @@ _SLACK_CHANNELS_TO_JIRA_LABELS = {
     SlackChannel.DESIGN_QUALITY_NEW_SUBJECTS: "design-quality",
     SlackChannel.TAB_REDESIGN: "tab-redesign",
     SlackChannel.LITERACY_TESTING: "shakira",
+    SlackChannel.DESIGN_QUALITY_DET_SCORE: "det-design-quality",
 }
 
 PRIORITIZED_BY_GPT_LABEL = "prioritized-by-gpt"
@@ -508,7 +510,9 @@ class ShakiraManager:
         else:
             related_issue_exists = False
 
-        related_issue_invalid = related_issue_key is not None and not related_issue_exists
+        related_issue_invalid = (
+            related_issue_key is not None and related_issue_key != ""
+        ) and not related_issue_exists
 
         should_post_to_slack = (
             channels is not None and not related_issue_invalid

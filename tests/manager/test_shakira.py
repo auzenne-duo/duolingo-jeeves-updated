@@ -1368,3 +1368,105 @@ class TestShakiraJiraDescriptionBuilding(unittest.TestCase):
         ]
 
         self.assertEqual(result, expected)
+
+    def test_det_score_design_quality_slack_channel_mapping(self):
+        """Test that DET Score Design Quality maps to the correct Slack channel"""
+        _, _, _, _, _, shakira_manager = _get_mocked_managers()
+
+        channels = shakira_manager._get_slack_channels(
+            client_specified_channel=None,
+            feature="DET Score Design Quality",
+            slack_report_type=None,
+        )
+
+        self.assertEqual(channels.primary, SlackChannel.DESIGN_QUALITY_DET_SCORE)
+        self.assertEqual(len(channels.forwarded), 0)  # No area forwarding for DET
+
+    def test_det_score_design_quality_slack_report_type_mapping(self):
+        """Test that DET Score Design Quality report type maps to the correct Slack channel"""
+        _, _, _, _, _, shakira_manager = _get_mocked_managers()
+
+        channels = shakira_manager._get_slack_channels(
+            client_specified_channel=None,
+            feature=None,
+            slack_report_type="DET Score Design Quality",
+        )
+
+        self.assertEqual(channels, None)
+
+    def test_det_score_design_quality_jira_label(self):
+        """Test that DET Score Design Quality channel gets the correct JIRA label"""
+        from jeeves.manager.shakira import _SLACK_CHANNELS_TO_JIRA_LABELS
+
+        label = _SLACK_CHANNELS_TO_JIRA_LABELS.get(SlackChannel.DESIGN_QUALITY_DET_SCORE)
+        self.assertEqual(label, "det-design-quality")
+
+    def test_report_det_score_design_quality_to_slack_and_jira(self):
+        """Test reporting DET Score Design Quality issue to both Slack and JIRA"""
+        _, _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+
+        shakira_manager.report_issue(
+            project="DETBUG",
+            feature="DET Score Design Quality",
+            slack_report_type=None,
+            client_specified_slack_channel_name=None,
+            related_issue_key=None,
+            summary="DET score display issue",
+            description="The score is not displaying correctly",
+            generated_description="System info: DET app v1.0.0",
+            reporter_email="test@duolingo.com",
+            pre_release=False,
+            release_blocker=False,
+            files={},
+            localization_contractor=False,
+        )
+
+        # Verify JIRA issue creation
+        shakira_jira_mock.create_issue.assert_called_once()
+        jira_call_args = shakira_jira_mock.create_issue.call_args[1]
+        self.assertEqual(jira_call_args["project"], "DETBUG")
+        self.assertEqual(jira_call_args["feature"], "DET Score Design Quality")
+        self.assertEqual(jira_call_args["summary"], "DET score display issue")
+
+        # Verify Slack posting
+        shakira_slack_mock.post_issue.assert_called_once()
+        slack_call_args = shakira_slack_mock.post_issue.call_args[1]
+        self.assertEqual(slack_call_args["slack_channel"], SlackChannel.DESIGN_QUALITY_DET_SCORE)
+
+    def test_report_det_score_design_quality_jira_no_slack_when_missing_feature(self):
+        """Test reporting DET Score Design Quality issue to JIRA when feature is missing"""
+        _, _, _, shakira_jira_mock, shakira_slack_mock, shakira_manager = _get_mocked_managers()
+
+        shakira_manager.report_issue(
+            project="DETBUG",
+            feature=None,
+            slack_report_type=None,
+            client_specified_slack_channel_name=None,
+            related_issue_key=None,
+            summary="DET score display issue",
+            description="The score is not displaying correctly",
+            generated_description="System info: DET app v1.0.0",
+            reporter_email="test@duolingo.com",
+            pre_release=False,
+            release_blocker=False,
+            files={},
+            localization_contractor=False,
+        )
+
+        # Verify JIRA issue creation
+        shakira_jira_mock.create_issue.assert_called_once()
+        jira_call_args = shakira_jira_mock.create_issue.call_args[1]
+        self.assertEqual(jira_call_args["project"], "DETBUG")
+        self.assertEqual(jira_call_args["feature"], None)
+        self.assertEqual(jira_call_args["summary"], "DET score display issue")
+
+        # Verify Slack no posting
+        shakira_slack_mock.post_issue.assert_not_called()
+
+    def test_det_score_design_quality_channel_properties(self):
+        """Test DET Score Design Quality Slack channel properties"""
+        channel = SlackChannel.DESIGN_QUALITY_DET_SCORE
+
+        self.assertEqual(channel.name, "#score-design-quality")
+        self.assertEqual(channel.channel_id, "C09372AL24V")
+        self.assertEqual(channel.url(), "https://duolingo.slack.com/archives/C09372AL24V")

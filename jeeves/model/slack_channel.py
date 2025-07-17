@@ -6,6 +6,7 @@ from typing import List, Optional
 
 class SlackChannel(namedtuple("SlackChannel", "name channel_id"), Enum):
     DESIGN_QUALITY = "#design-quality", "C01867ZCY7J"
+    DESIGN_QUALITY_DET_SCORE = "#score-design-quality", "C09372AL24V"
     DESIGN_QUALITY_MONETIZATION = "#area-monetization-design-quality", "C062U3TE1K4"
     DESIGN_QUALITY_GROWTH = "#area-growth-design-quality", "C0636NYT4MP"
     DESIGN_QUALITY_LEARNING = "#area-learning-design-quality", "C062U48RJEN"

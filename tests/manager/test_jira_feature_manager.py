@@ -98,6 +98,7 @@ def test_get_features_v1():
             "Music - Instrument Mode",
             "Music - Practice Tab",
             "Tab Redesign",
+            "DET Score Design Quality",
         ],
         actual_result,
     )
@@ -465,6 +466,7 @@ def test_feature_filtering():
             "Music - Instrument Mode",
             "Music - Practice Tab",
             "Tab Redesign",
+            "DET Score Design Quality",
         ],
         actual_result_features,
     )
