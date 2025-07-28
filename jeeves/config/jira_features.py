@@ -134,6 +134,7 @@ JIRA_FEATURES = {
             },
             "Retention": {
                 "Achievements": ["achievement"],
+                "Daily Quests": ["quests", "daily quest"],
                 "Friend Streak": [
                     "friends streak",
                     "shared streak",
@@ -143,7 +144,6 @@ JIRA_FEATURES = {
                     "FriendStreak",
                 ],
                 "Haptic Feedback": ["haptics", "vibrations", "buzz"],
-                "Lesson complete session end": ["complete"],
                 "Monthly Challenge": ["month"],
                 "Streak": ["streak challenge", "vip", "society"],
                 "Streak freeze / repair": ["streak freeze", "streak repair"],
@@ -188,7 +188,6 @@ JIRA_FEATURES = {
                 "Tab Redesign": [],
                 "Early Bird / Night Owl Chests": ["early bird", "night owl"],
                 "Leaderboards": ["leaderboard", "tournament", "league", "context"],
-                "Daily Quests": ["quests", "daily quest"],
                 "XP boost": ["double xp", "2x"],
                 "Quests Tab": [],
                 "Power Chests": ["timed chest"],
@@ -196,6 +195,7 @@ JIRA_FEATURES = {
             "Delight": {
                 "In Lesson Delight": ["in lesson", "delight", "lightning", "flurry", "pulse"],
                 "Hard Exercises": ["hard", "mislabel"],
+                "Lesson complete session end": ["complete"],
                 "Mid-lesson animations / Duo": ["duo coach", "encouragement"],
                 "Background Music": ["background", "music"],
             },
