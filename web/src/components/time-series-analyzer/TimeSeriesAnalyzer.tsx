@@ -116,6 +116,12 @@ const TimeSeriesAnalyzer = () => {
         The &quot;Use lemmas&quot; toggle will let you search the lemmatized
         wordbanks of the tickets.
       </span>
+      <span>You can search for Jeeves reports by experiment condition</span>
+      <ul>
+        <li>
+          <SearchExample query="experiment_conditions.best_immersive_mini_units_no_legendary_popover:experiment" />
+        </li>
+      </ul>
     </div>
   );
 };
