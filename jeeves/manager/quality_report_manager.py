@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import pytz
 from duolingo_base.util import registry
+from prometheus_client import Gauge, push_to_gateway
 
 from jeeves.config.config import QUALITY_REPORT_PLOTS_DIRECTORY
 from jeeves.config.jira_features import JIRA_FEATURES
@@ -31,6 +32,11 @@ _AREAS_TO_EXCLUDE = ["Many", "New Initiatives", "None"]
 _TEAMS_TO_EXCLUDE = ["None"]
 LOG = logging.getLogger(__name__)
 
+# Prometheus metric for quality report scores
+quality_report_score_gauge = Gauge(
+    "quality_report_score", "Quality report score by organization", ["org", "name"]
+)
+
 
 @dataclass
 class QualityReportOverview:
@@ -49,6 +55,44 @@ class QualityReportOverview:
 class QualityReportManager:
     def __init__(self, quality_report_dal: QualityReportDAL) -> None:
         self.quality_report_dal = quality_report_dal
+
+    def _push_quality_score_to_prometheus(
+        self,
+        quality_report: QualityReport,
+        org_type: str,
+        gateway_url: str = "https://prometheus-pushgateway.duolingo.com",
+    ) -> None:
+        """
+        Push quality report score to Prometheus using push_to_gateway.
+
+        Params:
+            quality_report: The quality report object containing the score
+            org_type: Type of organization ("pillar", "area", or "team")
+            gateway_url: Prometheus push gateway URL
+        """
+        try:
+            # Get the overall score from the serialized quality report data
+            serialized_data = quality_report.serialize()
+            overall_score = serialized_data.overall_score
+
+            if overall_score is not None:
+                # Set the gauge value with labels
+                quality_report_score_gauge.labels(org=org_type, name=quality_report.title).set(
+                    overall_score
+                )
+
+                # Push to gateway
+                push_to_gateway(gateway_url, job="service-quality-report", registry=None)
+
+                LOG.info(
+                    f"Pushed quality score {overall_score} for {org_type} '{quality_report.title}' to Prometheus"
+                )
+            else:
+                LOG.warning(f"Could not get overall score for {org_type} '{quality_report.title}'")
+        except Exception as e:
+            LOG.error(
+                f"Failed to push quality score to Prometheus for {org_type} '{quality_report.title}': {e}"
+            )
 
     def _post_process_quality_scores(
         self, score_history: List[List[Any]], start_date: date
@@ -399,6 +443,8 @@ class QualityReportManager:
                     quality_report_data = quality_report.serialize()
                     if not is_dry_run:
                         self.quality_report_dal.upload_serialized_quality_report(quality_report)
+                        # Push team quality score to Prometheus
+                        self._push_quality_score_to_prometheus(quality_report, "team")
                     team_data.append(quality_report_data)
                     quality_reports.append(quality_report)
 
@@ -408,6 +454,8 @@ class QualityReportManager:
                 area_quality_report_data = area_quality_report.serialize()
                 if not is_dry_run:
                     self.quality_report_dal.upload_serialized_quality_report(area_quality_report)
+                    # Push area quality score to Prometheus
+                    self._push_quality_score_to_prometheus(area_quality_report, "area")
                 area_data.append(area_quality_report_data)
                 quality_reports.append(area_quality_report)
             pillar_quality_report = self.get_pillar_quality_report(
@@ -415,6 +463,8 @@ class QualityReportManager:
             )
             if not is_dry_run:
                 self.quality_report_dal.upload_serialized_quality_report(pillar_quality_report)
+                # Push pillar quality score to Prometheus
+                self._push_quality_score_to_prometheus(pillar_quality_report, "pillar")
             quality_reports.append(pillar_quality_report)
 
         # if it's the right day of the week, we will send emails and save report data

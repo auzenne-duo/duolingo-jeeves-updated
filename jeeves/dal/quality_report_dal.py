@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from duolingo_base.util import registry
+from prometheus_client import Gauge, push_to_gateway
 
 from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS, QUALITY_REPORT_S3_PATH
 from jeeves.dal.opensearch_interface import OpenSearchDAL
@@ -32,6 +33,13 @@ _OUTWARD_ISSUE_LINK_KEY = "outwardIssue"
 _POSSIBLE_DEV_ISSUE_LINKS = {"Relates", "Is caused by", "Is blocked by"}
 _PROJECT_TO_SCORES_FILENAME = "project_to_scores"
 _NUM_PAST_DATASETS_TO_STORE = 4
+
+# Prometheus metric for weekly quality scores
+weekly_quality_score_gauge = Gauge(
+    "weekly_quality_score",
+    "Weekly quality score by organization and file type",
+    ["org", "name", "date_type", "file_type"],
+)
 
 
 @registry.bind(
@@ -86,17 +94,73 @@ class QualityReportDAL:
                 blank_scores[project] = []
             return blank_scores
 
-    def upload_quality_scores_to_s3(self, quality_report: QualityReport):
+    def _push_weekly_scores_to_prometheus(
+        self,
+        quality_report: QualityReport,
+        gateway_url: str = "https://prometheus-pushgateway.duolingo.com",
+    ) -> None:
         """
-        Uploads quality report scores to s3
+        Push the latest weekly quality scores to Prometheus for each project type.
 
         Params:
-            project_to_scores: dictionary of the format {"DLAA": QualityScoreHistory ...},  includes Overall, DLAA, DLAI, DLAW
+            quality_report: The quality report object containing project_to_scores
+            gateway_url: Prometheus push gateway URL
+        """
+        try:
+            # Determine organization type based on quality report
+            if hasattr(quality_report, "team") and quality_report.team:
+                org_type = "team"
+            elif hasattr(quality_report, "area") and quality_report.area:
+                org_type = "area"
+            elif hasattr(quality_report, "pillar") and quality_report.pillar:
+                org_type = "pillar"
+            else:
+                org_type = "unknown"
+
+            # Push latest score for each project type
+            for file_type, score_history in quality_report.project_to_scores.items():
+                if score_history and len(score_history) > 0:
+                    # Get the latest score (last item in the list)
+                    latest_score = score_history[-1][1]  # [date, score] -> score
+
+                    # Set the gauge value with labels
+                    weekly_quality_score_gauge.labels(
+                        org=org_type,
+                        name=quality_report.title,
+                        date_type="weekly",
+                        file_type=file_type,
+                    ).set(latest_score)
+
+                    LOG.info(
+                        f"Set weekly score {latest_score} for {org_type} '{quality_report.title}' file_type '{file_type}'"
+                    )
+
+            # Push to gateway
+            push_to_gateway(gateway_url, job="service-quality-report", registry=None)
+
+            LOG.info(
+                f"Successfully pushed weekly quality scores for {org_type} '{quality_report.title}' to Prometheus gateway at {gateway_url}"
+            )
+
+        except Exception as e:
+            LOG.error(
+                f"Failed to push weekly quality scores to Prometheus for '{quality_report.title}': {e}"
+            )
+
+    def upload_quality_scores_to_s3(self, quality_report: QualityReport):
+        """
+        Uploads quality report scores to s3 and pushes latest scores to Prometheus
+
+        Params:
+            quality_report: QualityReport object containing project_to_scores data
         """
         upload_to_jeeves_s3(
             self._get_quality_scores_filepath(quality_report.title),
             json.dumps(quality_report.project_to_scores),
         )
+
+        # Push latest weekly scores to Prometheus
+        self._push_weekly_scores_to_prometheus(quality_report)
 
     def _get_quality_issue_datasets_filepath(self, title: str) -> str:
         """
