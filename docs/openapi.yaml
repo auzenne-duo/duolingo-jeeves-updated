@@ -1,0 +1,1006 @@
+openapi: 3.0.3
+info:
+  title: Jeeves API
+  description: |
+    Jeeves is Duolingo's bug reporting and analysis system. It provides APIs for:
+    - Shakira (shake-to-report) functionality
+    - Duplicate detection and management
+    - Quality reporting and sentiment analysis
+    - Spike detection and management
+    - GPT-powered search capabilities
+  version: 3.0.0
+  contact:
+    name: Observability
+    url: https://backstage.duolingo.com/catalog/default/group/observability
+
+servers:
+  - url: https://jeeves.duolingo.com
+    description: Production server
+  - url: https://duolingo-jeeves-dev.duolingo.com
+    description: Development server
+  - url: https://jeeves-internal.duolingo.com
+    description: Internal server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check endpoint
+      description: Check the health status of the Jeeves service
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+
+  /api/1/hello:
+    get:
+      operationId: getHello
+      summary: Simple hello endpoint
+      description: Returns a hello message
+      responses:
+        "200":
+          description: Hello response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "hello"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /api/1/shakira/features:
+    get:
+      operationId: getShakiraFeatures
+      summary: Get Shakira features
+      description: Get a list of possible values for the "feature" field for the project
+      parameters:
+        - name: project
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DLAA, DLAI, DLAW]
+          description: Project identifier
+      responses:
+        "200":
+          description: List of features
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  features:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Achievements", "Audio Lessons"]
+        "400":
+          description: Invalid project parameter
+        "500":
+          description: Error retrieving features
+
+  /api/1/shakira/report_issue:
+    post:
+      operationId: reportIssueV1
+      summary: Report an issue (Shakira v1)
+      description: Create an issue in JIRA and/or post the screenshot to Slack
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - issueData
+              properties:
+                issueData:
+                  type: string
+                  description: JSON string containing issue data
+                  example: |
+                    {
+                      "project": "DLAA",
+                      "summary": "App crashes on startup",
+                      "reporterEmail": "user@duolingo.com",
+                      "description": "The app crashes immediately when opened",
+                      "generatedDescription": "iOS 15.0, App version 6.0.0",
+                      "feature": "Audio Lessons",
+                      "slackChannel": "#design-quality",
+                      "relatedJiraTicket": "DEL-1773",
+                      "preRelease": false,
+                      "releaseBlocker": false
+                    }
+                screenshot:
+                  type: string
+                  format: binary
+                  description: Screenshot image file
+      responses:
+        "200":
+          description: Issue reported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issueKey:
+                    type: string
+                    example: "DLAI-5467"
+                  slackChannel:
+                    type: string
+                    example: "#design-quality"
+                  url:
+                    type: string
+                    deprecated: true
+                    description: "DEPRECATED: use slackUrl and jiraUrl instead"
+                    example: "https://duolingo.slack.com/channels/design-quality"
+                  slackUrl:
+                    type: string
+                    example: "https://duolingo.slack.com/channels/design-quality"
+                  jiraUrl:
+                    type: string
+                    example: "https://duolingo.atlassian.net/browse/DLAI-5467"
+        "400":
+          description: Missing required fields or invalid data
+        "500":
+          description: Internal server error
+
+  /api/2/shakira/slack_report_types:
+    get:
+      operationId: getSlackReportTypes
+      summary: Get Slack report types
+      description: Get a list of report types that go to Slack
+      responses:
+        "200":
+          description: List of Slack report types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "Design quality"
+                    alsoPostsToJira:
+                      type: boolean
+                      example: true
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /api/2/shakira/features_by_team_and_area:
+    get:
+      operationId: getFeaturesByTeamAndArea
+      summary: Get features by team and area
+      description: Returns a list of features, organized by area and team
+      responses:
+        "200":
+          description: Features organized by team and area
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    area_name:
+                      type: string
+                      example: "Growth"
+                    teams:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          team_name:
+                            type: string
+                            example: "China"
+                          features:
+                            type: array
+                            items:
+                              type: string
+                            example: ["WeChat", "China Phone number"]
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /api/2/shakira/suggested_features:
+    get:
+      operationId: getSuggestedFeaturesGet
+      summary: Get suggested features (GET)
+      description: Suggest Jira features based on a bug report's summary and description
+      parameters:
+        - name: summary
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Brief summary of the issue
+        - name: description
+          in: query
+          required: false
+          schema:
+            type: string
+          description: More detailed description of the issue
+        - name: generated_description
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Auto-generated metadata about the issue
+        - name: project
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DLAA, DLAI, DLAW]
+          description: Project identifier
+      responses:
+        "200":
+          description: Suggested features
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestedFeaturesResponse"
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Internal server error
+    post:
+      operationId: getSuggestedFeaturesPost
+      summary: Get suggested features (POST)
+      description: Suggest Jira features based on a bug report's summary and description
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - summary
+              properties:
+                summary:
+                  type: string
+                  description: Brief summary of the issue
+                  example: "App crashes on startup"
+                description:
+                  type: string
+                  description: More detailed description of the issue
+                  example: "The app crashes immediately when I try to open it"
+                generated_description:
+                  type: string
+                  description: Auto-generated metadata about the issue
+                  example: "iOS 15.0, App version 6.0.0"
+                project:
+                  type: string
+                  enum: [DLAA, DLAI, DLAW]
+                  example: "DLAA"
+      responses:
+        "200":
+          description: Suggested features
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestedFeaturesResponse"
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Internal server error
+
+  /api/2/shakira/report_issue:
+    post:
+      operationId: reportIssueV2
+      summary: Report an issue (Shakira v2)
+      description: Create an issue in JIRA and/or post the issue to Slack
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - issueData
+              properties:
+                issueData:
+                  type: string
+                  description: JSON string containing issue data (same as v1 but uses slackReportType instead of slackChannel)
+                  example: '{"project":"DLAA","summary":"App crashes","reporterEmail":"user@duolingo.com"}'
+                screenshot:
+                  type: string
+                  format: binary
+                  description: Screenshot image file
+      responses:
+        "200":
+          description: Issue reported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issueKey:
+                    type: string
+                    example: "DLAI-5467"
+                  slackChannel:
+                    type: string
+                    example: "#design-quality"
+                  slackUrl:
+                    type: string
+                    example: "https://duolingo.slack.com/channels/design-quality"
+                  jiraUrl:
+                    type: string
+                    example: "https://duolingo.atlassian.net/browse/DLAI-5467"
+        "400":
+          description: Missing required fields or invalid data
+        "500":
+          description: Internal server error
+
+  /api/2/shakira/upload_artifacts:
+    post:
+      operationId: uploadArtifacts
+      summary: Upload artifacts to JIRA issue
+      description: Upload artifacts to attach to a JIRA issue
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - jiraIssueKey
+              properties:
+                jiraIssueKey:
+                  type: string
+                  description: JIRA issue key to attach artifacts to
+                  example: "DLAI-5467"
+      responses:
+        "200":
+          description: Artifacts uploaded successfully
+        "400":
+          description: Error uploading artifacts
+        "500":
+          description: Internal server error
+
+  /api/3/shakira/estimate_priority:
+    post:
+      operationId: estimatePriority
+      summary: Estimate issue priority using GPT
+      description: Ask GPT to estimate the priority for an admin Jira bug report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  description: The title of the issue
+                  example: "App crashes on startup"
+                description:
+                  type: string
+                  description: The description of the issue
+                  example: "The app crashes immediately when I try to open it"
+      responses:
+        "200":
+          description: Priority estimate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  priority:
+                    type: string
+                    enum:
+                      [
+                        "Highest",
+                        "High",
+                        "Medium",
+                        "Low",
+                        "Lowest",
+                        "Unprioritized",
+                      ]
+                    example: "High"
+                  reason:
+                    type: string
+                    example: "Account registration process potentially broken."
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Internal server error
+
+  /api/1/fully_connect_duplicates:
+    post:
+      operationId: fullyConnectDuplicates
+      summary: Fully connect duplicate issues
+      description: Takes a list of Jira issues and creates a fully connected graph out of the given issues and their reachable duplicates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - issue_keys
+              properties:
+                issue_keys:
+                  type: array
+                  items:
+                    type: string
+                  description: List of Jira issue keys whose neighborhoods we want to combine
+                  example: ["DLAI-1234", "DLAI-5678"]
+      responses:
+        "200":
+          description: Duplicates connected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overall:
+                    type: string
+                    example: "Successfully connected 5 duplicates"
+                  manifest:
+                    type: string
+                    example: "Created links between DLAI-1234, DLAI-5678, etc."
+        "400":
+          description: Invalid issue keys or request parameters
+        "500":
+          description: Internal server error
+
+  /api/1/detect_duplicates:
+    get:
+      operationId: detectDuplicates
+      summary: Detect duplicate issues
+      description: Perform duplicate detection on JIRA records
+      parameters:
+        - name: issue_key
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Issue key that we wish to detect duplicates for
+        - name: num_results
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 5
+          description: Number of duplicate results to return
+        - name: should_filter_project
+          in: query
+          required: false
+          schema:
+            type: string
+            default: "0"
+          description: Filter results to same project (any value except "0" enables filtering)
+        - name: max_search_depth
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          description: Maximum number of issues to check during detection
+        - name: include_parent_issues
+          in: query
+          required: false
+          schema:
+            type: string
+            default: "0"
+          description: Include parent issues in results (any value except "0" enables)
+      responses:
+        "200":
+          description: List of potential duplicate issues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JiraIssue"
+        "400":
+          description: Invalid issue key or parameters
+        "500":
+          description: Internal server error
+
+  /api/3/sentiment_time_series:
+    get:
+      operationId: getSentimentTimeSeries
+      summary: Get sentiment time series
+      description: Uses GPT-4 to extract OpenSearch filters and perform sentiment analysis
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Natural language query
+      responses:
+        "200":
+          description: Sentiment analysis results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lucene_query:
+                    type: array
+                    items:
+                      type: string
+                    description: List of query filters
+                  query:
+                    type: object
+                    description: OpenSearch query
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                          description: Sentiment label
+                          example: "positive"
+                        score:
+                          type: number
+                          format: float
+                          description: Sentiment score
+                          example: 0.85
+                        datetime:
+                          type: string
+                          format: date-time
+                          description: Date and time
+                          example: "2023-07-28T10:30:00.000Z"
+                        origin:
+                          type: string
+                          enum:
+                            [
+                              "Zendesk",
+                              "AppFigures",
+                              "JIRA",
+                              "Reddit",
+                              "Twitter",
+                            ]
+                          example: "JIRA"
+                        original_text:
+                          type: object
+                          properties:
+                            body:
+                              type: string
+                              example: "The app crashes when I try to log in"
+                            title:
+                              type: string
+                              example: "Login issue"
+                        uid:
+                          type: string
+                          description: Unique document identifier
+                          example: "doc_12345"
+                  positive_bucket:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/SentimentBucket"
+                  negative_bucket:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/SentimentBucket"
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Internal server error
+
+  /api/3/quality_report_overview:
+    get:
+      operationId: getQualityReportOverview
+      summary: Get quality report overview
+      description: Returns high level quality report data for all pillars
+      responses:
+        "200":
+          description: Quality report overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pillars:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/QualityReportOverview"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /api/3/quality_report_area:
+    get:
+      operationId: getQualityReportArea
+      summary: Get quality report for area
+      description: Retrieves the most recently generated quality report for a specific area
+      parameters:
+        - name: area
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Area name such as "Learning R&D"
+      responses:
+        "200":
+          description: Quality report for area
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QualityReportDetail"
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Internal server error
+
+  /api/3/quality_report_team:
+    get:
+      operationId: getQualityReportTeam
+      summary: Get quality report for team
+      description: Retrieves the most recently generated quality report for a specific team
+      parameters:
+        - name: team
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Team name such as "Connections"
+      responses:
+        "200":
+          description: Quality report for team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QualityReportDetail"
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Internal server error
+
+  /api/3/gpt_search:
+    post:
+      operationId: gptSearch
+      summary: GPT search
+      description: Entrypoint for GPT Search using OpenSearch and GPT to answer questions
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: User's search query
+        - name: max_search_depth
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          description: Maximum number of search results to consider
+        - name: num_results
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 5
+          description: Number of results to return
+      responses:
+        "200":
+          description: GPT search started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GPTSearchResponse"
+        "400":
+          description: Invalid request body
+        "500":
+          description: Internal server error
+
+  /api/3/gpt_search/knn_results/{request_id}:
+    get:
+      operationId: getGptSearchKnnResults
+      summary: Get GPT search KNN results
+      description: Get the k-NN search results for a GPT search request
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Request ID from GPT search
+      responses:
+        "200":
+          description: KNN search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/JeevesDocument"
+                  error:
+                    type: string
+                    example: "Search request failed"
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Internal server error
+
+  /api/3/gpt_search/answer/{request_id}:
+    get:
+      operationId: getGptSearchAnswer
+      summary: Get GPT search answer
+      description: Get the GPT-generated answer for a search request
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Request ID from GPT search
+      responses:
+        "200":
+          description: GPT answer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answer:
+                    type: string
+                    description: GPT-generated answer
+                    example: "Based on the search results, login issues are primarily affecting iOS users..."
+                  supporting_docs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GPTSearchResult"
+                  error:
+                    type: string
+                    example: "Answer generation failed"
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Internal server error
+
+  /api/1/jira_issue_details:
+    post:
+      operationId: getJiraIssueDetails
+      summary: Get JIRA issue details
+      description: Get detailed information for a list of JIRA issue keys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - issue_keys
+              properties:
+                issue_keys:
+                  type: array
+                  items:
+                    type: string
+                  description: List of JIRA issue keys
+                  example: ["DLAI-1234", "DLAI-5678"]
+      responses:
+        "200":
+          description: JIRA issue details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key:
+                      type: string
+                      example: "DLAI-1234"
+                    title:
+                      type: string
+                      example: "App crashes on startup"
+                    status:
+                      type: string
+                      example: "Open"
+                    date_reported:
+                      type: string
+                      format: date-time
+                      example: "2023-07-28T10:30:00.000Z"
+                    assignee:
+                      type: string
+                      example: "john.doe@duolingo.com"
+                    feature:
+                      type: string
+                      example: "Audio Lessons"
+        "400":
+          description: Invalid request body
+        "500":
+          description: Internal server error
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    SuggestedFeaturesResponse:
+      type: object
+      properties:
+        suggested_features:
+          type: array
+          items:
+            type: string
+          description: List of suggested Jira features
+        other_features:
+          type: array
+          items:
+            type: string
+          description: List of other available features
+        feature_to_description:
+          type: object
+          additionalProperties:
+            type: string
+          description: Mapping of feature names to descriptions
+
+    SentimentBucket:
+      type: object
+      properties:
+        average_sentiment_score:
+          type: number
+          format: float
+          description: Average sentiment score for this time bucket
+          example: 0.75
+        num_documents:
+          type: integer
+          description: Number of documents in this bucket
+          example: 42
+
+    QualityReportOverview:
+      type: object
+      properties:
+        overall_score:
+          type: number
+          format: float
+          example: 20
+        title:
+          type: string
+          example: "Learning R&D"
+        scores:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: number
+
+    QualityReportDetail:
+      type: object
+      properties:
+        features:
+          type: array
+          items:
+            type: string
+        open_bugs_url:
+          type: string
+          format: uri
+          example: "https://duolingo.atlassian.net/issues/?filter=12345"
+        open_bugs_count:
+          type: integer
+          example: 23
+        overall_score:
+          type: number
+          format: float
+          example: 85.5
+        score_breakdowns:
+          type: array
+          items:
+            type: object
+            properties:
+              closed_points:
+                type: integer
+                example: 12
+              date:
+                type: string
+                format: date
+                example: "2023-07-28"
+              num_issues:
+                type: integer
+                example: 5
+              open_points:
+                type: integer
+                example: 8
+              overall_score:
+                type: number
+                format: float
+                example: 82.3
+        scores:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: number
+
+    JiraIssue:
+      type: object
+      properties:
+        key:
+          type: string
+          example: "DLAI-1234"
+        summary:
+          type: string
+          example: "App crashes on startup"
+        description:
+          type: string
+          example: "App crashes immediately when I try to open it"
+        status:
+          type: string
+          example: "Open"
+        assignee:
+          type: string
+          example: "john.doe@duolingo.com"
+        feature:
+          type: string
+          example: "Audio Lessons"
+        creation_date:
+          type: string
+          format: date-time
+          example: "2023-07-28T10:30:00.000Z"
+
+    JeevesDocument:
+      type: object
+      properties:
+        uid:
+          type: string
+          description: Unique document identifier
+          example: "doc_98765"
+        title:
+          type: string
+          example: "Bug Report: Login Issues"
+        body:
+          type: string
+          example: "Users are experiencing login failures on iOS devices"
+        origin:
+          type: string
+          enum: ["Zendesk", "AppFigures", "JIRA", "Reddit", "Twitter"]
+          example: "JIRA"
+        datetime:
+          type: string
+          format: date-time
+          example: "2023-07-28T10:30:00.000Z"
+
+    GPTSearchResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+          example: "req_12345"
+        error:
+          type: string
+          example: "Search failed"
+
+    GPTSearchResult:
+      type: object
+      properties:
+        document:
+          $ref: "#/components/schemas/JeevesDocument"
+        relevance_score:
+          type: number
+          format: float
+          example: 0.92

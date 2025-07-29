@@ -52,3 +52,8 @@ repos:
         language: system
         files: requirements\.(in|txt)$
         pass_filenames: false
+  - repo: https://github.com/duolingo/infra-openapi.git
+    rev: 1.1.1
+    hooks:
+      - id: apiary
+        args: ["--use-ignore-file", "docs/ignore.yaml"]

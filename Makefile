@@ -10,6 +10,10 @@ eslint:
 eslint-fix:
 	cd web && npx eslint --ext=.ts,.tsx --fix src
 
+.PHONY: lint-spec
+lint-spec:
+	duo apiary spec lint docs/openapi.yaml --use-ignore-file docs/ignore.yaml
+
 # Installs the requirements to the local environment.
 .PHONY: python-install
 python-install: dev-requirements.txt
