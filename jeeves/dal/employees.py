@@ -22,6 +22,12 @@ class EmployeesDAL:
         """
         return self._fetch_json()["employees"]
 
+    def get_contractors(self) -> List[Dict[str, Any]]:
+        """
+        Returns a list of contractors data.
+        """
+        return self._fetch_json()["contractors"]
+
     def get_teams(self) -> List[Dict[str, Any]]:
         """
         Returns a list of teams data.
@@ -34,6 +40,10 @@ class EmployeesDAL:
             for employee in employees:
                 if employee["email"] == email:
                     return employee
+            contractors = self.get_contractors()
+            for contractor in contractors:
+                if contractor["email"] == email:
+                    return contractor
         except S3DownloadException as e:
             duo_logging.capture_exception(e)
             return None
