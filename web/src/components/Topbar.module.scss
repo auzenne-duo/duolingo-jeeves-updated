@@ -5,7 +5,7 @@
 }
 
 .filters {
-  align-items: end;
+  align-items: start;
   display: grid;
   grid-gap: 2 * $juicy-length;
   grid-template-columns: 1fr;
@@ -147,5 +147,26 @@
 
   @media (min-width: $width-laptop) {
     grid-template-columns: repeat(2, min-content) 1fr;
+  }
+}
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; // Slightly increased gap
+  width: 100%;
+
+  @media (min-width: $width-ipad) {
+    padding: 4px 0; // Add vertical padding on desktop
+  }
+}
+
+.ai-query {
+  composes: hide-on-mobile;
+  width: 100%;
+
+  // Match the AI query input width to the search input
+  @media (min-width: $width-ipad) {
+    width: 100%;
   }
 }

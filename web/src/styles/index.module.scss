@@ -11,7 +11,7 @@
   --width-aside: min(400px, calc(100vw - 2 * var(--margin)));
 
   @media (min-width: $width-ipad) {
-    --height-topbar: 80px;
+    --height-topbar: 120px; // Increased from 80px to accommodate AI query input
     --margin: #{$juicy-margin};
   }
 }

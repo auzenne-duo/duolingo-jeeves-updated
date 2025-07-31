@@ -8,6 +8,7 @@ import { TextInput } from "web-ui/juicy";
 
 import { encodeURLSearchParams } from "../util";
 import { getSpikeCategories } from "api/jeeves";
+import AIQueryInput from "components/AIQueryInput";
 import type { DateRangeChangeEvent } from "components/DateRangeInput";
 import DateRangeInput from "components/DateRangeInput";
 import Hamburger from "components/Hamburger";
@@ -180,6 +181,15 @@ const Topbar = () => {
     e.stopPropagation();
   };
 
+  const handleAIQueryResult = (result: string) => {
+    // Set the AI-generated query as the input and trigger search
+    setInput(result);
+    const params = new URLSearchParams(location.search);
+    params.delete("page");
+    params.set("q", result);
+    applyFilters(params);
+  };
+
   React.useEffect(() => {
     // If the query is updated without using the input,
     // sync the input with the new URL.
@@ -238,7 +248,7 @@ const Topbar = () => {
           Page.GPTSearch,
           Page.SentimentSearch,
         ].includes(page) ? (
-          <>
+          <div className={styles["search-container"]}>
             <TextInput
               className={styles["search-mobile"]}
               onChange={e => setInput(e.target.value)}
@@ -262,7 +272,18 @@ const Topbar = () => {
               }
               value={input}
             />
-          </>
+            {page && [Page.Analysis, Page.Discovery].includes(page) ? (
+              <AIQueryInput
+                className={styles["ai-query"]}
+                onQueryResult={handleAIQueryResult}
+                source={
+                  page === Page.Discovery
+                    ? "issue_discovery"
+                    : "time_series_analyzer"
+                }
+              />
+            ) : null}
+          </div>
         ) : null}
         {page === Page.Analysis ? (
           <LabelledToggle

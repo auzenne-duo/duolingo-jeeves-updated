@@ -8,6 +8,7 @@ info:
     - Quality reporting and sentiment analysis
     - Spike detection and management
     - GPT-powered search capabilities
+    - AI query assistant for natural language to OpenSearch translation
   version: 3.0.0
   contact:
     name: Observability
@@ -779,6 +780,64 @@ paths:
           description: Invalid request parameters
         "500":
           description: Internal server error
+
+  /api/1/ai_query:
+    post:
+      operationId: processAIQuery
+      summary: AI query assistant
+      description: |
+        AI query assistant endpoint that takes a natural language query and converts it to an OpenSearch query string.
+        Supports different prompts for Issue Discovery and Time Series Analyzer pages.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Natural language query to be processed by AI
+                  example: "Find crashes related to login on iOS"
+                source:
+                  type: string
+                  enum: ["issue_discovery", "time_series_analyzer"]
+                  description: Source page identifier for context-specific prompts
+                  example: "issue_discovery"
+      responses:
+        "200":
+          description: AI-generated query response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    description: AI-generated OpenSearch query string
+                    example: '(/crash(ing|ed|es)/ AND (login OR /sign.?in/ OR authentication)) AND platform:"iOS"'
+        "400":
+          description: Invalid request - missing query or empty query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Query cannot be empty."
+        "500":
+          description: Internal server error - AI service failure
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error processing AI query."
 
   /api/1/jira_issue_details:
     post:

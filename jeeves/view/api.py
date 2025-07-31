@@ -17,6 +17,7 @@ from jeeves import registry as app_registry
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.dal.spike_index_interface import SpikeIndexDAL
 from jeeves.lib.send_issue_fixed_emails import IssueFixedEmailSender
+from jeeves.manager.ai_query_manager import AIQueryManager
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.gpt_priority_estimator import GPTPriorityEstimator
 from jeeves.manager.gpt_search_manager import (
@@ -937,6 +938,44 @@ def quality_score_area():
         abort(make_response(f"Could not parse end date argument {html.escape(end_date_arg)}.", 400))
 
     return app_registry(QualityReportManager).get_quality_scores(area, start_date, end_date)
+
+
+@blueprint_api.route("/api/1/ai_query", methods=["POST"])
+def ai_query():
+    """
+    AI query assistant endpoint that takes a query and sends it to LLM for evaluation.
+
+    Accepts a POST request with JSON body containing:
+    - query (str): The user's query text to be processed by AI
+    - source (str, optional): The source page ("issue_discovery" or "time_series_analyzer")
+
+    Returns:
+    - response (str): The AI-generated response
+    - source (str): The detected or provided source page
+    """
+    data = request.get_json()
+    if not data or "query" not in data:
+        abort(make_response("Please provide a 'query' field in the POST body.", 400))
+
+    query = data["query"]
+    source = data.get("source")  # Optional source parameter
+
+    if not query or not query.strip():
+        abort(make_response("Query cannot be empty.", 400))
+
+    try:
+        # Use the AI Query Manager to process the query with context-specific prompts
+        ai_query_manager = app_registry(AIQueryManager)
+        response = ai_query_manager.process_query(query=query, source=source)
+
+        return json.jsonify({"response": response})
+
+    except ValueError as e:
+        LOG.error(f"Invalid AI query request: {e!s}")
+        abort(make_response(f"Invalid request: {e!s}", 400))
+    except Exception as e:
+        LOG.error(f"Error processing AI query: {e!s}")
+        abort(make_response("Error processing AI query.", 500))
 
 
 @blueprint_api.route("/api/1/jira_issue_details", methods=["POST"])

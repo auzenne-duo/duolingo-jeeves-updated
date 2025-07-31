@@ -47,6 +47,15 @@ export const getQualityReportTeam = (pillar: string, area: string) => {
   );
 };
 
+export const queryAI = async (
+  query: string,
+  source?: string,
+): Promise<{ response: string }> =>
+  post<{ response: string }>("/1/ai_query", {
+    query,
+    source,
+  });
+
 export const getQualityReport = (pillar: string) => {
   const params = new URLSearchParams();
   params.set("pillar", pillar);
