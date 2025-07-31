@@ -501,7 +501,7 @@ class QualityReportTeam(QualityReport):
             pillar,
             monthly=False,
         )
-        self.jeeves_link = f"https://jeeves.duolingo.com/en/quality-report?area={urllib.parse.quote(area)}&team={urllib.parse.quote(team)}"
+        self.jeeves_link = f"https://jeeves.duolingo.com/en/quality-report?pillar={urllib.parse.quote(pillar)}&area={urllib.parse.quote(area)}&team={urllib.parse.quote(team)}"
 
 
 class QualityReportArea(QualityReport):
@@ -534,9 +534,7 @@ class QualityReportArea(QualityReport):
             monthly=False,
         )
         self.team_data = team_data
-        self.jeeves_link = (
-            f"https://jeeves.duolingo.com/en/quality-report?area={urllib.parse.quote(area)}"
-        )
+        self.jeeves_link = f"https://jeeves.duolingo.com/en/quality-report?pillar={urllib.parse.quote(pillar)}&area={urllib.parse.quote(area)}"
 
     def serialize(self) -> SerializedQualityReportDataArea:
         """

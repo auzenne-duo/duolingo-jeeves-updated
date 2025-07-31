@@ -121,7 +121,7 @@ class TestQualityReport(unittest.TestCase):
     @patch("jeeves.model.quality_report.upload_to_public_static", MagicMock())
     def test_jeeves_link(self):
         result = self.report.jeeves_link
-        expected = "https://jeeves.duolingo.com/en/quality-report?area=International%20Growth&team=Re-Onboarding"
+        expected = "https://jeeves.duolingo.com/en/quality-report?pillar=Growth&area=International%20Growth&team=Re-Onboarding"
         self.assertEqual(result, expected)
 
         issues = [REPORT_ISSUE_1, REPORT_ISSUE_2]
@@ -136,7 +136,7 @@ class TestQualityReport(unittest.TestCase):
             pillar="Language Learning",
         )
         result = test_report.jeeves_link
-        expected = "https://jeeves.duolingo.com/en/quality-report?area=Learning%20Experience&team=Intermediate%20English"
+        expected = "https://jeeves.duolingo.com/en/quality-report?pillar=Language%20Learning&area=Learning%20Experience&team=Intermediate%20English"
         self.assertEqual(result, expected)
 
     def test_serialize_recent_changes(self):
