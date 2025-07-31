@@ -241,26 +241,44 @@ class GPTDuplicateDetector:
             },
         ]
 
-        # Add all issue links first
-        for issue_key, _ in duplicates:
-            issue_url = f"https://duolingo.atlassian.net/browse/{issue_key}"
+        # Add all issue links with individual "Mark as duplicate" actions
+        for dup_key, _ in duplicates:
+            issue_url = f"https://duolingo.atlassian.net/browse/{dup_key}"
+
+            # Clicking this link should immediately mark the current ticket as a
+            # duplicate of `dup_key` without creating a parent ticket.
+            mark_duplicate_url = (
+                "https://jeeves.duolingo.com/mark-duplicates?jira_issues="
+                + f"{issue_key},{dup_key}"
+                + "&create_parent_ticket=false"
+            )
+
             rich_text.append(
                 {
                     "type": "paragraph",
                     "content": [
                         {"type": "inlineCard", "attrs": {"url": issue_url}},
+                        {"type": "text", "text": " "},
+                        {
+                            "type": "text",
+                            "text": "(Mark as duplicate)",
+                            "marks": [
+                                {"type": "link", "attrs": {"href": mark_duplicate_url}},
+                                {"type": "strong"},
+                            ],
+                        },
                     ],
                 }
             )
 
         # Add all justifications in a single expandable section
         justification_paragraphs = []
-        for issue_key, justification in duplicates:
+        for dup_key, justification in duplicates:
             justification_paragraphs.append(
                 {
                     "type": "paragraph",
                     "content": [
-                        {"type": "text", "text": f"{issue_key}", "marks": [{"type": "strong"}]},
+                        {"type": "text", "text": f"{dup_key}", "marks": [{"type": "strong"}]},
                         {"type": "text", "text": f": {justification}"},
                     ],
                 }
