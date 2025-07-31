@@ -515,9 +515,23 @@ def fully_connect_duplicates():
     issue_keys = data["issue_keys"]
     if isinstance(issue_keys, str):
         issue_keys = [issue_keys]
-    LOG.info("fully_connect_duplicates called with issue_keys: %s", issue_keys)
+    create_parent_ticket = data.get("create_parent_ticket", True)
+    LOG.info(
+        "fully_connect_duplicates called with issue_keys: %s | create_parent_ticket=%s",
+        issue_keys,
+        create_parent_ticket,
+    )
 
-    result_manifest = app_registry(DuplicateGraphResolver).connect_duplicates_remote(issue_keys)
+    resolver = app_registry(DuplicateGraphResolver)
+
+    try:
+        if create_parent_ticket:
+            result_manifest = resolver.connect_duplicates_remote(issue_keys)
+        else:
+            result_manifest = resolver.connect_duplicates_no_parent(issue_keys)
+    except ValueError as e:
+        abort(make_response("Invalid input: " + str(e), 400))
+
     first_line = result_manifest.split("\n")[0]
     result_dict = {"overall": first_line, "manifest": result_manifest}
     LOG.info("fully_connect_duplicates result: %s", result_dict)

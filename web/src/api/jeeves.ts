@@ -316,8 +316,10 @@ export const setSpikeStatus = async (
 
 export const fullyConnectDuplicates = async (
   issueKeys: string[],
+  createParentTicket = true,
 ): Promise<{ overall: string; manifest: string }> =>
   post<{ overall: string; manifest: string }>("/1/fully_connect_duplicates", {
+    create_parent_ticket: createParentTicket,
     issue_keys: issueKeys,
   });
 

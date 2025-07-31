@@ -280,8 +280,7 @@ class DuplicateGraphResolver:
         LOG.info(msg)
 
         remaining_links = all_possible_links - duplicate_graph.existing_issue_links
-        any_success = False
-        any_failure = False
+        success_count: int = 0
         result_list = []
 
         loop = get_asyncio_loop()
@@ -292,7 +291,7 @@ class DuplicateGraphResolver:
             # We don't need to edit our documents here because the changes will
             # get pulled in from Jira later anyway.
             if link_created:
-                any_success = True
+                success_count += 1
                 result_list.append(f"S {outward_end} {inward_end}\n")
                 if outward_end == parent_key and inward_end not in deprecated_parent_issue_keys:
                     child_issue = duplicate_graph.issue_keys_to_documents[inward_end]
@@ -301,7 +300,6 @@ class DuplicateGraphResolver:
                     child_issue = duplicate_graph.issue_keys_to_documents[outward_end]
                     update_parent_data_from_child(parent_data, child_issue)
             else:
-                any_failure = True
                 result_list.append(f"F {outward_end} {inward_end}\n")
 
         children_docs = [
@@ -389,13 +387,9 @@ class DuplicateGraphResolver:
                 LOG.error(f"Error closing child issue {child_key} as duplicate: {e}")
 
         result_manifest = "".join(result_list)
-        # If we had no successes and no failures, then we didn't create any new
-        # links. This turns out to be identical to the case where we had only
-        # successes.
-        result_status = "UNSET, THIS IS AN ERROR"
-        if not any_failure:
+        if success_count == len(results):
             result_status = "SUCCESS"
-        elif any_success:
+        elif success_count > 0:
             result_status = "PARTIAL"
         else:
             result_status = "FAILURE"
@@ -416,6 +410,59 @@ class DuplicateGraphResolver:
             LOG.error(f"Error uploading duplicate connect results to S3: {e}")
 
         return result
+
+    def connect_duplicates_no_parent(self, issue_keys: List[str]) -> str:
+        """Link and close a ticket without creating a parent.
+
+        The first key in *issue_keys* is treated as *current_ticket* – it will
+        be marked duplicate-of every other ticket, and then closed.  We return
+        a manifest string in the same SUCCESS/PARTIAL/FAILURE format as
+        *connect_duplicates_remote* so callers can treat both paths
+        uniformly.
+        """
+        if len(issue_keys) < 2:
+            raise ValueError("connect_duplicates_no_parent requires at least two issue keys")
+
+        duplicate_ticket = issue_keys[0]
+        target_tickets = issue_keys[1:]
+
+        LOG.info(
+            "[no-parent] Marking %s as duplicate of %s other tickets",
+            duplicate_ticket,
+            len(target_tickets),
+        )
+
+        success_count: int = 0
+        result_lines: list[str] = []
+
+        for target in target_tickets:
+            try:
+                success = self.try_mark_duplicate_remote(duplicate_ticket, target)
+            except Exception as exc:  # pragma: no cover – defensive
+                LOG.error("[no-parent] Error linking %s ↔ %s: %s", duplicate_ticket, target, exc)
+                success = False
+
+            if success:
+                success_count += 1
+                result_lines.append(f"S {duplicate_ticket} {target}\n")
+            else:
+                result_lines.append(f"F {duplicate_ticket} {target}\n")
+
+        # Close the duplicate ticket we just marked
+        try:
+            self._jira_dal.close_issue_as_duplicate(duplicate_ticket)  # type: ignore[attr-defined]
+            LOG.info("[no-parent] Closed %s as duplicate", duplicate_ticket)
+        except Exception as exc:
+            LOG.error("[no-parent] Error closing %s as duplicate: %s", duplicate_ticket, exc)
+
+        if success_count == len(target_tickets):
+            status = "SUCCESS"
+        elif success_count > 0:
+            status = "PARTIAL"
+        else:
+            status = "FAILURE"
+
+        return f"{status}\n{''.join(result_lines)}"
 
     def _upload_template_parent_issue(self, project: str, header_text: str) -> str:
         """

@@ -57,11 +57,13 @@ interface TrackingEvents {
   mark_duplicates_page_view: {
     jira_issues: string;
     num_jira_issues: number;
+    create_parent_ticket?: boolean;
   };
   mark_duplicates_connect: {
     jira_issues: string;
     status: string;
     success: boolean;
+    create_parent_ticket?: boolean;
   };
 }
 

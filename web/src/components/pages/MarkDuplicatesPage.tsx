@@ -1,10 +1,13 @@
+import cn from "classnames";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 
 import track from "../../track";
 import styles from "../NamedSection.module.scss";
-import { fullyConnectDuplicates, getJiraIssueDetails } from "api/jeeves";
 import type { JiraIssueDetails } from "api/jeeves";
+import { fullyConnectDuplicates, getJiraIssueDetails } from "api/jeeves";
+
+import pageStyles from "./MarkDuplicatesPage.module.scss";
 
 /**
  * Creates a JIRA URL from a ticket key
@@ -17,9 +20,9 @@ const getJiraUrl = (ticketKey: string): string =>
  */
 const JiraLink: React.FC<{ ticketKey: string }> = ({ ticketKey }) => (
   <a
+    className={pageStyles.jiraLink}
     href={getJiraUrl(ticketKey)}
     rel="noopener noreferrer"
-    style={{ color: "#0052CC", fontWeight: "bold" }}
     target="_blank"
   >
     {ticketKey}
@@ -41,6 +44,8 @@ const MarkDuplicatesPage: React.FC = () => {
 
   // Parse jira_issues from URL query parameters
   const searchParams = new URLSearchParams(location.search);
+  const createParentTicket =
+    searchParams.get("create_parent_ticket") !== "false";
   const urlJiraIssuesParam = searchParams.get("jira_issues") ?? "";
   const urlJiraIssues = React.useMemo(
     () => urlJiraIssuesParam.split(",").filter(Boolean),
@@ -56,7 +61,6 @@ const MarkDuplicatesPage: React.FC = () => {
     React.useState<string[]>(urlJiraIssues);
 
   // Update jiraIssues when URL changes
-
   React.useEffect(() => {
     setJiraIssues(urlJiraIssues);
     setSelectedTickets(urlJiraIssues);
@@ -67,20 +71,28 @@ const MarkDuplicatesPage: React.FC = () => {
   React.useEffect(() => {
     // Track page view event
     track("mark_duplicates_page_view", {
+      create_parent_ticket: createParentTicket,
       jira_issues: jiraIssues.join(","),
       num_jira_issues: jiraIssues.length,
     });
+
+    // For no-parent flow we don't need additional details
+    if (!createParentTicket) {
+      setIssueDetails(null);
+      return;
+    }
 
     if (jiraIssues.length === 0) {
       setIssueDetails(null);
       return;
     }
+
     setDetailsLoading(true);
     getJiraIssueDetails(jiraIssues)
       .then(setIssueDetails)
       .catch(() => setIssueDetails(null))
       .finally(() => setDetailsLoading(false));
-  }, [jiraIssues]);
+  }, [jiraIssues, createParentTicket]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
@@ -145,10 +157,11 @@ const MarkDuplicatesPage: React.FC = () => {
   };
 
   const handleConnectDuplicates = async () => {
-    if (selectedTickets.length < 2) {
+    const ticketsToProcess = createParentTicket ? selectedTickets : jiraIssues;
+
+    if (ticketsToProcess.length < 2) {
       setResult({
-        message:
-          "At least two JIRA issues must be selected to mark as duplicates",
+        message: "At least two JIRA issues are required to mark as duplicates.",
         success: false,
       });
       return;
@@ -156,26 +169,39 @@ const MarkDuplicatesPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await fullyConnectDuplicates(selectedTickets);
+      const response = await fullyConnectDuplicates(
+        ticketsToProcess,
+        createParentTicket,
+      );
+
+      const successMessage = createParentTicket
+        ? `Successfully marked ${ticketsToProcess.length} tickets as duplicates.`
+        : `Successfully closed ${ticketsToProcess[0]} as a duplicate of ${ticketsToProcess.length - 1} other ticket${ticketsToProcess.length - 1 === 1 ? "" : "s"}.`;
+
+      const successFlag = response.overall.startsWith("SUCCESS");
       setResult({
-        message: `Successfully marked ${selectedTickets.length} tickets as duplicates. ${response.overall}`,
-        success: response.overall.startsWith("SUCCESS"),
+        message: `${successMessage} ${response.overall}`,
+        success: successFlag,
       });
-      // Track connect event (success)
+
       track("mark_duplicates_connect", {
-        jira_issues: selectedTickets.join(","),
+        create_parent_ticket: createParentTicket,
+        jira_issues: ticketsToProcess.join(","),
         status: response.overall,
-        success: response.overall.startsWith("SUCCESS"),
+        success: successFlag,
       });
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       setResult({
-        message: `Error marking duplicates: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Error marking duplicates: ${errorMessage}`,
         success: false,
       });
       // Track connect event (failure)
       track("mark_duplicates_connect", {
-        jira_issues: selectedTickets.join(","),
-        status: error instanceof Error ? error.message : String(error),
+        create_parent_ticket: createParentTicket,
+        jira_issues: ticketsToProcess.join(","),
+        status: errorMessage,
         success: false,
       });
     } finally {
@@ -185,45 +211,23 @@ const MarkDuplicatesPage: React.FC = () => {
 
   return (
     <div className={styles.section}>
-      <h2>Mark Multiple JIRA Issues as Duplicates</h2>
       <div className={styles.content}>
-        <div style={{ marginBottom: "20px" }}>
-          <label
-            htmlFor="jira-input"
-            style={{
-              display: "block",
-              fontWeight: "bold",
-              marginBottom: "8px",
-            }}
-          >
+        <div className={pageStyles.inputGroup}>
+          <label htmlFor="jira-input">
             Enter JIRA Issue Keys (comma-separated):
           </label>
-          <div style={{ alignItems: "center", display: "flex", gap: "10px" }}>
+          <div className={pageStyles.inputRow}>
             <input
+              className={pageStyles.textInput}
               id="jira-input"
               onChange={handleInputChange}
               placeholder="e.g., DLAI-52067,DLAI-52066,DLAI-54218"
-              style={{
-                border: "1px solid #DFE1E6",
-                borderRadius: "4px",
-                flex: 1,
-                fontSize: "14px",
-                padding: "8px 12px",
-              }}
               type="text"
               value={inputValue}
             />
             <button
+              className={pageStyles.loadButton}
               onClick={handleLoadIssues}
-              style={{
-                backgroundColor: "#0052CC",
-                border: "none",
-                borderRadius: "4px",
-                color: "white",
-                cursor: "pointer",
-                fontSize: "14px",
-                padding: "8px 16px",
-              }}
             >
               Load Issues
             </button>
@@ -232,229 +236,145 @@ const MarkDuplicatesPage: React.FC = () => {
 
         {result && (
           <div
-            style={{
-              backgroundColor: result.success ? "#E3FCEF" : "#FFEBE6",
-              borderRadius: "3px",
-              color: result.success ? "#006644" : "#DE350B",
-              marginBottom: "20px",
-              padding: "10px",
-            }}
+            className={
+              result.success
+                ? `${pageStyles.warningBox} ${pageStyles.success}`
+                : `${pageStyles.warningBox} ${pageStyles.error}`
+            }
           >
             {result.message}
           </div>
         )}
 
-        {jiraIssues.length === 0 ? (
-          <p>
-            Enter JIRA issue keys above or use the URL parameter{" "}
-            <code>jira_issues</code> with a comma-separated list of issues.
-          </p>
-        ) : detailsLoading ? (
-          <p>Loading JIRA issue details...</p>
-        ) : issueDetails ? (
-          <>
+        {createParentTicket ? (
+          jiraIssues.length === 0 ? (
             <p>
-              Select the JIRA issues you want to mark as duplicates. A parent
-              ticket will be created and remain open, while all other tickets
-              will be closed as duplicates of it.
+              Enter JIRA issue keys above or use the URL parameter{" "}
+              <code>jira_issues</code> with a comma-separated list of issues.
             </p>
+          ) : detailsLoading ? (
+            <p>Loading JIRA issue details...</p>
+          ) : issueDetails ? (
+            <>
+              <p>
+                Select the JIRA issues you want to mark as duplicates. A parent
+                ticket will be created and remain open, while all other tickets
+                will be closed as duplicates of it.
+              </p>
 
-            {jiraIssues.length !== issueDetails.length && (
-              <div
-                style={{
-                  backgroundColor: "#FFEBE6",
-                  borderRadius: "3px",
-                  color: "#DE350B",
-                  marginBottom: "15px",
-                  padding: "10px",
-                }}
-              >
-                Warning: Some JIRA issues could not be found and are not shown
-                below. Please check your input.
+              {jiraIssues.length !== issueDetails.length && (
+                <div className={`${pageStyles.warningBox} ${pageStyles.error}`}>
+                  Warning: Some JIRA issues could not be found and are not shown
+                  below. Please check your input.
+                </div>
+              )}
+
+              <div className={pageStyles.selectButtons}>
+                <button
+                  className={pageStyles.secondaryButton}
+                  onClick={handleSelectAll}
+                >
+                  Select All
+                </button>
+                <button
+                  className={pageStyles.secondaryButton}
+                  onClick={handleSelectNone}
+                >
+                  Clear All
+                </button>
               </div>
-            )}
 
-            <div style={{ marginBottom: "15px" }}>
-              <button
-                onClick={handleSelectAll}
-                style={{
-                  backgroundColor: "#F4F5F7",
-                  border: "1px solid #DFE1E6",
-                  borderRadius: "3px",
-                  color: "#172B4D",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  marginRight: "10px",
-                  padding: "5px 10px",
-                }}
-              >
-                Select All
-              </button>
-              <button
-                onClick={handleSelectNone}
-                style={{
-                  backgroundColor: "#F4F5F7",
-                  border: "1px solid #DFE1E6",
-                  borderRadius: "3px",
-                  color: "#172B4D",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  padding: "5px 10px",
-                }}
-              >
-                Clear All
-              </button>
-            </div>
-
-            <div style={{ marginBottom: "20px" }}>
-              <table
-                style={{
-                  background: "#fff",
-                  borderCollapse: "separate",
-                  borderSpacing: "0 8px",
-                  width: "100%",
-                }}
-              >
-                <thead>
-                  <tr style={{ background: "#F4F5F7" }}>
-                    <th
-                      style={{
-                        borderBottom: "2px solid #DFE1E6",
-                        fontSize: 18,
-                        fontWeight: 700,
-                        padding: "12px 16px",
-                        textAlign: "left",
-                      }}
-                    />
-                    <th
-                      style={{
-                        borderBottom: "2px solid #DFE1E6",
-                        fontSize: 18,
-                        fontWeight: 700,
-                        padding: "12px 16px",
-                        textAlign: "left",
-                      }}
-                    >
-                      JIRA Key
-                    </th>
-                    <th
-                      style={{
-                        borderBottom: "2px solid #DFE1E6",
-                        fontSize: 18,
-                        fontWeight: 700,
-                        padding: "12px 16px",
-                        textAlign: "left",
-                      }}
-                    >
-                      Title
-                    </th>
-                    <th
-                      style={{
-                        borderBottom: "2px solid #DFE1E6",
-                        fontSize: 18,
-                        fontWeight: 700,
-                        padding: "12px 16px",
-                        textAlign: "left",
-                      }}
-                    >
-                      Status
-                    </th>
-                    <th
-                      style={{
-                        borderBottom: "2px solid #DFE1E6",
-                        fontSize: 18,
-                        fontWeight: 700,
-                        padding: "12px 16px",
-                        textAlign: "left",
-                      }}
-                    >
-                      Date Reported
-                    </th>
-                    <th
-                      style={{
-                        borderBottom: "2px solid #DFE1E6",
-                        fontSize: 18,
-                        fontWeight: 700,
-                        padding: "12px 16px",
-                        textAlign: "left",
-                      }}
-                    >
-                      Assignee
-                    </th>
-                    <th
-                      style={{
-                        borderBottom: "2px solid #DFE1E6",
-                        fontSize: 18,
-                        fontWeight: 700,
-                        padding: "12px 16px",
-                        textAlign: "left",
-                      }}
-                    >
-                      Feature
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {issueDetails.map((issue, idx) => (
-                    <tr
-                      key={issue.key}
-                      style={{
-                        backgroundColor: selectedTickets.includes(issue.key)
-                          ? "#F4F9FF"
-                          : idx % 2 === 0
-                            ? "#FAFBFC"
-                            : "#fff",
-                        borderRadius: 8,
-                      }}
-                    >
-                      <td style={{ padding: "10px 16px" }}>
-                        <input
-                          checked={selectedTickets.includes(issue.key)}
-                          id={`ticket-${issue.key}`}
-                          onChange={() => handleTicketToggle(issue.key)}
-                          type="checkbox"
-                        />
-                      </td>
-                      <td style={{ fontWeight: 600, padding: "10px 16px" }}>
-                        <JiraLink ticketKey={issue.key} />
-                      </td>
-                      <td style={{ padding: "10px 16px" }}>{issue.title}</td>
-                      <td style={{ padding: "10px 16px" }}>{issue.status}</td>
-                      <td style={{ padding: "10px 16px" }}>
-                        {issue.date_reported
-                          ? new Date(issue.date_reported).toLocaleString()
-                          : ""}
-                      </td>
-                      <td style={{ padding: "10px 16px" }}>{issue.assignee}</td>
-                      <td style={{ padding: "10px 16px" }}>{issue.feature}</td>
+              <div className={pageStyles.ticketsTable}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th />
+                      <th>JIRA Key</th>
+                      <th>Title</th>
+                      <th>Status</th>
+                      <th>Date Reported</th>
+                      <th>Assignee</th>
+                      <th>Feature</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {issueDetails.map((issue, idx) => (
+                      <tr
+                        className={cn(
+                          pageStyles.row,
+                          selectedTickets.includes(issue.key)
+                            ? pageStyles.rowSelected
+                            : idx % 2 === 0
+                              ? pageStyles.rowEven
+                              : pageStyles.rowOdd,
+                        )}
+                        key={issue.key}
+                      >
+                        <td className={pageStyles.cell}>
+                          <input
+                            checked={selectedTickets.includes(issue.key)}
+                            id={`ticket-${issue.key}`}
+                            onChange={() => handleTicketToggle(issue.key)}
+                            type="checkbox"
+                          />
+                        </td>
+                        <td className={cn(pageStyles.cell, pageStyles.bold)}>
+                          <JiraLink ticketKey={issue.key} />
+                        </td>
+                        <td className={pageStyles.cell}>{issue.title}</td>
+                        <td className={pageStyles.cell}>{issue.status}</td>
+                        <td className={pageStyles.cell}>
+                          {issue.date_reported
+                            ? new Date(issue.date_reported).toLocaleString()
+                            : ""}
+                        </td>
+                        <td className={pageStyles.cell}>{issue.assignee}</td>
+                        <td className={pageStyles.cell}>{issue.feature}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
+              <button
+                className={pageStyles.primaryActionButton}
+                disabled={isLoading || selectedTickets.length < 2}
+                onClick={handleConnectDuplicates}
+              >
+                {isLoading
+                  ? "Processing..."
+                  : createParentTicket
+                    ? "CREATE PARENT TICKET AND CLOSE SELECTED AS DUPLICATE"
+                    : "CLOSE AS DUPLICATE"}
+              </button>
+            </>
+          ) : (
+            <p>Could not load JIRA issue details.</p>
+          )
+        ) : jiraIssues.length > 1 ? (
+          <>
+            <p className={pageStyles.noParentMessage}>
+              {"Mark "}
+              <JiraLink ticketKey={jiraIssues[0]} />
+              {" as a duplicate of "}
+              {jiraIssues.slice(1).map((key, idx) => (
+                <React.Fragment key={key}>
+                  <JiraLink ticketKey={key} />
+                  {idx < jiraIssues.slice(1).length - 1 ? ", " : ""}
+                </React.Fragment>
+              ))}
+              {/* No titles in no-parent flow */}
+            </p>
             <button
-              disabled={isLoading || selectedTickets.length < 2}
+              className={pageStyles.primaryActionButton}
+              disabled={isLoading}
               onClick={handleConnectDuplicates}
-              style={{
-                backgroundColor: "#0052CC",
-                border: "none",
-                borderRadius: "3px",
-                color: "white",
-                cursor:
-                  isLoading || selectedTickets.length < 2
-                    ? "not-allowed"
-                    : "pointer",
-                fontSize: "16px",
-                opacity: selectedTickets.length < 2 ? 0.6 : 1,
-                padding: "10px 20px",
-              }}
             >
-              {isLoading ? "Processing..." : "Close Selected as Duplicates"}
+              {isLoading ? "Processing..." : "CLOSE AS DUPLICATE"}
             </button>
           </>
         ) : (
-          <p>Could not load JIRA issue details.</p>
+          <p>Enter at least two JIRA issue keys above.</p>
         )}
       </div>
     </div>

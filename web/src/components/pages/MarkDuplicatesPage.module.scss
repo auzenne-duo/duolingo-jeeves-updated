@@ -1,0 +1,144 @@
+$primary-blue: #0052cc;
+$neutral-bg: #f4f5f7;
+$neutral-border: #dfe1e6;
+
+.inputGroup {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+
+  .inputRow {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+
+    .textInput {
+      border: 1px solid $neutral-border;
+      border-radius: 4px;
+      flex: 1;
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+
+    .loadButton {
+      background-color: $primary-blue;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+  }
+}
+
+.primaryButton {
+  background-color: $primary-blue;
+  border: none;
+  border-radius: 3px;
+  color: white;
+  font-size: 16px;
+  padding: 10px 20px;
+}
+
+.warningBox {
+  border-radius: 3px;
+  margin-bottom: 15px;
+  padding: 10px;
+
+  &.success {
+    background-color: #e3fcef;
+    color: #006644;
+  }
+
+  &.error {
+    background-color: #ffebe6;
+    color: #de350b;
+  }
+}
+
+.selectButtons {
+  margin-bottom: 15px;
+}
+
+.ticketsTable {
+  margin-bottom: 20px;
+
+  table {
+    background: #fff;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    width: 100%;
+
+    thead {
+      tr {
+        background: $neutral-bg;
+      }
+      th {
+        border-bottom: 2px solid $neutral-border;
+        font-size: 18px;
+        font-weight: 700;
+        padding: 12px 16px;
+        text-align: left;
+      }
+    }
+  }
+}
+
+.secondaryButton {
+  background-color: $neutral-bg;
+  border: 1px solid $neutral-border;
+  border-radius: 3px;
+  color: #172b4d;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 5px 10px;
+  margin-right: 10px;
+}
+
+.row {
+  border-radius: 8px;
+}
+
+.rowSelected {
+  background-color: #f4f9ff;
+}
+
+.rowEven {
+  background-color: #fafbfc;
+}
+
+.rowOdd {
+  background-color: #fff;
+}
+
+.cell {
+  padding: 10px 16px;
+}
+
+.bold {
+  font-weight: 600;
+}
+
+.primaryActionButton {
+  @extend .primaryButton;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.jiraLink {
+  color: $primary-blue;
+  font-weight: bold;
+}
+
+.noParentMessage {
+  margin-bottom: 20px;
+}
