@@ -55,12 +55,12 @@ interface TrackingEvents {
   };
   // Mark duplicates page events
   mark_duplicates_page_view: {
-    jira_issues: string;
+    jira_issues: string[];
     num_jira_issues: number;
     create_parent_ticket?: boolean;
   };
   mark_duplicates_connect: {
-    jira_issues: string;
+    jira_issues: string[];
     status: string;
     success: boolean;
     create_parent_ticket?: boolean;
@@ -72,7 +72,8 @@ const track = <T extends keyof TrackingEvents>(
   props?: TrackingEvents[T],
 ) =>
   new Promise<void>(resolve => {
-    excess.track(event, props, () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    excess.track(event, props as any, () => {
       resolve();
     });
   });

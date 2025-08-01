@@ -72,7 +72,7 @@ const MarkDuplicatesPage: React.FC = () => {
     // Track page view event
     track("mark_duplicates_page_view", {
       create_parent_ticket: createParentTicket,
-      jira_issues: jiraIssues.join(","),
+      jira_issues: jiraIssues,
       num_jira_issues: jiraIssues.length,
     });
 
@@ -186,7 +186,7 @@ const MarkDuplicatesPage: React.FC = () => {
 
       track("mark_duplicates_connect", {
         create_parent_ticket: createParentTicket,
-        jira_issues: ticketsToProcess.join(","),
+        jira_issues: ticketsToProcess,
         status: response.overall,
         success: successFlag,
       });
@@ -200,7 +200,7 @@ const MarkDuplicatesPage: React.FC = () => {
       // Track connect event (failure)
       track("mark_duplicates_connect", {
         create_parent_ticket: createParentTicket,
-        jira_issues: ticketsToProcess.join(","),
+        jira_issues: ticketsToProcess,
         status: errorMessage,
         success: false,
       });
