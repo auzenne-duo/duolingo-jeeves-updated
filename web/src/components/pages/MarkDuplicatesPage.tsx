@@ -36,6 +36,7 @@ const MarkDuplicatesPage: React.FC = () => {
   const [result, setResult] = React.useState<{
     message: string;
     success: boolean;
+    parentTicketKey?: string;
   } | null>(null);
   const [issueDetails, setIssueDetails] = React.useState<
     JiraIssueDetails[] | null
@@ -181,6 +182,7 @@ const MarkDuplicatesPage: React.FC = () => {
       const successFlag = response.overall.startsWith("SUCCESS");
       setResult({
         message: `${successMessage} ${response.overall}`,
+        parentTicketKey: response.parent_ticket_key,
         success: successFlag,
       });
 
@@ -242,7 +244,13 @@ const MarkDuplicatesPage: React.FC = () => {
                 : `${pageStyles.warningBox} ${pageStyles.error}`
             }
           >
-            {result.message}
+            <div>{result.message}</div>
+            {result.success && result.parentTicketKey && createParentTicket && (
+              <div className={pageStyles.parentTicketLink}>
+                Parent ticket created:{" "}
+                <JiraLink ticketKey={result.parentTicketKey} />
+              </div>
+            )}
           </div>
         )}
 

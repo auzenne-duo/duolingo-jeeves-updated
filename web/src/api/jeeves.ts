@@ -326,11 +326,14 @@ export const setSpikeStatus = async (
 export const fullyConnectDuplicates = async (
   issueKeys: string[],
   createParentTicket = true,
-): Promise<{ overall: string; manifest: string }> =>
-  post<{ overall: string; manifest: string }>("/1/fully_connect_duplicates", {
-    create_parent_ticket: createParentTicket,
-    issue_keys: issueKeys,
-  });
+): Promise<{ overall: string; manifest: string; parent_ticket_key?: string }> =>
+  post<{ overall: string; manifest: string; parent_ticket_key?: string }>(
+    "/1/fully_connect_duplicates",
+    {
+      create_parent_ticket: createParentTicket,
+      issue_keys: issueKeys,
+    },
+  );
 
 export interface JiraIssueDetails {
   key: string;

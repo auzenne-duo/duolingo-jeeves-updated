@@ -171,7 +171,7 @@ class DuplicateGraphResolver:
             edge_successes=[edge for edge in edges_to_ids if edge not in failed_edges],
         )
 
-    def connect_duplicates_remote(self, issue_keys: List[str]) -> str:
+    def connect_duplicates_remote(self, issue_keys: List[str]) -> Tuple[str, Optional[str]]:
         """
         Marks a new issue as a duplicate of each of several existing issues on
         Jira, and ensures that any issues with a finite degree of separation
@@ -213,19 +213,22 @@ class DuplicateGraphResolver:
                            a new issue will be created as the parent issue.
 
         Returns:
-            A string, indicating which edge additions succeeded and which
-            failed. The first line of the string is one of SUCCESS, PARTIAL,
-            or FAILURE. SUCCESS indicates that all edges were successfully
-            added, FAILURE indicates that no edges were successfully added, and
-            PARTIAL indicates that some edges were successfully added and some
-            were not. This first line is followed by several other lines, each
-            of which starts with the character S (for success) or F (for
-            failure), followed by two issue keys; each line indicates whether
-            its two issue keys were successfully marked as duplicates. We
-            attach a trailing newline at the end of the final line so that every
-            line is parsed identically. If no new duplicate links were added,
-            we consider the operation a success. If we attempt to merge two or
-            more parent issues into the same group, an exception will be thrown.
+            A tuple containing:
+            1. A string, indicating which edge additions succeeded and which
+               failed. The first line of the string is one of SUCCESS, PARTIAL,
+               or FAILURE. SUCCESS indicates that all edges were successfully
+               added, FAILURE indicates that no edges were successfully added, and
+               PARTIAL indicates that some edges were successfully added and some
+               were not. This first line is followed by several other lines, each
+               of which starts with the character S (for success) or F (for
+               failure), followed by two issue keys; each line indicates whether
+               its two issue keys were successfully marked as duplicates. We
+               attach a trailing newline at the end of the final line so that every
+               line is parsed identically. If no new duplicate links were added,
+               we consider the operation a success. If we attempt to merge two or
+               more parent issues into the same group, an exception will be thrown.
+            2. The parent ticket key (string) if a parent was created or found,
+               None otherwise.
         """
         # Log the issue keys we're connecting duplicates for.
         displayed_keys = issue_keys[:MAX_LOG_LINES]
@@ -409,7 +412,7 @@ class DuplicateGraphResolver:
         except Exception as e:
             LOG.error(f"Error uploading duplicate connect results to S3: {e}")
 
-        return result
+        return result, parent_key
 
     def connect_duplicates_no_parent(self, issue_keys: List[str]) -> str:
         """Link and close a ticket without creating a parent.

@@ -527,14 +527,19 @@ def fully_connect_duplicates():
 
     try:
         if create_parent_ticket:
-            result_manifest = resolver.connect_duplicates_remote(issue_keys)
+            result_manifest, parent_ticket_key = resolver.connect_duplicates_remote(issue_keys)
         else:
             result_manifest = resolver.connect_duplicates_no_parent(issue_keys)
+            parent_ticket_key = None
     except ValueError as e:
         abort(make_response("Invalid input: " + str(e), 400))
 
     first_line = result_manifest.split("\n")[0]
-    result_dict = {"overall": first_line, "manifest": result_manifest}
+    result_dict = {
+        "overall": first_line,
+        "manifest": result_manifest,
+        "parent_ticket_key": parent_ticket_key,
+    }
     LOG.info("fully_connect_duplicates result: %s", result_dict)
     return json.jsonify(result_dict)
 

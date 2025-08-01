@@ -451,7 +451,9 @@ def test_connect_duplicates_remote_closes_child_tickets():
             ("DLAA-13", "DLAA-10", True),
         ]
 
-        result = resolver.connect_duplicates_remote(["DLAA-10", "DLAA-11", "DLAA-12", "DLAA-13"])
+        result, parent_key = resolver.connect_duplicates_remote(
+            ["DLAA-10", "DLAA-11", "DLAA-12", "DLAA-13"]
+        )
 
         # Verify that child tickets and deprecated parent issues are closed
         # Expected calls: DLAA-13 (deprecated parent), DLAA-11 (open child), DLAA-12 (gets closed despite being resolved)
@@ -462,6 +464,7 @@ def test_connect_duplicates_remote_closes_child_tickets():
         )  # resolved child (still gets closed)
         mock_jira_dal.close_issue_as_duplicate.assert_any_call("DLAA-13")  # deprecated parent
         assert "SUCCESS" in result
+        assert parent_key == "DLAA-10"  # Verify the parent key is returned
 
 
 @pytest.mark.parametrize(
