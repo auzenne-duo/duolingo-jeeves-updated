@@ -4,12 +4,12 @@
 
 ### **📥 Data Ingestion**
 
-#### **[`update_jeeves_data.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/update_jeeves_data.py) - Primary Data Ingestion Worker**
+#### **[`update_jeeves_data.py`](update_jeeves_data.py) - Primary Data Ingestion Worker**
 
 - **Purpose**: Pulls data from external sources and populates Jeeves with fresh content
 - **Schedule**: Rolling basis - continuously processes data from external sources
-- **Infrastructure**: ECS scheduled task ([`s3-worker.json`](https://github.com/duolingo/duolingo-jeeves/blob/master/galaxy/dev/s3-worker.json))
-- **Entry Point**: [`crawl_tickets()`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/lib/ticket_crawler.py) from `jeeves.lib.ticket_crawler`
+- **Infrastructure**: ECS scheduled task ([`s3-worker.json`](../../../galaxy/dev/s3-worker.json))
+- **Entry Point**: [`crawl_tickets()`](../../../jeeves/lib/ticket_crawler.py) from `jeeves.lib.ticket_crawler`
 
 **Data Sources Processed:**
 
@@ -27,10 +27,11 @@ External APIs → Document Validation → S3 Storage → SQS Queue (download_ver
 **Key Features:**
 
 - **Incremental Updates**: Uses checkpoint system to only fetch new/updated documents
-- **Rate Limiting**: Respects API limits for each external source (e.g., Reddit: 200 submissions/hour)
 - **Multi-Source Processing**: Handles 4 different data sources with different authentication methods
 - **Error Handling**: Continues processing other sources if one fails
 - **S3 Organization**: Stores documents in `{DataSource}/{Date}/{DocumentID}` structure
+
+**Note**: The system processes data for both production and development environments, which can lead to rate limit issues with external APIs (e.g., Reddit's 200 requests/hour limit) despite attempts at rate limiting.
 
 **Monitoring:**
 
@@ -42,7 +43,7 @@ External APIs → Document Validation → S3 Storage → SQS Queue (download_ver
 
 ### **🔄 Data Processing Pipeline**
 
-#### **[`sqs_verify_worker.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/sqs_verify_worker.py) - Document Verification Worker**
+#### **[`sqs_verify_worker.py`](sqs_verify_worker.py) - Document Verification Worker**
 
 - **Purpose**: Validates and transforms raw documents from external sources, and functions to fetch additional data for Zendesk and Jira managers
 - **Infrastructure**: ECS service (always running)
@@ -52,9 +53,9 @@ External APIs → Document Validation → S3 Storage → SQS Queue (download_ver
 
 **Additional Data Fetching:**
 
-- **Jira Documents**: Calls back to Jira API via [`JiraManager`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/manager/jira_manager.py) → [`JiraDAL`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/dal/jira_dal.py) to fetch extra information like `experiment_conditions`
+- **Jira Documents**: Calls back to Jira API via [`JiraManager`](../../../jeeves/manager/jira_manager.py) → [`JiraDAL`](../../../jeeves/dal/jira_dal.py) to fetch extra information like `experiment_conditions`
 - **Zendesk Documents**: Similarly fetches additional metadata from Zendesk API for tickets
-- **Technical Debt**: This data fetching could potentially be moved to the [`update_jeeves_data.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/update_jeeves_data.py) step for better separation of concerns
+- **Technical Debt**: This data fetching could potentially be moved to the [`update_jeeves_data.py`](update_jeeves_data.py) step for better separation of concerns
 
 **Code Flow Example (Jira)**:
 
@@ -67,7 +68,7 @@ sqs_verify_worker.py → JiraManager.process_document() → JiraDAL.get_experime
 - **CloudWatch Logs**: [duolingo-jeeves-sqs-worker-1-prod](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/duolingo-jeeves-sqs-worker-1-prod)
 - **Grafana Dashboard**: [SQS Worker 1 Monitoring](https://grafana.duolingo.com/d/a0c88716-64fa-463b-abc6-364782f045a5/duolingo-jeeves-prod-sqs-worker-1?orgId=1&refresh=1m)
 
-#### **[`sqs_index_worker.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/sqs_index_worker.py) - Document Indexing Worker**
+#### **[`sqs_index_worker.py`](sqs_index_worker.py) - Document Indexing Worker**
 
 - **Purpose**: Indexes validated documents into OpenSearch for search functionality
 - **Infrastructure**: ECS service (always running)
@@ -84,10 +85,10 @@ sqs_verify_worker.py → JiraManager.process_document() → JiraDAL.get_experime
 
 ### **📊 Spike Detection & Monitoring**
 
-#### **[`spike_worker.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/spike_worker.py) - Anomaly Detection Worker**
+#### **[`spike_worker.py`](spike_worker.py) - Anomaly Detection Worker**
 
 - **Purpose**: Detects statistical spikes in bug reports and user feedback
-- **Infrastructure**: ECS scheduled task ([`spike-worker.json`](https://github.com/duolingo/duolingo-jeeves/blob/master/galaxy/dev/spike-worker.json)) - [`rate(15 minutes)`](https://github.com/duolingo/duolingo-jeeves/blob/master/galaxy/prod/main.tf#L393)
+- **Infrastructure**: ECS scheduled task ([`spike-worker.json`](../../../galaxy/dev/spike-worker.json)) - [`rate(15 minutes)`](../../../galaxy/prod/main.tf#L393)
 - **Algorithm**: Time series analysis with configurable thresholds
 - **Output**: Spike detection results for team notifications
 
@@ -95,7 +96,7 @@ sqs_verify_worker.py → JiraManager.process_document() → JiraDAL.get_experime
 
 - **CloudWatch Logs**: [duolingo-jeeves-spike-worker-prod](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/duolingo-jeeves-spike-worker-prod)
 
-#### **[`monitor_and_alarm.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/monitor_and_alarm.py) - System Health Monitor**
+#### **[`monitor_and_alarm.py`](monitor_and_alarm.py) - System Health Monitor**
 
 - **Purpose**: Monitors system health and data freshness
 - **Trigger**: Manual execution or Jenkins scheduled job
@@ -104,7 +105,7 @@ sqs_verify_worker.py → JiraManager.process_document() → JiraDAL.get_experime
 - **Checks**: Worker status, queue depths, data pipeline health
 - **Alerts**: System-level issues and performance degradation
 
-#### **[`slack.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/slack.py) - Notification Worker**
+#### **[`slack.py`](slack.py) - Notification Worker**
 
 - **Purpose**: Sends Slack notifications for spikes and system alerts
 - **Infrastructure**: ECS scheduled task (`worker-cron.json`) - `cron(0 9 * * ? *)` (daily at 9:00 AM UTC)
@@ -118,19 +119,19 @@ sqs_verify_worker.py → JiraManager.process_document() → JiraDAL.get_experime
 
 ### **🛠️ Utility Scripts**
 
-#### **[`force_refresh.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/force_refresh.py) - Complete Data Refresh**
+#### **[`force_refresh.py`](force_refresh.py) - Complete Data Refresh**
 
 - **Trigger**: Manual execution via [Jenkins job](https://script-runner-jenkins.duolingo.com/job/duolingo-jeeves-refresh-tickets/)
 - **Use**: To force refresh all spikes, set the force_spike_refresh_flag to 1 in aws bucket jeeves-document-cache.
 
 ---
 
-#### **[`sync_jira_tickets.py`](https://github.com/duolingo/duolingo-jeeves/blob/master/jeeves/scripts/index_pipeline_and_spike_detector/sync_jira_tickets.py) - Jira Data Synchronization**
+#### **[`sync_jira_tickets.py`](sync_jira_tickets.py) - Jira Data Synchronization**
 
 - **Purpose**: Fetches recently updated Jira tickets and re-indexes them into OpenSearch
 - **Trigger**: Manual execution or Jenkins scheduled job
 - **Jenkins Job**: [duolingo-jeeves-sync-jira-tickets](https://script-runner-jenkins.duolingo.com/job/duolingo-jeeves-sync-jira-tickets/)
-- **Schedule**: [`H 3,9,15,21 * * *`](https://script-runner-jenkins.duolingo.com/job/duolingo-jeeves-sync-jira-tickets/configure) (4 times daily at hours 3, 9, 15, 21 with random minute)
+- **Schedule**: [`H 3,9,15,21 * * *`](https://github.com/duolingo/infra-blueprints/blob/master/repos/duolingo-jeeves/jenkins/duolingo-jeeves-sync-jira-tickets.yaml#L34) (4 times daily at hours 3, 9, 15, 21 with random minute)
 - **Default Window**: 1 hour (configurable via `REFRESH_HOURS` environment variable)
 
 **Key Features:**
@@ -166,13 +167,13 @@ graph TD
 
 ## ⚙️ Infrastructure Mapping
 
-| Script                  | ECS Configuration                                                                                           | ECS Service                                                                                                                                                                                                               | Notes                                    |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `update_jeeves_data.py` | [`s3-worker.json`](https://github.com/duolingo/duolingo-jeeves/blob/master/galaxy/dev/s3-worker.json)       | [duolingo-jeeves-s3-worker-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/services/duolingo-jeeves-s3-worker-prod/health?region=us-east-1)                                                           | Primary data ingestion                   |
-| `sqs_verify_worker.py`  | [`sqs-worker-1.json`](https://github.com/duolingo/duolingo-jeeves/blob/master/galaxy/dev/sqs-worker-1.json) | [duolingo-jeeves-sqs-worker-1-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/services/duolingo-jeeves-sqs-worker-1-prod/health?region=us-east-1)                                                     | Document verification                    |
-| `sqs_index_worker.py`   | [`sqs-worker-2.json`](https://github.com/duolingo/duolingo-jeeves/blob/master/galaxy/dev/sqs-worker-2.json) | [duolingo-jeeves-sqs-worker-2-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/services/duolingo-jeeves-sqs-worker-2-prod/health)                                                                      | OpenSearch indexing                      |
-| `spike_worker.py`       | [`spike-worker.json`](https://github.com/duolingo/duolingo-jeeves/blob/master/galaxy/dev/spike-worker.json) | [duolingo-jeeves-spike-worker-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/scheduled-tasks/duolingo-jeeves-spike-worker-prod?region=us-east-1&selectedTarget=terraform-20210408232715376500000001) | Spike detection (scheduled task, 15 min) |
-| `slack.py`              | [`worker-cron.json`](https://github.com/duolingo/duolingo-jeeves/blob/master/galaxy/dev/worker-cron.json)   | [duolingo-jeeves-worker-cron-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/scheduled-tasks/duolingo-jeeves-worker-cron-prod?region=us-east-1&selectedTarget=terraform-20200701172814811300000002)   | Notifications (daily at 9:00 AM UTC)     |
+| Script                  | ECS Configuration                                            | ECS Service                                                                                                                                                                                                               | Notes                                    |
+| ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `update_jeeves_data.py` | [`s3-worker.json`](../../../galaxy/dev/s3-worker.json)       | [duolingo-jeeves-s3-worker-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/services/duolingo-jeeves-s3-worker-prod/health?region=us-east-1)                                                           | Primary data ingestion                   |
+| `sqs_verify_worker.py`  | [`sqs-worker-1.json`](../../../galaxy/dev/sqs-worker-1.json) | [duolingo-jeeves-sqs-worker-1-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/services/duolingo-jeeves-sqs-worker-1-prod/health?region=us-east-1)                                                     | Document verification                    |
+| `sqs_index_worker.py`   | [`sqs-worker-2.json`](../../../galaxy/dev/sqs-worker-2.json) | [duolingo-jeeves-sqs-worker-2-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/services/duolingo-jeeves-sqs-worker-2-prod/health)                                                                      | OpenSearch indexing                      |
+| `spike_worker.py`       | [`spike-worker.json`](../../../galaxy/dev/spike-worker.json) | [duolingo-jeeves-spike-worker-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/scheduled-tasks/duolingo-jeeves-spike-worker-prod?region=us-east-1&selectedTarget=terraform-20210408232715376500000001) | Spike detection (scheduled task, 15 min) |
+| `slack.py`              | [`worker-cron.json`](../../../galaxy/dev/worker-cron.json)   | [duolingo-jeeves-worker-cron-prod](https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/prod/scheduled-tasks/duolingo-jeeves-worker-cron-prod?region=us-east-1&selectedTarget=terraform-20200701172814811300000002)   | Notifications (daily at 9:00 AM UTC)     |
 
 ## 🔍 Monitoring & Troubleshooting
 
