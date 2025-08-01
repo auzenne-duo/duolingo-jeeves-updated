@@ -7,7 +7,12 @@ from typing import Dict, List, Optional
 from duolingo_base.util import registry
 from prometheus_client import Gauge, push_to_gateway
 
-from jeeves.config.config import JIRA_ISSUE_TYPE_BUG, JIRA_PROJECTS, QUALITY_REPORT_S3_PATH
+from jeeves.config.config import (
+    JIRA_ISSUE_TYPE_BUG,
+    JIRA_PROJECTS,
+    QUALITY_REPORT_S3_PATH,
+    get_config,
+)
 from jeeves.dal.opensearch_interface import OpenSearchDAL
 from jeeves.manager.duplicate_graph_resolver import DuplicateGraphResolver
 from jeeves.manager.jira_manager import JiraManager
@@ -38,7 +43,7 @@ _NUM_PAST_DATASETS_TO_STORE = 4
 weekly_quality_score_gauge = Gauge(
     "weekly_quality_score",
     "Weekly quality score by organization and file type",
-    ["org", "name", "date_type", "file_type"],
+    ["org", "name", "date_type", "file_type", "environment"],
 )
 
 
@@ -107,6 +112,9 @@ class QualityReportDAL:
             gateway_url: Prometheus push gateway URL
         """
         try:
+            # Get environment from config
+            environment = get_config().get_nested(["environment"])
+
             # Determine organization type based on quality report
             if hasattr(quality_report, "team") and quality_report.team:
                 org_type = "team"
@@ -123,16 +131,17 @@ class QualityReportDAL:
                     # Get the latest score (last item in the list)
                     latest_score = score_history[-1][1]  # [date, score] -> score
 
-                    # Set the gauge value with labels
+                    # Set the gauge value with labels including environment
                     weekly_quality_score_gauge.labels(
                         org=org_type,
                         name=quality_report.title,
                         date_type="weekly",
                         file_type=file_type,
+                        environment=environment,
                     ).set(latest_score)
 
                     LOG.info(
-                        f"Set weekly score {latest_score} for {org_type} '{quality_report.title}' file_type '{file_type}'"
+                        f"Set weekly score {latest_score} for {org_type} '{quality_report.title}' file_type '{file_type}' environment '{environment}'"
                     )
 
             # Push to gateway

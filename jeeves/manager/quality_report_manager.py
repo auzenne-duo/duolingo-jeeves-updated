@@ -10,7 +10,7 @@ import pytz
 from duolingo_base.util import registry
 from prometheus_client import Gauge, push_to_gateway
 
-from jeeves.config.config import QUALITY_REPORT_PLOTS_DIRECTORY
+from jeeves.config.config import QUALITY_REPORT_PLOTS_DIRECTORY, get_config
 from jeeves.config.jira_features import JIRA_FEATURES
 from jeeves.dal.quality_report_dal import QualityReportDAL
 from jeeves.lib.send_quality_report_emails import send_email
@@ -34,7 +34,7 @@ LOG = logging.getLogger(__name__)
 
 # Prometheus metric for quality report scores
 quality_report_score_gauge = Gauge(
-    "quality_report_score", "Quality report score by organization", ["org", "name"]
+    "quality_report_score", "Quality report score by organization", ["org", "name", "environment"]
 )
 
 
@@ -75,17 +75,20 @@ class QualityReportManager:
             serialized_data = quality_report.serialize()
             overall_score = serialized_data.overall_score
 
+            # Get environment from config
+            environment = get_config().get_nested(["environment"])
+
             if overall_score is not None:
-                # Set the gauge value with labels
-                quality_report_score_gauge.labels(org=org_type, name=quality_report.title).set(
-                    overall_score
-                )
+                # Set the gauge value with labels including environment
+                quality_report_score_gauge.labels(
+                    org=org_type, name=quality_report.title, environment=environment
+                ).set(overall_score)
 
                 # Push to gateway
                 push_to_gateway(gateway_url, job="service-quality-report", registry=None)
 
                 LOG.info(
-                    f"Pushed quality score {overall_score} for {org_type} '{quality_report.title}' to Prometheus"
+                    f"Successfully pushed quality score {overall_score} for {org_type} '{quality_report.title}' to Prometheus gateway at {gateway_url}"
                 )
             else:
                 LOG.warning(f"Could not get overall score for {org_type} '{quality_report.title}'")
