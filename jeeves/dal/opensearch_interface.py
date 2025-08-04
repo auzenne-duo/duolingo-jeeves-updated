@@ -53,7 +53,8 @@ _config = get_config()
 LOG = logging.getLogger(__name__)
 
 # Default limit of 1000 must be increased to provide enough space for ~500 experiment conditions
-_MAX_FIELDS_LIMIT = 10000
+# TODO plan to remove remove this bottleneck in https://duolingo.atlassian.net/browse/OBSV-1197
+_MAX_FIELDS_LIMIT = 12000
 # If we ever change the duplicate detection model, make sure this value is
 # updated appropriately
 _SENTENCE_TRANSFORMERS_VECTOR_SIZE = 768
