@@ -54,6 +54,7 @@ JIRA_FEATURES = {
                 "Student Plan": [],
                 "Streak Society Promo": [],
                 "Energy Retier": [],
+                "Stripe on iOS": [],
             },
             "Crossgrades": {
                 "Max Upsell": ["max purchase flow", "max crossgrade", "crossgrade"],
@@ -499,6 +500,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Streak": "Incorrect or buggy streak number or calendar",
     "Streak freeze / repair": "Problems with using or equipping streak freeze or repair",
     "Streak Society Promo": "Anything related to the Streak Society Promotion subscription discount",
+    "Stripe on iOS": "Anything related to Stripe purchases originating from the iOS app",
     "Student Plan": "Anything related to the Get Student Plan, Student Plan verification, or Student Plan Prices",
     "Super Upsell": "Includes Super hooks, tabs, and session end cards, but excludes Super ads and the purchase flow after entering the Super hook",
     "Tab Redesign": "Redesigning the Profile, Feed, Leaderboard, and Quest tab for visual consistency.",
