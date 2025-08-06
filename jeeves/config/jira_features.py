@@ -112,9 +112,6 @@ JIRA_FEATURES = {
                 "Reonboarding": ["old user", "re onboarding", "reonboard"],
                 "Year in Review": [],
             },
-            "Score": {
-                "Score": ["duolingo score", "scores"],
-            },
         },
         "Area - Retention": {
             "Notifications": {
@@ -407,6 +404,9 @@ JIRA_FEATURES = {
         "DET Test Taker Growth": {
             "Monetization & Acquisition": {
                 "DET Score Design Quality": [],
+            },
+            "Score": {
+                "Score": ["duolingo score", "scores"],
             },
         },
     },

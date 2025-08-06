@@ -57,11 +57,6 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
                 ("elriczhong@duolingo.com", 338612774),
                 ("xiao@duolingo.com", 15625523),
             ],
-            "Score": [
-                ("allen.wang@duolingo.com", 975446875),
-                ("tao@duolingo.com", 515653291),
-                ("yunze@duolingo.com", 918148957),
-            ],
         },
         "Area - Retention": {
             _AREA: [("antonia@duolingo.com", 190618), ("jackson@duolingo.com", 19364437)],
