@@ -64,7 +64,6 @@ JIRA_FEATURES = {
                 "Mistakes Inbox": [],
                 "Practice Hub": [],
                 "Max": ["max user", "max", "max onboarding"],
-                "Role Play": ["roleplay", "role-play"],
                 "Words List": ["word list"],
                 "Explain my Answer": ["EMA", "bad explanation", "wrong explanation", "explanation"],
             },
@@ -226,6 +225,7 @@ JIRA_FEATURES = {
                 "DuoRadio": [],
                 "Adventures": [],
                 "Immersive Speak": [],
+                "Role Play": ["roleplay", "role-play"],
             },
         },
         "Short-form Learning": {
