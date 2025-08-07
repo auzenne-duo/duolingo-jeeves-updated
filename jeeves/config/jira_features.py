@@ -273,7 +273,6 @@ JIRA_FEATURES = {
     "New Subjects": {
         "Math": {
             "Math Curriculum Scaling": {
-                "Math - LLM Content": [],
                 "Math - Localization": [],
                 "Math - Generated Sessions": [
                     "math content",
