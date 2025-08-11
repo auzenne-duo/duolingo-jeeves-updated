@@ -148,8 +148,6 @@ JIRA_FEATURES = {
         },
         "no_area_growth": {
             "Social Engagement": {
-                "Avatar Builder": ["avatar creator"],
-                "Contact Sync": ["contact"],
                 "DuoNews": ["duo news", "news"],
                 "Feed Tab": [
                     "kudos feed",
@@ -160,12 +158,6 @@ JIRA_FEATURES = {
                     "share sentence to feed",
                     "share to feed",
                 ],
-                "Follow Suggestions": [
-                    "follow suggestion",
-                    "friend suggestion",
-                    "friend recommendation",
-                ],
-                "Friends": ["friend", "invite"],
                 "Friends Clash": [
                     "clash",
                     "competition",
@@ -179,15 +171,25 @@ JIRA_FEATURES = {
                     "say hi",
                 ],
                 "Kudos": ["congrats", "high five"],
-                "Profile": ["1pp", "3pp"],
-                "Profile Completion": [],
-                "User Search": [],
                 "Tab Redesign": [],
                 "Early Bird / Night Owl Chests": ["early bird", "night owl"],
                 "Leaderboards": ["leaderboard", "tournament", "league", "context"],
                 "XP boost": ["double xp", "2x"],
                 "Quests Tab": [],
                 "Power Chests": ["timed chest"],
+            },
+            "Social Network": {
+                "Avatar Builder": ["avatar creator"],
+                "Contact Sync": ["contact"],
+                "Follow Suggestions": [
+                    "follow suggestion",
+                    "friend suggestion",
+                    "friend recommendation",
+                ],
+                "Friends": ["friend", "invite"],
+                "Profile": ["1pp", "3pp"],
+                "Profile Completion": [],
+                "User Search": [],
             },
             "Delight": {
                 "In Lesson Delight": ["in lesson", "delight", "lightning", "flurry", "pulse"],
