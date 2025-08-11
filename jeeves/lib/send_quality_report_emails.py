@@ -85,6 +85,10 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
                 ("rsalvador@duolingo.com", 591913431),
                 ("social-engagement-engineering@duolingo.com", None),
             ],
+            "Social Network": [
+                ("amia@duolingo.com", 48361939),
+                ("social-network-engineering@duolingo.com", None),
+            ],
         },
         _RECEIVE_ALL: [
             ("hideki@duolingo.com", 1076),
