@@ -284,13 +284,21 @@ JIRA_FEATURES = {
                 "Math": [],
             },
             "Math Navigation": {
-                "Math - Visuals": ["math visual", "math interactive"],
                 "Math - Match Madness": ["math match"],
                 "Math - Puzzles & Games": ["math puzzles", "math paths", "CashDashNavigationVC"],
             },
             "Math Component Scaling": {
                 "Math - Word Problems": ["word problems"],
                 "Math - Life Skills": ["math stories"],
+                "Math - Visuals": [
+                    "math visual",
+                    "math interactive",
+                    "diagram",
+                    "slider",
+                    "number line",
+                    "graph",
+                    "webview",
+                ],
             },
         },
         "Music": {
