@@ -232,6 +232,11 @@ JIRA_FEATURES = {
         },
         "Short-form Learning": {
             "Short Form Experience": {
+                "Lesson Content": [
+                    "question",
+                    "answer options",
+                    "hints",
+                ],
                 "Generated sessions": [],
                 "Challenge layout issues": [
                     "exercise",
