@@ -1,4 +1,4 @@
-[![Overall](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fapp.opslevel.com%2Fapi%2Fservice_level%2F8gLqSEXTmMmzxHanbqmTVPwQFDWOujrYjU1uJdWEElE)](https://app.opslevel.com/services/duolingo-jeeves/maturity-report)
+[![Backstage](https://img.shields.io/badge/backstage-duolingo--jeeves-blue?style=flat)](https://backstage.duolingo.com/catalog/default/system/duolingo-jeeves)
 
 # duolingo-jeeves
 
