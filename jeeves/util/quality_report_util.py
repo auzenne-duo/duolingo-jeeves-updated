@@ -7,7 +7,7 @@ PROJECT_TO_PLATFORM = {
     # in case we need to show them as a category with the other platforms
     "VCCF": "Video Call",
     "VCBF": "Video Call",
-    "EXAI": "Video Call",
+    "VCE": "Video Call",
     "VCS": "Video Call",
     "VCG": "Video Call",
 }

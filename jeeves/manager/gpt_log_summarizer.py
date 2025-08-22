@@ -68,7 +68,7 @@ Response: {{{RESP_LOG_SUMMARY}: ["Failed to connect to server", "Network request
 
 Title: "lily not responding / device not capturing inputs"
 Description: "Lily is not responding to inputs from the device"
-Logs: ['[ERROR | ASAP] Keychain delete error: -34018 A required entitlement isn\'t present.', '2025/02/06 20:29:18:595  [ERROR | EXAI] [VCST] Task finished with error: Error Domain=kAFAssistantErrorDomain Code=1110 "No speech detected" UserInfo={{NSLocalizedDescription=No speech detected}}']
+Logs: ['[ERROR | ASAP] Keychain delete error: -34018 A required entitlement isn\'t present.', '2025/02/06 20:29:18:595  [ERROR | VCE] [VCST] Task finished with error: Error Domain=kAFAssistantErrorDomain Code=1110 "No speech detected" UserInfo={{NSLocalizedDescription=No speech detected}}']
 
 Response: {{{RESP_LOG_SUMMARY}: ["Task finished with error: Error Domain=kAFAssistantErrorDomain Code=1110 \"No speech detected\" UserInfo={{NSLocalizedDescription=No speech detected}}"]}}
 """

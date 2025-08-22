@@ -21,7 +21,7 @@ mock_score_history = {
     "DLAW": [],
     "VCCF": [],
     "VCBF": [],
-    "EXAI": [],
+    "VCE": [],
     "VCS": [],
     "VCG": [],
 }
