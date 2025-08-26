@@ -4,7 +4,7 @@
 #
 #    pip-compile dev-requirements.in
 #
---index-url https://pypi.duolingo.com/simple/
+--index-url https://duolingo.pe.jfrog.io/artifactory/api/pypi/duolingo-pypi/simple
 
 argcomplete==3.5.1
     # via yq

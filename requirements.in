@@ -1,4 +1,4 @@
---index-url https://pypi.duolingo.com/simple/
+--index-url https://duolingo.pe.jfrog.io/artifactory/api/pypi/duolingo-pypi/simple
 
 attrs==21.4.0
 boto3==1.34.25
