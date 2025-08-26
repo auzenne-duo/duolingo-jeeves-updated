@@ -90,6 +90,9 @@ JIRA_FEATURES = {
             "Ads": {
                 "Ads / rewarded ads": ["ads"],
             },
+            "Subscription Upsell Tab": {
+                "Subscription Upsell Tab": ["subscription tab", "upsell tab"]
+            },
         },
     },
     GROWTH: {
@@ -523,6 +526,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "World characters": "Missing or buggy world characters in lessons",
     "Video Call Tab": "Anything related to the Video Call tab, call history list, or Lily's video message",
     "Energy Retier": "Anything related to Energy Retier",
+    "Subscription Upsell Tab": "Anything related to the Subscription Upsell tab",
 }
 
 JIRA_FEATURES_DESCRIPTIONS_REGISTRY_KEY = "jira_features_descriptions"
