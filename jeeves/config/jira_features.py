@@ -43,7 +43,7 @@ JIRA_FEATURES = {
                 "Hearts / Unlimited Hearts": ["heart"],
                 "Super Hooks": [],
                 "Legendary": ["Legendarize"],
-                "Super/Max - Upsell Tab": [],
+                "Subscription Upsell Tab": [],
                 "Mistakes Inbox": [],
                 "Practice Hub": [],
                 "Words List": ["word list"],
@@ -87,7 +87,6 @@ JIRA_FEATURES = {
             },
             "Monetization Engine": {
                 "Max Backend": [],
-                "Super/Max - Purchasing": ["can't purchase"],
             },
             "Subscription Upsell Tab": {
                 "Subscription Upsell Tab": ["subscription tab", "upsell tab"]
@@ -518,7 +517,7 @@ JIRA_FEATURES_DESCRIPTIONS = {
     "Student Plan": "Anything related to the Get Student Plan, Student Plan verification, or Student Plan Prices",
     "Subscription Gifting": "Anything related to subscription gifting",
     "Super Hooks": "Includes Super hooks and session end cards, but excludes Super ads, the purchase flow after entering the Super hook, and the Super/Max upsell tab",
-    "Super/Max - Upsell Tab": "Anything related to the Super/Max upsell tab. Excludes other Super/Max hooks and session end cards",
+    "Subscription Upsell Tab": "Anything related to the Subscription Upsell tab",
     "Tab Redesign": "Redesigning the Profile, Feed, Leaderboard, and Quest tab for visual consistency.",
     "Super/Max - Purchase Flow": "Anything that happens after you enter the subscription purchase flow",
     "Widget": "Problems with widget on home screen or widget reward",
