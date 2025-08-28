@@ -205,7 +205,7 @@ RECIPIENT_GROUPS: Dict[str, Dict[str, List]] = {
         ],
         "no_area_monetization": {
             _AREA: [],
-            "Subscription Packaging": [
+            "Conversion": [
                 ("tower@duolingo.com", 290339876),
                 ("sue@duolingo.com", 411492851),
             ],
